@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI Conventions - HRM Docs</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.7; color: #24292f;
+  margin: 0; background: #f6f8fa; display: flex;
+}
+#sidebar {
+  width: 260px; min-height: 100vh; background: #fff;
+  border-right: 1px solid #d0d7de; padding: 20px 0;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  flex-shrink: 0;
+}
+#sidebar h2 { font-size: 12px; font-weight: 600; color: #57606a;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 20px 4px; margin: 16px 0 4px; }
+#sidebar ul { list-style: none; margin: 0; padding: 0; }
+#sidebar li a {
+  display: block; padding: 5px 20px 5px 28px;
+  color: #0969da; text-decoration: none; font-size: 13px;
+  border-left: 3px solid transparent; line-height: 1.4;
+}
+#sidebar li a:hover { background: #f6f8fa; border-left-color: #0969da; }
+#sidebar li.h1 a { padding-left: 20px; font-weight: 600; font-size: 13px; }
+#sidebar li.h2 a { padding-left: 28px; }
+#sidebar li.h3 a { padding-left: 40px; font-size: 12px; color: #57606a; }
+#content {
+  flex: 1; max-width: 900px; padding: 40px 48px;
+  background: #fff; min-height: 100vh;
+}
+h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.5em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.8em; }
+h3 { font-size: 1.2em; margin-top: 1.5em; }
+h4 { font-size: 1em; margin-top: 1.2em; }
+h1:first-child, h2:first-child { margin-top: 0; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { margin: 0 0 16px; }
+pre {
+  background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;
+  padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5;
+  margin: 0 0 16px;
+}
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 85%;
+}
+pre code { font-size: inherit; background: none; padding: 0; border: none; }
+:not(pre) > code {
+  background: rgba(175,184,193,.2); padding: .2em .4em;
+  border-radius: 6px; font-size: 85%;
+}
+blockquote {
+  margin: 0 0 16px; padding: 0 1em;
+  color: #57606a; border-left: .25em solid #d0d7de;
+}
+blockquote p { margin-bottom: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 14px; }
+thead { background: #f6f8fa; }
+th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+th { font-weight: 600; }
+tr:nth-child(even) { background: #f6f8fa; }
+ul, ol { padding-left: 2em; margin: 0 0 16px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px;
+  font-size: 12px; font-weight: 600; margin-right: 4px;
+}
+.lock { background: #fff8c5; color: #9a6700; }
+.method-get { color: #1a7f37; font-weight: 700; }
+.method-post { color: #0969da; font-weight: 700; }
+.method-patch { color: #9a6700; font-weight: 700; }
+.method-delete { color: #cf222e; font-weight: 700; }
+
+/* Syntax highlight classes */
+.kw { color: #cf222e; }
+.st { color: #0a3069; }
+.cm { color: #6e7781; font-style: italic; }
+.nm { color: #953800; }
+.kv { color: #0550ae; }
+
+/* Scroll margin for anchor links */
+h1, h2, h3, h4 { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+<h2>UI Conventions</h2><ul>
+<li class="h1"><a href="#ui-conventions">UI Conventions</a></li>
+<li class="h2"><a href="#1-design-tokens">1. Design Tokens</a></li>
+<li class="h3"><a href="#màu-sắc-chính">Màu sắc chính</a></li>
+<li class="h3"><a href="#màu-trạng-thái-nhân-viên">Màu trạng thái nhân viên</a></li>
+<li class="h3"><a href="#typography">Typography</a></li>
+<li class="h3"><a href="#spacing">Spacing</a></li>
+<li class="h2"><a href="#2-ant-design-theme-configuration">2. Ant Design Theme Configuration</a></li>
+<li class="h2"><a href="#3-layout">3. Layout</a></li>
+<li class="h3"><a href="#applayout">AppLayout</a></li>
+<li class="h3"><a href="#page-header">Page Header</a></li>
+<li class="h2"><a href="#4-form-conventions">4. Form Conventions</a></li>
+<li class="h3"><a href="#layout-form">Layout form</a></li>
+<li class="h3"><a href="#quy-tắc-form">Quy tắc form</a></li>
+<li class="h3"><a href="#trường-ngày-tháng">Trường ngày tháng</a></li>
+<li class="h3"><a href="#nút-submit-cancel">Nút Submit / Cancel</a></li>
+<li class="h2"><a href="#5-table-conventions">5. Table Conventions</a></li>
+<li class="h3"><a href="#cấu-trúc-chuẩn">Cấu trúc chuẩn</a></li>
+<li class="h3"><a href="#cột-bắt-buộc-trong-bảng-nhân-viên">Cột bắt buộc trong bảng nhân viên</a></li>
+<li class="h3"><a href="#pagination">Pagination</a></li>
+<li class="h3"><a href="#empty-state">Empty state</a></li>
+<li class="h2"><a href="#6-định-dạng-việt-nam">6. Định dạng Việt Nam</a></li>
+<li class="h3"><a href="#tiền-tệ">Tiền tệ</a></li>
+<li class="h3"><a href="#ngày-tháng">Ngày tháng</a></li>
+<li class="h3"><a href="#số-điện-thoại">Số điện thoại</a></li>
+<li class="h3"><a href="#cccd-cmnd">CCCD / CMND</a></li>
+<li class="h3"><a href="#phần-trăm">Phần trăm</a></li>
+<li class="h2"><a href="#7-loading-empty-states">7. Loading & Empty States</a></li>
+<li class="h3"><a href="#loading">Loading</a></li>
+<li class="h3"><a href="#empty-state">Empty State</a></li>
+<li class="h2"><a href="#8-thông-báo-notification">8. Thông báo (Notification)</a></li>
+<li class="h2"><a href="#9-modal-conventions">9. Modal Conventions</a></li>
+<li class="h2"><a href="#10-responsive-design">10. Responsive Design</a></li>
+<li class="h2"><a href="#11-accessibility">11. Accessibility</a></li>
+</ul></nav>
+
+<main id="content">
+<h1 id="ui-conventions">UI Conventions</h1>
+<p><strong>Phiên bản:</strong> 1.0  </p>
+<p><strong>Ngày cập nhật:</strong> 19/06/2026  </p>
+<p><strong>Design System:</strong> Ant Design v5 + Custom Token</p>
+<hr>
+<h2 id="1-design-tokens">1. Design Tokens</h2>
+<p>Các giá trị gốc của hệ thống. Không dùng giá trị hardcode trong CSS — luôn dùng token.</p>
+<h3 id="màu-sắc-chính">Màu sắc chính</h3>
+<table><thead>
+<tr><th>Token</th><th>Giá trị</th><th>Dùng cho</th></tr>
+</thead><tbody>
+<tr><td><code>colorPrimary</code></td><td><code>#1677ff</code></td><td>Button primary, link, focus ring</td></tr>
+<tr><td><code>colorSuccess</code></td><td><code>#52c41a</code></td><td>Trạng thái hoạt động, đã duyệt</td></tr>
+<tr><td><code>colorWarning</code></td><td><code>#faad14</code></td><td>Chờ duyệt, cảnh báo</td></tr>
+<tr><td><code>colorError</code></td><td><code>#ff4d4f</code></td><td>Lỗi, đã từ chối, nghỉ việc</td></tr>
+<tr><td><code>colorInfo</code></td><td><code>#1677ff</code></td><td>Thông báo thông tin</td></tr>
+<tr><td><code>colorTextBase</code></td><td><code>#000000</code></td><td>Text chính</td></tr>
+<tr><td><code>colorBgBase</code></td><td><code>#ffffff</code></td><td>Nền chính</td></tr>
+</tbody></table>
+<h3 id="màu-trạng-thái-nhân-viên">Màu trạng thái nhân viên</h3>
+<table><thead>
+<tr><th>Trạng thái</th><th>Màu</th><th>AntD Badge color</th></tr>
+</thead><tbody>
+<tr><td>Đang làm việc</td><td>Xanh lá</td><td><code>success</code></td></tr>
+<tr><td>Thử việc</td><td>Xanh dương</td><td><code>processing</code></td></tr>
+<tr><td>Nghỉ thai sản / phép dài</td><td>Vàng</td><td><code>warning</code></td></tr>
+<tr><td>Đã nghỉ việc</td><td>Đỏ</td><td><code>error</code></td></tr>
+<tr><td>Đã nghỉ hưu</td><td>Xám</td><td><code>default</code></td></tr>
+</tbody></table>
+<h3 id="typography">Typography</h3>
+<table><thead>
+<tr><th>Yếu tố</th><th>Font size</th><th>Font weight</th></tr>
+</thead><tbody>
+<tr><td>Page title (H1)</td><td>24px</td><td>600</td></tr>
+<tr><td>Section title (H2)</td><td>20px</td><td>600</td></tr>
+<tr><td>Card title (H3)</td><td>16px</td><td>600</td></tr>
+<tr><td>Body text</td><td>14px</td><td>400</td></tr>
+<tr><td>Label form</td><td>14px</td><td>500</td></tr>
+<tr><td>Caption / hint</td><td>12px</td><td>400</td></tr>
+<tr><td>Table header</td><td>14px</td><td>600</td></tr>
+</tbody></table>
+<p>Font chính: <code>-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif</code></p>
+<h3 id="spacing">Spacing</h3>
+<p>Theo bội số 8px: <code>4 / 8 / 12 / 16 / 24 / 32 / 48px</code></p>
+<hr>
+<h2 id="2-ant-design-theme-configuration">2. Ant Design Theme Configuration</h2>
+<p>Theme tùy chỉnh khai báo trong <code>main.tsx</code> qua <code>ConfigProvider</code>:</p>
+<table><thead>
+<tr><th>Thuộc tính</th><th>Giá trị</th></tr>
+</thead><tbody>
+<tr><td><code>borderRadius</code></td><td><code>6px</code></td></tr>
+<tr><td><code>colorPrimary</code></td><td><code>#1677ff</code></td></tr>
+<tr><td><code>fontFamily</code></td><td>Hệ thống</td></tr>
+<tr><td><code>fontSize</code></td><td><code>14px</code></td></tr>
+<tr><td><code>Table.colorFillAlter</code></td><td><code>#fafafa</code></td></tr>
+</tbody></table>
+<hr>
+<h2 id="3-layout">3. Layout</h2>
+<h3 id="applayout">AppLayout</h3>
+<pre><code class="language-">┌─────────────────────────────────────────┐
+│ Header (64px)                            │
+├──────────┬──────────────────────────────┤
+│ Sidebar  │ Content                       │
+│ (240px)  │                               │
+│          │  ┌────────────────────────┐   │
+│          │  │ PageHeader             │   │
+│          │  │ (breadcrumb + actions) │   │
+│          │  ├────────────────────────┤   │
+│          │  │ Main content           │   │
+│          │  │                        │   │
+│          │  └────────────────────────┘   │
+└──────────┴──────────────────────────────┘
+</code></pre>
+<p>Sidebar thu gọn còn 80px (chỉ hiện icon) khi người dùng click toggle.</p>
+<h3 id="page-header">Page Header</h3>
+<p>Mỗi trang có <code>PageHeader</code> gồm:</p>
+<ul>
+<li><strong>Breadcrumb</strong>: tối đa 3 cấp — Trang chủ > Module > Trang hiện tại</li>
+<li><strong>Tiêu đề trang</strong>: font 20px, bold</li>
+<li><strong>Actions</strong>: nằm bên phải — thường là nút "Thêm mới" + "Xuất Excel"</li>
+</ul>
+<hr>
+<h2 id="4-form-conventions">4. Form Conventions</h2>
+<h3 id="layout-form">Layout form</h3>
+<table><thead>
+<tr><th>Loại form</th><th>Layout</th><th>Khi dùng</th></tr>
+</thead><tbody>
+<tr><td>Trong modal</td><td>Vertical (label trên input)</td><td>Form ngắn ≤ 6 trường</td></tr>
+<tr><td>Trang riêng</td><td>Horizontal (label bên trái, 6/18 col)</td><td>Form dài, nhiều section</td></tr>
+<tr><td>Filter/search</td><td>Inline</td><td>Thanh tìm kiếm bảng dữ liệu</td></tr>
+</tbody></table>
+<h3 id="quy-tắc-form">Quy tắc form</h3>
+<ul>
+<li>Dùng <code>Form</code> của Ant Design — không dùng react-hook-form</li>
+<li>Mỗi trường có <code>label</code>, <code>name</code>, và <code>rules</code> validation</li>
+<li>Label kết thúc bằng dấu hai chấm: "Họ và tên:"</li>
+<li>Trường bắt buộc hiển thị dấu <code>*</code> màu đỏ (AntD tự xử lý)</li>
+<li>Placeholder dạng gợi ý: "Nhập họ và tên đầy đủ"</li>
+<li>Thông báo lỗi validation hiển thị ngay dưới input, màu đỏ</li>
+</ul>
+<h3 id="trường-ngày-tháng">Trường ngày tháng</h3>
+<ul>
+<li>Dùng <code>DatePicker</code> của AntD với <code>format="DD/MM/YYYY"</code></li>
+<li>Locale <code>vi_VN</code> từ <code>antd/locale/vi_VN</code></li>
+<li>Không cho chọn ngày trong tương lai với ngày sinh</li>
+<li>Không cho chọn ngày trong quá khứ với ngày bắt đầu hợp đồng mới</li>
+</ul>
+<h3 id="nút-submit-cancel">Nút Submit / Cancel</h3>
+<ul>
+<li>Nút xác nhận (primary) luôn ở <strong>bên phải</strong></li>
+<li>Nút hủy (default) luôn ở <strong>bên trái</strong> nút xác nhận</li>
+<li>Trong modal: align-right cả hai nút</li>
+<li>Khi đang xử lý: disable + hiện spinner trong nút primary</li>
+</ul>
+<hr>
+<h2 id="5-table-conventions">5. Table Conventions</h2>
+<h3 id="cấu-trúc-chuẩn">Cấu trúc chuẩn</h3>
+<p>Mỗi trang danh sách gồm:</p>
+<ol>
+<li><strong>Filter bar</strong> — bộ lọc phía trên bảng</li>
+<li><strong>Action bar</strong> — "Thêm mới", "Xuất Excel", đếm số bản ghi</li>
+<li><strong>Table</strong> — dữ liệu, có phân trang</li>
+<li><strong>Pagination</strong> — hiển thị tổng số bản ghi, chọn số hàng/trang</li>
+</ol>
+<h3 id="cột-bắt-buộc-trong-bảng-nhân-viên">Cột bắt buộc trong bảng nhân viên</h3>
+<table><thead>
+<tr><th>Cột</th><th>Chiều rộng</th><th>Ghi chú</th></tr>
+</thead><tbody>
+<tr><td>STT</td><td>60px</td><td>Số thứ tự, fixed left</td></tr>
+<tr><td>Mã NV</td><td>100px</td><td>Link đến chi tiết</td></tr>
+<tr><td>Họ tên</td><td>200px</td><td>Avatar + tên</td></tr>
+<tr><td>Phòng ban</td><td>150px</td><td></td></tr>
+<tr><td>Chức vụ</td><td>150px</td><td></td></tr>
+<tr><td>Trạng thái</td><td>120px</td><td>Badge màu</td></tr>
+<tr><td>Thao tác</td><td>120px</td><td>Icon xem / sửa / xóa, fixed right</td></tr>
+</tbody></table>
+<h3 id="pagination">Pagination</h3>
+<ul>
+<li>Mặc định: 20 bản ghi/trang</li>
+<li>Tuỳ chọn: 10 / 20 / 50 / 100</li>
+<li>Luôn hiển thị tổng số: "Tổng X bản ghi"</li>
+<li>Lưu page hiện tại và pageSize vào URL query string: <code>?page=2&pageSize=20</code></li>
+</ul>
+<h3 id="empty-state">Empty state</h3>
+<p>Khi bảng rỗng hiển thị icon minh hoạ + text "Chưa có dữ liệu" + nút "Thêm mới" (nếu user có quyền).</p>
+<hr>
+<h2 id="6-định-dạng-việt-nam">6. Định dạng Việt Nam</h2>
+<p>Tất cả hàm định dạng đặt trong <code>utils/format.ts</code>.</p>
+<h3 id="tiền-tệ">Tiền tệ</h3>
+<table><thead>
+<tr><th>Giá trị</th><th>Hiển thị</th></tr>
+</thead><tbody>
+<tr><td>1000000</td><td><code>1.000.000 ₫</code></td></tr>
+<tr><td>15500000</td><td><code>15.500.000 ₫</code></td></tr>
+<tr><td>-2000000</td><td><code>-2.000.000 ₫</code></td></tr>
+</tbody></table>
+<p>Dùng dấu <strong>chấm</strong> (<code>.</code>) phân cách hàng nghìn, ký hiệu <code>₫</code> phía sau, không có dấu thập phân cho VND.</p>
+<h3 id="ngày-tháng">Ngày tháng</h3>
+<table><thead>
+<tr><th>Format</th><th>Khi dùng</th></tr>
+</thead><tbody>
+<tr><td><code>DD/MM/YYYY</code></td><td>Ngày sinh, ngày vào làm, ngày nghỉ</td></tr>
+<tr><td><code>DD/MM/YYYY HH:mm</code></td><td>Timestamp chấm công, tạo hồ sơ</td></tr>
+<tr><td><code>MM/YYYY</code></td><td>Kỳ lương (tháng/năm)</td></tr>
+<tr><td><code>Th X, YYYY</code></td><td>Relative display (tháng 6, 2026)</td></tr>
+</tbody></table>
+<p>Dùng <code>dayjs</code> với locale <code>vi</code> — KHÔNG dùng <code>moment</code> hoặc <code>new Date()</code>.</p>
+<h3 id="số-điện-thoại">Số điện thoại</h3>
+<p>Hiển thị cách nhau: <code>0901 234 567</code> (nhóm 4-3-3).  </p>
+<p>Lưu trong DB dạng: <code>0901234567</code>.</p>
+<h3 id="cccd-cmnd">CCCD / CMND</h3>
+<p>Trong danh sách: che giữa → <code>001***876543</code> (hiện 3 số đầu, 6 số cuối).  </p>
+<p>Trong trang chi tiết cá nhân: hiện đầy đủ.</p>
+<h3 id="phần-trăm">Phần trăm</h3>
+<p><code>85.5%</code> — dùng <code>%</code> không cách, tối đa 1 chữ số thập phân.</p>
+<hr>
+<h2 id="7-loading-empty-states">7. Loading & Empty States</h2>
+<h3 id="loading">Loading</h3>
+<table><thead>
+<tr><th>Tình huống</th><th>Component</th></tr>
+</thead><tbody>
+<tr><td>Tải trang lần đầu</td><td><code>Skeleton</code> (placeholder hình dạng content)</td></tr>
+<tr><td>Tải dữ liệu bảng</td><td><code>Table loading={true}</code> (AntD tự render spinner)</td></tr>
+<tr><td>Nút submit đang xử lý</td><td><code>Button loading={true}</code></td></tr>
+<tr><td>Upload file</td><td><code>Progress</code> bar</td></tr>
+</tbody></table>
+<p>Không dùng <code>Spin</code> (spinner tròn) cho trang — dễ gây layout shift.</p>
+<h3 id="empty-state">Empty State</h3>
+<table><thead>
+<tr><th>Tình huống</th><th>Hiển thị</th></tr>
+</thead><tbody>
+<tr><td>Bảng rỗng (chưa có dữ liệu)</td><td>Icon + "Chưa có dữ liệu" + nút tạo mới</td></tr>
+<tr><td>Tìm kiếm không có kết quả</td><td>Icon tìm kiếm + "Không tìm thấy kết quả"</td></tr>
+<tr><td>Lỗi tải dữ liệu</td><td>Icon lỗi + message lỗi + nút "Thử lại"</td></tr>
+</tbody></table>
+<hr>
+<h2 id="8-thông-báo-notification">8. Thông báo (Notification)</h2>
+<table><thead>
+<tr><th>Loại</th><th>AntD component</th><th>Khi dùng</th></tr>
+</thead><tbody>
+<tr><td>Thành công</td><td><code>message.success()</code></td><td>Lưu, xóa, duyệt thành công</td></tr>
+<tr><td>Lỗi ngắn</td><td><code>message.error()</code></td><td>Lỗi validate, lỗi API nhẹ</td></tr>
+<tr><td>Cảnh báo</td><td><code>message.warning()</code></td><td>Nhắc nhở, xác nhận hành động</td></tr>
+<tr><td>Thông báo chi tiết</td><td><code>notification.open()</code></td><td>Thông báo có action button</td></tr>
+<tr><td>Xác nhận xóa</td><td><code>Modal.confirm()</code></td><td>Trước khi xóa bản ghi</td></tr>
+</tbody></table>
+<p>Thời gian hiển thị <code>message</code>: 3 giây. <code>notification</code>: 5 giây.</p>
+<hr>
+<h2 id="9-modal-conventions">9. Modal Conventions</h2>
+<ul>
+<li>Chiều rộng: 520px (nhỏ), 720px (trung bình), 960px (lớn)</li>
+<li>Tiêu đề modal: động theo action — "Thêm nhân viên" / "Sửa thông tin nhân viên"</li>
+<li>Nút footer: "Lưu" (primary) + "Hủy" (default), align right</li>
+<li>Khi đang submit: disable cả hai nút, hiện spinner trong "Lưu"</li>
+<li>Không đóng modal khi click ra ngoài nếu form đã có dữ liệu (dùng <code>maskClosable={false}</code>)</li>
+<li>Form trong modal dùng layout <code>vertical</code></li>
+</ul>
+<hr>
+<h2 id="10-responsive-design">10. Responsive Design</h2>
+<p>App HRM chủ yếu dùng trên desktop. Mobile chỉ hỗ trợ các tính năng cơ bản.</p>
+<table><thead>
+<tr><th>Breakpoint</th><th>Chiều rộng</th><th>Hành vi</th></tr>
+</thead><tbody>
+<tr><td>Desktop</td><td>≥ 1200px</td><td>Full layout, sidebar mở</td></tr>
+<tr><td>Tablet</td><td>768px – 1199px</td><td>Sidebar thu gọn (icon only)</td></tr>
+<tr><td>Mobile</td><td>< 768px</td><td>Sidebar ẩn, drawer khi cần</td></tr>
+</tbody></table>
+<p>Dùng <code>useBreakpoint()</code> hook của AntD để điều chỉnh layout theo màn hình.</p>
+<hr>
+<h2 id="11-accessibility">11. Accessibility</h2>
+<ul>
+<li>Tất cả icon-only button phải có <code>title</code> hoặc <code>aria-label</code></li>
+<li>Form input phải có <code>id</code> tương ứng với <code>htmlFor</code> của label</li>
+<li>Màu sắc không phải cách duy nhất để truyền tải thông tin — badge trạng thái có cả text</li>
+<li>Focus ring không bị ẩn (không override <code>outline: none</code> toàn cục)</li>
+<li>Keyboard navigation hoạt động với modal, dropdown, table row actions</li>
+</ul>
+
+</main>
+<script>
+// Highlight active TOC link on scroll
+const headings = document.querySelectorAll('h1,h2,h3,h4');
+const links = document.querySelectorAll('#sidebar a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('#sidebar a[href="#'+e.target.id+'"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '0px 0px -80% 0px' });
+headings.forEach(h => { if(h.id) obs.observe(h); });
+</script>
+<style>#sidebar a.active { background:#ddf4ff; border-left-color:#0969da; font-weight:600; }</style>
+</body>
+</html>

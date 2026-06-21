@@ -1,0 +1,339 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FE Architecture - HRM Docs</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.7; color: #24292f;
+  margin: 0; background: #f6f8fa; display: flex;
+}
+#sidebar {
+  width: 260px; min-height: 100vh; background: #fff;
+  border-right: 1px solid #d0d7de; padding: 20px 0;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  flex-shrink: 0;
+}
+#sidebar h2 { font-size: 12px; font-weight: 600; color: #57606a;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 20px 4px; margin: 16px 0 4px; }
+#sidebar ul { list-style: none; margin: 0; padding: 0; }
+#sidebar li a {
+  display: block; padding: 5px 20px 5px 28px;
+  color: #0969da; text-decoration: none; font-size: 13px;
+  border-left: 3px solid transparent; line-height: 1.4;
+}
+#sidebar li a:hover { background: #f6f8fa; border-left-color: #0969da; }
+#sidebar li.h1 a { padding-left: 20px; font-weight: 600; font-size: 13px; }
+#sidebar li.h2 a { padding-left: 28px; }
+#sidebar li.h3 a { padding-left: 40px; font-size: 12px; color: #57606a; }
+#content {
+  flex: 1; max-width: 900px; padding: 40px 48px;
+  background: #fff; min-height: 100vh;
+}
+h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.5em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.8em; }
+h3 { font-size: 1.2em; margin-top: 1.5em; }
+h4 { font-size: 1em; margin-top: 1.2em; }
+h1:first-child, h2:first-child { margin-top: 0; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { margin: 0 0 16px; }
+pre {
+  background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;
+  padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5;
+  margin: 0 0 16px;
+}
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 85%;
+}
+pre code { font-size: inherit; background: none; padding: 0; border: none; }
+:not(pre) > code {
+  background: rgba(175,184,193,.2); padding: .2em .4em;
+  border-radius: 6px; font-size: 85%;
+}
+blockquote {
+  margin: 0 0 16px; padding: 0 1em;
+  color: #57606a; border-left: .25em solid #d0d7de;
+}
+blockquote p { margin-bottom: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 14px; }
+thead { background: #f6f8fa; }
+th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+th { font-weight: 600; }
+tr:nth-child(even) { background: #f6f8fa; }
+ul, ol { padding-left: 2em; margin: 0 0 16px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px;
+  font-size: 12px; font-weight: 600; margin-right: 4px;
+}
+.lock { background: #fff8c5; color: #9a6700; }
+.method-get { color: #1a7f37; font-weight: 700; }
+.method-post { color: #0969da; font-weight: 700; }
+.method-patch { color: #9a6700; font-weight: 700; }
+.method-delete { color: #cf222e; font-weight: 700; }
+
+/* Syntax highlight classes */
+.kw { color: #cf222e; }
+.st { color: #0a3069; }
+.cm { color: #6e7781; font-style: italic; }
+.nm { color: #953800; }
+.kv { color: #0550ae; }
+
+/* Scroll margin for anchor links */
+h1, h2, h3, h4 { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+<h2>FE Architecture</h2><ul>
+<li class="h1"><a href="#frontend-architecture">Frontend Architecture</a></li>
+<li class="h2"><a href="#1-tổng-quan">1. Tổng quan</a></li>
+<li class="h2"><a href="#2-tech-stack">2. Tech Stack</a></li>
+<li class="h2"><a href="#3-cấu-trúc-thư-mục">3. Cấu trúc thư mục</a></li>
+<li class="h2"><a href="#4-state-management">4. State Management</a></li>
+<li class="h3"><a href="#41-server-state-tanstack-query">4.1 Server State — TanStack Query</a></li>
+<li class="h3"><a href="#42-client-state-zustand">4.2 Client State — Zustand</a></li>
+<li class="h2"><a href="#5-routing">5. Routing</a></li>
+<li class="h3"><a href="#51-cấu-trúc-route">5.1 Cấu trúc route</a></li>
+<li class="h3"><a href="#52-route-guards">5.2 Route Guards</a></li>
+<li class="h2"><a href="#6-auth-flow">6. Auth Flow</a></li>
+<li class="h3"><a href="#61-đăng-nhập">6.1 Đăng nhập</a></li>
+<li class="h3"><a href="#62-tự-động-làm-mới-token">6.2 Tự động làm mới token</a></li>
+<li class="h3"><a href="#63-đăng-xuất">6.3 Đăng xuất</a></li>
+<li class="h2"><a href="#7-api-call-pattern">7. API Call Pattern</a></li>
+<li class="h3"><a href="#xử-lý-lỗi-api">Xử lý lỗi API</a></li>
+<li class="h2"><a href="#8-internationalization-i18n">8. Internationalization (i18n)</a></li>
+<li class="h2"><a href="#9-performance">9. Performance</a></li>
+<li class="h2"><a href="#10-build-deploy">10. Build & Deploy</a></li>
+<li class="h2"><a href="#11-error-monitoring">11. Error Monitoring</a></li>
+</ul></nav>
+
+<main id="content">
+<h1 id="frontend-architecture">Frontend Architecture</h1>
+<p><strong>Phiên bản:</strong> 1.0  </p>
+<p><strong>Ngày cập nhật:</strong> 19/06/2026  </p>
+<p><strong>Stack:</strong> React 18 · TypeScript · Vite · Ant Design v5</p>
+<hr>
+<h2 id="1-tổng-quan">1. Tổng quan</h2>
+<p>Frontend HRM là Single Page Application (SPA) phục vụ các nhóm người dùng:</p>
+<table><thead>
+<tr><th>Nhóm</th><th>Quyền chính</th></tr>
+</thead><tbody>
+<tr><td>Super Admin</td><td>Toàn bộ hệ thống, cấu hình công ty</td></tr>
+<tr><td>HR Manager</td><td>Quản lý nhân viên, chấm công, lương, phép</td></tr>
+<tr><td>Trưởng phòng</td><td>Duyệt phép, đánh giá nhân viên phòng ban</td></tr>
+<tr><td>Nhân viên</td><td>Xem thông tin cá nhân, nộp đơn phép, xem phiếu lương</td></tr>
+</tbody></table>
+<p>Giao tiếp với backend qua REST API (JSON). Xác thực bằng JWT access token trong memory + refresh token trong HttpOnly cookie.</p>
+<hr>
+<h2 id="2-tech-stack">2. Tech Stack</h2>
+<table><thead>
+<tr><th>Thư viện</th><th>Phiên bản</th><th>Vai trò</th></tr>
+</thead><tbody>
+<tr><td>React</td><td>18.x</td><td>UI framework</td></tr>
+<tr><td>TypeScript</td><td>5.x</td><td>Type safety</td></tr>
+<tr><td>Vite</td><td>5.x</td><td>Build tool, dev server</td></tr>
+<tr><td>Ant Design</td><td>5.x</td><td>Component library, Design System</td></tr>
+<tr><td>React Router</td><td>6.x</td><td>Client-side routing</td></tr>
+<tr><td>TanStack Query</td><td>5.x</td><td>Server state, cache, refetch</td></tr>
+<tr><td>Zustand</td><td>4.x</td><td>Client state (auth, UI prefs)</td></tr>
+<tr><td>axios</td><td>1.x</td><td>HTTP client với interceptors</td></tr>
+<tr><td>dayjs</td><td>1.x</td><td>Date/time với locale <code>vi</code></td></tr>
+<tr><td>i18next</td><td>23.x</td><td>Đa ngôn ngữ (VI / EN)</td></tr>
+</tbody></table>
+<hr>
+<h2 id="3-cấu-trúc-thư-mục">3. Cấu trúc thư mục</h2>
+<pre><code class="language-">src/
+├── assets/             # Ảnh, icon tĩnh
+├── components/         # Shared components (KHÔNG fetch API)
+│   ├── common/         # Button mở rộng, Badge trạng thái, ...
+│   ├── layout/         # AppLayout, Sidebar, Header, PageHeader
+│   └── ui/             # DataTable, SearchFilter, UploadAvatar, ...
+├── constants/          # Enums, magic strings, config keys
+├── hooks/              # Custom hooks (wrap TanStack Query)
+│   ├── useAuth.ts
+│   ├── useEmployees.ts
+│   └── ...
+├── locales/
+│   ├── vi.json         # Bản dịch tiếng Việt (nguồn chính)
+│   └── en.json         # Bản dịch tiếng Anh
+├── pages/              # Route-level components (1 file = 1 route)
+│   ├── auth/
+│   ├── employees/
+│   ├── attendance/
+│   ├── leave/
+│   ├── payroll/
+│   └── settings/
+├── routes/
+│   └── RouterConfig.tsx  # Khai báo toàn bộ routes
+├── services/           # axios calls - MỌI API call qua đây
+│   ├── auth.service.ts
+│   ├── employee.service.ts
+│   └── ...
+├── store/              # Zustand stores
+│   ├── authStore.ts
+│   └── uiStore.ts
+├── types/              # TypeScript interfaces dùng chung
+│   ├── employee.types.ts
+│   ├── payroll.types.ts
+│   └── ...
+└── utils/              # Hàm tiện ích thuần (không có side effect)
+    ├── format.ts       # Định dạng tiền, ngày, số VN
+    └── validators.ts   # Validate CCCD, MST, SĐT
+</code></pre>
+<hr>
+<h2 id="4-state-management">4. State Management</h2>
+<p>Phân tách rõ ràng hai loại state:</p>
+<h3 id="41-server-state-tanstack-query">4.1 Server State — TanStack Query</h3>
+<p>Dùng cho tất cả dữ liệu lấy từ API:</p>
+<table><thead>
+<tr><th>Khái niệm</th><th>Cách dùng</th></tr>
+</thead><tbody>
+<tr><td><code>useQuery</code></td><td>Đọc dữ liệu, tự cache và refetch</td></tr>
+<tr><td><code>useMutation</code></td><td>Tạo / sửa / xóa, invalidate query sau khi thành công</td></tr>
+<tr><td><code>queryClient.invalidateQueries</code></td><td>Xóa cache để trigger refetch</td></tr>
+<tr><td><code>staleTime</code></td><td>Thời gian cache còn "tươi" trước khi refetch nền</td></tr>
+</tbody></table>
+<p>Cache key theo quy ước: <code>['entity', id?]</code> — ví dụ <code>['employees', '123']</code>, <code>['leave-requests', { status: 'pending' }]</code>.</p>
+<h3 id="42-client-state-zustand">4.2 Client State — Zustand</h3>
+<p>Chỉ dùng cho state không cần đồng bộ server:</p>
+<table><thead>
+<tr><th>Store</th><th>Nội dung</th></tr>
+</thead><tbody>
+<tr><td><code>authStore</code></td><td>Access token, thông tin user đăng nhập, quyền</td></tr>
+<tr><td><code>uiStore</code></td><td>Ngôn ngữ, collapsed sidebar, theme (light/dark)</td></tr>
+</tbody></table>
+<p>Zustand store được khởi tạo một lần khi app load. Không persist vào localStorage (trừ <code>uiStore</code> cho theme/locale).</p>
+<hr>
+<h2 id="5-routing">5. Routing</h2>
+<h3 id="51-cấu-trúc-route">5.1 Cấu trúc route</h3>
+<table><thead>
+<tr><th>Pattern</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>/login</code></td><td>Public route</td></tr>
+<tr><td><code>/</code></td><td>Redirect đến <code>/dashboard</code></td></tr>
+<tr><td><code>/dashboard</code></td><td>Trang tổng quan</td></tr>
+<tr><td><code>/employees</code></td><td>Danh sách nhân viên</td></tr>
+<tr><td><code>/employees/:id</code></td><td>Chi tiết nhân viên</td></tr>
+<tr><td><code>/employees/new</code></td><td>Tạo nhân viên mới</td></tr>
+<tr><td><code>/attendance</code></td><td>Chấm công</td></tr>
+<tr><td><code>/leave</code></td><td>Phép</td></tr>
+<tr><td><code>/payroll</code></td><td>Bảng lương</td></tr>
+<tr><td><code>/settings/*</code></td><td>Cài đặt hệ thống</td></tr>
+</tbody></table>
+<h3 id="52-route-guards">5.2 Route Guards</h3>
+<p>Mọi route sau login đều wrap trong <code><PrivateRoute></code>. Component này kiểm tra:</p>
+<ol>
+<li>Có access token trong <code>authStore</code> không</li>
+<li>Token còn hạn không (decode payload, kiểm tra <code>exp</code>)</li>
+<li>Nếu không → redirect <code>/login</code></li>
+</ol>
+<p>Phân quyền theo role dùng <code><RoleGuard allowedRoles={['hr_manager']}></code> wrap ở component cấp page.</p>
+<hr>
+<h2 id="6-auth-flow">6. Auth Flow</h2>
+<h3 id="61-đăng-nhập">6.1 Đăng nhập</h3>
+<ol>
+<li>User nhập email / mật khẩu → gọi <code>POST /auth/login</code></li>
+<li>Backend trả về <code>access_token</code> (JWT, 15 phút) và set <code>refresh_token</code> trong HttpOnly cookie</li>
+<li><code>authStore</code> lưu <code>access_token</code> trong memory (không localStorage — bảo mật XSS)</li>
+<li>axios interceptor gắn <code>Authorization: Bearer <token></code> vào mọi request</li>
+</ol>
+<h3 id="62-tự-động-làm-mới-token">6.2 Tự động làm mới token</h3>
+<p>Axios response interceptor xử lý lỗi <code>401 Unauthorized</code>:</p>
+<ol>
+<li>Gọi <code>POST /auth/refresh</code> (cookie tự đính kèm)</li>
+<li>Nhận <code>access_token</code> mới → cập nhật <code>authStore</code></li>
+<li>Retry request gốc với token mới</li>
+<li>Nếu refresh cũng fail → clear auth → redirect <code>/login</code></li>
+</ol>
+<p>Cơ chế queue: nếu nhiều request cùng nhận 401, chỉ gọi refresh 1 lần, các request khác chờ.</p>
+<h3 id="63-đăng-xuất">6.3 Đăng xuất</h3>
+<p>Gọi <code>POST /auth/logout</code> → backend xóa refresh token trong DB → clear <code>authStore</code> → redirect <code>/login</code>.</p>
+<hr>
+<h2 id="7-api-call-pattern">7. API Call Pattern</h2>
+<p>Mọi component KHÔNG fetch API trực tiếp. Luồng bắt buộc:</p>
+<pre><code class="language-">Component → Custom Hook → Service → axios → Backend API
+</code></pre>
+<p><strong>Tầng Service</strong> (<code>services/employee.service.ts</code>): định nghĩa hàm gọi API, trả về Promise với kiểu dữ liệu cụ thể.</p>
+<p><strong>Tầng Hook</strong> (<code>hooks/useEmployees.ts</code>): wrap service trong <code>useQuery</code> / <code>useMutation</code>. Component gọi hook, nhận <code>{ data, isLoading, error }</code>.</p>
+<p><strong>Tầng Component</strong>: chỉ render UI dựa trên data từ hook.</p>
+<h3 id="xử-lý-lỗi-api">Xử lý lỗi API</h3>
+<p>Lỗi từ backend có format chuẩn:</p>
+<pre><code class="language-">{ success: false, message: "...", errorCode: "EMPLOYEE_NOT_FOUND" }
+</code></pre>
+<p><code>error.message</code> hiển thị trong Ant Design <code>message.error()</code>. Không log chi tiết lỗi ra console ở production.</p>
+<hr>
+<h2 id="8-internationalization-i18n">8. Internationalization (i18n)</h2>
+<ul>
+<li>Dùng <code>i18next</code> với plugin <code>react-i18next</code></li>
+<li>Ngôn ngữ mặc định: Tiếng Việt (<code>vi</code>)</li>
+<li>Tất cả text hiển thị PHẢI qua <code>t('key')</code> — không hardcode tiếng Việt trong JSX</li>
+<li>Key theo namespace: <code>t('employee.fullName')</code>, <code>t('common.save')</code>, <code>t('error.required')</code></li>
+<li>File nguồn chính: <code>locales/vi.json</code></li>
+<li>Ngôn ngữ được lưu trong <code>uiStore</code> và persist vào localStorage</li>
+</ul>
+<hr>
+<h2 id="9-performance">9. Performance</h2>
+<table><thead>
+<tr><th>Kỹ thuật</th><th>Áp dụng ở đâu</th></tr>
+</thead><tbody>
+<tr><td>Code splitting (<code>React.lazy</code>)</td><td>Mỗi page-level component</td></tr>
+<tr><td><code>Suspense</code> + skeleton loader</td><td>Wrapper cho lazy routes</td></tr>
+<tr><td><code>staleTime: 5 phút</code> trong TanStack Query</td><td>Dữ liệu ít thay đổi (departments, positions)</td></tr>
+<tr><td>Virtual scroll</td><td>Bảng dữ liệu lớn (danh sách nhân viên)</td></tr>
+<tr><td>Debounce search</td><td>Input tìm kiếm, delay 300ms</td></tr>
+<tr><td><code>React.memo</code></td><td>Component list item có re-render nhiều</td></tr>
+</tbody></table>
+<hr>
+<h2 id="10-build-deploy">10. Build & Deploy</h2>
+<table><thead>
+<tr><th>Môi trường</th><th>URL</th><th>Config</th></tr>
+</thead><tbody>
+<tr><td>Development</td><td><code>http://localhost:5173</code></td><td><code>.env.development</code></td></tr>
+<tr><td>Staging</td><td><code>https://hrm-staging.company.vn</code></td><td><code>.env.staging</code></td></tr>
+<tr><td>Production</td><td><code>https://hrm.company.vn</code></td><td><code>.env.production</code></td></tr>
+</tbody></table>
+<p><strong>Biến môi trường quan trọng:</strong></p>
+<table><thead>
+<tr><th>Biến</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>VITE_API_BASE_URL</code></td><td>URL gốc của backend API</td></tr>
+<tr><td><code>VITE_APP_NAME</code></td><td>Tên hiển thị trong tab/title</td></tr>
+<tr><td><code>VITE_SENTRY_DSN</code></td><td>Endpoint báo lỗi Sentry</td></tr>
+</tbody></table>
+<p>Build output là thư mục <code>dist/</code> — deploy lên S3 + CloudFront hoặc Nginx static server.</p>
+<hr>
+<h2 id="11-error-monitoring">11. Error Monitoring</h2>
+<ul>
+<li>Tích hợp Sentry (<code>@sentry/react</code>) để bắt lỗi runtime</li>
+<li><code>ErrorBoundary</code> wrap ở cấp Route để tránh crash toàn app</li>
+<li>Lỗi API 5xx được log vào Sentry với context (user, route, payload)</li>
+<li>Không log thông tin nhạy cảm (token, CCCD, mật khẩu)</li>
+</ul>
+
+</main>
+<script>
+// Highlight active TOC link on scroll
+const headings = document.querySelectorAll('h1,h2,h3,h4');
+const links = document.querySelectorAll('#sidebar a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('#sidebar a[href="#'+e.target.id+'"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '0px 0px -80% 0px' });
+headings.forEach(h => { if(h.id) obs.observe(h); });
+</script>
+<style>#sidebar a.active { background:#ddf4ff; border-left-color:#0969da; font-weight:600; }</style>
+</body>
+</html>

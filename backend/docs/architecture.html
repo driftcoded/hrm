@@ -1,0 +1,747 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture - HRM Docs</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.7; color: #24292f;
+  margin: 0; background: #f6f8fa; display: flex;
+}
+#sidebar {
+  width: 260px; min-height: 100vh; background: #fff;
+  border-right: 1px solid #d0d7de; padding: 20px 0;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  flex-shrink: 0;
+}
+#sidebar h2 { font-size: 12px; font-weight: 600; color: #57606a;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 20px 4px; margin: 16px 0 4px; }
+#sidebar ul { list-style: none; margin: 0; padding: 0; }
+#sidebar li a {
+  display: block; padding: 5px 20px 5px 28px;
+  color: #0969da; text-decoration: none; font-size: 13px;
+  border-left: 3px solid transparent; line-height: 1.4;
+}
+#sidebar li a:hover { background: #f6f8fa; border-left-color: #0969da; }
+#sidebar li.h1 a { padding-left: 20px; font-weight: 600; font-size: 13px; }
+#sidebar li.h2 a { padding-left: 28px; }
+#sidebar li.h3 a { padding-left: 40px; font-size: 12px; color: #57606a; }
+#content {
+  flex: 1; max-width: 900px; padding: 40px 48px;
+  background: #fff; min-height: 100vh;
+}
+h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.5em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.8em; }
+h3 { font-size: 1.2em; margin-top: 1.5em; }
+h4 { font-size: 1em; margin-top: 1.2em; }
+h1:first-child, h2:first-child { margin-top: 0; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { margin: 0 0 16px; }
+pre {
+  background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;
+  padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5;
+  margin: 0 0 16px;
+}
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 85%;
+}
+pre code { font-size: inherit; background: none; padding: 0; border: none; }
+:not(pre) > code {
+  background: rgba(175,184,193,.2); padding: .2em .4em;
+  border-radius: 6px; font-size: 85%;
+}
+blockquote {
+  margin: 0 0 16px; padding: 0 1em;
+  color: #57606a; border-left: .25em solid #d0d7de;
+}
+blockquote p { margin-bottom: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 14px; }
+thead { background: #f6f8fa; }
+th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+th { font-weight: 600; }
+tr:nth-child(even) { background: #f6f8fa; }
+ul, ol { padding-left: 2em; margin: 0 0 16px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px;
+  font-size: 12px; font-weight: 600; margin-right: 4px;
+}
+.lock { background: #fff8c5; color: #9a6700; }
+.method-get { color: #1a7f37; font-weight: 700; }
+.method-post { color: #0969da; font-weight: 700; }
+.method-patch { color: #9a6700; font-weight: 700; }
+.method-delete { color: #cf222e; font-weight: 700; }
+
+/* Syntax highlight classes */
+.kw { color: #cf222e; }
+.st { color: #0a3069; }
+.cm { color: #6e7781; font-style: italic; }
+.nm { color: #953800; }
+.kv { color: #0550ae; }
+
+/* Scroll margin for anchor links */
+h1, h2, h3, h4 { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+<h2>Architecture</h2><ul>
+<li class="h1"><a href="#architecture-hrm-backend">Architecture – HRM Backend</a></li>
+<li class="h2"><a href="#mục-lục">Mục lục</a></li>
+<li class="h2"><a href="#1-tổng-quan-hệ-thống">1. Tổng quan hệ thống</a></li>
+<li class="h2"><a href="#2-sơ-đồ-hạ-tầng">2. Sơ đồ hạ tầng</a></li>
+<li class="h2"><a href="#3-kiến-trúc-ứng-dụng">3. Kiến trúc ứng dụng</a></li>
+<li class="h3"><a href="#31-các-tầng-layers">3.1. Các tầng (Layers)</a></li>
+<li class="h3"><a href="#32-trách-nhiệm-từng-tầng">3.2. Trách nhiệm từng tầng</a></li>
+<li class="h2"><a href="#4-cấu-trúc-thư-mục">4. Cấu trúc thư mục</a></li>
+<li class="h2"><a href="#5-module-pattern">5. Module Pattern</a></li>
+<li class="h2"><a href="#6-nestjs-core-patterns">6. NestJS Core Patterns</a></li>
+<li class="h3"><a href="#61-global-validationpipe">6.1. Global ValidationPipe</a></li>
+<li class="h3"><a href="#62-guards-thứ-tự-thực-thi">6.2. Guards – thứ tự thực thi</a></li>
+<li class="h3"><a href="#63-transforminterceptor">6.3. TransformInterceptor</a></li>
+<li class="h3"><a href="#64-httpexceptionfilter">6.4. HttpExceptionFilter</a></li>
+<li class="h3"><a href="#65-custom-decorators">6.5. Custom Decorators</a></li>
+<li class="h2"><a href="#7-authentication-authorization">7. Authentication & Authorization</a></li>
+<li class="h3"><a href="#71-luồng-đăng-nhập">7.1. Luồng đăng nhập</a></li>
+<li class="h3"><a href="#72-forgot-password-flow">7.2. Forgot Password flow</a></li>
+<li class="h3"><a href="#73-authorization-matrix">7.3. Authorization matrix</a></li>
+<li class="h3"><a href="#74-refresh-token-rotation">7.4. Refresh Token rotation</a></li>
+<li class="h2"><a href="#8-caching-redis">8. Caching – Redis</a></li>
+<li class="h3"><a href="#81-những-gì-cần-cache">8.1. Những gì cần cache</a></li>
+<li class="h3"><a href="#82-cache-invalidation">8.2. Cache invalidation</a></li>
+<li class="h2"><a href="#9-file-upload-aws-s3">9. File Upload – AWS S3</a></li>
+<li class="h3"><a href="#91-phân-loại-bucketfolder">9.1. Phân loại bucket/folder</a></li>
+<li class="h3"><a href="#92-upload-flow">9.2. Upload flow</a></li>
+<li class="h3"><a href="#93-xoá-file">9.3. Xoá file</a></li>
+<li class="h2"><a href="#10-background-jobs-scheduler">10. Background Jobs & Scheduler</a></li>
+<li class="h3"><a href="#101-cron-jobs-chạy-định-kỳ">10.1. Cron jobs (chạy định kỳ)</a></li>
+<li class="h3"><a href="#102-queue-jobs-bất-đồng-bộ">10.2. Queue jobs (bất đồng bộ)</a></li>
+<li class="h2"><a href="#11-email-service">11. Email Service</a></li>
+<li class="h3"><a href="#111-các-email-được-gửi">11.1. Các email được gửi</a></li>
+<li class="h3"><a href="#112-template">11.2. Template</a></li>
+<li class="h2"><a href="#12-rate-limiting-security-headers">12. Rate Limiting & Security Headers</a></li>
+<li class="h3"><a href="#121-rate-limiting">12.1. Rate limiting</a></li>
+<li class="h3"><a href="#122-security-headers-helmet">12.2. Security headers (Helmet)</a></li>
+<li class="h3"><a href="#123-cors">12.3. CORS</a></li>
+<li class="h2"><a href="#13-error-handling-logging">13. Error Handling & Logging</a></li>
+<li class="h3"><a href="#131-exception-hierarchy">13.1. Exception hierarchy</a></li>
+<li class="h3"><a href="#132-logging-strategy">13.2. Logging strategy</a></li>
+<li class="h3"><a href="#133-sentry-error-monitoring">13.3. Sentry (error monitoring)</a></li>
+<li class="h2"><a href="#14-health-check">14. Health Check</a></li>
+<li class="h2"><a href="#15-response-dto-pattern">15. Response & DTO Pattern</a></li>
+<li class="h3"><a href="#151-request-dto">15.1. Request DTO</a></li>
+<li class="h3"><a href="#152-response-dto">15.2. Response DTO</a></li>
+<li class="h3"><a href="#153-pagination-response">15.3. Pagination Response</a></li>
+<li class="h2"><a href="#16-database-strategy">16. Database Strategy</a></li>
+<li class="h3"><a href="#161-connection">16.1. Connection</a></li>
+<li class="h3"><a href="#162-migrations">16.2. Migrations</a></li>
+<li class="h3"><a href="#163-transactions">16.3. Transactions</a></li>
+<li class="h3"><a href="#164-soft-delete">16.4. Soft delete</a></li>
+<li class="h3"><a href="#165-backup">16.5. Backup</a></li>
+<li class="h2"><a href="#17-environment-variables">17. Environment Variables</a></li>
+<li class="h2"><a href="#18-lý-do-chọn-tech-stack">18. Lý do chọn tech stack</a></li>
+</ul></nav>
+
+<main id="content">
+<h1 id="architecture-hrm-backend">Architecture – HRM Backend</h1>
+<hr>
+<h2 id="mục-lục">Mục lục</h2>
+<ol>
+<li><a href="#1-tổng-quan-hệ-thống">Tổng quan hệ thống</a></li>
+<li><a href="#2-sơ-đồ-hạ-tầng">Sơ đồ hạ tầng</a></li>
+<li><a href="#3-kiến-trúc-ứng-dụng">Kiến trúc ứng dụng</a></li>
+<li><a href="#4-cấu-trúc-thư-mục">Cấu trúc thư mục</a></li>
+<li><a href="#5-module-pattern">Module Pattern</a></li>
+<li><a href="#6-nestjs-core-patterns">NestJS Core Patterns</a></li>
+<li><a href="#7-authentication--authorization">Authentication & Authorization</a></li>
+<li><a href="#8-caching--redis">Caching – Redis</a></li>
+<li><a href="#9-file-upload--aws-s3">File Upload – AWS S3</a></li>
+<li><a href="#10-background-jobs--scheduler">Background Jobs & Scheduler</a></li>
+<li><a href="#11-email-service">Email Service</a></li>
+<li><a href="#12-rate-limiting--security-headers">Rate Limiting & Security Headers</a></li>
+<li><a href="#13-error-handling--logging">Error Handling & Logging</a></li>
+<li><a href="#14-health-check">Health Check</a></li>
+<li><a href="#15-response--dto-pattern">Response & DTO Pattern</a></li>
+<li><a href="#16-database-strategy">Database Strategy</a></li>
+<li><a href="#17-environment-variables">Environment Variables</a></li>
+<li><a href="#18-lý-do-chọn-tech-stack">Lý do chọn tech stack</a></li>
+</ol>
+<hr>
+<h2 id="1-tổng-quan-hệ-thống">1. Tổng quan hệ thống</h2>
+<p>HRM Backend là REST API xây dựng bằng <strong>NestJS</strong> phục vụ ứng dụng quản lý nhân sự cho công ty Việt Nam. Hệ thống xử lý: quản lý nhân viên, chấm công, nghỉ phép, tính lương theo pháp luật VN, hợp đồng lao động và báo cáo.</p>
+<p><strong>Tech stack:</strong></p>
+<table><thead>
+<tr><th>Thành phần</th><th>Công nghệ</th></tr>
+</thead><tbody>
+<tr><td>Framework</td><td>NestJS (Node.js)</td></tr>
+<tr><td>Ngôn ngữ</td><td>TypeScript strict mode</td></tr>
+<tr><td>Database</td><td>MySQL 8.0+ (Amazon RDS)</td></tr>
+<tr><td>ORM</td><td>TypeORM + migrations</td></tr>
+<tr><td>Cache</td><td>Redis (ElastiCache hoặc EC2)</td></tr>
+<tr><td>File storage</td><td>AWS S3</td></tr>
+<tr><td>Email</td><td>AWS SES</td></tr>
+<tr><td>Process manager</td><td>PM2 cluster mode</td></tr>
+<tr><td>Reverse proxy</td><td>Nginx</td></tr>
+<tr><td>Hosting</td><td>AWS EC2 (app) + RDS (database)</td></tr>
+<tr><td>Monitoring</td><td>CloudWatch Logs + Sentry</td></tr>
+</tbody></table>
+<hr>
+<h2 id="2-sơ-đồ-hạ-tầng">2. Sơ đồ hạ tầng</h2>
+<pre><code class="language-">Internet
+   │
+   ▼
+Nginx (reverse proxy, SSL termination, static files)
+   │
+   ▼
+PM2 Cluster (NestJS – nhiều worker process trên 1 EC2)
+   │
+   ├──► Amazon RDS MySQL 8  (database – instance riêng, không cùng EC2 app)
+   │
+   ├──► Redis               (cache, rate limit, job queue)
+   │
+   ├──► AWS S3              (avatars, documents, contracts, exports)
+   │
+   └──► AWS SES             (email: forgot-password, thông báo)
+
+CloudWatch Logs ◄─── NestJS Winston logger
+Sentry          ◄─── NestJS exception filter
+</code></pre>
+<blockquote>
+<p><strong>Tại sao tách RDS?</strong> Nếu EC2 restart, database không bị ảnh hưởng. Dễ scale độc lập. RDS tự động backup, failover.</p>
+</blockquote>
+<hr>
+<h2 id="3-kiến-trúc-ứng-dụng">3. Kiến trúc ứng dụng</h2>
+<h3 id="31-các-tầng-layers">3.1. Các tầng (Layers)</h3>
+<pre><code class="language-">HTTP Request
+     │
+     ▼
+┌──────────────────────────────────────────────────────┐
+│  MIDDLEWARE  (Helmet, CORS, Logger, Rate Limiter)    │
+└──────────────────────────────────────────────────────┘
+     │
+     ▼
+┌──────────────────────────────────────────────────────┐
+│  PIPE  (ValidationPipe – validate &amp; transform DTO)   │
+└──────────────────────────────────────────────────────┘
+     │
+     ▼
+┌──────────────────────────────────────────────────────┐
+│  GUARD  (JwtAuthGuard → RolesGuard)                  │
+└──────────────────────────────────────────────────────┘
+     │
+     ▼
+┌──────────────────────────────────────────────────────┐
+│  CONTROLLER  – nhận request, gọi service, trả DTO   │
+└──────────────────────────────────────────────────────┘
+     │
+     ▼
+┌──────────────────────────────────────────────────────┐
+│  SERVICE  – toàn bộ business logic                   │
+└──────────────────────────────────────────────────────┘
+     │
+     ▼
+┌──────────────────────────────────────────────────────┐
+│  REPOSITORY  – truy vấn DB qua TypeORM               │
+└──────────────────────────────────────────────────────┘
+     │
+     ▼
+  MySQL (RDS)   /   Redis (cache)
+     │
+     ▼
+┌──────────────────────────────────────────────────────┐
+│  INTERCEPTOR  (TransformInterceptor – wrap response) │
+└──────────────────────────────────────────────────────┘
+     │
+     ▼
+HTTP Response  { success, data, message, timestamp }
+</code></pre>
+<h3 id="32-trách-nhiệm-từng-tầng">3.2. Trách nhiệm từng tầng</h3>
+<table><thead>
+<tr><th>Tầng</th><th>Trách nhiệm</th><th>KHÔNG làm</th></tr>
+</thead><tbody>
+<tr><td><strong>Controller</strong></td><td>Nhận request, gọi service, trả response DTO</td><td>Không chứa business logic</td></tr>
+<tr><td><strong>Service</strong></td><td>Toàn bộ business logic, tính toán, kiểm tra quy tắc</td><td>Không query DB trực tiếp</td></tr>
+<tr><td><strong>Repository</strong></td><td>Truy vấn DB qua TypeORM, không có logic</td><td>Không gọi service khác</td></tr>
+<tr><td><strong>Entity</strong></td><td>Định nghĩa bảng DB, relations</td><td>Không chứa logic</td></tr>
+<tr><td><strong>DTO</strong></td><td>Định nghĩa shape của request/response</td><td>Không trộn request DTO với response DTO</td></tr>
+</tbody></table>
+<hr>
+<h2 id="4-cấu-trúc-thư-mục">4. Cấu trúc thư mục</h2>
+<pre><code class="language-">src/
+├── main.ts                        # Bootstrap app, Swagger, global middleware
+├── app.module.ts                  # Root module, import tất cả modules
+│
+├── config/                        # Cấu hình theo environment
+│   ├── app.config.ts              # PORT, NODE_ENV, API prefix
+│   ├── database.config.ts         # MySQL connection
+│   ├── jwt.config.ts              # Secret, expiry
+│   ├── redis.config.ts            # Redis host/port
+│   ├── s3.config.ts               # Bucket, region, credentials
+│   └── mail.config.ts             # SES region, from address
+│
+├── common/                        # Shared across toàn bộ app
+│   ├── decorators/
+│   │   ├── current-user.decorator.ts   # @CurrentUser() → lấy user từ request
+│   │   └── roles.decorator.ts          # @Roles('admin', 'hr_manager')
+│   ├── filters/
+│   │   └── http-exception.filter.ts    # Bắt mọi exception → format lỗi chuẩn
+│   ├── guards/
+│   │   ├── jwt-auth.guard.ts           # Kiểm tra Bearer token
+│   │   └── roles.guard.ts              # Kiểm tra role từ @Roles() decorator
+│   ├── interceptors/
+│   │   ├── transform.interceptor.ts    # Wrap response → { success, data, message }
+│   │   └── logging.interceptor.ts      # Log request method, path, duration
+│   ├── pipes/
+│   │   └── parse-int.pipe.ts           # Parse ID params từ string → number
+│   └── dto/
+│       ├── pagination.dto.ts           # page, limit, sort, order, search
+│       └── pagination-response.dto.ts  # items[], meta { total, page, ... }
+│
+├── database/
+│   ├── database.module.ts
+│   ├── migrations/                # TypeORM migration files (26 bước)
+│   └── seeds/                     # Seed scripts: roles, leave-types, holidays
+│
+├── shared/                        # Feature modules dùng chung
+│   ├── redis/
+│   │   ├── redis.module.ts
+│   │   └── redis.service.ts       # get/set/del/ttl wrapper
+│   ├── mail/
+│   │   ├── mail.module.ts
+│   │   └── mail.service.ts        # sendForgotPassword, sendWelcome...
+│   ├── s3/
+│   │   ├── s3.module.ts
+│   │   └── s3.service.ts          # upload, delete, getSignedUrl
+│   └── scheduler/
+│       └── scheduler.service.ts   # Các cron jobs định kỳ
+│
+└── modules/                       # Business modules (domain-driven)
+    ├── auth/
+    ├── users/
+    ├── employees/
+    ├── departments/
+    ├── positions/
+    ├── contracts/
+    ├── attendances/
+    ├── leaves/
+    ├── leave-balances/
+    ├── salaries/
+    ├── dependents/
+    ├── family-members/
+    ├── documents/
+    ├── trainings/
+    ├── performance-reviews/
+    ├── disciplines-rewards/
+    ├── work-history/
+    ├── announcements/
+    └── reports/
+</code></pre>
+<hr>
+<h2 id="5-module-pattern">5. Module Pattern</h2>
+<p>Mỗi business module có cấu trúc thống nhất:</p>
+<pre><code class="language-">modules/employees/
+├── employees.module.ts
+├── employees.controller.ts
+├── employees.service.ts
+├── employees.repository.ts        # Custom queries phức tạp
+├── entities/
+│   └── employee.entity.ts
+├── dto/
+│   ├── create-employee.dto.ts     # Request body: POST /employees
+│   ├── update-employee.dto.ts     # Request body: PATCH /employees/:id
+│   ├── filter-employee.dto.ts     # Query params: GET /employees
+│   └── employee-response.dto.ts   # Response shape (không lộ sensitive fields)
+└── employees.service.spec.ts      # Unit test cho service
+</code></pre>
+<p><strong>Quy tắc bắt buộc:</strong></p>
+<ul>
+<li>Controller chỉ gọi service của <strong>chính module đó</strong>.</li>
+<li>Service có thể inject service của module khác (qua module imports).</li>
+<li>Repository chỉ chứa TypeORM queries, không có if/else logic.</li>
+<li>Response DTO phải <strong>loại bỏ</strong> các field nhạy cảm: <code>password</code>, <code>deleted_at</code>, <code>token_hash</code>.</li>
+</ul>
+<hr>
+<h2 id="6-nestjs-core-patterns">6. NestJS Core Patterns</h2>
+<h3 id="61-global-validationpipe">6.1. Global ValidationPipe</h3>
+<p>Đặt ở <code>main.ts</code>, áp dụng cho mọi request:</p>
+<ul>
+<li><code>transform: true</code> — tự convert <code>"1"</code> → <code>1</code>, <code>"true"</code> → <code>true</code></li>
+<li><code>whitelist: true</code> — tự xoá field không khai báo trong DTO</li>
+<li><code>forbidNonWhitelisted: false</code> — không throw lỗi, chỉ bỏ qua</li>
+<li><code>transformOptions.enableImplicitConversion: true</code> — convert kiểu tự động</li>
+</ul>
+<h3 id="62-guards-thứ-tự-thực-thi">6.2. Guards – thứ tự thực thi</h3>
+<pre><code class="language-">JwtAuthGuard → RolesGuard
+</code></pre>
+<ul>
+<li><strong>JwtAuthGuard</strong>: verify Bearer token, đặt <code>req.user</code> = payload.</li>
+<li><strong>RolesGuard</strong>: đọc metadata từ <code>@Roles()</code> decorator, so sánh với <code>req.user.role</code>.</li>
+<li>Endpoint không cần auth: dùng <code>@Public()</code> decorator để bypass JwtAuthGuard.</li>
+</ul>
+<h3 id="63-transforminterceptor">6.3. TransformInterceptor</h3>
+<p>Wrap <strong>mọi</strong> response thành format chuẩn:</p>
+<pre><code class="language-">{ success: true, data: &lt;kết quả&gt;, message: "...", timestamp: "ISO-8601" }
+</code></pre>
+<p>Đặt globally trong <code>app.module.ts</code> qua <code>APP_INTERCEPTOR</code>.</p>
+<h3 id="64-httpexceptionfilter">6.4. HttpExceptionFilter</h3>
+<p>Bắt mọi exception (kể cả unhandled) và trả về:</p>
+<pre><code class="language-">{ success: false, error: { code: "...", message: "...", details: [...] }, timestamp: "..." }
+</code></pre>
+<p>Đặt globally qua <code>APP_FILTER</code>. Không bao giờ để lộ stack trace ra production.</p>
+<h3 id="65-custom-decorators">6.5. Custom Decorators</h3>
+<table><thead>
+<tr><th>Decorator</th><th>Dùng ở</th><th>Mục đích</th></tr>
+</thead><tbody>
+<tr><td><code>@CurrentUser()</code></td><td>Controller param</td><td>Lấy user đang đăng nhập từ <code>req.user</code></td></tr>
+<tr><td><code>@Roles('admin')</code></td><td>Controller/method</td><td>Khai báo roles được phép</td></tr>
+<tr><td><code>@Public()</code></td><td>Controller/method</td><td>Bỏ qua JwtAuthGuard</td></tr>
+<tr><td><code>@ApiAuth()</code></td><td>Controller</td><td>Shortcut Swagger Bearer auth</td></tr>
+</tbody></table>
+<hr>
+<h2 id="7-authentication-authorization">7. Authentication & Authorization</h2>
+<h3 id="71-luồng-đăng-nhập">7.1. Luồng đăng nhập</h3>
+<ol>
+<li><code>POST /auth/login</code> → verify username/password → tạo Access Token (15 phút) + Refresh Token (7 ngày).</li>
+<li><strong>Access Token</strong> lưu trong bộ nhớ JavaScript (Zustand store) — không lưu localStorage (chống XSS).</li>
+<li><strong>Refresh Token</strong> lưu trong <code>HttpOnly; Secure; SameSite=Strict</code> cookie — không thể đọc từ JS.</li>
+<li>Mọi request gửi <code>Authorization: Bearer <access_token></code> trong header.</li>
+<li>Khi Access Token hết hạn (401): Axios interceptor tự gọi <code>POST /auth/refresh</code> → nhận token mới → retry request ban đầu.</li>
+<li>Logout: gọi <code>POST /auth/logout</code> → server revoke refresh token trong DB → xoá cookie.</li>
+</ol>
+<h3 id="72-forgot-password-flow">7.2. Forgot Password flow</h3>
+<ol>
+<li><code>POST /auth/forgot-password</code> → tạo reset token (random 32 bytes) → lưu <strong>hash</strong> vào Redis với TTL 30 phút.</li>
+<li>Gửi email (AWS SES) chứa link: <code>https://app.company.com/reset-password?token=<raw_token></code>.</li>
+<li><code>POST /auth/reset-password</code> → hash token từ request → so khớp với Redis → cập nhật password → xoá token.</li>
+</ol>
+<blockquote>
+<p>Token lưu trong <strong>Redis</strong> (không phải DB) vì: tự hết hạn, không cần job dọn dẹp, tốc độ nhanh.</p>
+</blockquote>
+<h3 id="73-authorization-matrix">7.3. Authorization matrix</h3>
+<table><thead>
+<tr><th>Endpoint group</th><th>admin</th><th>hr_manager</th><th>hr_staff</th><th>manager</th><th>employee</th></tr>
+</thead><tbody>
+<tr><td>Tất cả nhân viên</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+<tr><td>Nhân viên phòng ban mình</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td></tr>
+<tr><td>Hồ sơ cá nhân</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅ (chỉ mình)</td></tr>
+<tr><td>Tính lương</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Duyệt nghỉ phép</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td><td>❌</td></tr>
+<tr><td>Xem phiếu lương</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>✅ (chỉ mình)</td></tr>
+<tr><td>Quản lý user</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Export báo cáo</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+</tbody></table>
+<h3 id="74-refresh-token-rotation">7.4. Refresh Token rotation</h3>
+<p>Mỗi lần refresh: revoke token cũ, cấp token mới. Nếu phát hiện dùng token đã bị revoke → revoke <strong>tất cả</strong> token của user đó (dấu hiệu bị đánh cắp).</p>
+<hr>
+<h2 id="8-caching-redis">8. Caching – Redis</h2>
+<h3 id="81-những-gì-cần-cache">8.1. Những gì cần cache</h3>
+<table><thead>
+<tr><th>Key pattern</th><th>TTL</th><th>Nội dung</th><th>Lý do</th></tr>
+</thead><tbody>
+<tr><td><code>provinces</code></td><td>24 giờ</td><td>63 tỉnh/thành</td><td>Bất biến, query nhiều</td></tr>
+<tr><td><code>districts:{provinceCode}</code></td><td>24 giờ</td><td>Quận/huyện theo tỉnh</td><td>Bất biến</td></tr>
+<tr><td><code>wards:{districtCode}</code></td><td>24 giờ</td><td>Phường/xã theo huyện</td><td>Bất biến</td></tr>
+<tr><td><code>holidays:{year}</code></td><td>30 ngày</td><td>Danh sách ngày lễ</td><td>Bất biến theo năm</td></tr>
+<tr><td><code>leave_types</code></td><td>1 giờ</td><td>9 loại nghỉ phép</td><td>Hiếm thay đổi</td></tr>
+<tr><td><code>pwd_reset:{hash}</code></td><td>30 phút</td><td>Reset password token</td><td>Tự hết hạn</td></tr>
+<tr><td><code>rate_limit:{ip}</code></td><td>1 phút</td><td>Số request theo IP</td><td>Rate limiting</td></tr>
+</tbody></table>
+<h3 id="82-cache-invalidation">8.2. Cache invalidation</h3>
+<ul>
+<li>Khi admin cập nhật <code>holidays</code> → xoá key <code>holidays:{year}</code>.</li>
+<li>Khi admin thêm <code>leave_type</code> → xoá key <code>leave_types</code>.</li>
+<li>Provinces/Districts/Wards không cần invalidate (cố định theo Bộ Nội Vụ).</li>
+</ul>
+<hr>
+<h2 id="9-file-upload-aws-s3">9. File Upload – AWS S3</h2>
+<h3 id="91-phân-loại-bucketfolder">9.1. Phân loại bucket/folder</h3>
+<pre><code class="language-">hrm-bucket/
+├── avatars/{employeeId}/{timestamp}.{ext}     max 2MB, JPEG/PNG/WEBP
+├── documents/{employeeId}/{type}/{filename}   max 10MB, PDF/JPG/PNG
+├── contracts/{contractId}/{filename}          max 10MB, PDF
+└── exports/{userId}/{timestamp}-{name}.xlsx   max 50MB, XLSX (tự xoá sau 24h)
+</code></pre>
+<h3 id="92-upload-flow">9.2. Upload flow</h3>
+<ol>
+<li>Client gửi file qua <code>multipart/form-data</code> đến NestJS.</li>
+<li>NestJS validate: kích thước, MIME type, tên file (strip path traversal).</li>
+<li>Upload lên S3 với key theo pattern trên.</li>
+<li>Lưu S3 URL vào DB.</li>
+<li>Trả URL về cho client.</li>
+</ol>
+<blockquote>
+<p><strong>Không</strong> cho client upload thẳng lên S3 (Presigned URL) vì cần validate và audit log phía server.</p>
+</blockquote>
+<h3 id="93-xoá-file">9.3. Xoá file</h3>
+<p>Khi xoá record trong DB → gọi <code>s3.deleteObject()</code> để tránh rác. Export files tự xoá sau 24 giờ qua S3 Lifecycle rule.</p>
+<hr>
+<h2 id="10-background-jobs-scheduler">10. Background Jobs & Scheduler</h2>
+<p>Dùng <code>@nestjs/schedule</code> cho cron jobs, <code>Bull</code> + Redis cho queue jobs bất đồng bộ.</p>
+<h3 id="101-cron-jobs-chạy-định-kỳ">10.1. Cron jobs (chạy định kỳ)</h3>
+<table><thead>
+<tr><th>Job</th><th>Lịch</th><th>Mục đích</th></tr>
+</thead><tbody>
+<tr><td><code>contract-expiry-check</code></td><td>Mỗi ngày 7:00 sáng</td><td>Tìm HĐ hết hạn trong 30 ngày → gửi email cho HR</td></tr>
+<tr><td><code>leave-balance-annual-reset</code></td><td>01/01 hàng năm 00:30</td><td>Khởi tạo ngày phép năm mới cho tất cả NV active</td></tr>
+<tr><td><code>attendance-auto-absent</code></td><td>Mỗi ngày 23:55</td><td>Đánh dấu <code>absent</code> cho NV không chấm công và không có đơn nghỉ</td></tr>
+<tr><td><code>export-cleanup</code></td><td>Mỗi ngày 3:00 sáng</td><td>Xoá file export trên S3 cũ hơn 24 giờ</td></tr>
+<tr><td><code>refresh-token-cleanup</code></td><td>Mỗi ngày 4:00 sáng</td><td>Xoá refresh token đã hết hạn trong DB</td></tr>
+</tbody></table>
+<h3 id="102-queue-jobs-bất-đồng-bộ">10.2. Queue jobs (bất đồng bộ)</h3>
+<p>Các tác vụ nặng không chạy trong request/response cycle:</p>
+<table><thead>
+<tr><th>Job</th><th>Trigger</th><th>Mục đích</th></tr>
+</thead><tbody>
+<tr><td><code>send-email</code></td><td>Nhiều nơi</td><td>Gửi email qua SES bất đồng bộ</td></tr>
+<tr><td><code>generate-payslip-pdf</code></td><td>Sau khi approve lương</td><td>Tạo PDF phiếu lương, upload S3</td></tr>
+<tr><td><code>generate-salary-batch</code></td><td>POST /salaries/calculate</td><td>Tính lương hàng loạt (không block request)</td></tr>
+<tr><td><code>export-excel</code></td><td>GET /reports/*/export</td><td>Tạo file Excel lớn bất đồng bộ</td></tr>
+</tbody></table>
+<blockquote>
+<p>Queue job trả về <code>jobId</code> ngay lập tức. Client polling <code>GET /jobs/{jobId}/status</code> để kiểm tra tiến độ.</p>
+</blockquote>
+<hr>
+<h2 id="11-email-service">11. Email Service</h2>
+<p>Dùng <strong>AWS SES</strong> qua <code>@nestjs-modules/mailer</code> + Handlebars templates.</p>
+<h3 id="111-các-email-được-gửi">11.1. Các email được gửi</h3>
+<table><thead>
+<tr><th>Trigger</th><th>Subject</th><th>Nội dung</th></tr>
+</thead><tbody>
+<tr><td>Tạo tài khoản mới</td><td>Chào mừng đến [Công ty]</td><td>Username, link đặt mật khẩu</td></tr>
+<tr><td>Forgot password</td><td>Đặt lại mật khẩu</td><td>Link reset (hết hạn 30 phút)</td></tr>
+<tr><td>Đơn nghỉ được duyệt</td><td>Đơn nghỉ của bạn đã được duyệt</td><td>Chi tiết đơn</td></tr>
+<tr><td>Đơn nghỉ bị từ chối</td><td>Đơn nghỉ của bạn bị từ chối</td><td>Lý do từ chối</td></tr>
+<tr><td>HĐ sắp hết hạn</td><td>Hợp đồng sắp hết hạn</td><td>Danh sách NV (gửi cho HR)</td></tr>
+<tr><td>Lương đã được duyệt</td><td>Phiếu lương tháng X/202X</td><td>Link xem phiếu lương</td></tr>
+</tbody></table>
+<h3 id="112-template">11.2. Template</h3>
+<p>Templates lưu tại <code>src/shared/mail/templates/*.hbs</code>. Luôn có cả bản HTML và text thuần.</p>
+<hr>
+<h2 id="12-rate-limiting-security-headers">12. Rate Limiting & Security Headers</h2>
+<h3 id="121-rate-limiting">12.1. Rate limiting</h3>
+<p>Dùng <code>@nestjs/throttler</code> + Redis store:</p>
+<table><thead>
+<tr><th>Endpoint</th><th>Giới hạn</th><th>Lý do</th></tr>
+</thead><tbody>
+<tr><td><code>POST /auth/login</code></td><td>5 lần/phút/IP</td><td>Chống brute-force</td></tr>
+<tr><td><code>POST /auth/forgot-password</code></td><td>3 lần/15 phút/IP</td><td>Chống spam email</td></tr>
+<tr><td><code>POST /auth/refresh</code></td><td>10 lần/phút/IP</td><td>–</td></tr>
+<tr><td>Các endpoint còn lại</td><td>100 lần/phút/IP</td><td>General protection</td></tr>
+</tbody></table>
+<h3 id="122-security-headers-helmet">12.2. Security headers (Helmet)</h3>
+<p>Đặt trong <code>main.ts</code>, tự động thêm các header:</p>
+<table><thead>
+<tr><th>Header</th><th>Giá trị</th><th>Bảo vệ</th></tr>
+</thead><tbody>
+<tr><td><code>X-Content-Type-Options</code></td><td><code>nosniff</code></td><td>Chống MIME sniffing</td></tr>
+<tr><td><code>X-Frame-Options</code></td><td><code>DENY</code></td><td>Chống Clickjacking</td></tr>
+<tr><td><code>X-XSS-Protection</code></td><td><code>1; mode=block</code></td><td>Chống XSS (legacy)</td></tr>
+<tr><td><code>Strict-Transport-Security</code></td><td><code>max-age=31536000</code></td><td>Bắt buộc HTTPS</td></tr>
+<tr><td><code>Content-Security-Policy</code></td><td>Cấu hình cụ thể</td><td>Chống XSS</td></tr>
+</tbody></table>
+<h3 id="123-cors">12.3. CORS</h3>
+<p>Chỉ cho phép request từ frontend domain. Cấu hình trong <code>main.ts</code>:</p>
+<ul>
+<li><strong>Allowed origins</strong>: <code>http://localhost:5173</code> (dev) và <code>https://hrm.company.com</code> (prod)</li>
+<li><strong>Allowed methods</strong>: GET, POST, PATCH, DELETE</li>
+<li><strong>Allowed headers</strong>: Content-Type, Authorization</li>
+<li><strong>Credentials</strong>: <code>true</code> (để gửi HttpOnly cookie)</li>
+</ul>
+<hr>
+<h2 id="13-error-handling-logging">13. Error Handling & Logging</h2>
+<h3 id="131-exception-hierarchy">13.1. Exception hierarchy</h3>
+<pre><code class="language-">HttpException (NestJS built-in)
+  ├── BadRequestException        400 – validation, business rule violation
+  ├── UnauthorizedException      401 – chưa đăng nhập / token hết hạn
+  ├── ForbiddenException         403 – không có quyền
+  ├── NotFoundException          404 – không tìm thấy resource
+  ├── ConflictException          409 – trùng dữ liệu (CCCD, email)
+  └── UnprocessableEntityException 422 – vi phạm business rule
+
+Không bao giờ throw Error trần. Luôn dùng HttpException có code cụ thể.
+</code></pre>
+<h3 id="132-logging-strategy">13.2. Logging strategy</h3>
+<p>Dùng <strong>Winston</strong> logger với 2 transport:</p>
+<table><thead>
+<tr><th>Transport</th><th>Level</th><th>Môi trường</th></tr>
+</thead><tbody>
+<tr><td>Console (màu)</td><td>debug+</td><td>development</td></tr>
+<tr><td>CloudWatch Logs</td><td>info+</td><td>production</td></tr>
+</tbody></table>
+<p><strong>Log những gì:</strong></p>
+<ul>
+<li>Mọi request: method, path, status code, duration, user_id.</li>
+<li>Mọi lỗi 500: full stack trace.</li>
+<li>Các hành động quan trọng: login, logout, tạo/sửa/xoá nhân viên, tính lương, export.</li>
+</ul>
+<p><strong>Không log:</strong></p>
+<ul>
+<li>Password, token, CCCD, số tài khoản ngân hàng.</li>
+<li>Request body của <code>POST /auth/login</code>, <code>POST /auth/change-password</code>.</li>
+</ul>
+<h3 id="133-sentry-error-monitoring">13.3. Sentry (error monitoring)</h3>
+<p>Tích hợp Sentry để nhận alert ngay khi có lỗi production:</p>
+<ul>
+<li>Tự động capture unhandled exceptions.</li>
+<li>Gắn user context (user_id, role) vào mỗi error.</li>
+<li>Ignore 4xx errors (chỉ alert 5xx).</li>
+</ul>
+<hr>
+<h2 id="14-health-check">14. Health Check</h2>
+<p><code>GET /health</code> — không cần auth, dùng cho PM2, load balancer, uptime monitoring.</p>
+<table><thead>
+<tr><th>Check</th><th>Mục đích</th></tr>
+</thead><tbody>
+<tr><td>Database ping</td><td>MySQL connection còn sống</td></tr>
+<tr><td>Redis ping</td><td>Redis connection còn sống</td></tr>
+<tr><td>Disk space</td><td>Còn đủ dung lượng</td></tr>
+<tr><td>Memory usage</td><td>Không bị memory leak</td></tr>
+</tbody></table>
+<p>Response:</p>
+<ul>
+<li><code>200 OK</code> → tất cả healthy</li>
+<li><code>503 Service Unavailable</code> → ít nhất 1 check fail</li>
+</ul>
+<hr>
+<h2 id="15-response-dto-pattern">15. Response & DTO Pattern</h2>
+<h3 id="151-request-dto">15.1. Request DTO</h3>
+<p>Mỗi endpoint có DTO riêng, dùng <code>class-validator</code> decorators:</p>
+<table><thead>
+<tr><th>DTO</th><th>Dùng cho</th></tr>
+</thead><tbody>
+<tr><td><code>CreateEmployeeDto</code></td><td>POST /employees</td></tr>
+<tr><td><code>UpdateEmployeeDto</code></td><td>PATCH /employees/:id (Partial type)</td></tr>
+<tr><td><code>FilterEmployeeDto</code></td><td>GET /employees (query params)</td></tr>
+</tbody></table>
+<h3 id="152-response-dto">15.2. Response DTO</h3>
+<p><strong>Bắt buộc</strong> dùng Response DTO thay vì trả Entity trực tiếp, để:</p>
+<ul>
+<li>Loại bỏ field nhạy cảm: <code>password</code>, <code>deleted_at</code>, <code>token_hash</code>.</li>
+<li>Kiểm soát chính xác những gì client nhận được.</li>
+<li>Dễ thay đổi DB structure mà không break API.</li>
+</ul>
+<table><thead>
+<tr><th>Entity field</th><th>Có trong Response DTO</th></tr>
+</thead><tbody>
+<tr><td>id, employee_code, full_name</td><td>✅</td></tr>
+<tr><td>email, phone, department</td><td>✅</td></tr>
+<tr><td>password</td><td>❌</td></tr>
+<tr><td>deleted_at</td><td>❌</td></tr>
+<tr><td>created_by (internal)</td><td>❌ (trừ admin)</td></tr>
+</tbody></table>
+<h3 id="153-pagination-response">15.3. Pagination Response</h3>
+<p>Mọi danh sách đều trả về format:</p>
+<pre><code class="language-">{
+  "success": true,
+  "data": {
+    "items": [...],
+    "meta": {
+      "total": 150,
+      "page": 1,
+      "limit": 20,
+      "totalPages": 8
+    }
+  },
+  "timestamp": "..."
+}
+</code></pre>
+<hr>
+<h2 id="16-database-strategy">16. Database Strategy</h2>
+<h3 id="161-connection">16.1. Connection</h3>
+<ul>
+<li>Dùng TypeORM <code>DataSource</code> với connection pool (mặc định 10 connections).</li>
+<li>Không bao giờ dùng <code>synchronize: true</code> trong production — chỉ dùng migrations.</li>
+</ul>
+<h3 id="162-migrations">16.2. Migrations</h3>
+<ul>
+<li>Mọi thay đổi schema đều qua migration file, không sửa trực tiếp DB.</li>
+<li>Tên file: <code>{timestamp}-{MoTa}.ts</code> (ví dụ: <code>1716892800000-AddEmployeeTable.ts</code>).</li>
+<li>Migration phải có cả <code>up()</code> và <code>down()</code> để rollback được.</li>
+</ul>
+<h3 id="163-transactions">16.3. Transactions</h3>
+<p>Các thao tác liên quan nhiều bảng phải dùng transaction:</p>
+<ul>
+<li>Tạo nhân viên → tạo user → ghi work_history → ghi audit_log.</li>
+<li>Tính lương → cập nhật leave_balances → ghi salary_components.</li>
+<li>Duyệt đơn nghỉ → cập nhật leave_balances → tạo attendance record.</li>
+</ul>
+<h3 id="164-soft-delete">16.4. Soft delete</h3>
+<p>Các bảng chính dùng <code>deleted_at</code> thay vì <code>DELETE</code>. Mọi query phải thêm <code>WHERE deleted_at IS NULL</code> (TypeORM <code>@DeleteDateColumn</code> tự xử lý nếu dùng đúng).</p>
+<h3 id="165-backup">16.5. Backup</h3>
+<ul>
+<li>RDS automated backup: mỗi ngày, giữ 7 ngày.</li>
+<li>RDS snapshot thủ công: trước mỗi lần deploy lớn.</li>
+<li>Không bao giờ backup vào cùng region với production (dùng S3 cross-region replication).</li>
+</ul>
+<hr>
+<h2 id="17-environment-variables">17. Environment Variables</h2>
+<p>Tất cả config nhạy cảm qua <code>.env</code> (không commit). File <code>.env.example</code> luôn cập nhật.</p>
+<table><thead>
+<tr><th>Nhóm</th><th>Biến</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><strong>App</strong></td><td><code>PORT</code></td><td>Port server (mặc định 3000)</td></tr>
+<tr><td></td><td><code>NODE_ENV</code></td><td><code>development</code> / <code>production</code></td></tr>
+<tr><td></td><td><code>API_PREFIX</code></td><td><code>/api/v1</code></td></tr>
+<tr><td></td><td><code>FRONTEND_URL</code></td><td>URL frontend (dùng cho CORS, email links)</td></tr>
+<tr><td><strong>Database</strong></td><td><code>DB_HOST</code></td><td>RDS endpoint</td></tr>
+<tr><td></td><td><code>DB_PORT</code></td><td>3306</td></tr>
+<tr><td></td><td><code>DB_NAME</code></td><td><code>hrm_production</code></td></tr>
+<tr><td></td><td><code>DB_USER</code></td><td>–</td></tr>
+<tr><td></td><td><code>DB_PASSWORD</code></td><td>–</td></tr>
+<tr><td><strong>JWT</strong></td><td><code>JWT_SECRET</code></td><td>Ít nhất 64 ký tự random</td></tr>
+<tr><td></td><td><code>JWT_EXPIRES_IN</code></td><td><code>15m</code></td></tr>
+<tr><td></td><td><code>JWT_REFRESH_EXPIRES_IN</code></td><td><code>7d</code></td></tr>
+<tr><td><strong>Redis</strong></td><td><code>REDIS_HOST</code></td><td>–</td></tr>
+<tr><td></td><td><code>REDIS_PORT</code></td><td>6379</td></tr>
+<tr><td></td><td><code>REDIS_PASSWORD</code></td><td>–</td></tr>
+<tr><td><strong>S3</strong></td><td><code>AWS_REGION</code></td><td><code>ap-southeast-1</code></td></tr>
+<tr><td></td><td><code>AWS_ACCESS_KEY_ID</code></td><td>–</td></tr>
+<tr><td></td><td><code>AWS_SECRET_ACCESS_KEY</code></td><td>–</td></tr>
+<tr><td></td><td><code>S3_BUCKET</code></td><td><code>hrm-bucket</code></td></tr>
+<tr><td><strong>Email</strong></td><td><code>MAIL_FROM</code></td><td><code>no-reply@company.com</code></td></tr>
+<tr><td></td><td><code>MAIL_FROM_NAME</code></td><td><code>HRM System</code></td></tr>
+<tr><td><strong>Monitoring</strong></td><td><code>SENTRY_DSN</code></td><td>Sentry project DSN</td></tr>
+</tbody></table>
+<hr>
+<h2 id="18-lý-do-chọn-tech-stack">18. Lý do chọn tech stack</h2>
+<table><thead>
+<tr><th>Quyết định</th><th>Thay vì</th><th>Lý do</th></tr>
+</thead><tbody>
+<tr><td>TypeORM</td><td>Prisma</td><td>Migration linh hoạt hơn cho schema phức tạp VN (26 bảng, circular FK)</td></tr>
+<tr><td>MySQL 8</td><td>PostgreSQL</td><td>Phổ biến hơn ở VN, dễ tìm DBA và hosting</td></tr>
+<tr><td>Redis</td><td>In-memory cache</td><td>Persist qua restart, share giữa nhiều PM2 workers</td></tr>
+<tr><td>JWT + Refresh Token</td><td>Session</td><td>Stateless, scale tốt khi thêm server</td></tr>
+<tr><td>Bull + Redis</td><td>Cron đơn thuần</td><td>Job queue bền vững, không mất job khi server restart</td></tr>
+<tr><td>AWS SES</td><td>SMTP tự host</td><td>Rẻ, deliverability cao, không cần quản lý server email</td></tr>
+<tr><td>PM2 cluster</td><td>Single process</td><td>Tận dụng nhiều CPU core trên EC2</td></tr>
+<tr><td>RDS</td><td>MySQL cùng EC2</td><td>Tách biệt database ra instance riêng, tự backup, failover</td></tr>
+</tbody></table>
+<hr>
+<p><em>Cập nhật: 26/05/2026 – Version 1.0 – Full architecture document</em></p>
+
+</main>
+<script>
+// Highlight active TOC link on scroll
+const headings = document.querySelectorAll('h1,h2,h3,h4');
+const links = document.querySelectorAll('#sidebar a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('#sidebar a[href="#'+e.target.id+'"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '0px 0px -80% 0px' });
+headings.forEach(h => { if(h.id) obs.observe(h); });
+</script>
+<style>#sidebar a.active { background:#ddf4ff; border-left-color:#0969da; font-weight:600; }</style>
+</body>
+</html>

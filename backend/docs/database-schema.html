@@ -1,0 +1,953 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Database Schema - HRM Docs</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.7; color: #24292f;
+  margin: 0; background: #f6f8fa; display: flex;
+}
+#sidebar {
+  width: 260px; min-height: 100vh; background: #fff;
+  border-right: 1px solid #d0d7de; padding: 20px 0;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  flex-shrink: 0;
+}
+#sidebar h2 { font-size: 12px; font-weight: 600; color: #57606a;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 20px 4px; margin: 16px 0 4px; }
+#sidebar ul { list-style: none; margin: 0; padding: 0; }
+#sidebar li a {
+  display: block; padding: 5px 20px 5px 28px;
+  color: #0969da; text-decoration: none; font-size: 13px;
+  border-left: 3px solid transparent; line-height: 1.4;
+}
+#sidebar li a:hover { background: #f6f8fa; border-left-color: #0969da; }
+#sidebar li.h1 a { padding-left: 20px; font-weight: 600; font-size: 13px; }
+#sidebar li.h2 a { padding-left: 28px; }
+#sidebar li.h3 a { padding-left: 40px; font-size: 12px; color: #57606a; }
+#content {
+  flex: 1; max-width: 900px; padding: 40px 48px;
+  background: #fff; min-height: 100vh;
+}
+h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.5em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.8em; }
+h3 { font-size: 1.2em; margin-top: 1.5em; }
+h4 { font-size: 1em; margin-top: 1.2em; }
+h1:first-child, h2:first-child { margin-top: 0; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { margin: 0 0 16px; }
+pre {
+  background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;
+  padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5;
+  margin: 0 0 16px;
+}
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 85%;
+}
+pre code { font-size: inherit; background: none; padding: 0; border: none; }
+:not(pre) > code {
+  background: rgba(175,184,193,.2); padding: .2em .4em;
+  border-radius: 6px; font-size: 85%;
+}
+blockquote {
+  margin: 0 0 16px; padding: 0 1em;
+  color: #57606a; border-left: .25em solid #d0d7de;
+}
+blockquote p { margin-bottom: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 14px; }
+thead { background: #f6f8fa; }
+th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+th { font-weight: 600; }
+tr:nth-child(even) { background: #f6f8fa; }
+ul, ol { padding-left: 2em; margin: 0 0 16px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px;
+  font-size: 12px; font-weight: 600; margin-right: 4px;
+}
+.lock { background: #fff8c5; color: #9a6700; }
+.method-get { color: #1a7f37; font-weight: 700; }
+.method-post { color: #0969da; font-weight: 700; }
+.method-patch { color: #9a6700; font-weight: 700; }
+.method-delete { color: #cf222e; font-weight: 700; }
+
+/* Syntax highlight classes */
+.kw { color: #cf222e; }
+.st { color: #0a3069; }
+.cm { color: #6e7781; font-style: italic; }
+.nm { color: #953800; }
+.kv { color: #0550ae; }
+
+/* Scroll margin for anchor links */
+h1, h2, h3, h4 { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+<h2>Database Schema</h2><ul>
+<li class="h1"><a href="#database-schema-hrm-việt-nam">Database Schema – HRM Việt Nam</a></li>
+<li class="h2"><a href="#mục-lục">Mục lục</a></li>
+<li class="h2"><a href="#sơ-đồ-quan-hệ-erd">Sơ đồ quan hệ (ERD)</a></li>
+<li class="h2"><a href="#nhóm-1-xác-thực-phân-quyền">Nhóm 1 – Xác thực & Phân quyền</a></li>
+<li class="h3"><a href="#11-roles-vai-trò-hệ-thống">1.1. `roles` – Vai trò hệ thống</a></li>
+<li class="h3"><a href="#12-permissions-quyền-hạn">1.2. `permissions` – Quyền hạn</a></li>
+<li class="h3"><a href="#13-role_permissions-mapping-vai-trò-quyền">1.3. `role_permissions` – Mapping vai trò ↔ quyền</a></li>
+<li class="h3"><a href="#14-users-tài-khoản-đăng-nhập">1.4. `users` – Tài khoản đăng nhập</a></li>
+<li class="h3"><a href="#15-refresh_tokens-jwt-refresh-token">1.5. `refresh_tokens` – JWT Refresh Token</a></li>
+<li class="h2"><a href="#nhóm-2-tổ-chức-nhân-viên">Nhóm 2 – Tổ chức & Nhân viên</a></li>
+<li class="h3"><a href="#21-departments-phòng-ban">2.1. `departments` – Phòng ban</a></li>
+<li class="h3"><a href="#22-positions-chức-vụ">2.2. `positions` – Chức vụ</a></li>
+<li class="h3"><a href="#23-employees-hồ-sơ-nhân-viên-bảng-trung-tâm">2.3. `employees` – Hồ sơ nhân viên *(bảng trung tâm)*</a></li>
+<li class="h4"><a href="#định-danh">Định danh</a></li>
+<li class="h4"><a href="#thông-tin-cá-nhân">Thông tin cá nhân</a></li>
+<li class="h4"><a href="#giấy-tờ-tuỳ-thân">Giấy tờ tuỳ thân</a></li>
+<li class="h4"><a href="#mã-số-thuế-bảo-hiểm">Mã số thuế & Bảo hiểm</a></li>
+<li class="h4"><a href="#địa-chỉ">Địa chỉ</a></li>
+<li class="h4"><a href="#liên-lạc">Liên lạc</a></li>
+<li class="h4"><a href="#ngân-hàng">Ngân hàng</a></li>
+<li class="h4"><a href="#thông-tin-công-việc">Thông tin công việc</a></li>
+<li class="h4"><a href="#học-vấn">Học vấn</a></li>
+<li class="h4"><a href="#metadata">Metadata</a></li>
+<li class="h2"><a href="#nhóm-3-gia-đình-người-phụ-thuộc">Nhóm 3 – Gia đình & Người phụ thuộc</a></li>
+<li class="h3"><a href="#31-family_members-thành-viên-gia-đình">3.1. `family_members` – Thành viên gia đình</a></li>
+<li class="h3"><a href="#32-dependents-người-phụ-thuộc-giảm-trừ-gia-cảnh">3.2. `dependents` – Người phụ thuộc (giảm trừ gia cảnh)</a></li>
+<li class="h2"><a href="#nhóm-4-hợp-đồng-lao-động">Nhóm 4 – Hợp đồng lao động</a></li>
+<li class="h3"><a href="#41-contracts-hợp-đồng-lao-động">4.1. `contracts` – Hợp đồng lao động</a></li>
+<li class="h2"><a href="#nhóm-5-chấm-công-nghỉ-phép">Nhóm 5 – Chấm công & Nghỉ phép</a></li>
+<li class="h3"><a href="#51-attendances-chấm-công">5.1. `attendances` – Chấm công</a></li>
+<li class="h3"><a href="#52-leave_types-loại-nghỉ-phép">5.2. `leave_types` – Loại nghỉ phép</a></li>
+<li class="h3"><a href="#53-leave_requests-đơn-xin-nghỉ">5.3. `leave_requests` – Đơn xin nghỉ</a></li>
+<li class="h3"><a href="#54-leave_balances-số-ngày-phép-còn-lại">5.4. `leave_balances` – Số ngày phép còn lại</a></li>
+<li class="h3"><a href="#55-holidays-lịch-nghỉ-lễ">5.5. `holidays` – Lịch nghỉ lễ</a></li>
+<li class="h2"><a href="#nhóm-6-lương-phúc-lợi">Nhóm 6 – Lương & Phúc lợi</a></li>
+<li class="h3"><a href="#61-salaries-bảng-lương-tháng">6.1. `salaries` – Bảng lương tháng</a></li>
+<li class="h4"><a href="#ngày-công">Ngày công</a></li>
+<li class="h4"><a href="#thu-nhập">Thu nhập</a></li>
+<li class="h4"><a href="#bảo-hiểm-người-lao-động-đóng">Bảo hiểm (người lao động đóng)</a></li>
+<li class="h4"><a href="#thuế-tncn">Thuế TNCN</a></li>
+<li class="h4"><a href="#khấu-trừ-khác-thực-nhận">Khấu trừ khác & Thực nhận</a></li>
+<li class="h4"><a href="#trạng-thái-phê-duyệt">Trạng thái & Phê duyệt</a></li>
+<li class="h3"><a href="#62-salary_components-chi-tiết-từng-khoản-phụ-cấp-khấu-trừ">6.2. `salary_components` – Chi tiết từng khoản phụ cấp / khấu trừ</a></li>
+<li class="h2"><a href="#nhóm-7-đào-tạo-phát-triển">Nhóm 7 – Đào tạo & Phát triển</a></li>
+<li class="h3"><a href="#71-trainings-khoá-đào-tạo">7.1. `trainings` – Khoá đào tạo</a></li>
+<li class="h3"><a href="#72-employee_trainings-nhân-viên-tham-gia-đào-tạo">7.2. `employee_trainings` – Nhân viên tham gia đào tạo</a></li>
+<li class="h2"><a href="#nhóm-8-đánh-giá-kỷ-luật">Nhóm 8 – Đánh giá & Kỷ luật</a></li>
+<li class="h3"><a href="#81-performance_reviews-đánh-giá-hiệu-suất">8.1. `performance_reviews` – Đánh giá hiệu suất</a></li>
+<li class="h3"><a href="#82-disciplines_rewards-khen-thưởng-kỷ-luật">8.2. `disciplines_rewards` – Khen thưởng & Kỷ luật</a></li>
+<li class="h2"><a href="#nhóm-9-tài-liệu-hệ-thống">Nhóm 9 – Tài liệu & Hệ thống</a></li>
+<li class="h3"><a href="#91-work_history-lịch-sử-công-tác">9.1. `work_history` – Lịch sử công tác</a></li>
+<li class="h3"><a href="#92-documents-tài-liệu-hồ-sơ-nhân-viên">9.2. `documents` – Tài liệu hồ sơ nhân viên</a></li>
+<li class="h3"><a href="#93-announcements-thông-báo-nội-bộ">9.3. `announcements` – Thông báo nội bộ</a></li>
+<li class="h3"><a href="#94-audit_logs-nhật-ký-thao-tác">9.4. `audit_logs` – Nhật ký thao tác</a></li>
+<li class="h2"><a href="#thứ-tự-migration">Thứ tự Migration</a></li>
+<li class="h2"><a href="#seed-data-cần-chuẩn-bị">Seed Data cần chuẩn bị</a></li>
+</ul></nav>
+
+<main id="content">
+<h1 id="database-schema-hrm-việt-nam">Database Schema – HRM Việt Nam</h1>
+<blockquote>
+<p><strong>Hệ quản trị:</strong> MySQL 8.0+ · <strong>Charset:</strong> utf8mb4 · <strong>Timezone:</strong> Asia/Ho_Chi_Minh (UTC+7)</p>
+<p><strong>Soft delete:</strong> Các bảng chính dùng cột <code>deleted_at</code> thay vì xoá vật lý.</p>
+<p><strong>Quy ước:</strong> <code>snake_case</code> cho tên bảng và cột · <code>BIGINT UNSIGNED</code> cho mọi khoá chính · <code>DECIMAL(15,2)</code> cho tiền VNĐ.</p>
+</blockquote>
+<hr>
+<h2 id="mục-lục">Mục lục</h2>
+<ol>
+<li><a href="#sơ-đồ-quan-hệ-erd">Sơ đồ quan hệ (ERD)</a></li>
+<li><a href="#nhóm-1--xác-thực--phân-quyền">Nhóm 1 – Xác thực & Phân quyền</a></li>
+<li><a href="#nhóm-2--tổ-chức--nhân-viên">Nhóm 2 – Tổ chức & Nhân viên</a></li>
+<li><a href="#nhóm-3--gia-đình--người-phụ-thuộc">Nhóm 3 – Gia đình & Người phụ thuộc</a></li>
+<li><a href="#nhóm-4--hợp-đồng-lao-động">Nhóm 4 – Hợp đồng lao động</a></li>
+<li><a href="#nhóm-5--chấm-công--nghỉ-phép">Nhóm 5 – Chấm công & Nghỉ phép</a></li>
+<li><a href="#nhóm-6--lương--phúc-lợi">Nhóm 6 – Lương & Phúc lợi</a></li>
+<li><a href="#nhóm-7--đào-tạo--phát-triển">Nhóm 7 – Đào tạo & Phát triển</a></li>
+<li><a href="#nhóm-8--đánh-giá--kỷ-luật">Nhóm 8 – Đánh giá & Kỷ luật</a></li>
+<li><a href="#nhóm-9--tài-liệu--hệ-thống">Nhóm 9 – Tài liệu & Hệ thống</a></li>
+<li><a href="#thứ-tự-migration">Thứ tự Migration</a></li>
+<li><a href="#seed-data-cần-chuẩn-bị">Seed Data cần chuẩn bị</a></li>
+</ol>
+<hr>
+<h2 id="sơ-đồ-quan-hệ-erd">Sơ đồ quan hệ (ERD)</h2>
+<pre><code class="language-">roles ──────────────── role_permissions ──── permissions
+  │
+users ──── employees ──┬── departments (self-ref, có manager_id)
+                       ├── positions
+                       ├── contracts
+                       ├── attendances ──── leave_requests
+                       ├── leave_requests ── leave_types
+                       ├── leave_balances ── leave_types
+                       ├── salaries ──────── salary_components
+                       ├── dependents
+                       ├── family_members
+                       ├── work_history
+                       ├── employee_trainings ── trainings
+                       ├── performance_reviews
+                       ├── disciplines_rewards
+                       └── documents
+
+holidays    (standalone – lịch nghỉ lễ VN)
+audit_logs  (standalone – ghi log mọi thao tác, chỉ INSERT)
+announcements (standalone – thông báo nội bộ)
+</code></pre>
+<hr>
+<h2 id="nhóm-1-xác-thực-phân-quyền">Nhóm 1 – Xác thực & Phân quyền</h2>
+<h3 id="11-roles-vai-trò-hệ-thống">1.1. <code>roles</code> – Vai trò hệ thống</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính (TINYINT – tối đa 255 roles)</td></tr>
+<tr><td>name</td><td>text (50)</td><td>✅</td><td>Tên kỹ thuật, duy nhất: <code>admin</code> · <code>hr_manager</code> · <code>hr_staff</code> · <code>manager</code> · <code>employee</code></td></tr>
+<tr><td>display_name</td><td>text (100)</td><td>✅</td><td>Tên hiển thị tiếng Việt</td></tr>
+<tr><td>description</td><td>văn bản dài</td><td>❌</td><td>Mô tả quyền hạn</td></tr>
+<tr><td>is_active</td><td>boolean</td><td>✅</td><td>Mặc định <code>true</code></td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<p><strong>Seed mặc định:</strong></p>
+<table><thead>
+<tr><th>id</th><th>name</th><th>display_name</th></tr>
+</thead><tbody>
+<tr><td>1</td><td>admin</td><td>Quản trị hệ thống</td></tr>
+<tr><td>2</td><td>hr_manager</td><td>Trưởng phòng Nhân sự</td></tr>
+<tr><td>3</td><td>hr_staff</td><td>Nhân viên Nhân sự</td></tr>
+<tr><td>4</td><td>manager</td><td>Quản lý phòng ban</td></tr>
+<tr><td>5</td><td>employee</td><td>Nhân viên</td></tr>
+</tbody></table>
+<hr>
+<h3 id="12-permissions-quyền-hạn">1.2. <code>permissions</code> – Quyền hạn</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính (SMALLINT)</td></tr>
+<tr><td>module</td><td>text (50)</td><td>✅</td><td>Module: <code>employees</code> · <code>departments</code> · <code>salaries</code> · <code>leaves</code> · <code>reports</code> …</td></tr>
+<tr><td>action</td><td>text (50)</td><td>✅</td><td>Hành động: <code>create</code> · <code>read</code> · <code>update</code> · <code>delete</code> · <code>approve</code> · <code>export</code></td></tr>
+<tr><td>name</td><td>text (100)</td><td>✅</td><td>Duy nhất, dạng <code>module:action</code> – ví dụ: <code>employees:create</code></td></tr>
+<tr><td>description</td><td>text (255)</td><td>❌</td><td>Mô tả ngắn</td></tr>
+</tbody></table>
+<hr>
+<h3 id="13-role_permissions-mapping-vai-trò-quyền">1.3. <code>role_permissions</code> – Mapping vai trò ↔ quyền</h3>
+<p>Bảng trung gian many-to-many giữa <code>roles</code> và <code>permissions</code>. Không có cột riêng ngoài 2 khoá ngoại.</p>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>role_id</td><td>FK → roles</td><td>✅</td><td>Xoá vai trò thì xoá luôn mapping (CASCADE)</td></tr>
+<tr><td>permission_id</td><td>FK → permissions</td><td>✅</td><td>Xoá quyền thì xoá luôn mapping (CASCADE)</td></tr>
+</tbody></table>
+<hr>
+<h3 id="14-users-tài-khoản-đăng-nhập">1.4. <code>users</code> – Tài khoản đăng nhập</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>username</td><td>text (50)</td><td>✅</td><td>Duy nhất, dùng để đăng nhập</td></tr>
+<tr><td>email</td><td>text (100)</td><td>✅</td><td>Duy nhất</td></tr>
+<tr><td>password</td><td>text (255)</td><td>✅</td><td><strong>bcrypt hash</strong> – salt rounds 10. Không bao giờ lưu plaintext</td></tr>
+<tr><td>role_id</td><td>FK → roles</td><td>✅</td><td>Mặc định <code>5</code> (employee)</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>❌</td><td>Duy nhất. <code>NULL</code> nếu tài khoản chưa liên kết hồ sơ nhân viên</td></tr>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>active</code> · <code>inactive</code> · <code>locked</code>. Mặc định <code>active</code></td></tr>
+<tr><td>last_login_at</td><td>thời điểm</td><td>❌</td><td>Cập nhật mỗi lần đăng nhập thành công</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+<tr><td>deleted_at</td><td>thời điểm</td><td>❌</td><td>Soft delete</td></tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ Không log giá trị cột <code>password</code> ra console hay file log.</p>
+</blockquote>
+<hr>
+<h3 id="15-refresh_tokens-jwt-refresh-token">1.5. <code>refresh_tokens</code> – JWT Refresh Token</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>user_id</td><td>FK → users</td><td>✅</td><td>Xoá user thì xoá token (CASCADE)</td></tr>
+<tr><td>token_hash</td><td>text (255)</td><td>✅</td><td>SHA-256 hash của token thực. Duy nhất</td></tr>
+<tr><td>device</td><td>text (255)</td><td>❌</td><td>User-Agent rút gọn, lưu để phân biệt thiết bị</td></tr>
+<tr><td>ip_address</td><td>text (45)</td><td>❌</td><td>IPv4 hoặc IPv6</td></tr>
+<tr><td>expires_at</td><td>thời điểm</td><td>✅</td><td>Thời điểm hết hạn (mặc định 7 ngày)</td></tr>
+<tr><td>revoked_at</td><td>thời điểm</td><td>❌</td><td>Không NULL khi đã bị thu hồi (logout, đổi mật khẩu)</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+</tbody></table>
+<p><strong>Lý do lưu DB:</strong> Cho phép revoke token khi logout, đổi mật khẩu, hoặc phát hiện đăng nhập bất thường.</p>
+<hr>
+<h2 id="nhóm-2-tổ-chức-nhân-viên">Nhóm 2 – Tổ chức & Nhân viên</h2>
+<h3 id="21-departments-phòng-ban">2.1. <code>departments</code> – Phòng ban</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>code</td><td>text (20)</td><td>✅</td><td>Duy nhất. Ví dụ: <code>IT</code> · <code>HR</code> · <code>FIN</code> · <code>SALE</code></td></tr>
+<tr><td>name</td><td>text (150)</td><td>✅</td><td>Tên đầy đủ: "Phòng Công nghệ thông tin"</td></tr>
+<tr><td>description</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>parent_id</td><td>FK → departments</td><td>❌</td><td><code>NULL</code> nếu là phòng ban gốc. Self-reference để tạo cây tổ chức</td></tr>
+<tr><td>manager_id</td><td>FK → employees</td><td>❌</td><td>Trưởng phòng. FK này được thêm sau khi tạo bảng <code>employees</code> (tránh circular)</td></tr>
+<tr><td>sort_order</td><td>số nhỏ</td><td>✅</td><td>Thứ tự hiển thị trong danh sách. Mặc định <code>0</code></td></tr>
+<tr><td>is_active</td><td>boolean</td><td>✅</td><td>Mặc định <code>true</code></td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+<tr><td>deleted_at</td><td>thời điểm</td><td>❌</td><td>Soft delete</td></tr>
+</tbody></table>
+<hr>
+<h3 id="22-positions-chức-vụ">2.2. <code>positions</code> – Chức vụ</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>code</td><td>text (20)</td><td>✅</td><td>Duy nhất. Ví dụ: <code>DEV_JUNIOR</code> · <code>PM_SENIOR</code></td></tr>
+<tr><td>name</td><td>text (150)</td><td>✅</td><td>Tên chức vụ đầy đủ</td></tr>
+<tr><td>department_id</td><td>FK → departments</td><td>✅</td><td>Phòng ban sở hữu chức vụ này</td></tr>
+<tr><td>level</td><td>số nhỏ</td><td>✅</td><td>Cấp bậc: <code>1</code> Staff · <code>2</code> Senior · <code>3</code> Lead · <code>4</code> Manager · <code>5</code> Director</td></tr>
+<tr><td>min_salary</td><td>tiền VNĐ</td><td>❌</td><td>Lương tối thiểu theo thang bảng lương</td></tr>
+<tr><td>max_salary</td><td>tiền VNĐ</td><td>❌</td><td>Lương tối đa</td></tr>
+<tr><td>description</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>is_active</td><td>boolean</td><td>✅</td><td>Mặc định <code>true</code></td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+<tr><td>deleted_at</td><td>thời điểm</td><td>❌</td><td>Soft delete</td></tr>
+</tbody></table>
+<hr>
+<h3 id="23-employees-hồ-sơ-nhân-viên-bảng-trung-tâm">2.3. <code>employees</code> – Hồ sơ nhân viên <em>(bảng trung tâm)</em></h3>
+<h4 id="định-danh">Định danh</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_code</td><td>text (20)</td><td>✅</td><td>Duy nhất. Auto-generate: <code>NV0001</code>, <code>NV0002</code>…</td></tr>
+</tbody></table>
+<h4 id="thông-tin-cá-nhân">Thông tin cá nhân</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>last_name</td><td>text (50)</td><td>✅</td><td>Họ: Nguyễn, Trần, Lê…</td></tr>
+<tr><td>first_name</td><td>text (50)</td><td>✅</td><td>Tên đệm + Tên: "Văn An"</td></tr>
+<tr><td>full_name</td><td>text (100)</td><td>✅</td><td>Họ và tên đầy đủ – tự ghép từ last + first</td></tr>
+<tr><td>date_of_birth</td><td>ngày</td><td>✅</td><td>Tuổi hợp lệ: 15–70 tuổi</td></tr>
+<tr><td>gender</td><td>enum</td><td>✅</td><td><code>male</code> · <code>female</code> · <code>other</code></td></tr>
+<tr><td>marital_status</td><td>enum</td><td>✅</td><td><code>single</code> · <code>married</code> · <code>divorced</code> · <code>widowed</code>. Mặc định <code>single</code></td></tr>
+<tr><td>nationality</td><td>text (50)</td><td>✅</td><td>Mặc định <code>Việt Nam</code></td></tr>
+<tr><td>ethnicity</td><td>text (50)</td><td>✅</td><td>Dân tộc. Mặc định <code>Kinh</code></td></tr>
+<tr><td>religion</td><td>text (50)</td><td>❌</td><td>Tôn giáo. <code>NULL</code> = Không</td></tr>
+<tr><td>place_of_birth</td><td>text (255)</td><td>✅</td><td>Nơi sinh</td></tr>
+<tr><td>hometown</td><td>text (255)</td><td>✅</td><td>Quê quán (tỉnh/huyện/xã)</td></tr>
+</tbody></table>
+<h4 id="giấy-tờ-tuỳ-thân">Giấy tờ tuỳ thân</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>cccd_number</td><td>text (12)</td><td>✅</td><td><strong>Duy nhất.</strong> CCCD 12 số, validate <code>/^\d{12}$/</code></td></tr>
+<tr><td>cccd_issue_date</td><td>ngày</td><td>✅</td><td>Ngày cấp CCCD</td></tr>
+<tr><td>cccd_issue_place</td><td>text (255)</td><td>✅</td><td>Nơi cấp: "Cục CS QLHC về TTXH tỉnh X"</td></tr>
+<tr><td>cccd_expired_date</td><td>ngày</td><td>❌</td><td>Hạn dùng (CCCD gắn chip). Loại cũ = <code>NULL</code></td></tr>
+</tbody></table>
+<h4 id="mã-số-thuế-bảo-hiểm">Mã số thuế & Bảo hiểm</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>tax_code</td><td>text (13)</td><td>❌</td><td>Duy nhất. MST cá nhân: 10 hoặc 13 chữ số</td></tr>
+<tr><td>social_insurance_no</td><td>text (15)</td><td>❌</td><td>Duy nhất. Số sổ BHXH – 10 chữ số</td></tr>
+<tr><td>health_insurance_no</td><td>text (15)</td><td>❌</td><td>Duy nhất. Số thẻ BHYT – 15 ký tự</td></tr>
+<tr><td>health_insurance_exp</td><td>ngày</td><td>❌</td><td>Ngày hết hạn thẻ BHYT</td></tr>
+</tbody></table>
+<h4 id="địa-chỉ">Địa chỉ</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>permanent_address</td><td>text (500)</td><td>✅</td><td>Hộ khẩu thường trú – địa chỉ đầy đủ</td></tr>
+<tr><td>current_address</td><td>text (500)</td><td>❌</td><td>Chỗ ở hiện tại. <code>NULL</code> = giống thường trú</td></tr>
+<tr><td>province_code</td><td>text (10)</td><td>✅</td><td>Mã tỉnh/thành phố theo Bộ Nội Vụ (63 tỉnh)</td></tr>
+<tr><td>district_code</td><td>text (10)</td><td>✅</td><td>Mã quận/huyện</td></tr>
+<tr><td>ward_code</td><td>text (10)</td><td>✅</td><td>Mã phường/xã</td></tr>
+</tbody></table>
+<h4 id="liên-lạc">Liên lạc</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>phone</td><td>text (15)</td><td>✅</td><td>Validate: <code>0xxxxxxxxx</code> hoặc <code>+84xxxxxxxxx</code></td></tr>
+<tr><td>email</td><td>text (100)</td><td>✅</td><td><strong>Duy nhất.</strong> Email công ty, chuẩn RFC 5322</td></tr>
+<tr><td>personal_email</td><td>text (100)</td><td>❌</td><td>Email cá nhân</td></tr>
+<tr><td>emergency_contact_name</td><td>text (100)</td><td>❌</td><td>Tên người liên lạc khẩn cấp</td></tr>
+<tr><td>emergency_contact_phone</td><td>text (15)</td><td>❌</td><td>SĐT người liên lạc khẩn cấp</td></tr>
+<tr><td>emergency_contact_rel</td><td>text (50)</td><td>❌</td><td>Quan hệ: Vợ/Chồng, Bố, Mẹ…</td></tr>
+</tbody></table>
+<h4 id="ngân-hàng">Ngân hàng</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>bank_account</td><td>text (30)</td><td>❌</td><td>Số tài khoản nhận lương</td></tr>
+<tr><td>bank_name</td><td>text (100)</td><td>❌</td><td>Vietcombank, BIDV, Techcombank…</td></tr>
+<tr><td>bank_branch</td><td>text (200)</td><td>❌</td><td>Chi nhánh cụ thể</td></tr>
+</tbody></table>
+<h4 id="thông-tin-công-việc">Thông tin công việc</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>position_id</td><td>FK → positions</td><td>✅</td><td>Chức vụ hiện tại</td></tr>
+<tr><td>department_id</td><td>FK → departments</td><td>✅</td><td>Phòng ban hiện tại</td></tr>
+<tr><td>direct_manager_id</td><td>FK → employees</td><td>❌</td><td>Quản lý trực tiếp. Self-reference. <code>NULL</code> = không có</td></tr>
+<tr><td>hire_date</td><td>ngày</td><td>✅</td><td>Ngày vào làm (ngày ký hợp đồng đầu tiên)</td></tr>
+<tr><td>probation_start_date</td><td>ngày</td><td>❌</td><td>Ngày bắt đầu thử việc</td></tr>
+<tr><td>probation_end_date</td><td>ngày</td><td>❌</td><td>Ngày kết thúc thử việc</td></tr>
+<tr><td>official_start_date</td><td>ngày</td><td>❌</td><td>Ngày trở thành nhân viên chính thức</td></tr>
+<tr><td>termination_date</td><td>ngày</td><td>❌</td><td>Ngày nghỉ việc</td></tr>
+<tr><td>termination_reason</td><td>văn bản dài</td><td>❌</td><td>Lý do nghỉ việc</td></tr>
+<tr><td>termination_type</td><td>enum</td><td>❌</td><td><code>resigned</code> · <code>fired</code> · <code>contract_ended</code> · <code>retired</code> · <code>deceased</code></td></tr>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>probation</code> · <code>active</code> · <code>on_leave</code> · <code>suspended</code> · <code>resigned</code> · <code>terminated</code>. Mặc định <code>probation</code></td></tr>
+</tbody></table>
+<h4 id="học-vấn">Học vấn</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>education_level</td><td>enum</td><td>❌</td><td><code>high_school</code> · <code>college</code> · <code>university</code> · <code>master</code> · <code>phd</code> · <code>other</code></td></tr>
+<tr><td>major</td><td>text (200)</td><td>❌</td><td>Chuyên ngành</td></tr>
+<tr><td>university</td><td>text (200)</td><td>❌</td><td>Trường học</td></tr>
+<tr><td>graduation_year</td><td>năm</td><td>❌</td><td>Năm tốt nghiệp</td></tr>
+</tbody></table>
+<h4 id="metadata">Metadata</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>avatar_url</td><td>text (500)</td><td>❌</td><td>URL ảnh đại diện trên S3</td></tr>
+<tr><td>notes</td><td>văn bản dài</td><td>❌</td><td>Ghi chú nội bộ HR</td></tr>
+<tr><td>created_by</td><td>FK → users</td><td>❌</td><td>Người tạo hồ sơ</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+<tr><td>deleted_at</td><td>thời điểm</td><td>❌</td><td>Soft delete</td></tr>
+</tbody></table>
+<p><strong>Validation tầng Application:</strong></p>
+<table><thead>
+<tr><th>Trường</th><th>Quy tắc</th></tr>
+</thead><tbody>
+<tr><td>cccd_number</td><td>Đúng 12 chữ số</td></tr>
+<tr><td>tax_code</td><td>10 hoặc 13 chữ số</td></tr>
+<tr><td>social_insurance_no</td><td>Đúng 10 chữ số</td></tr>
+<tr><td>phone</td><td>Bắt đầu bằng <code>0</code> hoặc <code>+84</code>, theo sau 9 chữ số</td></tr>
+<tr><td>date_of_birth</td><td>Tuổi từ 15 đến 70, không phải tương lai</td></tr>
+<tr><td>hire_date</td><td>Không được trước ngày sinh + 15 năm</td></tr>
+<tr><td>email</td><td>Chuẩn RFC 5322</td></tr>
+</tbody></table>
+<hr>
+<h2 id="nhóm-3-gia-đình-người-phụ-thuộc">Nhóm 3 – Gia đình & Người phụ thuộc</h2>
+<h3 id="31-family_members-thành-viên-gia-đình">3.1. <code>family_members</code> – Thành viên gia đình</h3>
+<p>Lưu thông tin gia đình cho hồ sơ nhân sự (không liên quan đến giảm trừ thuế).</p>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Xoá nhân viên thì xoá luôn (CASCADE)</td></tr>
+<tr><td>full_name</td><td>text (100)</td><td>✅</td><td>Họ tên thành viên gia đình</td></tr>
+<tr><td>relationship</td><td>enum</td><td>✅</td><td><code>spouse</code> · <code>father</code> · <code>mother</code> · <code>child</code> · <code>sibling</code> · <code>other</code></td></tr>
+<tr><td>date_of_birth</td><td>ngày</td><td>❌</td><td>–</td></tr>
+<tr><td>occupation</td><td>text (100)</td><td>❌</td><td>Nghề nghiệp</td></tr>
+<tr><td>phone</td><td>text (15)</td><td>❌</td><td>–</td></tr>
+<tr><td>cccd_number</td><td>text (12)</td><td>❌</td><td>CCCD nếu có</td></tr>
+<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<hr>
+<h3 id="32-dependents-người-phụ-thuộc-giảm-trừ-gia-cảnh">3.2. <code>dependents</code> – Người phụ thuộc (giảm trừ gia cảnh)</h3>
+<blockquote>
+<p>Căn cứ: Điều 19 Luật Thuế TNCN – mỗi người phụ thuộc hợp lệ giảm <strong>4.400.000 VNĐ/tháng</strong> tiền thuế.</p>
+</blockquote>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Xoá nhân viên thì xoá luôn (CASCADE)</td></tr>
+<tr><td>full_name</td><td>text (100)</td><td>✅</td><td>Họ tên người phụ thuộc</td></tr>
+<tr><td>relationship</td><td>enum</td><td>✅</td><td><code>child</code> · <code>spouse</code> · <code>parent</code> · <code>sibling</code> · <code>other</code></td></tr>
+<tr><td>date_of_birth</td><td>ngày</td><td>✅</td><td>Ngày sinh (để xác định đủ điều kiện)</td></tr>
+<tr><td>cccd_number</td><td>text (12)</td><td>❌</td><td>CCCD nếu đã có</td></tr>
+<tr><td>tax_code</td><td>text (13)</td><td>❌</td><td>MST người phụ thuộc nếu có</td></tr>
+<tr><td>registration_date</td><td>ngày</td><td>✅</td><td>Ngày bắt đầu được tính giảm trừ</td></tr>
+<tr><td>end_date</td><td>ngày</td><td>❌</td><td>Ngày hết giảm trừ (khi người phụ thuộc có thu nhập, qua đời…)</td></tr>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>active</code> · <code>inactive</code>. Mặc định <code>active</code></td></tr>
+<tr><td>reason_inactive</td><td>text (255)</td><td>❌</td><td>Lý do ngừng giảm trừ</td></tr>
+<tr><td>document_url</td><td>text (500)</td><td>❌</td><td>Link giấy tờ chứng minh trên S3</td></tr>
+<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<hr>
+<h2 id="nhóm-4-hợp-đồng-lao-động">Nhóm 4 – Hợp đồng lao động</h2>
+<h3 id="41-contracts-hợp-đồng-lao-động">4.1. <code>contracts</code> – Hợp đồng lao động</h3>
+<blockquote>
+<p>Căn cứ: Điều 20 BLLĐ 2019</p>
+</blockquote>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Nhân viên ký hợp đồng</td></tr>
+<tr><td>contract_number</td><td>text (50)</td><td>✅</td><td>Duy nhất. Ví dụ: <code>HDLD-2024-001</code></td></tr>
+<tr><td>contract_type</td><td>enum</td><td>✅</td><td><code>probation</code> · <code>fixed_term</code> · <code>indefinite</code> · <code>seasonal</code></td></tr>
+<tr><td>start_date</td><td>ngày</td><td>✅</td><td>Ngày bắt đầu hiệu lực</td></tr>
+<tr><td>end_date</td><td>ngày</td><td>❌</td><td>Ngày kết thúc. <code>NULL</code> nếu loại <code>indefinite</code></td></tr>
+<tr><td>sign_date</td><td>ngày</td><td>✅</td><td>Ngày ký</td></tr>
+<tr><td>base_salary</td><td>tiền VNĐ</td><td>✅</td><td>Lương cơ bản ghi trong hợp đồng</td></tr>
+<tr><td>insurance_salary</td><td>tiền VNĐ</td><td>✅</td><td>Lương đóng bảo hiểm (thường bằng base_salary)</td></tr>
+<tr><td>position_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp chức vụ. Mặc định <code>0</code></td></tr>
+<tr><td>other_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp khác. Mặc định <code>0</code></td></tr>
+<tr><td>working_hours</td><td>số thập phân</td><td>✅</td><td>Giờ làm việc/ngày. Mặc định <code>8.0</code></td></tr>
+<tr><td>working_days</td><td>số nhỏ</td><td>✅</td><td>Ngày làm việc/tuần. Mặc định <code>5</code></td></tr>
+<tr><td>probation_salary_pct</td><td>số thập phân</td><td>❌</td><td>% lương thử việc (tối thiểu 85%). Mặc định <code>85.00</code></td></tr>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>draft</code> · <code>active</code> · <code>expired</code> · <code>terminated</code>. Mặc định <code>draft</code></td></tr>
+<tr><td>terminated_date</td><td>ngày</td><td>❌</td><td>Ngày chấm dứt hợp đồng sớm</td></tr>
+<tr><td>terminated_reason</td><td>văn bản dài</td><td>❌</td><td>Lý do chấm dứt</td></tr>
+<tr><td>file_url</td><td>text (500)</td><td>❌</td><td>Link bản scan hợp đồng trên S3</td></tr>
+<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>created_by</td><td>FK → users</td><td>❌</td><td>Người tạo hợp đồng</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<p><strong>Quy tắc nghiệp vụ:</strong></p>
+<ul>
+<li><code>probation</code>: tối đa 60 ngày (Điều 25 BLLĐ 2019).</li>
+<li><code>fixed_term</code>: tối đa 36 tháng; ký tối đa 2 lần, sau đó phải chuyển sang <code>indefinite</code>.</li>
+<li>Khi đến <code>end_date</code>: tự động chuyển status → <code>expired</code> và gửi thông báo cho HR.</li>
+</ul>
+<hr>
+<h2 id="nhóm-5-chấm-công-nghỉ-phép">Nhóm 5 – Chấm công & Nghỉ phép</h2>
+<h3 id="51-attendances-chấm-công">5.1. <code>attendances</code> – Chấm công</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>–</td></tr>
+<tr><td>work_date</td><td>ngày</td><td>✅</td><td>Ngày làm việc. <strong>Unique</strong> theo cặp (employee_id, work_date)</td></tr>
+<tr><td>check_in</td><td>thời gian (HH:mm)</td><td>❌</td><td>Giờ chấm vào. <code>NULL</code> nếu không chấm vào</td></tr>
+<tr><td>check_out</td><td>thời gian (HH:mm)</td><td>❌</td><td>Giờ chấm ra</td></tr>
+<tr><td>work_hours</td><td>số thập phân</td><td>❌</td><td>Giờ làm thực tế – tính tự động khi check_out</td></tr>
+<tr><td>overtime_hours</td><td>số thập phân</td><td>✅</td><td>Giờ làm thêm. Mặc định <code>0</code></td></tr>
+<tr><td>is_late</td><td>boolean</td><td>✅</td><td>Đến muộn > 15 phút. Mặc định <code>false</code></td></tr>
+<tr><td>late_minutes</td><td>số nhỏ</td><td>✅</td><td>Số phút đến muộn. Mặc định <code>0</code></td></tr>
+<tr><td>is_early_leave</td><td>boolean</td><td>✅</td><td>Về sớm > 15 phút. Mặc định <code>false</code></td></tr>
+<tr><td>early_leave_minutes</td><td>số nhỏ</td><td>✅</td><td>Số phút về sớm. Mặc định <code>0</code></td></tr>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>present</code> · <code>absent</code> · <code>late</code> · <code>early_leave</code> · <code>leave</code> · <code>holiday</code> · <code>wfh</code>. Mặc định <code>present</code></td></tr>
+<tr><td>leave_request_id</td><td>FK → leave_requests</td><td>❌</td><td>Chỉ có giá trị khi <code>status = leave</code></td></tr>
+<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>Ghi chú điều chỉnh</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<hr>
+<h3 id="52-leave_types-loại-nghỉ-phép">5.2. <code>leave_types</code> – Loại nghỉ phép</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính (TINYINT)</td></tr>
+<tr><td>code</td><td>text (20)</td><td>✅</td><td>Duy nhất. Ví dụ: <code>ANNUAL</code> · <code>SICK</code> · <code>MATERNITY</code></td></tr>
+<tr><td>name</td><td>text (100)</td><td>✅</td><td>Tên hiển thị tiếng Việt</td></tr>
+<tr><td>days_per_year</td><td>số thập phân</td><td>✅</td><td>Số ngày/năm. <code>0</code> = không giới hạn hoặc tính theo case</td></tr>
+<tr><td>is_paid</td><td>boolean</td><td>✅</td><td>Có hưởng lương không. Mặc định <code>true</code></td></tr>
+<tr><td>require_approval</td><td>boolean</td><td>✅</td><td>Cần phê duyệt không. Mặc định <code>true</code></td></tr>
+<tr><td>min_days</td><td>số thập phân</td><td>✅</td><td>Số ngày tối thiểu mỗi lần nghỉ. Mặc định <code>0.5</code> (nửa ngày)</td></tr>
+<tr><td>max_consecutive</td><td>số nhỏ</td><td>❌</td><td>Số ngày liên tục tối đa. <code>NULL</code> = không giới hạn</td></tr>
+<tr><td>advance_notice_days</td><td>số nhỏ</td><td>✅</td><td>Phải báo trước tối thiểu X ngày. Mặc định <code>1</code></td></tr>
+<tr><td>applicable_gender</td><td>enum</td><td>✅</td><td><code>all</code> · <code>female</code> · <code>male</code>. Mặc định <code>all</code></td></tr>
+<tr><td>description</td><td>văn bản dài</td><td>❌</td><td>Mô tả, căn cứ pháp lý</td></tr>
+<tr><td>is_active</td><td>boolean</td><td>✅</td><td>Mặc định <code>true</code></td></tr>
+<tr><td>sort_order</td><td>số nhỏ</td><td>✅</td><td>Thứ tự hiển thị. Mặc định <code>0</code></td></tr>
+</tbody></table>
+<p><strong>Seed dữ liệu (căn cứ BLLĐ 2019 & Luật BHXH):</strong></p>
+<table><thead>
+<tr><th>code</th><th>Tên</th><th>Ngày/năm</th><th>Hưởng lương</th><th>Căn cứ</th></tr>
+</thead><tbody>
+<tr><td>ANNUAL</td><td>Nghỉ phép năm</td><td>12</td><td>✅</td><td>Điều 113 BLLĐ 2019</td></tr>
+<tr><td>SICK</td><td>Nghỉ ốm</td><td>30</td><td>✅</td><td>Luật BHXH (BHXH chi trả)</td></tr>
+<tr><td>MATERNITY</td><td>Nghỉ thai sản (mẹ)</td><td>180</td><td>✅</td><td>Điều 34 Luật BHXH</td></tr>
+<tr><td>PATERNITY</td><td>Nghỉ thai sản (cha)</td><td>5–14</td><td>✅</td><td>Điều 34 Luật BHXH</td></tr>
+<tr><td>MARRIAGE</td><td>Nghỉ kết hôn</td><td>3</td><td>✅</td><td>Điều 115 BLLĐ</td></tr>
+<tr><td>CHILD_MARRIAGE</td><td>Con kết hôn</td><td>1</td><td>✅</td><td>Điều 115 BLLĐ</td></tr>
+<tr><td>BEREAVEMENT</td><td>Nghỉ tang</td><td>3</td><td>✅</td><td>Điều 115 BLLĐ</td></tr>
+<tr><td>UNPAID</td><td>Nghỉ không lương</td><td>0</td><td>❌</td><td>Điều 115 BLLĐ</td></tr>
+<tr><td>COMPENSATORY</td><td>Nghỉ bù</td><td>0</td><td>✅</td><td>Khi làm thêm ngày lễ</td></tr>
+</tbody></table>
+<hr>
+<h3 id="53-leave_requests-đơn-xin-nghỉ">5.3. <code>leave_requests</code> – Đơn xin nghỉ</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Người xin nghỉ</td></tr>
+<tr><td>leave_type_id</td><td>FK → leave_types</td><td>✅</td><td>Loại nghỉ</td></tr>
+<tr><td>start_date</td><td>ngày</td><td>✅</td><td>Ngày bắt đầu nghỉ</td></tr>
+<tr><td>end_date</td><td>ngày</td><td>✅</td><td>Ngày kết thúc nghỉ</td></tr>
+<tr><td>start_half</td><td>enum</td><td>✅</td><td>Buổi bắt đầu: <code>full</code> · <code>morning</code> · <code>afternoon</code>. Dùng cho nửa ngày đầu</td></tr>
+<tr><td>end_half</td><td>enum</td><td>✅</td><td>Buổi kết thúc: <code>full</code> · <code>morning</code> · <code>afternoon</code>. Dùng cho nửa ngày cuối</td></tr>
+<tr><td>total_days</td><td>số thập phân</td><td>✅</td><td>Số ngày nghỉ thực tế – tính tự động, trừ cuối tuần và ngày lễ</td></tr>
+<tr><td>reason</td><td>văn bản dài</td><td>✅</td><td>Lý do nghỉ</td></tr>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>pending</code> · <code>approved</code> · <code>rejected</code> · <code>cancelled</code>. Mặc định <code>pending</code></td></tr>
+<tr><td>approved_by</td><td>FK → employees</td><td>❌</td><td>Người duyệt đơn (quản lý/HR)</td></tr>
+<tr><td>approved_at</td><td>thời điểm</td><td>❌</td><td>Thời điểm duyệt</td></tr>
+<tr><td>rejected_reason</td><td>văn bản dài</td><td>❌</td><td>Lý do từ chối</td></tr>
+<tr><td>attachment_url</td><td>text (500)</td><td>❌</td><td>Giấy tờ đính kèm trên S3 (ví dụ: giấy ra viện)</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<hr>
+<h3 id="54-leave_balances-số-ngày-phép-còn-lại">5.4. <code>leave_balances</code> – Số ngày phép còn lại</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td><strong>Unique</strong> theo cặp (employee_id, leave_type_id, year)</td></tr>
+<tr><td>leave_type_id</td><td>FK → leave_types</td><td>✅</td><td>–</td></tr>
+<tr><td>year</td><td>năm</td><td>✅</td><td>Năm áp dụng</td></tr>
+<tr><td>allocated_days</td><td>số thập phân</td><td>✅</td><td>Số ngày được cấp trong năm</td></tr>
+<tr><td>used_days</td><td>số thập phân</td><td>✅</td><td>Đã dùng. Mặc định <code>0</code></td></tr>
+<tr><td>pending_days</td><td>số thập phân</td><td>✅</td><td>Đang chờ duyệt. Mặc định <code>0</code></td></tr>
+<tr><td>carried_over</td><td>số thập phân</td><td>✅</td><td>Chuyển từ năm trước. Mặc định <code>0</code></td></tr>
+<tr><td>remaining_days</td><td><strong>Computed</strong></td><td>–</td><td><code>= allocated_days + carried_over − used_days − pending_days</code> (Virtual column)</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<blockquote>
+<p><strong>Lưu ý:</strong> <code>remaining_days</code> là cột computed (VIRTUAL), không lưu vật lý. Giá trị luôn chính xác theo công thức.</p>
+</blockquote>
+<hr>
+<h3 id="55-holidays-lịch-nghỉ-lễ">5.5. <code>holidays</code> – Lịch nghỉ lễ</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính (SMALLINT)</td></tr>
+<tr><td>name</td><td>text (100)</td><td>✅</td><td>Tên ngày lễ</td></tr>
+<tr><td>holiday_date</td><td>ngày</td><td>✅</td><td>Duy nhất</td></tr>
+<tr><td>type</td><td>enum</td><td>✅</td><td><code>national</code> · <code>company</code> · <code>other</code>. Mặc định <code>national</code></td></tr>
+<tr><td>year</td><td>năm</td><td>✅</td><td>Năm của ngày lễ</td></tr>
+<tr><td>is_paid</td><td>boolean</td><td>✅</td><td>Có hưởng lương không. Mặc định <code>true</code></td></tr>
+<tr><td>note</td><td>text (255)</td><td>❌</td><td>–</td></tr>
+</tbody></table>
+<hr>
+<h2 id="nhóm-6-lương-phúc-lợi">Nhóm 6 – Lương & Phúc lợi</h2>
+<h3 id="61-salaries-bảng-lương-tháng">6.1. <code>salaries</code> – Bảng lương tháng</h3>
+<p>Mỗi nhân viên có tối đa <strong>1 bản ghi/tháng</strong> (unique theo employee_id + month + year).</p>
+<h4 id="ngày-công">Ngày công</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>–</td></tr>
+<tr><td>month</td><td>số nhỏ</td><td>✅</td><td>Tháng (1–12)</td></tr>
+<tr><td>year</td><td>năm</td><td>✅</td><td>Năm</td></tr>
+<tr><td>standard_working_days</td><td>số thập phân</td><td>✅</td><td>Ngày công chuẩn của tháng (trừ T7, CN, lễ)</td></tr>
+<tr><td>actual_working_days</td><td>số thập phân</td><td>✅</td><td>Ngày công thực tế. Mặc định <code>0</code></td></tr>
+<tr><td>paid_leave_days</td><td>số thập phân</td><td>✅</td><td>Ngày nghỉ phép có lương. Mặc định <code>0</code></td></tr>
+<tr><td>unpaid_leave_days</td><td>số thập phân</td><td>✅</td><td>Ngày nghỉ không lương. Mặc định <code>0</code></td></tr>
+<tr><td>overtime_hours</td><td>số thập phân</td><td>✅</td><td>Tổng giờ làm thêm trong tháng. Mặc định <code>0</code></td></tr>
+</tbody></table>
+<h4 id="thu-nhập">Thu nhập</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>base_salary</td><td>tiền VNĐ</td><td>✅</td><td>Lương cơ bản tháng</td></tr>
+<tr><td>position_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp chức vụ. Mặc định <code>0</code></td></tr>
+<tr><td>attendance_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp chuyên cần. Mặc định <code>0</code></td></tr>
+<tr><td>meal_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp bữa ăn (≤ 730.000/tháng miễn thuế). Mặc định <code>0</code></td></tr>
+<tr><td>transport_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp đi lại. Mặc định <code>0</code></td></tr>
+<tr><td>phone_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp điện thoại. Mặc định <code>0</code></td></tr>
+<tr><td>other_allowances</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp khác. Mặc định <code>0</code></td></tr>
+<tr><td>overtime_pay</td><td>tiền VNĐ</td><td>✅</td><td>Lương làm thêm giờ. Mặc định <code>0</code></td></tr>
+<tr><td>performance_bonus</td><td>tiền VNĐ</td><td>✅</td><td>Thưởng KPI tháng. Mặc định <code>0</code></td></tr>
+<tr><td>other_income</td><td>tiền VNĐ</td><td>✅</td><td>Thu nhập khác. Mặc định <code>0</code></td></tr>
+<tr><td>gross_salary</td><td>tiền VNĐ</td><td>✅</td><td><strong>Tổng thu nhập</strong> trước khấu trừ</td></tr>
+</tbody></table>
+<h4 id="bảo-hiểm-người-lao-động-đóng">Bảo hiểm (người lao động đóng)</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>insurance_base_salary</td><td>tiền VNĐ</td><td>✅</td><td>Lương đóng BHXH/BHYT/BHTN (sau khi áp trần)</td></tr>
+<tr><td>social_insurance</td><td>tiền VNĐ</td><td>✅</td><td>BHXH 8%. Mặc định <code>0</code></td></tr>
+<tr><td>health_insurance</td><td>tiền VNĐ</td><td>✅</td><td>BHYT 1,5%. Mặc định <code>0</code></td></tr>
+<tr><td>unemployment_insurance</td><td>tiền VNĐ</td><td>✅</td><td>BHTN 1%. Mặc định <code>0</code></td></tr>
+<tr><td>total_insurance</td><td>tiền VNĐ</td><td>✅</td><td>Tổng BH = 10,5%. Mặc định <code>0</code></td></tr>
+</tbody></table>
+<h4 id="thuế-tncn">Thuế TNCN</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>dependent_count</td><td>số nhỏ</td><td>✅</td><td>Số người phụ thuộc tháng này. Mặc định <code>0</code></td></tr>
+<tr><td>self_deduction</td><td>tiền VNĐ</td><td>✅</td><td>Giảm trừ bản thân. Mặc định <code>11.000.000</code></td></tr>
+<tr><td>dependent_deduction</td><td>tiền VNĐ</td><td>✅</td><td>4.400.000 × số NPT. Mặc định <code>0</code></td></tr>
+<tr><td>taxable_income</td><td>tiền VNĐ</td><td>✅</td><td>Thu nhập tính thuế. Mặc định <code>0</code></td></tr>
+<tr><td>personal_income_tax</td><td>tiền VNĐ</td><td>✅</td><td>Thuế TNCN phải nộp. Mặc định <code>0</code></td></tr>
+</tbody></table>
+<h4 id="khấu-trừ-khác-thực-nhận">Khấu trừ khác & Thực nhận</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>advance_deduction</td><td>tiền VNĐ</td><td>✅</td><td>Tạm ứng lương trong tháng. Mặc định <code>0</code></td></tr>
+<tr><td>other_deductions</td><td>tiền VNĐ</td><td>✅</td><td>Khấu trừ khác. Mặc định <code>0</code></td></tr>
+<tr><td>net_salary</td><td>tiền VNĐ</td><td>✅</td><td><strong>Lương thực nhận (NET)</strong></td></tr>
+</tbody></table>
+<h4 id="trạng-thái-phê-duyệt">Trạng thái & Phê duyệt</h4>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>draft</code> · <code>calculated</code> · <code>approved</code> · <code>paid</code> · <code>cancelled</code>. Mặc định <code>draft</code></td></tr>
+<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>approved_by</td><td>FK → users</td><td>❌</td><td>Người phê duyệt bảng lương</td></tr>
+<tr><td>approved_at</td><td>thời điểm</td><td>❌</td><td>Thời điểm phê duyệt</td></tr>
+<tr><td>paid_at</td><td>thời điểm</td><td>❌</td><td>Ngày chuyển khoản lương</td></tr>
+<tr><td>generated_by</td><td>FK → users</td><td>❌</td><td>Người chạy lệnh tính lương</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<hr>
+<h3 id="62-salary_components-chi-tiết-từng-khoản-phụ-cấp-khấu-trừ">6.2. <code>salary_components</code> – Chi tiết từng khoản phụ cấp / khấu trừ</h3>
+<p>Lưu breakdown chi tiết từng dòng của phiếu lương, liên kết với <code>salaries</code>.</p>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>salary_id</td><td>FK → salaries</td><td>✅</td><td>Xoá bảng lương thì xoá luôn (CASCADE)</td></tr>
+<tr><td>type</td><td>enum</td><td>✅</td><td><code>allowance</code> · <code>bonus</code> · <code>deduction</code> · <code>other</code></td></tr>
+<tr><td>name</td><td>text (100)</td><td>✅</td><td>Tên khoản: "Phụ cấp ăn trưa", "Thưởng tháng 13"…</td></tr>
+<tr><td>amount</td><td>tiền VNĐ</td><td>✅</td><td>Số tiền (dương = tăng lương, âm = khấu trừ)</td></tr>
+<tr><td>is_taxable</td><td>boolean</td><td>✅</td><td>Tính vào thu nhập chịu thuế không? Mặc định <code>false</code></td></tr>
+<tr><td>note</td><td>text (255)</td><td>❌</td><td>–</td></tr>
+</tbody></table>
+<hr>
+<h2 id="nhóm-7-đào-tạo-phát-triển">Nhóm 7 – Đào tạo & Phát triển</h2>
+<h3 id="71-trainings-khoá-đào-tạo">7.1. <code>trainings</code> – Khoá đào tạo</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>code</td><td>text (30)</td><td>✅</td><td>Duy nhất. Ví dụ: <code>TRN-2026-001</code></td></tr>
+<tr><td>name</td><td>text (200)</td><td>✅</td><td>Tên khoá đào tạo</td></tr>
+<tr><td>type</td><td>enum</td><td>✅</td><td><code>internal</code> · <code>external</code> · <code>online</code> · <code>on_the_job</code></td></tr>
+<tr><td>description</td><td>văn bản dài</td><td>❌</td><td>Nội dung, mục tiêu</td></tr>
+<tr><td>start_date</td><td>ngày</td><td>❌</td><td>–</td></tr>
+<tr><td>end_date</td><td>ngày</td><td>❌</td><td>–</td></tr>
+<tr><td>location</td><td>text (200)</td><td>❌</td><td>Địa điểm tổ chức</td></tr>
+<tr><td>trainer</td><td>text (200)</td><td>❌</td><td>Tên giảng viên hoặc đơn vị đào tạo</td></tr>
+<tr><td>cost</td><td>tiền VNĐ</td><td>✅</td><td>Chi phí. Mặc định <code>0</code></td></tr>
+<tr><td>max_participants</td><td>số nhỏ</td><td>❌</td><td>Số học viên tối đa. <code>NULL</code> = không giới hạn</td></tr>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>planned</code> · <code>ongoing</code> · <code>completed</code> · <code>cancelled</code>. Mặc định <code>planned</code></td></tr>
+<tr><td>attachment_url</td><td>text (500)</td><td>❌</td><td>Tài liệu đào tạo trên S3</td></tr>
+<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>created_by</td><td>FK → users</td><td>❌</td><td>–</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<hr>
+<h3 id="72-employee_trainings-nhân-viên-tham-gia-đào-tạo">7.2. <code>employee_trainings</code> – Nhân viên tham gia đào tạo</h3>
+<p>Bảng trung gian many-to-many giữa <code>employees</code> và <code>trainings</code>, có thêm thông tin kết quả.</p>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td><strong>Unique</strong> theo cặp (employee_id, training_id)</td></tr>
+<tr><td>training_id</td><td>FK → trainings</td><td>✅</td><td>–</td></tr>
+<tr><td>registration_date</td><td>ngày</td><td>✅</td><td>Ngày đăng ký. Mặc định ngày hiện tại</td></tr>
+<tr><td>completion_date</td><td>ngày</td><td>❌</td><td>Ngày hoàn thành khoá học</td></tr>
+<tr><td>result</td><td>enum</td><td>❌</td><td><code>passed</code> · <code>failed</code> · <code>incomplete</code> · <code>exempted</code></td></tr>
+<tr><td>score</td><td>số thập phân</td><td>❌</td><td>Điểm số (nếu có thi)</td></tr>
+<tr><td>certificate_url</td><td>text (500)</td><td>❌</td><td>Link chứng chỉ trên S3</td></tr>
+<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+</tbody></table>
+<hr>
+<h2 id="nhóm-8-đánh-giá-kỷ-luật">Nhóm 8 – Đánh giá & Kỷ luật</h2>
+<h3 id="81-performance_reviews-đánh-giá-hiệu-suất">8.1. <code>performance_reviews</code> – Đánh giá hiệu suất</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Người được đánh giá</td></tr>
+<tr><td>reviewer_id</td><td>FK → employees</td><td>✅</td><td>Người đánh giá (quản lý trực tiếp)</td></tr>
+<tr><td>review_period</td><td>enum</td><td>✅</td><td><code>monthly</code> · <code>quarterly</code> · <code>biannual</code> · <code>annual</code></td></tr>
+<tr><td>period_year</td><td>năm</td><td>✅</td><td>Năm đánh giá</td></tr>
+<tr><td>period_quarter</td><td>số nhỏ</td><td>❌</td><td>Quý (1–4). <code>NULL</code> nếu là annual</td></tr>
+<tr><td>period_month</td><td>số nhỏ</td><td>❌</td><td>Tháng (1–12). <code>NULL</code> nếu là quarterly</td></tr>
+<tr><td>kpi_score</td><td>số thập phân</td><td>❌</td><td>Điểm KPI (thang 0–100)</td></tr>
+<tr><td>attitude_score</td><td>số thập phân</td><td>❌</td><td>Điểm thái độ (thang 0–100)</td></tr>
+<tr><td>skill_score</td><td>số thập phân</td><td>❌</td><td>Điểm kỹ năng (thang 0–100)</td></tr>
+<tr><td>overall_score</td><td>số thập phân</td><td>❌</td><td>Điểm tổng – tính tự động từ 3 điểm trên</td></tr>
+<tr><td>rating</td><td>enum</td><td>❌</td><td><code>excellent</code> · <code>good</code> · <code>average</code> · <code>below_average</code> · <code>poor</code></td></tr>
+<tr><td>strengths</td><td>văn bản dài</td><td>❌</td><td>Điểm mạnh</td></tr>
+<tr><td>weaknesses</td><td>văn bản dài</td><td>❌</td><td>Điểm cần cải thiện</td></tr>
+<tr><td>recommendations</td><td>văn bản dài</td><td>❌</td><td>Đề xuất (đào tạo, thăng chức…)</td></tr>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>draft</code> · <code>submitted</code> · <code>acknowledged</code>. Mặc định <code>draft</code></td></tr>
+<tr><td>acknowledged_at</td><td>thời điểm</td><td>❌</td><td>Thời điểm nhân viên xác nhận đã đọc</td></tr>
+<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<hr>
+<h3 id="82-disciplines_rewards-khen-thưởng-kỷ-luật">8.2. <code>disciplines_rewards</code> – Khen thưởng & Kỷ luật</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Đối tượng được khen/kỷ luật</td></tr>
+<tr><td>type</td><td>enum</td><td>✅</td><td><code>reward</code> (khen thưởng) · <code>discipline</code> (kỷ luật)</td></tr>
+<tr><td>category</td><td>text (100)</td><td>✅</td><td>Phân loại cụ thể: "Thưởng KPI" · "Cảnh cáo" · "Khiển trách"…</td></tr>
+<tr><td>title</td><td>text (255)</td><td>✅</td><td>Tiêu đề quyết định</td></tr>
+<tr><td>description</td><td>văn bản dài</td><td>✅</td><td>Mô tả chi tiết lý do</td></tr>
+<tr><td>decision_number</td><td>text (50)</td><td>❌</td><td>Số quyết định</td></tr>
+<tr><td>decision_date</td><td>ngày</td><td>✅</td><td>Ngày ban hành quyết định</td></tr>
+<tr><td>effective_date</td><td>ngày</td><td>✅</td><td>Ngày có hiệu lực</td></tr>
+<tr><td>amount</td><td>tiền VNĐ</td><td>❌</td><td>Số tiền thưởng hoặc phạt (nếu có)</td></tr>
+<tr><td>issued_by</td><td>FK → employees</td><td>❌</td><td>Người ký quyết định</td></tr>
+<tr><td>document_url</td><td>text (500)</td><td>❌</td><td>Link quyết định trên S3</td></tr>
+<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<hr>
+<h2 id="nhóm-9-tài-liệu-hệ-thống">Nhóm 9 – Tài liệu & Hệ thống</h2>
+<h3 id="91-work_history-lịch-sử-công-tác">9.1. <code>work_history</code> – Lịch sử công tác</h3>
+<p>Ghi lại <strong>mọi thay đổi quan trọng</strong> trong sự nghiệp nhân viên tại công ty. Chỉ INSERT, không UPDATE.</p>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>–</td></tr>
+<tr><td>event_type</td><td>enum</td><td>✅</td><td><code>hire</code> · <code>promotion</code> · <code>demotion</code> · <code>transfer</code> · <code>salary_change</code> · <code>contract_renew</code> · <code>return_from_leave</code> · <code>termination</code></td></tr>
+<tr><td>from_department_id</td><td>FK → departments</td><td>❌</td><td>Phòng ban cũ (điều chuyển)</td></tr>
+<tr><td>to_department_id</td><td>FK → departments</td><td>❌</td><td>Phòng ban mới</td></tr>
+<tr><td>from_position_id</td><td>FK → positions</td><td>❌</td><td>Chức vụ cũ</td></tr>
+<tr><td>to_position_id</td><td>FK → positions</td><td>❌</td><td>Chức vụ mới</td></tr>
+<tr><td>from_salary</td><td>tiền VNĐ</td><td>❌</td><td>Lương cũ</td></tr>
+<tr><td>to_salary</td><td>tiền VNĐ</td><td>❌</td><td>Lương mới</td></tr>
+<tr><td>effective_date</td><td>ngày</td><td>✅</td><td>Ngày có hiệu lực</td></tr>
+<tr><td>reason</td><td>văn bản dài</td><td>❌</td><td>Lý do thay đổi</td></tr>
+<tr><td>decision_number</td><td>text (50)</td><td>❌</td><td>Số quyết định (nếu có)</td></tr>
+<tr><td>document_url</td><td>text (500)</td><td>❌</td><td>Link quyết định trên S3</td></tr>
+<tr><td>created_by</td><td>FK → users</td><td>❌</td><td>Người ghi nhận</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+</tbody></table>
+<hr>
+<h3 id="92-documents-tài-liệu-hồ-sơ-nhân-viên">9.2. <code>documents</code> – Tài liệu hồ sơ nhân viên</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Xoá nhân viên thì xoá luôn (CASCADE)</td></tr>
+<tr><td>type</td><td>enum</td><td>✅</td><td><code>cccd</code> · <code>cv</code> · <code>degree</code> · <code>contract</code> · <code>health_check</code> · <code>background</code> · <code>photo_3x4</code> · <code>family_book</code> · <code>resignation</code> · <code>other</code></td></tr>
+<tr><td>name</td><td>text (200)</td><td>✅</td><td>Tên tài liệu: "CCCD mặt trước", "Bằng đại học"…</td></tr>
+<tr><td>file_name</td><td>text (255)</td><td>✅</td><td>Tên file gốc</td></tr>
+<tr><td>file_url</td><td>text (500)</td><td>✅</td><td>URL file trên S3</td></tr>
+<tr><td>file_size</td><td>số nguyên</td><td>❌</td><td>Kích thước file (bytes). Tối đa 10MB</td></tr>
+<tr><td>mime_type</td><td>text (100)</td><td>❌</td><td>Ví dụ: <code>application/pdf</code> · <code>image/jpeg</code></td></tr>
+<tr><td>issue_date</td><td>ngày</td><td>❌</td><td>Ngày cấp tài liệu</td></tr>
+<tr><td>expiry_date</td><td>ngày</td><td>❌</td><td>Ngày hết hạn (CCCD, giấy khám sức khoẻ…)</td></tr>
+<tr><td>note</td><td>text (255)</td><td>❌</td><td>–</td></tr>
+<tr><td>uploaded_by</td><td>FK → users</td><td>❌</td><td>Người upload</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+</tbody></table>
+<hr>
+<h3 id="93-announcements-thông-báo-nội-bộ">9.3. <code>announcements</code> – Thông báo nội bộ</h3>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>title</td><td>text (255)</td><td>✅</td><td>Tiêu đề thông báo</td></tr>
+<tr><td>content</td><td>văn bản dài</td><td>✅</td><td>Nội dung chi tiết</td></tr>
+<tr><td>type</td><td>enum</td><td>✅</td><td><code>general</code> · <code>policy</code> · <code>event</code> · <code>urgent</code>. Mặc định <code>general</code></td></tr>
+<tr><td>target_audience</td><td>enum</td><td>✅</td><td><code>all</code> · <code>department</code> · <code>role</code> · <code>individual</code>. Mặc định <code>all</code></td></tr>
+<tr><td>target_ids</td><td>json</td><td>❌</td><td>Danh sách ID đối tượng nhận: <code>[1, 2, 3]</code>. <code>NULL</code> khi <code>target_audience = all</code></td></tr>
+<tr><td>publish_date</td><td>thời điểm</td><td>❌</td><td>Thời điểm đăng. <code>NULL</code> = đăng ngay</td></tr>
+<tr><td>expiry_date</td><td>thời điểm</td><td>❌</td><td>Thời điểm hết hiệu lực</td></tr>
+<tr><td>is_pinned</td><td>boolean</td><td>✅</td><td>Ghim lên đầu danh sách. Mặc định <code>false</code></td></tr>
+<tr><td>attachment_url</td><td>text (500)</td><td>❌</td><td>File đính kèm trên S3</td></tr>
+<tr><td>created_by</td><td>FK → users</td><td>✅</td><td>Người đăng thông báo</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
+</tbody></table>
+<hr>
+<h3 id="94-audit_logs-nhật-ký-thao-tác">9.4. <code>audit_logs</code> – Nhật ký thao tác</h3>
+<blockquote>
+<p><strong>Bảng này chỉ INSERT, tuyệt đối không UPDATE hay DELETE. Giữ tối thiểu 2 năm.</strong></p>
+</blockquote>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>user_id</td><td>FK → users</td><td>❌</td><td><code>NULL</code> nếu hành động từ hệ thống (scheduler, import…)</td></tr>
+<tr><td>action</td><td>text (50)</td><td>✅</td><td><code>CREATE</code> · <code>UPDATE</code> · <code>DELETE</code> · <code>LOGIN</code> · <code>LOGOUT</code> · <code>EXPORT</code></td></tr>
+<tr><td>entity_type</td><td>text (50)</td><td>✅</td><td>Tên bảng: <code>employee</code> · <code>salary</code> · <code>contract</code> · <code>leave_request</code>…</td></tr>
+<tr><td>entity_id</td><td>số nguyên</td><td>❌</td><td>ID bản ghi bị tác động</td></tr>
+<tr><td>old_values</td><td>json</td><td>❌</td><td>Dữ liệu <strong>trước</strong> khi thay đổi (snapshot)</td></tr>
+<tr><td>new_values</td><td>json</td><td>❌</td><td>Dữ liệu <strong>sau</strong> khi thay đổi</td></tr>
+<tr><td>ip_address</td><td>text (45)</td><td>❌</td><td>IPv4 hoặc IPv6</td></tr>
+<tr><td>user_agent</td><td>text (500)</td><td>❌</td><td>Thông tin trình duyệt/thiết bị</td></tr>
+<tr><td>description</td><td>văn bản dài</td><td>❌</td><td>Mô tả ngôn ngữ tự nhiên: "HR Lan cập nhật lương NV0051"</td></tr>
+<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+</tbody></table>
+<hr>
+<h2 id="thứ-tự-migration">Thứ tự Migration</h2>
+<p>Tạo bảng theo thứ tự sau để tránh lỗi Foreign Key constraint:</p>
+<ol>
+<li><code>roles</code></li>
+<li><code>permissions</code></li>
+<li><code>role_permissions</code></li>
+<li><code>users</code></li>
+<li><code>refresh_tokens</code></li>
+<li><code>departments</code> <em>(chưa thêm FK manager_id → employees)</em></li>
+<li><code>positions</code></li>
+<li><code>employees</code> → sau đó <strong>ALTER</strong> <code>departments</code> thêm FK <code>manager_id</code></li>
+<li><code>family_members</code></li>
+<li><code>dependents</code></li>
+<li><code>contracts</code></li>
+<li><code>leave_types</code></li>
+<li><code>holidays</code></li>
+<li><code>leave_requests</code></li>
+<li><code>leave_balances</code></li>
+<li><code>attendances</code></li>
+<li><code>salaries</code></li>
+<li><code>salary_components</code></li>
+<li><code>trainings</code></li>
+<li><code>employee_trainings</code></li>
+<li><code>performance_reviews</code></li>
+<li><code>disciplines_rewards</code></li>
+<li><code>work_history</code></li>
+<li><code>documents</code></li>
+<li><code>announcements</code></li>
+<li><code>audit_logs</code></li>
+</ol>
+<blockquote>
+<p>Sau bước 8: <code>ALTER TABLE departments ADD CONSTRAINT fk_dept_manager FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL;</code></p>
+</blockquote>
+<hr>
+<h2 id="seed-data-cần-chuẩn-bị">Seed Data cần chuẩn bị</h2>
+<table><thead>
+<tr><th>File</th><th>Nội dung</th><th>Nguồn</th></tr>
+</thead><tbody>
+<tr><td>seed-roles</td><td>5 roles + permissions mặc định</td><td>Thiết kế ở trên</td></tr>
+<tr><td>seed-leave-types</td><td>9 loại nghỉ phép</td><td>BLLĐ 2019 + Luật BHXH</td></tr>
+<tr><td>seed-holidays-2025</td><td>Lịch nghỉ lễ năm 2025</td><td>Nghị định 18/2024/NĐ-CP</td></tr>
+<tr><td>seed-holidays-2026</td><td>Lịch nghỉ lễ năm 2026</td><td>Dự kiến theo quy định</td></tr>
+<tr><td>seed-departments</td><td>Phòng ban mẫu (IT, HR, FIN, SALE, OPS)</td><td>Demo data</td></tr>
+<tr><td>seed-positions</td><td>Chức vụ mẫu theo phòng ban</td><td>Demo data</td></tr>
+<tr><td>seed-employees-demo</td><td>10–15 nhân viên mẫu đủ case</td><td>Demo & testing</td></tr>
+</tbody></table>
+<hr>
+<p><em>Cập nhật: 26/05/2026 – Version 1.2 – Bỏ SQL, viết lại dạng bảng mô tả</em></p>
+
+</main>
+<script>
+// Highlight active TOC link on scroll
+const headings = document.querySelectorAll('h1,h2,h3,h4');
+const links = document.querySelectorAll('#sidebar a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('#sidebar a[href="#'+e.target.id+'"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '0px 0px -80% 0px' });
+headings.forEach(h => { if(h.id) obs.observe(h); });
+</script>
+<style>#sidebar a.active { background:#ddf4ff; border-left-color:#0969da; font-weight:600; }</style>
+</body>
+</html>

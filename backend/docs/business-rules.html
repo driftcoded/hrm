@@ -1,0 +1,614 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Rules VN - HRM Docs</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.7; color: #24292f;
+  margin: 0; background: #f6f8fa; display: flex;
+}
+#sidebar {
+  width: 260px; min-height: 100vh; background: #fff;
+  border-right: 1px solid #d0d7de; padding: 20px 0;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  flex-shrink: 0;
+}
+#sidebar h2 { font-size: 12px; font-weight: 600; color: #57606a;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 20px 4px; margin: 16px 0 4px; }
+#sidebar ul { list-style: none; margin: 0; padding: 0; }
+#sidebar li a {
+  display: block; padding: 5px 20px 5px 28px;
+  color: #0969da; text-decoration: none; font-size: 13px;
+  border-left: 3px solid transparent; line-height: 1.4;
+}
+#sidebar li a:hover { background: #f6f8fa; border-left-color: #0969da; }
+#sidebar li.h1 a { padding-left: 20px; font-weight: 600; font-size: 13px; }
+#sidebar li.h2 a { padding-left: 28px; }
+#sidebar li.h3 a { padding-left: 40px; font-size: 12px; color: #57606a; }
+#content {
+  flex: 1; max-width: 900px; padding: 40px 48px;
+  background: #fff; min-height: 100vh;
+}
+h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.5em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.8em; }
+h3 { font-size: 1.2em; margin-top: 1.5em; }
+h4 { font-size: 1em; margin-top: 1.2em; }
+h1:first-child, h2:first-child { margin-top: 0; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { margin: 0 0 16px; }
+pre {
+  background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;
+  padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5;
+  margin: 0 0 16px;
+}
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 85%;
+}
+pre code { font-size: inherit; background: none; padding: 0; border: none; }
+:not(pre) > code {
+  background: rgba(175,184,193,.2); padding: .2em .4em;
+  border-radius: 6px; font-size: 85%;
+}
+blockquote {
+  margin: 0 0 16px; padding: 0 1em;
+  color: #57606a; border-left: .25em solid #d0d7de;
+}
+blockquote p { margin-bottom: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 14px; }
+thead { background: #f6f8fa; }
+th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+th { font-weight: 600; }
+tr:nth-child(even) { background: #f6f8fa; }
+ul, ol { padding-left: 2em; margin: 0 0 16px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px;
+  font-size: 12px; font-weight: 600; margin-right: 4px;
+}
+.lock { background: #fff8c5; color: #9a6700; }
+.method-get { color: #1a7f37; font-weight: 700; }
+.method-post { color: #0969da; font-weight: 700; }
+.method-patch { color: #9a6700; font-weight: 700; }
+.method-delete { color: #cf222e; font-weight: 700; }
+
+/* Syntax highlight classes */
+.kw { color: #cf222e; }
+.st { color: #0a3069; }
+.cm { color: #6e7781; font-style: italic; }
+.nm { color: #953800; }
+.kv { color: #0550ae; }
+
+/* Scroll margin for anchor links */
+h1, h2, h3, h4 { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+<h2>Business Rules VN</h2><ul>
+<li class="h1"><a href="#quy-tắc-nghiệp-vụ-hr-việt-nam">Quy tắc nghiệp vụ HR Việt Nam</a></li>
+<li class="h2"><a href="#mục-lục">MỤC LỤC</a></li>
+<li class="h2"><a href="#1-hằng-số-hệ-thống">1. Hằng số hệ thống</a></li>
+<li class="h3"><a href="#11-lương-cơ-sở-và-lương-tối-thiểu-vùng">1.1. Lương cơ sở và lương tối thiểu vùng</a></li>
+<li class="h3"><a href="#12-trần-lương-đóng-bảo-hiểm">1.2. Trần lương đóng bảo hiểm</a></li>
+<li class="h3"><a href="#13-các-hằng-số-khác">1.3. Các hằng số khác</a></li>
+<li class="h2"><a href="#2-quy-tắc-tính-lương">2. Quy tắc tính lương</a></li>
+<li class="h3"><a href="#21-lương-ngày">2.1. Lương ngày</a></li>
+<li class="h3"><a href="#22-lương-giờ">2.2. Lương giờ</a></li>
+<li class="h3"><a href="#23-lương-thực-tế-theo-ngày-công">2.3. Lương thực tế theo ngày công</a></li>
+<li class="h2"><a href="#3-bảo-hiểm-xã-hội-bắt-buộc">3. Bảo hiểm xã hội bắt buộc</a></li>
+<li class="h3"><a href="#31-đối-tượng-đóng">3.1. Đối tượng đóng</a></li>
+<li class="h3"><a href="#32-tỷ-lệ-đóng-bảo-hiểm">3.2. Tỷ lệ đóng bảo hiểm</a></li>
+<li class="h3"><a href="#33-cách-tính">3.3. Cách tính</a></li>
+<li class="h2"><a href="#4-thuế-thu-nhập-cá-nhân-tncn">4. Thuế thu nhập cá nhân (TNCN)</a></li>
+<li class="h3"><a href="#41-biểu-thuế-lũy-tiến-7-bậc">4.1. Biểu thuế lũy tiến 7 bậc</a></li>
+<li class="h2"><a href="#5-giảm-trừ-gia-cảnh">5. Giảm trừ gia cảnh</a></li>
+<li class="h2"><a href="#6-quy-trình-tính-lương-net-từ-gross">6. Quy trình tính lương Net từ Gross</a></li>
+<li class="h3"><a href="#các-bước-tính-theo-thứ-tự-bắt-buộc">Các bước tính (theo thứ tự bắt buộc)</a></li>
+<li class="h3"><a href="#ví-dụ-minh-họa">Ví dụ minh họa</a></li>
+<li class="h2"><a href="#7-làm-thêm-giờ-overtime">7. Làm thêm giờ (Overtime)</a></li>
+<li class="h3"><a href="#71-hệ-số-lương-làm-thêm">7.1. Hệ số lương làm thêm</a></li>
+<li class="h3"><a href="#72-giới-hạn-làm-thêm-giờ-điều-107-bllđ-2019">7.2. Giới hạn làm thêm giờ (Điều 107 BLLĐ 2019)</a></li>
+<li class="h2"><a href="#8-nghỉ-phép">8. Nghỉ phép</a></li>
+<li class="h3"><a href="#81-số-ngày-phép-năm">8.1. Số ngày phép năm</a></li>
+<li class="h3"><a href="#82-cách-tính-số-ngày-nghỉ-thực-tế">8.2. Cách tính số ngày nghỉ thực tế</a></li>
+<li class="h3"><a href="#83-quy-tắc-phép-năm">8.3. Quy tắc phép năm</a></li>
+<li class="h2"><a href="#9-hợp-đồng-lao-động">9. Hợp đồng lao động</a></li>
+<li class="h3"><a href="#91-các-loại-hợp-đồng">9.1. Các loại hợp đồng</a></li>
+<li class="h3"><a href="#92-quy-tắc-gia-hạn">9.2. Quy tắc gia hạn</a></li>
+<li class="h3"><a href="#93-thời-gian-báo-trước-khi-chấm-dứt-hợp-đồng">9.3. Thời gian báo trước khi chấm dứt hợp đồng</a></li>
+<li class="h2"><a href="#10-thử-việc">10. Thử việc</a></li>
+<li class="h2"><a href="#11-ngày-công-làm-việc">11. Ngày công làm việc</a></li>
+<li class="h3"><a href="#111-cách-tính-số-ngày-công-chuẩn-trong-tháng">11.1. Cách tính số ngày công chuẩn trong tháng</a></li>
+<li class="h3"><a href="#112-ngày-lễ-chính-thức-việt-nam">11.2. Ngày lễ chính thức Việt Nam</a></li>
+<li class="h2"><a href="#12-quy-tắc-chấm-công">12. Quy tắc chấm công</a></li>
+<li class="h3"><a href="#121-khung-giờ-làm-việc-mặc-định">12.1. Khung giờ làm việc mặc định</a></li>
+<li class="h3"><a href="#122-cách-tính-giờ-làm-thực-tế">12.2. Cách tính giờ làm thực tế</a></li>
+<li class="h3"><a href="#123-xác-định-làm-thêm-giờ">12.3. Xác định làm thêm giờ</a></li>
+<li class="h3"><a href="#124-các-trạng-thái-chấm-công">12.4. Các trạng thái chấm công</a></li>
+<li class="h2"><a href="#13-thai-sản-ốm-đau">13. Thai sản & Ốm đau</a></li>
+<li class="h3"><a href="#131-chế-độ-thai-sản-điều-34-luật-bhxh">13.1. Chế độ thai sản (Điều 34 Luật BHXH)</a></li>
+<li class="h3"><a href="#132-chế-độ-ốm-đau-điều-26-luật-bhxh">13.2. Chế độ ốm đau (Điều 26 Luật BHXH)</a></li>
+<li class="h2"><a href="#14-kỷ-luật-lao-động">14. Kỷ luật lao động</a></li>
+<li class="h3"><a href="#141-các-hình-thức-kỷ-luật-theo-thứ-tự-tăng-dần">14.1. Các hình thức kỷ luật (theo thứ tự tăng dần)</a></li>
+<li class="h3"><a href="#142-quy-định-quan-trọng">14.2. Quy định quan trọng</a></li>
+<li class="h2"><a href="#15-thôi-việc-trợ-cấp">15. Thôi việc & Trợ cấp</a></li>
+<li class="h3"><a href="#151-trợ-cấp-thôi-việc-điều-46-bllđ-2019">15.1. Trợ cấp thôi việc (Điều 46 BLLĐ 2019)</a></li>
+<li class="h3"><a href="#152-trợ-cấp-mất-việc-điều-47-bllđ-2019">15.2. Trợ cấp mất việc (Điều 47 BLLĐ 2019)</a></li>
+<li class="h3"><a href="#153-thanh-toán-ngày-phép-còn-lại-khi-nghỉ-việc">15.3. Thanh toán ngày phép còn lại khi nghỉ việc</a></li>
+<li class="h2"><a href="#lưu-ý-khi-tính-lương">Lưu ý khi tính lương</a></li>
+</ul></nav>
+
+<main id="content">
+<h1 id="quy-tắc-nghiệp-vụ-hr-việt-nam">Quy tắc nghiệp vụ HR Việt Nam</h1>
+<blockquote>
+<p>Tài liệu mô tả các phương pháp tính toán và quy tắc nghiệp vụ theo pháp luật Việt Nam.</p>
+<p>Mọi con số đều có căn cứ pháp lý. Cập nhật khi có thay đổi luật.</p>
+</blockquote>
+<hr>
+<h2 id="mục-lục">MỤC LỤC</h2>
+<ol>
+<li><a href="#1-hằng-số-hệ-thống">Hằng số hệ thống</a></li>
+<li><a href="#2-quy-tắc-tính-lương">Quy tắc tính lương</a></li>
+<li><a href="#3-bảo-hiểm-xã-hội-bắt-buộc">Bảo hiểm xã hội bắt buộc</a></li>
+<li><a href="#4-thuế-thu-nhập-cá-nhân-tncn">Thuế thu nhập cá nhân (TNCN)</a></li>
+<li><a href="#5-giảm-trừ-gia-cảnh">Giảm trừ gia cảnh</a></li>
+<li><a href="#6-quy-trình-tính-lương-net-từ-gross">Quy trình tính lương Net từ Gross</a></li>
+<li><a href="#7-làm-thêm-giờ-overtime">Làm thêm giờ (Overtime)</a></li>
+<li><a href="#8-nghỉ-phép">Nghỉ phép</a></li>
+<li><a href="#9-hợp-đồng-lao-động">Hợp đồng lao động</a></li>
+<li><a href="#10-thử-việc">Thử việc</a></li>
+<li><a href="#11-ngày-công-làm-việc">Ngày công làm việc</a></li>
+<li><a href="#12-quy-tắc-chấm-công">Quy tắc chấm công</a></li>
+<li><a href="#13-thai-sản--ốm-đau">Thai sản & Ốm đau</a></li>
+<li><a href="#14-kỷ-luật-lao-động">Kỷ luật lao động</a></li>
+<li><a href="#15-thôi-việc--trợ-cấp">Thôi việc & Trợ cấp</a></li>
+</ol>
+<hr>
+<h2 id="1-hằng-số-hệ-thống">1. Hằng số hệ thống</h2>
+<blockquote>
+<p>Cập nhật từ 01/07/2024 theo Nghị định 73/2024/NĐ-CP và Nghị định 74/2024/NĐ-CP</p>
+</blockquote>
+<h3 id="11-lương-cơ-sở-và-lương-tối-thiểu-vùng">1.1. Lương cơ sở và lương tối thiểu vùng</h3>
+<table><thead>
+<tr><th>Loại</th><th>Giá trị</th><th>Ghi chú</th></tr>
+</thead><tbody>
+<tr><td>Lương cơ sở nhà nước</td><td>2.340.000 VNĐ/tháng</td><td>Dùng tính trần đóng BHXH, BHYT</td></tr>
+<tr><td>Lương tối thiểu Vùng I</td><td>4.960.000 VNĐ/tháng</td><td>Hà Nội, TP.HCM, Bình Dương, Đồng Nai, BR-VT</td></tr>
+<tr><td>Lương tối thiểu Vùng II</td><td>4.410.000 VNĐ/tháng</td><td>Thành phố trực thuộc tỉnh, một số huyện</td></tr>
+<tr><td>Lương tối thiểu Vùng III</td><td>3.860.000 VNĐ/tháng</td><td>Đô thị loại vừa còn lại</td></tr>
+<tr><td>Lương tối thiểu Vùng IV</td><td>3.450.000 VNĐ/tháng</td><td>Nông thôn, vùng sâu vùng xa</td></tr>
+</tbody></table>
+<h3 id="12-trần-lương-đóng-bảo-hiểm">1.2. Trần lương đóng bảo hiểm</h3>
+<table><thead>
+<tr><th>Loại bảo hiểm</th><th>Trần lương đóng</th><th>Tính theo</th></tr>
+</thead><tbody>
+<tr><td>BHXH, BHYT</td><td>46.800.000 VNĐ/tháng</td><td>20 × lương cơ sở</td></tr>
+<tr><td>BHTN</td><td>20 × lương tối thiểu vùng</td><td>Theo vùng của đơn vị</td></tr>
+</tbody></table>
+<h3 id="13-các-hằng-số-khác">1.3. Các hằng số khác</h3>
+<table><thead>
+<tr><th>Hằng số</th><th>Giá trị</th></tr>
+</thead><tbody>
+<tr><td>Giảm trừ bản thân</td><td>11.000.000 VNĐ/tháng</td></tr>
+<tr><td>Giảm trừ mỗi người phụ thuộc</td><td>4.400.000 VNĐ/tháng</td></tr>
+<tr><td>Ngày phép năm tối thiểu</td><td>12 ngày/năm</td></tr>
+<tr><td>Giờ làm việc chuẩn</td><td>8 giờ/ngày</td></tr>
+<tr><td>Ngày làm việc chuẩn</td><td>5 ngày/tuần (Thứ 2 – Thứ 6)</td></tr>
+<tr><td>Thời hạn thử việc tối đa</td><td>60 ngày</td></tr>
+<tr><td>Tỷ lệ lương thử việc tối thiểu</td><td>85% lương chính thức</td></tr>
+<tr><td>Báo trước nghỉ việc – HĐ xác định TH</td><td>30 ngày</td></tr>
+<tr><td>Báo trước nghỉ việc – HĐ không xác định TH</td><td>45 ngày</td></tr>
+</tbody></table>
+<hr>
+<h2 id="2-quy-tắc-tính-lương">2. Quy tắc tính lương</h2>
+<h3 id="21-lương-ngày">2.1. Lương ngày</h3>
+<p><strong>Công thức:</strong></p>
+<blockquote>
+<p>Lương ngày = Lương tháng ÷ Số ngày công chuẩn của tháng</p>
+</blockquote>
+<p>Số ngày công chuẩn = tổng ngày làm việc trong tháng, sau khi trừ Thứ 7, Chủ nhật và ngày lễ.</p>
+<p>Dùng để tính: lương thiếu ngày, lương làm thêm ngày, bồi thường.</p>
+<h3 id="22-lương-giờ">2.2. Lương giờ</h3>
+<p><strong>Công thức:</strong></p>
+<blockquote>
+<p>Lương giờ = Lương ngày ÷ 8</p>
+</blockquote>
+<h3 id="23-lương-thực-tế-theo-ngày-công">2.3. Lương thực tế theo ngày công</h3>
+<p>Áp dụng khi nhân viên không làm đủ tháng: mới vào giữa tháng, nghỉ không lương, nghỉ việc giữa tháng.</p>
+<p><strong>Công thức:</strong></p>
+<blockquote>
+<p>Lương thực tế = (Lương tháng ÷ Ngày công chuẩn) × Ngày công thực tế</p>
+</blockquote>
+<p>Trong đó: <strong>Ngày công thực tế</strong> = ngày thực làm + ngày phép có lương.</p>
+<hr>
+<h2 id="3-bảo-hiểm-xã-hội-bắt-buộc">3. Bảo hiểm xã hội bắt buộc</h2>
+<h3 id="31-đối-tượng-đóng">3.1. Đối tượng đóng</h3>
+<ul>
+<li>Áp dụng cho nhân viên ký hợp đồng lao động từ 1 tháng trở lên.</li>
+<li>Từ 01/01/2021: hợp đồng có điều khoản thử việc tích hợp vẫn phải đóng bảo hiểm từ ngày đầu.</li>
+<li>Không áp dụng cho hợp đồng thử việc ký riêng lẻ.</li>
+</ul>
+<h3 id="32-tỷ-lệ-đóng-bảo-hiểm">3.2. Tỷ lệ đóng bảo hiểm</h3>
+<table><thead>
+<tr><th>Khoản</th><th>Người lao động</th><th>Người sử dụng lao động</th><th>Tổng</th></tr>
+</thead><tbody>
+<tr><td>BHXH</td><td>8%</td><td>17%</td><td>25%</td></tr>
+<tr><td>BHYT</td><td>1,5%</td><td>3%</td><td>4,5%</td></tr>
+<tr><td>BHTN</td><td>1%</td><td>1%</td><td>2%</td></tr>
+<tr><td>Kinh phí công đoàn</td><td>–</td><td>2%</td><td>2%</td></tr>
+<tr><td><strong>Tổng</strong></td><td><strong>10,5%</strong></td><td><strong>23%</strong></td><td><strong>33,5%</strong></td></tr>
+</tbody></table>
+<h3 id="33-cách-tính">3.3. Cách tính</h3>
+<p><strong>Bước 1 – Xác định lương đóng bảo hiểm và áp trần:</strong></p>
+<ul>
+<li>Lương đóng BHXH, BHYT = min(lương ghi trong hợp đồng, 46.800.000)</li>
+<li>Lương đóng BHTN = min(lương ghi trong hợp đồng, 20 × lương tối thiểu vùng)</li>
+</ul>
+<p><strong>Bước 2 – Tính từng khoản (làm tròn đến đơn vị VNĐ):</strong></p>
+<blockquote>
+<p>BHXH = Lương đóng BHXH × 8%</p>
+<p>BHYT = Lương đóng BHXH × 1,5%</p>
+<p>BHTN = Lương đóng BHTN × 1%</p>
+<p>Tổng bảo hiểm NLĐ = BHXH + BHYT + BHTN</p>
+</blockquote>
+<hr>
+<h2 id="4-thuế-thu-nhập-cá-nhân-tncn">4. Thuế thu nhập cá nhân (TNCN)</h2>
+<blockquote>
+<p>Căn cứ: Luật Thuế TNCN 2007, sửa đổi 2012; Nghị quyết 954/2020/UBTVQH14</p>
+</blockquote>
+<h3 id="41-biểu-thuế-lũy-tiến-7-bậc">4.1. Biểu thuế lũy tiến 7 bậc</h3>
+<table><thead>
+<tr><th>Bậc</th><th>Thu nhập tính thuế/tháng</th><th>Thuế suất</th><th>Số thuế phải nộp (rút gọn)</th></tr>
+</thead><tbody>
+<tr><td>1</td><td>Đến 5.000.000</td><td>5%</td><td>5% TNTT</td></tr>
+<tr><td>2</td><td>Trên 5.000.000 đến 10.000.000</td><td>10%</td><td>10% TNTT − 250.000</td></tr>
+<tr><td>3</td><td>Trên 10.000.000 đến 18.000.000</td><td>15%</td><td>15% TNTT − 750.000</td></tr>
+<tr><td>4</td><td>Trên 18.000.000 đến 32.000.000</td><td>20%</td><td>20% TNTT − 1.650.000</td></tr>
+<tr><td>5</td><td>Trên 32.000.000 đến 52.000.000</td><td>25%</td><td>25% TNTT − 3.250.000</td></tr>
+<tr><td>6</td><td>Trên 52.000.000 đến 80.000.000</td><td>30%</td><td>30% TNTT − 5.850.000</td></tr>
+<tr><td>7</td><td>Trên 80.000.000</td><td>35%</td><td>35% TNTT − 9.850.000</td></tr>
+</tbody></table>
+<p><strong>Công thức rút gọn:</strong></p>
+<blockquote>
+<p>Thuế TNCN = Thu nhập tính thuế × Thuế suất bậc tương ứng − Số khấu trừ nhanh</p>
+</blockquote>
+<p><strong>Ví dụ:</strong> Thu nhập tính thuế = 25.000.000 VNĐ → bậc 4</p>
+<blockquote>
+<p>Thuế = 25.000.000 × 20% − 1.650.000 = <strong>3.350.000 VNĐ</strong></p>
+</blockquote>
+<hr>
+<h2 id="5-giảm-trừ-gia-cảnh">5. Giảm trừ gia cảnh</h2>
+<blockquote>
+<p>Căn cứ: Nghị quyết 954/2020/UBTVQH14</p>
+</blockquote>
+<p><strong>Công thức:</strong></p>
+<blockquote>
+<p>Tổng giảm trừ = 11.000.000 + (4.400.000 × Số người phụ thuộc)</p>
+</blockquote>
+<p><strong>Điều kiện để người phụ thuộc được tính giảm trừ:</strong></p>
+<ul>
+<li>Con dưới 18 tuổi (hoặc con trên 18 nhưng khuyết tật, không có khả năng lao động).</li>
+<li>Vợ/chồng không có thu nhập hoặc thu nhập ≤ 1.000.000 VNĐ/tháng.</li>
+<li>Cha, mẹ già không có thu nhập hoặc thu nhập ≤ 1.000.000 VNĐ/tháng.</li>
+<li>Mỗi người phụ thuộc chỉ được đăng ký giảm trừ cho <strong>một</strong> người nộp thuế tại cùng một thời điểm.</li>
+</ul>
+<hr>
+<h2 id="6-quy-trình-tính-lương-net-từ-gross">6. Quy trình tính lương Net từ Gross</h2>
+<h3 id="các-bước-tính-theo-thứ-tự-bắt-buộc">Các bước tính (theo thứ tự bắt buộc)</h3>
+<p><strong>Bước 1 – Tính Gross (tổng thu nhập trước khấu trừ)</strong></p>
+<blockquote>
+<p>Gross = Lương cơ bản + Phụ cấp chức vụ + Phụ cấp bữa ăn + Phụ cấp đi lại + Phụ cấp điện thoại + Lương làm thêm giờ + Thưởng KPI + Thu nhập khác</p>
+</blockquote>
+<p><strong>Bước 2 – Tính bảo hiểm người lao động đóng (10,5%)</strong></p>
+<p>Tính theo lương đóng bảo hiểm ghi trong hợp đồng (có áp trần, xem mục 3.3).</p>
+<p><strong>Bước 3 – Xác định phần miễn thuế TNCN</strong></p>
+<p>Theo Thông tư 111/2013/TT-BTC, các khoản phụ cấp sau được miễn thuế TNCN:</p>
+<ul>
+<li>Phụ cấp bữa ăn giữa ca: ≤ 730.000 VNĐ/tháng.</li>
+<li>Phụ cấp đi lại, điện thoại: theo mức thực tế chi phí công ty quy định.</li>
+</ul>
+<p><strong>Bước 4 – Thu nhập chịu thuế</strong></p>
+<blockquote>
+<p>Thu nhập chịu thuế = Gross − Phần phụ cấp miễn thuế</p>
+</blockquote>
+<p><strong>Bước 5 – Giảm trừ gia cảnh</strong></p>
+<blockquote>
+<p>Giảm trừ = 11.000.000 + (4.400.000 × Số người phụ thuộc)</p>
+</blockquote>
+<p><strong>Bước 6 – Thu nhập tính thuế (TNTT)</strong></p>
+<blockquote>
+<p>TNTT = Thu nhập chịu thuế − Tổng bảo hiểm − Giảm trừ gia cảnh</p>
+<p>(Nếu âm thì TNTT = 0, không hoàn thuế)</p>
+</blockquote>
+<p><strong>Bước 7 – Thuế TNCN</strong></p>
+<p>Áp dụng biểu lũy tiến 7 bậc theo mục 4.1.</p>
+<p><strong>Bước 8 – Lương thực nhận (Net)</strong></p>
+<blockquote>
+<p>Net = Gross − Tổng bảo hiểm − Thuế TNCN − Tạm ứng − Khấu trừ khác</p>
+</blockquote>
+<hr>
+<h3 id="ví-dụ-minh-họa">Ví dụ minh họa</h3>
+<table><thead>
+<tr><th>Khoản</th><th>Giá trị</th></tr>
+</thead><tbody>
+<tr><td>Lương cơ bản</td><td>20.000.000</td></tr>
+<tr><td>Phụ cấp chức vụ</td><td>2.000.000</td></tr>
+<tr><td>Phụ cấp bữa ăn</td><td>730.000</td></tr>
+<tr><td>Phụ cấp đi lại</td><td>500.000</td></tr>
+<tr><td>Phụ cấp điện thoại</td><td>300.000</td></tr>
+<tr><td><strong>Gross</strong></td><td><strong>23.530.000</strong></td></tr>
+<tr><td>Lương đóng BH</td><td>20.000.000</td></tr>
+<tr><td>BHXH (8%)</td><td>1.600.000</td></tr>
+<tr><td>BHYT (1,5%)</td><td>300.000</td></tr>
+<tr><td>BHTN (1%)</td><td>200.000</td></tr>
+<tr><td><strong>Tổng BH</strong></td><td><strong>2.100.000</strong></td></tr>
+<tr><td>Thu nhập chịu thuế</td><td>23.530.000 − 1.530.000 = 22.000.000</td></tr>
+<tr><td>Giảm trừ (bản thân + 1 NPT)</td><td>11.000.000 + 4.400.000 = 15.400.000</td></tr>
+<tr><td><strong>TNTT</strong></td><td><strong>22.000.000 − 2.100.000 − 15.400.000 = 4.500.000</strong></td></tr>
+<tr><td>Thuế TNCN (bậc 1, 5%)</td><td>4.500.000 × 5% = 225.000</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>23.530.000 − 2.100.000 − 225.000 = 21.205.000 VNĐ</strong></td></tr>
+</tbody></table>
+<hr>
+<h2 id="7-làm-thêm-giờ-overtime">7. Làm thêm giờ (Overtime)</h2>
+<blockquote>
+<p>Căn cứ: Điều 98 BLLĐ 2019</p>
+</blockquote>
+<h3 id="71-hệ-số-lương-làm-thêm">7.1. Hệ số lương làm thêm</h3>
+<table><thead>
+<tr><th>Loại thời gian</th><th>Hệ số</th><th>Ghi chú</th></tr>
+</thead><tbody>
+<tr><td>Ngày thường (T2–T6)</td><td>1,5×</td><td>150% lương giờ bình thường</td></tr>
+<tr><td>Thứ 7, Chủ nhật</td><td>2,0×</td><td>200%</td></tr>
+<tr><td>Ngày lễ, ngày nghỉ có lương</td><td>3,0×</td><td>300%</td></tr>
+<tr><td>Ban đêm (22h–6h)</td><td>+0,3×</td><td>Cộng thêm vào các mức trên</td></tr>
+</tbody></table>
+<p><strong>Công thức:</strong></p>
+<blockquote>
+<p>Tiền làm thêm = Lương giờ × Số giờ làm thêm × Hệ số</p>
+</blockquote>
+<h3 id="72-giới-hạn-làm-thêm-giờ-điều-107-bllđ-2019">7.2. Giới hạn làm thêm giờ (Điều 107 BLLĐ 2019)</h3>
+<ul>
+<li>Không quá <strong>12 giờ/ngày</strong> (tổng cả giờ làm thêm).</li>
+<li>Không quá <strong>40 giờ/tháng</strong>.</li>
+<li>Không quá <strong>200 giờ/năm</strong> (trường hợp đặc biệt: tối đa 300 giờ/năm, cần thỏa thuận và thông báo cơ quan lao động).</li>
+</ul>
+<hr>
+<h2 id="8-nghỉ-phép">8. Nghỉ phép</h2>
+<h3 id="81-số-ngày-phép-năm">8.1. Số ngày phép năm</h3>
+<blockquote>
+<p>Căn cứ: Điều 113 BLLĐ 2019</p>
+</blockquote>
+<p><strong>Công thức:</strong></p>
+<blockquote>
+<p>Số ngày phép = 12 + ⌊Số năm thâm niên ÷ 5⌋</p>
+</blockquote>
+<table><thead>
+<tr><th>Thâm niên</th><th>Số ngày phép/năm</th></tr>
+</thead><tbody>
+<tr><td>0 – 4 năm</td><td>12 ngày</td></tr>
+<tr><td>5 – 9 năm</td><td>13 ngày</td></tr>
+<tr><td>10 – 14 năm</td><td>14 ngày</td></tr>
+<tr><td>15 năm trở lên</td><td>15 ngày</td></tr>
+</tbody></table>
+<h3 id="82-cách-tính-số-ngày-nghỉ-thực-tế">8.2. Cách tính số ngày nghỉ thực tế</h3>
+<p>Chỉ đếm <strong>ngày làm việc</strong> (Thứ 2 – Thứ 6), bỏ qua Thứ 7, Chủ nhật và ngày lễ trong khoảng nghỉ.</p>
+<p>Hỗ trợ nghỉ nửa ngày:</p>
+<ul>
+<li>Buổi sáng hoặc buổi chiều = 0,5 ngày phép.</li>
+</ul>
+<h3 id="83-quy-tắc-phép-năm">8.3. Quy tắc phép năm</h3>
+<ul>
+<li>Năm đầu tiên: được nghỉ phép theo tỉ lệ số tháng đã làm.</li>
+</ul>
+<p>  > Phép = Số ngày phép năm × (Số tháng đã làm ÷ 12)</p>
+<ul>
+<li>Ngày phép được cộng dồn sang năm sau theo quy định nội bộ công ty.</li>
+<li>Khi nghỉ việc: thanh toán bù số ngày phép chưa dùng.</li>
+</ul>
+<p>  > Tiền phép = Lương ngày × Số ngày phép còn lại</p>
+<ul>
+<li>Không được ép nhân viên bỏ phép năm.</li>
+</ul>
+<hr>
+<h2 id="9-hợp-đồng-lao-động">9. Hợp đồng lao động</h2>
+<blockquote>
+<p>Căn cứ: Điều 20 BLLĐ 2019</p>
+</blockquote>
+<h3 id="91-các-loại-hợp-đồng">9.1. Các loại hợp đồng</h3>
+<table><thead>
+<tr><th>Loại hợp đồng</th><th>Thời hạn</th><th>Ghi chú</th></tr>
+</thead><tbody>
+<tr><td>Thử việc</td><td>≤ 60 ngày</td><td>Không đóng BH nếu ký riêng lẻ</td></tr>
+<tr><td>Xác định thời hạn</td><td>1 – 36 tháng</td><td>Tối đa ký 2 lần, sau đó phải chuyển HĐKXĐTH</td></tr>
+<tr><td>Không xác định thời hạn</td><td>Vô thời hạn</td><td>Không có ngày kết thúc</td></tr>
+<tr><td>Mùa vụ / công việc cụ thể</td><td>< 12 tháng</td><td>Không được gia hạn</td></tr>
+</tbody></table>
+<h3 id="92-quy-tắc-gia-hạn">9.2. Quy tắc gia hạn</h3>
+<ul>
+<li>Sau 2 lần ký hợp đồng xác định thời hạn → <strong>bắt buộc</strong> chuyển sang hợp đồng không xác định thời hạn.</li>
+<li>Ký thêm lần thứ 3 hợp đồng xác định thời hạn là <strong>vi phạm pháp luật</strong>.</li>
+</ul>
+<h3 id="93-thời-gian-báo-trước-khi-chấm-dứt-hợp-đồng">9.3. Thời gian báo trước khi chấm dứt hợp đồng</h3>
+<table><thead>
+<tr><th>Loại hợp đồng</th><th>Người lao động báo trước</th><th>Người sử dụng lao động báo trước</th></tr>
+</thead><tbody>
+<tr><td>Xác định thời hạn</td><td>30 ngày</td><td>30 ngày</td></tr>
+<tr><td>Không xác định thời hạn</td><td>45 ngày</td><td>45 ngày</td></tr>
+</tbody></table>
+<hr>
+<h2 id="10-thử-việc">10. Thử việc</h2>
+<blockquote>
+<p>Căn cứ: Điều 24–26 BLLĐ 2019</p>
+</blockquote>
+<ul>
+<li>Thời hạn thử việc tối đa: <strong>60 ngày</strong> làm việc thực tế.</li>
+<li>Lương thử việc tối thiểu: <strong>85%</strong> lương chính thức ghi trong hợp đồng.</li>
+<li>Nếu hợp đồng thử việc ký <strong>riêng lẻ</strong>: không đóng bảo hiểm bắt buộc trong giai đoạn thử việc.</li>
+<li>Nếu điều khoản thử việc <strong>tích hợp trong HĐLĐ chính</strong>: phải đóng bảo hiểm từ ngày đầu.</li>
+<li>Cả hai bên đều có quyền chấm dứt thử việc <strong>bất kỳ lúc nào</strong> mà không cần báo trước.</li>
+<li>Không có trợ cấp thôi việc nếu nhân viên không qua thử việc.</li>
+</ul>
+<hr>
+<h2 id="11-ngày-công-làm-việc">11. Ngày công làm việc</h2>
+<h3 id="111-cách-tính-số-ngày-công-chuẩn-trong-tháng">11.1. Cách tính số ngày công chuẩn trong tháng</h3>
+<p>Ngày công chuẩn = tổng số ngày trong tháng, sau khi loại bỏ:</p>
+<ul>
+<li>Thứ 7, Chủ nhật.</li>
+<li>Các ngày lễ chính thức (xem bảng seed holidays).</li>
+</ul>
+<p>Thông thường dao động <strong>22 – 23 ngày/tháng</strong>.</p>
+<h3 id="112-ngày-lễ-chính-thức-việt-nam">11.2. Ngày lễ chính thức Việt Nam</h3>
+<table><thead>
+<tr><th>Ngày</th><th>Tên lễ</th><th>Số ngày</th></tr>
+</thead><tbody>
+<tr><td>01/01</td><td>Tết Dương lịch</td><td>1</td></tr>
+<tr><td>28/01 – 02/02/2025</td><td>Tết Nguyên Đán Ất Tỵ</td><td>6</td></tr>
+<tr><td>06/04/2025</td><td>Giỗ Tổ Hùng Vương</td><td>1</td></tr>
+<tr><td>30/04</td><td>Ngày Giải phóng miền Nam</td><td>1</td></tr>
+<tr><td>01/05</td><td>Ngày Quốc tế Lao động</td><td>1</td></tr>
+<tr><td>02/09</td><td>Ngày Quốc khánh</td><td>2</td></tr>
+</tbody></table>
+<hr>
+<h2 id="12-quy-tắc-chấm-công">12. Quy tắc chấm công</h2>
+<h3 id="121-khung-giờ-làm-việc-mặc-định">12.1. Khung giờ làm việc mặc định</h3>
+<table><thead>
+<tr><th>Thông số</th><th>Giá trị mặc định</th></tr>
+</thead><tbody>
+<tr><td>Giờ bắt đầu</td><td>08:00</td></tr>
+<tr><td>Giờ kết thúc</td><td>17:00</td></tr>
+<tr><td>Giờ nghỉ trưa</td><td>60 phút (không tính vào giờ làm)</td></tr>
+<tr><td>Ngưỡng đi muộn</td><td>> 15 phút so với giờ bắt đầu</td></tr>
+<tr><td>Ngưỡng về sớm</td><td>> 15 phút trước giờ kết thúc</td></tr>
+</tbody></table>
+<h3 id="122-cách-tính-giờ-làm-thực-tế">12.2. Cách tính giờ làm thực tế</h3>
+<blockquote>
+<p>Giờ làm = (Giờ ra − Giờ vào) − 60 phút nghỉ trưa</p>
+</blockquote>
+<h3 id="123-xác-định-làm-thêm-giờ">12.3. Xác định làm thêm giờ</h3>
+<p>Giờ làm thêm = thời gian làm việc vượt quá 8 giờ/ngày (sau giờ tan ca chính thức).</p>
+<h3 id="124-các-trạng-thái-chấm-công">12.4. Các trạng thái chấm công</h3>
+<table><thead>
+<tr><th>Trạng thái</th><th>Điều kiện</th></tr>
+</thead><tbody>
+<tr><td><code>present</code></td><td>Đến đúng giờ, ra đúng giờ, làm đủ 8 tiếng</td></tr>
+<tr><td><code>late</code></td><td>Đến sau giờ bắt đầu > 15 phút</td></tr>
+<tr><td><code>early_leave</code></td><td>Ra trước giờ kết thúc > 15 phút</td></tr>
+<tr><td><code>absent</code></td><td>Không chấm công vào, không có đơn nghỉ</td></tr>
+<tr><td><code>leave</code></td><td>Có đơn nghỉ phép được duyệt</td></tr>
+<tr><td><code>holiday</code></td><td>Ngày lễ chính thức</td></tr>
+<tr><td><code>wfh</code></td><td>Làm việc từ xa (Work From Home)</td></tr>
+</tbody></table>
+<hr>
+<h2 id="13-thai-sản-ốm-đau">13. Thai sản & Ốm đau</h2>
+<h3 id="131-chế-độ-thai-sản-điều-34-luật-bhxh">13.1. Chế độ thai sản (Điều 34 Luật BHXH)</h3>
+<p><strong>Lao động nữ sinh con:</strong></p>
+<ul>
+<li>Tổng thời gian nghỉ thai sản: <strong>6 tháng</strong> (180 ngày).</li>
+<li>Có thể nghỉ trước sinh tối đa 2 tháng.</li>
+<li>Mức hưởng: <strong>100%</strong> bình quân lương đóng BHXH 6 tháng trước khi nghỉ (BHXH chi trả, không phải công ty).</li>
+<li>Trợ cấp một lần khi sinh: 2 × lương cơ sở = 4.680.000 VNĐ.</li>
+</ul>
+<p><strong>Lao động nam khi vợ sinh:</strong></p>
+<table><thead>
+<tr><th>Trường hợp</th><th>Số ngày nghỉ</th></tr>
+</thead><tbody>
+<tr><td>Vợ sinh thường</td><td>5 ngày</td></tr>
+<tr><td>Vợ sinh mổ hoặc sinh con < 32 tuần</td><td>7 ngày</td></tr>
+<tr><td>Vợ sinh đôi</td><td>10 ngày</td></tr>
+<tr><td>Vợ sinh ba trở lên</td><td>10 ngày + 3 ngày/con từ con thứ 3</td></tr>
+</tbody></table>
+<p>Mức hưởng: 100% bình quân lương đóng BHXH (BHXH chi trả).</p>
+<h3 id="132-chế-độ-ốm-đau-điều-26-luật-bhxh">13.2. Chế độ ốm đau (Điều 26 Luật BHXH)</h3>
+<p><strong>Số ngày nghỉ ốm tối đa trong năm theo thâm niên đóng BHXH:</strong></p>
+<table><thead>
+<tr><th>Thâm niên đóng BHXH</th><th>Ngày nghỉ tối đa</th></tr>
+</thead><tbody>
+<tr><td>Dưới 15 năm</td><td>30 ngày/năm</td></tr>
+<tr><td>Từ 15 đến dưới 30 năm</td><td>40 ngày/năm</td></tr>
+<tr><td>Từ 30 năm trở lên</td><td>60 ngày/năm</td></tr>
+</tbody></table>
+<p>Mức hưởng: <strong>75%</strong> bình quân lương đóng BHXH (BHXH chi trả, không phải công ty).</p>
+<hr>
+<h2 id="14-kỷ-luật-lao-động">14. Kỷ luật lao động</h2>
+<blockquote>
+<p>Căn cứ: Điều 124–128 BLLĐ 2019</p>
+</blockquote>
+<h3 id="141-các-hình-thức-kỷ-luật-theo-thứ-tự-tăng-dần">14.1. Các hình thức kỷ luật (theo thứ tự tăng dần)</h3>
+<ol>
+<li><strong>Khiển trách</strong> – hình thức nhẹ nhất, lưu vào hồ sơ.</li>
+<li><strong>Kéo dài thời hạn nâng lương</strong> không quá 6 tháng, hoặc <strong>cách chức</strong>.</li>
+<li><strong>Sa thải</strong> – chỉ được áp dụng trong 3 trường hợp quy định tại Điều 125 BLLĐ.</li>
+</ol>
+<h3 id="142-quy-định-quan-trọng">14.2. Quy định quan trọng</h3>
+<ul>
+<li>Thời hiệu xử lý kỷ luật: <strong>6 tháng</strong> kể từ ngày vi phạm (90 ngày với vi phạm liên quan tài chính, tài sản).</li>
+<li><strong>Không được phạt tiền</strong>, không được trừ lương thay cho kỷ luật (Điều 128 BLLĐ).</li>
+<li>Phải thành lập hội đồng xử lý kỷ luật, có biên bản, quyết định bằng văn bản.</li>
+</ul>
+<hr>
+<h2 id="15-thôi-việc-trợ-cấp">15. Thôi việc & Trợ cấp</h2>
+<h3 id="151-trợ-cấp-thôi-việc-điều-46-bllđ-2019">15.1. Trợ cấp thôi việc (Điều 46 BLLĐ 2019)</h3>
+<p>Áp dụng khi nhân viên đã làm <strong>từ đủ 12 tháng</strong> trở lên và chấm dứt hợp đồng theo Điều 34, 35, 38, 39 BLLĐ.</p>
+<p><strong>Công thức:</strong></p>
+<blockquote>
+<p>Số năm tính trợ cấp = Tổng thâm niên − Số năm đã đóng BHTN</p>
+<p>Trợ cấp thôi việc = Số năm tính trợ cấp × 0,5 × Lương bình quân 6 tháng gần nhất</p>
+</blockquote>
+<p>Làm tròn xuống đến 0,5 năm.</p>
+<p><strong>Ví dụ:</strong> Làm 7 năm, đóng BHTN 5 năm, lương bình quân 15.000.000:</p>
+<blockquote>
+<p>Số năm tính = 7 − 5 = 2 năm → Trợ cấp = 2 × 0,5 × 15.000.000 = <strong>15.000.000 VNĐ</strong></p>
+</blockquote>
+<h3 id="152-trợ-cấp-mất-việc-điều-47-bllđ-2019">15.2. Trợ cấp mất việc (Điều 47 BLLĐ 2019)</h3>
+<p>Áp dụng khi nhân viên bị cắt giảm do thay đổi cơ cấu, công nghệ, kinh tế khó khăn, sáp nhập.</p>
+<p><strong>Công thức:</strong></p>
+<blockquote>
+<p>Trợ cấp mất việc = Số năm tính trợ cấp × 1 × Lương bình quân 6 tháng gần nhất</p>
+</blockquote>
+<p>Mức cao hơn trợ cấp thôi việc (1 tháng/năm thay vì 0,5 tháng/năm).</p>
+<h3 id="153-thanh-toán-ngày-phép-còn-lại-khi-nghỉ-việc">15.3. Thanh toán ngày phép còn lại khi nghỉ việc</h3>
+<blockquote>
+<p>Tiền phép = Lương ngày × Số ngày phép năm chưa sử dụng</p>
+</blockquote>
+<hr>
+<h2 id="lưu-ý-khi-tính-lương">Lưu ý khi tính lương</h2>
+<ul>
+<li>Luôn làm tròn tiền tệ đến đơn vị VNĐ (không để số thập phân).</li>
+<li>Phiếu lương phải ghi rõ từng khoản: lương gross, từng khoản bảo hiểm, thuế TNCN, thực nhận.</li>
+<li>Tháng thử việc: không tính bảo hiểm nếu hợp đồng thử việc ký riêng lẻ.</li>
+<li>Lương đóng bảo hiểm không được thấp hơn lương tối thiểu vùng (bắt buộc theo luật).</li>
+<li>Các tỷ lệ bảo hiểm và thuế phải được cấu hình linh hoạt, không được hardcode trong logic tính toán, để dễ cập nhật khi có thay đổi pháp luật.</li>
+<li>Lưu snapshot tỷ lệ bảo hiểm và thuế vào bảng <code>salaries</code> tại thời điểm tính, tránh phụ thuộc vào cấu hình tương lai.</li>
+</ul>
+<hr>
+<p>*Căn cứ pháp lý: BLLĐ 2019, Luật BHXH 2014 (sửa đổi 2024), Luật Thuế TNCN 2007 (sửa đổi),</p>
+<p>Nghị quyết 954/2020/UBTVQH14, Nghị định 74/2024/NĐ-CP, TT 111/2013/TT-BTC*</p>
+<p><em>Cập nhật: 26/05/2026 – Version 1.1</em></p>
+
+</main>
+<script>
+// Highlight active TOC link on scroll
+const headings = document.querySelectorAll('h1,h2,h3,h4');
+const links = document.querySelectorAll('#sidebar a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('#sidebar a[href="#'+e.target.id+'"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '0px 0px -80% 0px' });
+headings.forEach(h => { if(h.id) obs.observe(h); });
+</script>
+<style>#sidebar a.active { background:#ddf4ff; border-left-color:#0969da; font-weight:600; }</style>
+</body>
+</html>

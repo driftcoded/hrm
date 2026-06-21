@@ -1,0 +1,443 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Component Guide - HRM Docs</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.7; color: #24292f;
+  margin: 0; background: #f6f8fa; display: flex;
+}
+#sidebar {
+  width: 260px; min-height: 100vh; background: #fff;
+  border-right: 1px solid #d0d7de; padding: 20px 0;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  flex-shrink: 0;
+}
+#sidebar h2 { font-size: 12px; font-weight: 600; color: #57606a;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 20px 4px; margin: 16px 0 4px; }
+#sidebar ul { list-style: none; margin: 0; padding: 0; }
+#sidebar li a {
+  display: block; padding: 5px 20px 5px 28px;
+  color: #0969da; text-decoration: none; font-size: 13px;
+  border-left: 3px solid transparent; line-height: 1.4;
+}
+#sidebar li a:hover { background: #f6f8fa; border-left-color: #0969da; }
+#sidebar li.h1 a { padding-left: 20px; font-weight: 600; font-size: 13px; }
+#sidebar li.h2 a { padding-left: 28px; }
+#sidebar li.h3 a { padding-left: 40px; font-size: 12px; color: #57606a; }
+#content {
+  flex: 1; max-width: 900px; padding: 40px 48px;
+  background: #fff; min-height: 100vh;
+}
+h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.5em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.8em; }
+h3 { font-size: 1.2em; margin-top: 1.5em; }
+h4 { font-size: 1em; margin-top: 1.2em; }
+h1:first-child, h2:first-child { margin-top: 0; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { margin: 0 0 16px; }
+pre {
+  background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;
+  padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5;
+  margin: 0 0 16px;
+}
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 85%;
+}
+pre code { font-size: inherit; background: none; padding: 0; border: none; }
+:not(pre) > code {
+  background: rgba(175,184,193,.2); padding: .2em .4em;
+  border-radius: 6px; font-size: 85%;
+}
+blockquote {
+  margin: 0 0 16px; padding: 0 1em;
+  color: #57606a; border-left: .25em solid #d0d7de;
+}
+blockquote p { margin-bottom: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 14px; }
+thead { background: #f6f8fa; }
+th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+th { font-weight: 600; }
+tr:nth-child(even) { background: #f6f8fa; }
+ul, ol { padding-left: 2em; margin: 0 0 16px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px;
+  font-size: 12px; font-weight: 600; margin-right: 4px;
+}
+.lock { background: #fff8c5; color: #9a6700; }
+.method-get { color: #1a7f37; font-weight: 700; }
+.method-post { color: #0969da; font-weight: 700; }
+.method-patch { color: #9a6700; font-weight: 700; }
+.method-delete { color: #cf222e; font-weight: 700; }
+
+/* Syntax highlight classes */
+.kw { color: #cf222e; }
+.st { color: #0a3069; }
+.cm { color: #6e7781; font-style: italic; }
+.nm { color: #953800; }
+.kv { color: #0550ae; }
+
+/* Scroll margin for anchor links */
+h1, h2, h3, h4 { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+<h2>Component Guide</h2><ul>
+<li class="h1"><a href="#component-guide">Component Guide</a></li>
+<li class="h2"><a href="#1-phân-loại-components">1. Phân loại Components</a></li>
+<li class="h2"><a href="#2-layout-components">2. Layout Components</a></li>
+<li class="h3"><a href="#applayout">AppLayout</a></li>
+<li class="h3"><a href="#sidebar">Sidebar</a></li>
+<li class="h3"><a href="#header">Header</a></li>
+<li class="h3"><a href="#pageheader">PageHeader</a></li>
+<li class="h2"><a href="#3-shared-ui-components">3. Shared UI Components</a></li>
+<li class="h3"><a href="#datatable">DataTable</a></li>
+<li class="h3"><a href="#searchfilter">SearchFilter</a></li>
+<li class="h3"><a href="#statusbadge">StatusBadge</a></li>
+<li class="h3"><a href="#uploadavatar">UploadAvatar</a></li>
+<li class="h3"><a href="#confirmbutton">ConfirmButton</a></li>
+<li class="h3"><a href="#currencydisplay">CurrencyDisplay</a></li>
+<li class="h3"><a href="#datedisplay">DateDisplay</a></li>
+<li class="h2"><a href="#4-page-components-theo-module">4. Page Components theo Module</a></li>
+<li class="h3"><a href="#41-employees-nhân-viên">4.1 Employees (Nhân viên)</a></li>
+<li class="h3"><a href="#42-attendance-chấm-công">4.2 Attendance (Chấm công)</a></li>
+<li class="h3"><a href="#43-leave-phép">4.3 Leave (Phép)</a></li>
+<li class="h3"><a href="#44-payroll-lương">4.4 Payroll (Lương)</a></li>
+<li class="h3"><a href="#45-settings-cài-đặt">4.5 Settings (Cài đặt)</a></li>
+<li class="h2"><a href="#5-custom-hooks">5. Custom Hooks</a></li>
+<li class="h3"><a href="#hooks-lấy-dữ-liệu-usequery">Hooks lấy dữ liệu (useQuery)</a></li>
+<li class="h3"><a href="#hooks-thao-tác-usemutation">Hooks thao tác (useMutation)</a></li>
+<li class="h3"><a href="#utility-hooks">Utility Hooks</a></li>
+<li class="h2"><a href="#6-zustand-stores">6. Zustand Stores</a></li>
+<li class="h3"><a href="#authstore">authStore</a></li>
+<li class="h3"><a href="#uistore">uiStore</a></li>
+<li class="h2"><a href="#7-naming-conventions">7. Naming Conventions</a></li>
+<li class="h3"><a href="#files">Files</a></li>
+<li class="h3"><a href="#types-interfaces">Types / Interfaces</a></li>
+<li class="h3"><a href="#query-keys">Query Keys</a></li>
+<li class="h2"><a href="#8-do-dont">8. Do & Don't</a></li>
+<li class="h3"><a href="#do">DO</a></li>
+<li class="h3"><a href="#dont">DON'T</a></li>
+</ul></nav>
+
+<main id="content">
+<h1 id="component-guide">Component Guide</h1>
+<p><strong>Phiên bản:</strong> 1.0  </p>
+<p><strong>Ngày cập nhật:</strong> 19/06/2026</p>
+<hr>
+<h2 id="1-phân-loại-components">1. Phân loại Components</h2>
+<table><thead>
+<tr><th>Loại</th><th>Thư mục</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><strong>Layout</strong></td><td><code>components/layout/</code></td><td>Khung sườn app (không fetch API)</td></tr>
+<tr><td><strong>Shared UI</strong></td><td><code>components/ui/</code></td><td>Tái sử dụng nhiều nơi (không fetch API)</td></tr>
+<tr><td><strong>Page</strong></td><td><code>pages/</code></td><td>Route-level, fetch qua hooks</td></tr>
+<tr><td><strong>Feature</strong></td><td><code>pages/<module>/components/</code></td><td>Component của một module cụ thể</td></tr>
+</tbody></table>
+<p><strong>Quy tắc vàng:</strong> Component trong <code>components/</code> KHÔNG được fetch API. Chỉ nhận data qua props.</p>
+<hr>
+<h2 id="2-layout-components">2. Layout Components</h2>
+<h3 id="applayout">AppLayout</h3>
+<p>Wrapper bọc toàn bộ app sau khi đăng nhập. Render Header + Sidebar + <code><Outlet /></code> (React Router).</p>
+<p>Props: không có — đọc state từ <code>authStore</code> và <code>uiStore</code>.</p>
+<h3 id="sidebar">Sidebar</h3>
+<p>Menu điều hướng trái. Thu gọn/mở rộng theo <code>uiStore.sidebarCollapsed</code>.</p>
+<table><thead>
+<tr><th>Menu item</th><th>Icon</th><th>Route</th><th>Quyền</th></tr>
+</thead><tbody>
+<tr><td>Tổng quan</td><td>Dashboard</td><td><code>/dashboard</code></td><td>Tất cả</td></tr>
+<tr><td>Nhân viên</td><td>Team</td><td><code>/employees</code></td><td>HR, Admin</td></tr>
+<tr><td>Chấm công</td><td>Clock</td><td><code>/attendance</code></td><td>HR, Manager, Admin</td></tr>
+<tr><td>Phép</td><td>Calendar</td><td><code>/leave</code></td><td>Tất cả</td></tr>
+<tr><td>Lương</td><td>Money</td><td><code>/payroll</code></td><td>HR, Admin</td></tr>
+<tr><td>Khen thưởng / Kỷ luật</td><td>Award</td><td><code>/rewards-disciplines</code></td><td>HR, Admin</td></tr>
+<tr><td>Đánh giá</td><td>Star</td><td><code>/performance</code></td><td>Manager, HR, Admin</td></tr>
+<tr><td>Đào tạo</td><td>Book</td><td><code>/trainings</code></td><td>HR, Admin</td></tr>
+<tr><td>Thông báo</td><td>Bell</td><td><code>/announcements</code></td><td>Tất cả</td></tr>
+<tr><td>Cài đặt</td><td>Settings</td><td><code>/settings</code></td><td>Admin</td></tr>
+</tbody></table>
+<p>Menu item được ẩn nếu user không có quyền (không disable — ẩn hẳn).</p>
+<h3 id="header">Header</h3>
+<p>Thanh trên cùng. Gồm:</p>
+<ul>
+<li>Logo công ty + tên HRM (trái)</li>
+<li>Tìm kiếm nhanh (giữa)</li>
+<li>Icon thông báo + badge số chưa đọc</li>
+<li>Avatar + dropdown user (tên, xem profile, đổi mật khẩu, đăng xuất)</li>
+</ul>
+<h3 id="pageheader">PageHeader</h3>
+<p>Component dùng lại ở đầu mỗi trang. Props:</p>
+<table><thead>
+<tr><th>Prop</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>title</code></td><td><code>string</code></td><td>Có</td><td>Tiêu đề trang</td></tr>
+<tr><td><code>breadcrumbs</code></td><td><code>BreadcrumbItem[]</code></td><td>Không</td><td>Mảng breadcrumb</td></tr>
+<tr><td><code>actions</code></td><td><code>ReactNode</code></td><td>Không</td><td>Nút / action phải</td></tr>
+<tr><td><code>extra</code></td><td><code>ReactNode</code></td><td>Không</td><td>Content bổ sung bên dưới title</td></tr>
+</tbody></table>
+<hr>
+<h2 id="3-shared-ui-components">3. Shared UI Components</h2>
+<h3 id="datatable">DataTable</h3>
+<p>Bảng dữ liệu chuẩn, wrap AntD <code>Table</code> với thêm:</p>
+<ul>
+<li>Tự xử lý pagination (lấy <code>page</code>, <code>pageSize</code> từ URL)</li>
+<li>Loading skeleton</li>
+<li>Empty state mặc định</li>
+<li>Responsive scroll ngang trên tablet</li>
+</ul>
+<p>Props chính:</p>
+<table><thead>
+<tr><th>Prop</th><th>Kiểu</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>columns</code></td><td><code>ColumnDef[]</code></td><td>Định nghĩa cột</td></tr>
+<tr><td><code>dataSource</code></td><td><code>T[]</code></td><td>Dữ liệu</td></tr>
+<tr><td><code>total</code></td><td><code>number</code></td><td>Tổng số bản ghi</td></tr>
+<tr><td><code>loading</code></td><td><code>boolean</code></td><td>Trạng thái tải</td></tr>
+<tr><td><code>rowKey</code></td><td><code>string</code></td><td>Key unique của mỗi row</td></tr>
+</tbody></table>
+<h3 id="searchfilter">SearchFilter</h3>
+<p>Thanh filter phía trên bảng. Gồm ô tìm kiếm text + các Select filter.</p>
+<p>Props: nhận <code>fields</code> là mảng config các filter field, callback <code>onChange</code> khi filter thay đổi.</p>
+<h3 id="statusbadge">StatusBadge</h3>
+<p>Badge hiển thị trạng thái với màu tương ứng.</p>
+<table><thead>
+<tr><th>Status key</th><th>Label</th><th>Màu</th></tr>
+</thead><tbody>
+<tr><td><code>active</code></td><td>Đang làm việc</td><td>Xanh lá</td></tr>
+<tr><td><code>probation</code></td><td>Thử việc</td><td>Xanh dương</td></tr>
+<tr><td><code>maternity_leave</code></td><td>Nghỉ thai sản</td><td>Vàng</td></tr>
+<tr><td><code>resigned</code></td><td>Đã nghỉ việc</td><td>Đỏ</td></tr>
+<tr><td><code>retired</code></td><td>Đã nghỉ hưu</td><td>Xám</td></tr>
+<tr><td><code>pending</code></td><td>Chờ duyệt</td><td>Vàng</td></tr>
+<tr><td><code>approved</code></td><td>Đã duyệt</td><td>Xanh lá</td></tr>
+<tr><td><code>rejected</code></td><td>Từ chối</td><td>Đỏ</td></tr>
+</tbody></table>
+<h3 id="uploadavatar">UploadAvatar</h3>
+<p>Component upload ảnh đại diện nhân viên. Hỗ trợ:</p>
+<ul>
+<li>Xem trước ảnh sau khi chọn</li>
+<li>Giới hạn 2MB, chỉ chấp nhận JPG / PNG / WebP</li>
+<li>Upload lên S3 qua <code>POST /upload/avatar</code></li>
+<li>Hiển thị tiến trình upload</li>
+</ul>
+<h3 id="confirmbutton">ConfirmButton</h3>
+<p>Nút có xác nhận trước khi thực hiện (dùng cho xóa, hủy).</p>
+<p>Props: <code>label</code>, <code>confirmText</code>, <code>onConfirm</code>, <code>danger</code> (màu đỏ), <code>loading</code>.</p>
+<h3 id="currencydisplay">CurrencyDisplay</h3>
+<p>Hiển thị số tiền theo chuẩn VN (<code>1.000.000 ₫</code>).</p>
+<p>Props: <code>value</code> (number), <code>showSign</code> (hiện dấu + / - cho delta), <code>size</code> (sm/md/lg).</p>
+<h3 id="datedisplay">DateDisplay</h3>
+<p>Hiển thị ngày theo định dạng VN. Props: <code>value</code> (ISO string), <code>format</code> (mặc định <code>DD/MM/YYYY</code>).</p>
+<hr>
+<h2 id="4-page-components-theo-module">4. Page Components theo Module</h2>
+<h3 id="41-employees-nhân-viên">4.1 Employees (Nhân viên)</h3>
+<table><thead>
+<tr><th>File</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>EmployeeListPage</code></td><td>Danh sách + filter + phân trang</td></tr>
+<tr><td><code>EmployeeDetailPage</code></td><td>Xem chi tiết, tabs thông tin</td></tr>
+<tr><td><code>EmployeeCreatePage</code></td><td>Form tạo mới nhiều bước (wizard)</td></tr>
+<tr><td><code>EmployeeEditPage</code></td><td>Form sửa thông tin</td></tr>
+</tbody></table>
+<p><strong>EmployeeCreatePage</strong> dùng wizard 4 bước:</p>
+<ol>
+<li>Thông tin cơ bản (họ tên, ngày sinh, giới tính, CCCD)</li>
+<li>Thông tin công việc (phòng ban, chức vụ, loại hợp đồng, ngày vào làm)</li>
+<li>Thông tin lương (lương cơ bản, phụ cấp)</li>
+<li>Tài khoản đăng nhập (email, mật khẩu tạm)</li>
+</ol>
+<p><strong>EmployeeDetailPage</strong> dùng Tabs:</p>
+<ul>
+<li>Thông tin cá nhân</li>
+<li>Hợp đồng</li>
+<li>Lương & Phụ cấp</li>
+<li>Phép năm</li>
+<li>Chấm công</li>
+<li>Lịch sử khen thưởng / kỷ luật</li>
+<li>Đánh giá hiệu suất</li>
+<li>Thành viên gia đình</li>
+</ul>
+<h3 id="42-attendance-chấm-công">4.2 Attendance (Chấm công)</h3>
+<table><thead>
+<tr><th>File</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>AttendanceListPage</code></td><td>Xem lịch chấm công theo tháng (calendar view)</td></tr>
+<tr><td><code>AttendanceManagePage</code></td><td>HR xem bảng chấm công toàn công ty</td></tr>
+<tr><td><code>OvertimeRequestPage</code></td><td>Đăng ký / duyệt làm thêm giờ</td></tr>
+</tbody></table>
+<h3 id="43-leave-phép">4.3 Leave (Phép)</h3>
+<table><thead>
+<tr><th>File</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>LeaveBalancePage</code></td><td>Xem số ngày phép còn lại</td></tr>
+<tr><td><code>LeaveRequestListPage</code></td><td>Danh sách đơn phép của tôi</td></tr>
+<tr><td><code>LeaveRequestCreatePage</code></td><td>Tạo đơn phép mới</td></tr>
+<tr><td><code>LeaveApprovalPage</code></td><td>Manager duyệt / từ chối đơn phép</td></tr>
+<tr><td><code>LeaveCalendarPage</code></td><td>Lịch phép toàn công ty</td></tr>
+</tbody></table>
+<h3 id="44-payroll-lương">4.4 Payroll (Lương)</h3>
+<table><thead>
+<tr><th>File</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>PayrollListPage</code></td><td>Danh sách bảng lương theo tháng</td></tr>
+<tr><td><code>PayrollDetailPage</code></td><td>Chi tiết bảng lương một nhân viên</td></tr>
+<tr><td><code>PayrollCalculatePage</code></td><td>HR tính lương hàng loạt</td></tr>
+<tr><td><code>PayslipPage</code></td><td>Phiếu lương cá nhân (có nút in)</td></tr>
+</tbody></table>
+<h3 id="45-settings-cài-đặt">4.5 Settings (Cài đặt)</h3>
+<table><thead>
+<tr><th>File</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>DepartmentSettingsPage</code></td><td>Quản lý phòng ban</td></tr>
+<tr><td><code>PositionSettingsPage</code></td><td>Quản lý chức vụ</td></tr>
+<tr><td><code>HolidaySettingsPage</code></td><td>Cấu hình ngày lễ trong năm</td></tr>
+<tr><td><code>LeaveTypeSettingsPage</code></td><td>Loại phép và số ngày được hưởng</td></tr>
+<tr><td><code>UserManagePage</code></td><td>Quản lý tài khoản hệ thống</td></tr>
+<tr><td><code>RolePermissionPage</code></td><td>Phân quyền theo role</td></tr>
+</tbody></table>
+<hr>
+<h2 id="5-custom-hooks">5. Custom Hooks</h2>
+<p>Tất cả hooks đặt trong <code>hooks/</code>. Convention đặt tên: <code>use<Entity></code> hoặc <code>use<Action></code>.</p>
+<h3 id="hooks-lấy-dữ-liệu-usequery">Hooks lấy dữ liệu (useQuery)</h3>
+<table><thead>
+<tr><th>Hook</th><th>Endpoint</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>useEmployees(params)</code></td><td><code>GET /employees</code></td><td>Danh sách nhân viên có filter/page</td></tr>
+<tr><td><code>useEmployee(id)</code></td><td><code>GET /employees/:id</code></td><td>Chi tiết một nhân viên</td></tr>
+<tr><td><code>useDepartments()</code></td><td><code>GET /departments</code></td><td>Danh sách phòng ban (cache 10 phút)</td></tr>
+<tr><td><code>usePositions(departmentId?)</code></td><td><code>GET /positions</code></td><td>Danh sách chức vụ</td></tr>
+<tr><td><code>useLeaveRequests(params)</code></td><td><code>GET /leave-requests</code></td><td>Danh sách đơn phép</td></tr>
+<tr><td><code>useLeaveBalance(employeeId)</code></td><td><code>GET /leave-balances/:id</code></td><td>Số ngày phép</td></tr>
+<tr><td><code>usePayrolls(params)</code></td><td><code>GET /payrolls</code></td><td>Danh sách bảng lương</td></tr>
+<tr><td><code>usePayroll(id)</code></td><td><code>GET /payrolls/:id</code></td><td>Chi tiết bảng lương</td></tr>
+</tbody></table>
+<h3 id="hooks-thao-tác-usemutation">Hooks thao tác (useMutation)</h3>
+<table><thead>
+<tr><th>Hook</th><th>Method</th><th>Sau khi thành công</th></tr>
+</thead><tbody>
+<tr><td><code>useCreateEmployee()</code></td><td><code>POST /employees</code></td><td>Invalidate <code>['employees']</code></td></tr>
+<tr><td><code>useUpdateEmployee(id)</code></td><td><code>PUT /employees/:id</code></td><td>Invalidate <code>['employees', id]</code></td></tr>
+<tr><td><code>useDeleteEmployee(id)</code></td><td><code>DELETE /employees/:id</code></td><td>Invalidate <code>['employees']</code></td></tr>
+<tr><td><code>useApproveLeave(id)</code></td><td><code>PUT /leave-requests/:id/approve</code></td><td>Invalidate <code>['leave-requests']</code></td></tr>
+<tr><td><code>useRejectLeave(id)</code></td><td><code>PUT /leave-requests/:id/reject</code></td><td>Invalidate <code>['leave-requests']</code></td></tr>
+<tr><td><code>useCalculatePayroll()</code></td><td><code>POST /payrolls/calculate</code></td><td>Invalidate <code>['payrolls']</code></td></tr>
+</tbody></table>
+<h3 id="utility-hooks">Utility Hooks</h3>
+<table><thead>
+<tr><th>Hook</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>useAuth()</code></td><td>Trả về <code>user</code>, <code>isAuthenticated</code>, <code>login()</code>, <code>logout()</code></td></tr>
+<tr><td><code>usePermission(action, resource)</code></td><td>Kiểm tra quyền hiện tại</td></tr>
+<tr><td><code>usePagination()</code></td><td>Đọc/ghi <code>page</code>, <code>pageSize</code> vào URL</td></tr>
+<tr><td><code>useDebounce(value, delay)</code></td><td>Debounce input search</td></tr>
+<tr><td><code>useBreakpoint()</code></td><td>Responsive breakpoint hiện tại</td></tr>
+</tbody></table>
+<hr>
+<h2 id="6-zustand-stores">6. Zustand Stores</h2>
+<h3 id="authstore">authStore</h3>
+<table><thead>
+<tr><th>State</th><th>Kiểu</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>accessToken</code></td><td>`string \</td><td>null`</td><td>JWT access token trong memory</td></tr>
+<tr><td><code>user</code></td><td>`UserProfile \</td><td>null`</td><td>Thông tin user đang đăng nhập</td></tr>
+<tr><td><code>isAuthenticated</code></td><td><code>boolean</code></td><td>Computed từ accessToken</td></tr>
+</tbody></table>
+<p>Actions: <code>setAuth(token, user)</code>, <code>clearAuth()</code>, <code>updateToken(token)</code>.</p>
+<h3 id="uistore">uiStore</h3>
+<table><thead>
+<tr><th>State</th><th>Kiểu</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>sidebarCollapsed</code></td><td><code>boolean</code></td><td>Sidebar thu gọn hay không</td></tr>
+<tr><td><code>locale</code></td><td>`'vi' \</td><td>'en'`</td><td>Ngôn ngữ hiển thị</td></tr>
+<tr><td><code>theme</code></td><td>`'light' \</td><td>'dark'`</td><td>Giao diện</td></tr>
+</tbody></table>
+<p>Actions: <code>toggleSidebar()</code>, <code>setLocale(locale)</code>, <code>setTheme(theme)</code>.</p>
+<p><code>locale</code> và <code>theme</code> được persist vào localStorage qua <code>zustand/middleware/persist</code>.</p>
+<hr>
+<h2 id="7-naming-conventions">7. Naming Conventions</h2>
+<h3 id="files">Files</h3>
+<table><thead>
+<tr><th>Loại</th><th>Convention</th><th>Ví dụ</th></tr>
+</thead><tbody>
+<tr><td>Page component</td><td>PascalCase + Page</td><td><code>EmployeeListPage.tsx</code></td></tr>
+<tr><td>Shared component</td><td>PascalCase</td><td><code>DataTable.tsx</code>, <code>StatusBadge.tsx</code></td></tr>
+<tr><td>Custom hook</td><td>camelCase bắt đầu <code>use</code></td><td><code>useEmployees.ts</code></td></tr>
+<tr><td>Service</td><td>camelCase + <code>.service</code></td><td><code>employee.service.ts</code></td></tr>
+<tr><td>Store</td><td>camelCase + <code>Store</code></td><td><code>authStore.ts</code></td></tr>
+<tr><td>Types</td><td>camelCase + <code>.types</code></td><td><code>employee.types.ts</code></td></tr>
+<tr><td>Utils</td><td>camelCase</td><td><code>format.ts</code>, <code>validators.ts</code></td></tr>
+<tr><td>Constants</td><td>camelCase</td><td><code>routes.ts</code>, <code>queryKeys.ts</code></td></tr>
+</tbody></table>
+<h3 id="types-interfaces">Types / Interfaces</h3>
+<table><thead>
+<tr><th>Loại</th><th>Convention</th><th>Ví dụ</th></tr>
+</thead><tbody>
+<tr><td>Entity từ API</td><td>PascalCase</td><td><code>Employee</code>, <code>LeaveRequest</code></td></tr>
+<tr><td>DTO (request body)</td><td>PascalCase + <code>Dto</code></td><td><code>CreateEmployeeDto</code></td></tr>
+<tr><td>Props component</td><td>PascalCase + <code>Props</code></td><td><code>DataTableProps</code></td></tr>
+<tr><td>Response paging</td><td><code>PaginatedResponse<T></code></td><td><code>PaginatedResponse<Employee></code></td></tr>
+<tr><td>Enum</td><td>PascalCase</td><td><code>EmployeeStatus</code>, <code>LeaveType</code></td></tr>
+</tbody></table>
+<h3 id="query-keys">Query Keys</h3>
+<p>Định nghĩa tập trung trong <code>constants/queryKeys.ts</code>:</p>
+<table><thead>
+<tr><th>Key</th><th>Giá trị</th></tr>
+</thead><tbody>
+<tr><td>employees.all</td><td><code>['employees']</code></td></tr>
+<tr><td>employees.detail(id)</td><td><code>['employees', id]</code></td></tr>
+<tr><td>departments.all</td><td><code>['departments']</code></td></tr>
+<tr><td>leaveRequests.all</td><td><code>['leave-requests']</code></td></tr>
+<tr><td>payrolls.all</td><td><code>['payrolls']</code></td></tr>
+</tbody></table>
+<p>Không dùng string rời rạc trong từng hook — luôn import từ <code>queryKeys.ts</code>.</p>
+<hr>
+<h2 id="8-do-dont">8. Do & Don't</h2>
+<h3 id="do">DO</h3>
+<ul>
+<li>Tách logic fetch ra hook riêng, component chỉ render</li>
+<li>Dùng TypeScript strict — định nghĩa type cho mọi prop và data</li>
+<li>Dùng <code>dayjs</code> với locale <code>vi</code> cho mọi xử lý ngày</li>
+<li>Dùng hàm trong <code>utils/format.ts</code> cho currency, date, phone</li>
+<li>Lazy load page-level component để tối ưu bundle</li>
+<li>Invalidate query sau mỗi mutation thành công</li>
+</ul>
+<h3 id="dont">DON'T</h3>
+<ul>
+<li>Không fetch API trong component con — chỉ nhận qua props</li>
+<li>Không dùng <code>any</code> — dùng <code>unknown</code> nếu chưa biết type</li>
+<li>Không hardcode tiếng Việt trong JSX — dùng <code>t('key')</code></li>
+<li>Không lưu token trong localStorage — dễ bị XSS</li>
+<li>Không dùng <code>moment.js</code> — dùng <code>dayjs</code></li>
+<li>Không inline CSS style — dùng AntD token hoặc CSS module</li>
+<li>Không gọi trực tiếp <code>queryClient</code> trong component — dùng hook</li>
+</ul>
+
+</main>
+<script>
+// Highlight active TOC link on scroll
+const headings = document.querySelectorAll('h1,h2,h3,h4');
+const links = document.querySelectorAll('#sidebar a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('#sidebar a[href="#'+e.target.id+'"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '0px 0px -80% 0px' });
+headings.forEach(h => { if(h.id) obs.observe(h); });
+</script>
+<style>#sidebar a.active { background:#ddf4ff; border-left-color:#0969da; font-weight:600; }</style>
+</body>
+</html>

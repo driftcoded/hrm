@@ -1,0 +1,1504 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Specification - HRM Docs</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.7; color: #24292f;
+  margin: 0; background: #f6f8fa; display: flex;
+}
+#sidebar {
+  width: 260px; min-height: 100vh; background: #fff;
+  border-right: 1px solid #d0d7de; padding: 20px 0;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  flex-shrink: 0;
+}
+#sidebar h2 { font-size: 12px; font-weight: 600; color: #57606a;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 20px 4px; margin: 16px 0 4px; }
+#sidebar ul { list-style: none; margin: 0; padding: 0; }
+#sidebar li a {
+  display: block; padding: 5px 20px 5px 28px;
+  color: #0969da; text-decoration: none; font-size: 13px;
+  border-left: 3px solid transparent; line-height: 1.4;
+}
+#sidebar li a:hover { background: #f6f8fa; border-left-color: #0969da; }
+#sidebar li.h1 a { padding-left: 20px; font-weight: 600; font-size: 13px; }
+#sidebar li.h2 a { padding-left: 28px; }
+#sidebar li.h3 a { padding-left: 40px; font-size: 12px; color: #57606a; }
+#content {
+  flex: 1; max-width: 900px; padding: 40px 48px;
+  background: #fff; min-height: 100vh;
+}
+h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.5em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 1.8em; }
+h3 { font-size: 1.2em; margin-top: 1.5em; }
+h4 { font-size: 1em; margin-top: 1.2em; }
+h1:first-child, h2:first-child { margin-top: 0; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { margin: 0 0 16px; }
+pre {
+  background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;
+  padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5;
+  margin: 0 0 16px;
+}
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 85%;
+}
+pre code { font-size: inherit; background: none; padding: 0; border: none; }
+:not(pre) > code {
+  background: rgba(175,184,193,.2); padding: .2em .4em;
+  border-radius: 6px; font-size: 85%;
+}
+blockquote {
+  margin: 0 0 16px; padding: 0 1em;
+  color: #57606a; border-left: .25em solid #d0d7de;
+}
+blockquote p { margin-bottom: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 14px; }
+thead { background: #f6f8fa; }
+th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+th { font-weight: 600; }
+tr:nth-child(even) { background: #f6f8fa; }
+ul, ol { padding-left: 2em; margin: 0 0 16px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px;
+  font-size: 12px; font-weight: 600; margin-right: 4px;
+}
+.lock { background: #fff8c5; color: #9a6700; }
+.method-get { color: #1a7f37; font-weight: 700; }
+.method-post { color: #0969da; font-weight: 700; }
+.method-patch { color: #9a6700; font-weight: 700; }
+.method-delete { color: #cf222e; font-weight: 700; }
+
+/* Syntax highlight classes */
+.kw { color: #cf222e; }
+.st { color: #0a3069; }
+.cm { color: #6e7781; font-style: italic; }
+.nm { color: #953800; }
+.kv { color: #0550ae; }
+
+/* Scroll margin for anchor links */
+h1, h2, h3, h4 { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+<h2>API Specification</h2><ul>
+<li class="h1"><a href="#api-specification-hrm-backend">API Specification – HRM Backend</a></li>
+<li class="h2"><a href="#mục-lục">Mục lục</a></li>
+<li class="h2"><a href="#1-quy-ước-chung">1. Quy ước chung</a></li>
+<li class="h3"><a href="#11-standard-response">1.1. Standard Response</a></li>
+<li class="h3"><a href="#12-pagination-query-params">1.2. Pagination Query Params</a></li>
+<li class="h3"><a href="#13-authentication-header">1.3. Authentication Header</a></li>
+<li class="h3"><a href="#14-date-format">1.4. Date Format</a></li>
+<li class="h3"><a href="#15-tiền-tệ">1.5. Tiền tệ</a></li>
+<li class="h2"><a href="#2-authentication">2. Authentication</a></li>
+<li class="h3"><a href="#post-authlogin">POST `/auth/login`</a></li>
+<li class="h3"><a href="#post-authrefresh">POST `/auth/refresh`</a></li>
+<li class="h3"><a href="#post-authlogout">POST `/auth/logout`</a></li>
+<li class="h3"><a href="#post-authchange-password">POST `/auth/change-password`</a></li>
+<li class="h3"><a href="#post-authforgot-password">POST `/auth/forgot-password`</a></li>
+<li class="h3"><a href="#post-authreset-password">POST `/auth/reset-password`</a></li>
+<li class="h2"><a href="#3-employees-nhân-viên">3. Employees – Nhân viên</a></li>
+<li class="h3"><a href="#get-employees">GET `/employees`</a></li>
+<li class="h3"><a href="#post-employees">POST `/employees`</a></li>
+<li class="h3"><a href="#get-employeesid">GET `/employees/:id`</a></li>
+<li class="h3"><a href="#patch-employeesid">PATCH `/employees/:id`</a></li>
+<li class="h3"><a href="#delete-employeesid">DELETE `/employees/:id`</a></li>
+<li class="h3"><a href="#post-employeesidavatar">POST `/employees/:id/avatar`</a></li>
+<li class="h3"><a href="#get-employeesidwork-history">GET `/employees/:id/work-history`</a></li>
+<li class="h3"><a href="#get-employeesme">GET `/employees/me`</a></li>
+<li class="h2"><a href="#4-departments-phòng-ban">4. Departments – Phòng ban</a></li>
+<li class="h3"><a href="#get-departments">GET `/departments`</a></li>
+<li class="h3"><a href="#post-departments">POST `/departments`</a></li>
+<li class="h3"><a href="#patch-departmentsid-delete-departmentsid">PATCH `/departments/:id` | DELETE `/departments/:id`</a></li>
+<li class="h2"><a href="#5-positions-chức-vụ">5. Positions – Chức vụ</a></li>
+<li class="h3"><a href="#get-positions">GET `/positions`</a></li>
+<li class="h3"><a href="#post-patch-delete-positions-positionsid">POST | PATCH | DELETE `/positions` | `/positions/:id`</a></li>
+<li class="h2"><a href="#6-contracts-hợp-đồng">6. Contracts – Hợp đồng</a></li>
+<li class="h3"><a href="#get-contracts">GET `/contracts`</a></li>
+<li class="h3"><a href="#post-contracts">POST `/contracts`</a></li>
+<li class="h3"><a href="#patch-contractsidterminate">PATCH `/contracts/:id/terminate`</a></li>
+<li class="h2"><a href="#7-attendances-chấm-công">7. Attendances – Chấm công</a></li>
+<li class="h3"><a href="#post-attendancescheck-in">POST `/attendances/check-in`</a></li>
+<li class="h3"><a href="#post-attendancescheck-out">POST `/attendances/check-out`</a></li>
+<li class="h3"><a href="#get-attendances">GET `/attendances`</a></li>
+<li class="h3"><a href="#get-attendancesme">GET `/attendances/me`</a></li>
+<li class="h3"><a href="#patch-attendancesid">PATCH `/attendances/:id`</a></li>
+<li class="h3"><a href="#post-attendancesbulk-import">POST `/attendances/bulk-import`</a></li>
+<li class="h2"><a href="#8-leaves-nghỉ-phép">8. Leaves – Nghỉ phép</a></li>
+<li class="h3"><a href="#get-leave-types">GET `/leave-types`</a></li>
+<li class="h3"><a href="#get-leavesbalance">GET `/leaves/balance`</a></li>
+<li class="h3"><a href="#post-leaves">POST `/leaves`</a></li>
+<li class="h3"><a href="#get-leaves">GET `/leaves`</a></li>
+<li class="h3"><a href="#get-leavesme">GET `/leaves/me`</a></li>
+<li class="h3"><a href="#patch-leavesidapprove">PATCH `/leaves/:id/approve`</a></li>
+<li class="h3"><a href="#patch-leavesidreject">PATCH `/leaves/:id/reject`</a></li>
+<li class="h3"><a href="#delete-leavesid">DELETE `/leaves/:id`</a></li>
+<li class="h2"><a href="#9-salaries-lương">9. Salaries – Lương</a></li>
+<li class="h3"><a href="#post-salariescalculate">POST `/salaries/calculate`</a></li>
+<li class="h3"><a href="#get-salaries">GET `/salaries`</a></li>
+<li class="h3"><a href="#get-salariesmeyearmonth">GET `/salaries/me/:year/:month`</a></li>
+<li class="h3"><a href="#patch-salariesidapprove">PATCH `/salaries/:id/approve`</a></li>
+<li class="h3"><a href="#patch-salariesidmark-paid">PATCH `/salaries/:id/mark-paid`</a></li>
+<li class="h3"><a href="#get-salariesidpayslip">GET `/salaries/:id/payslip`</a></li>
+<li class="h2"><a href="#10-family-members-thành-viên-gia-đình">10. Family Members – Thành viên gia đình</a></li>
+<li class="h3"><a href="#get-employeesidfamily-members">GET `/employees/:id/family-members`</a></li>
+<li class="h3"><a href="#post-employeesidfamily-members">POST `/employees/:id/family-members`</a></li>
+<li class="h3"><a href="#patch-employeesidfamily-membersmemberid">PATCH `/employees/:id/family-members/:memberId`</a></li>
+<li class="h3"><a href="#delete-employeesidfamily-membersmemberid">DELETE `/employees/:id/family-members/:memberId`</a></li>
+<li class="h2"><a href="#11-dependents-người-phụ-thuộc">11. Dependents – Người phụ thuộc</a></li>
+<li class="h3"><a href="#get-employeesiddependents">GET `/employees/:id/dependents`</a></li>
+<li class="h3"><a href="#post-employeesiddependents">POST `/employees/:id/dependents`</a></li>
+<li class="h3"><a href="#patch-employeesiddependentsdepid">PATCH `/employees/:id/dependents/:depId`</a></li>
+<li class="h3"><a href="#delete-employeesiddependentsdepid">DELETE `/employees/:id/dependents/:depId`</a></li>
+<li class="h2"><a href="#12-documents-tài-liệu">12. Documents – Tài liệu</a></li>
+<li class="h3"><a href="#get-employeesiddocuments">GET `/employees/:id/documents`</a></li>
+<li class="h3"><a href="#post-employeesiddocuments">POST `/employees/:id/documents`</a></li>
+<li class="h3"><a href="#delete-employeesiddocumentsdocid">DELETE `/employees/:id/documents/:docId`</a></li>
+<li class="h2"><a href="#13-users-tài-khoản">13. Users – Tài khoản</a></li>
+<li class="h3"><a href="#get-users">GET `/users`</a></li>
+<li class="h3"><a href="#post-users">POST `/users`</a></li>
+<li class="h3"><a href="#patch-usersid">PATCH `/users/:id`</a></li>
+<li class="h3"><a href="#patch-usersidreset-password">PATCH `/users/:id/reset-password`</a></li>
+<li class="h2"><a href="#14-disciplines-rewards-khen-thưởng-kỷ-luật">14. Disciplines & Rewards – Khen thưởng & Kỷ luật</a></li>
+<li class="h3"><a href="#get-employeesiddisciplines-rewards">GET `/employees/:id/disciplines-rewards`</a></li>
+<li class="h3"><a href="#post-employeesiddisciplines-rewards">POST `/employees/:id/disciplines-rewards`</a></li>
+<li class="h3"><a href="#patch-employeesiddisciplines-rewardsrecordid">PATCH `/employees/:id/disciplines-rewards/:recordId`</a></li>
+<li class="h3"><a href="#delete-employeesiddisciplines-rewardsrecordid">DELETE `/employees/:id/disciplines-rewards/:recordId`</a></li>
+<li class="h2"><a href="#15-performance-reviews-đánh-giá-hiệu-suất">15. Performance Reviews – Đánh giá hiệu suất</a></li>
+<li class="h3"><a href="#get-performance-reviews">GET `/performance-reviews`</a></li>
+<li class="h3"><a href="#get-performance-reviewsme">GET `/performance-reviews/me`</a></li>
+<li class="h3"><a href="#post-performance-reviews">POST `/performance-reviews`</a></li>
+<li class="h3"><a href="#patch-performance-reviewsid">PATCH `/performance-reviews/:id`</a></li>
+<li class="h3"><a href="#patch-performance-reviewsidsubmit">PATCH `/performance-reviews/:id/submit`</a></li>
+<li class="h3"><a href="#patch-performance-reviewsidacknowledge">PATCH `/performance-reviews/:id/acknowledge`</a></li>
+<li class="h2"><a href="#16-trainings-đào-tạo">16. Trainings – Đào tạo</a></li>
+<li class="h3"><a href="#get-trainings">GET `/trainings`</a></li>
+<li class="h3"><a href="#post-trainings">POST `/trainings`</a></li>
+<li class="h3"><a href="#patch-trainingsid-delete-trainingsid">PATCH `/trainings/:id` | DELETE `/trainings/:id`</a></li>
+<li class="h3"><a href="#get-trainingsidparticipants">GET `/trainings/:id/participants`</a></li>
+<li class="h3"><a href="#post-trainingsidenroll">POST `/trainings/:id/enroll`</a></li>
+<li class="h3"><a href="#patch-trainingsidparticipantsemployeeid">PATCH `/trainings/:id/participants/:employeeId`</a></li>
+<li class="h2"><a href="#17-announcements-thông-báo-nội-bộ">17. Announcements – Thông báo nội bộ</a></li>
+<li class="h3"><a href="#get-announcements">GET `/announcements`</a></li>
+<li class="h3"><a href="#get-announcementsid">GET `/announcements/:id`</a></li>
+<li class="h3"><a href="#post-announcements">POST `/announcements`</a></li>
+<li class="h3"><a href="#patch-announcementsid-delete-announcementsid">PATCH `/announcements/:id` | DELETE `/announcements/:id`</a></li>
+<li class="h2"><a href="#18-leave-balances-quản-lý-ngày-phép-admin">18. Leave Balances – Quản lý ngày phép (Admin)</a></li>
+<li class="h3"><a href="#get-leave-balances">GET `/leave-balances`</a></li>
+<li class="h3"><a href="#post-leave-balancesinit-year">POST `/leave-balances/init-year`</a></li>
+<li class="h3"><a href="#patch-leave-balancesid">PATCH `/leave-balances/:id`</a></li>
+<li class="h2"><a href="#19-reports-báo-cáo">19. Reports – Báo cáo</a></li>
+<li class="h3"><a href="#get-reportsdashboardstats">GET `/reports/dashboard/stats`</a></li>
+<li class="h3"><a href="#get-reportsemployeesexport">GET `/reports/employees/export`</a></li>
+<li class="h3"><a href="#get-reportssalariesexport">GET `/reports/salaries/export`</a></li>
+<li class="h3"><a href="#get-reportsattendancesexport">GET `/reports/attendances/export`</a></li>
+<li class="h3"><a href="#get-reportsleavessummary">GET `/reports/leaves/summary`</a></li>
+<li class="h2"><a href="#20-system-dữ-liệu-hệ-thống">20. System – Dữ liệu hệ thống</a></li>
+<li class="h3"><a href="#get-systemprovinces">GET `/system/provinces`</a></li>
+<li class="h3"><a href="#get-systemdistrictsprovincecode">GET `/system/districts/:provinceCode`</a></li>
+<li class="h3"><a href="#get-systemwardsdistrictcode">GET `/system/wards/:districtCode`</a></li>
+<li class="h3"><a href="#get-systemholidays">GET `/system/holidays`</a></li>
+<li class="h3"><a href="#get-systemleave-types">GET `/system/leave-types`</a></li>
+<li class="h2"><a href="#21-error-codes">21. Error Codes</a></li>
+<li class="h3"><a href="#http-status-codes">HTTP Status Codes</a></li>
+<li class="h3"><a href="#application-error-codes">Application Error Codes</a></li>
+<li class="h3"><a href="#validation-error-format">Validation Error Format</a></li>
+</ul></nav>
+
+<main id="content">
+<h1 id="api-specification-hrm-backend">API Specification – HRM Backend</h1>
+<blockquote>
+<p><strong>Base URL:</strong> <code>https://api.yourdomain.com/api/v1</code>  </p>
+<p><strong>Format:</strong> JSON, UTF-8  </p>
+<p><strong>Auth:</strong> Bearer JWT (Access Token)  </p>
+<p><strong>Docs:</strong> Swagger tại <code>/api/docs</code> (chỉ môi trường dev/staging)</p>
+</blockquote>
+<hr>
+<h2 id="mục-lục">Mục lục</h2>
+<ol>
+<li><a href="#1-quy-ước-chung">Quy ước chung</a></li>
+<li><a href="#2-authentication">Authentication</a></li>
+<li><a href="#3-employees--nhân-viên">Employees – Nhân viên</a></li>
+<li><a href="#4-departments--phòng-ban">Departments – Phòng ban</a></li>
+<li><a href="#5-positions--chức-vụ">Positions – Chức vụ</a></li>
+<li><a href="#6-contracts--hợp-đồng">Contracts – Hợp đồng</a></li>
+<li><a href="#7-attendances--chấm-công">Attendances – Chấm công</a></li>
+<li><a href="#8-leaves--nghỉ-phép">Leaves – Nghỉ phép</a></li>
+<li><a href="#9-salaries--lương">Salaries – Lương</a></li>
+<li><a href="#10-family-members--thành-viên-gia-đình">Family Members – Thành viên gia đình</a></li>
+<li><a href="#11-dependents--người-phụ-thuộc">Dependents – Người phụ thuộc</a></li>
+<li><a href="#12-documents--tài-liệu">Documents – Tài liệu</a></li>
+<li><a href="#13-users--tài-khoản">Users – Tài khoản</a></li>
+<li><a href="#14-disciplines--rewards--khen-thưởng--kỷ-luật">Disciplines & Rewards – Khen thưởng & Kỷ luật</a></li>
+<li><a href="#15-performance-reviews--đánh-giá-hiệu-suất">Performance Reviews – Đánh giá hiệu suất</a></li>
+<li><a href="#16-trainings--đào-tạo">Trainings – Đào tạo</a></li>
+<li><a href="#17-announcements--thông-báo-nội-bộ">Announcements – Thông báo nội bộ</a></li>
+<li><a href="#18-leave-balances--quản-lý-ngày-phép-admin">Leave Balances – Quản lý ngày phép (Admin)</a></li>
+<li><a href="#19-reports--báo-cáo">Reports – Báo cáo</a></li>
+<li><a href="#20-system--dữ-liệu-hệ-thống">System – Dữ liệu hệ thống</a></li>
+<li><a href="#21-error-codes">Error Codes</a></li>
+</ol>
+<hr>
+<h2 id="1-quy-ước-chung">1. Quy ước chung</h2>
+<h3 id="11-standard-response">1.1. Standard Response</h3>
+<p>Mọi response đều bọc trong envelope sau:</p>
+<pre><code class="language-json">// ✅ Thành công
+{
+  "success": true,
+  "data": { ... },
+  "message": "Tạo nhân viên thành công",
+  "timestamp": "2026-05-25T10:00:00.000Z"
+}
+
+// ✅ Danh sách có phân trang
+{
+  "success": true,
+  "data": {
+    "items": [ ... ],
+    "meta": {
+      "total": 150,
+      "page": 1,
+      "limit": 20,
+      "totalPages": 8
+    }
+  },
+  "timestamp": "2026-05-25T10:00:00.000Z"
+}
+
+// ❌ Lỗi
+{
+  "success": false,
+  "error": {
+    "code": "EMPLOYEE_NOT_FOUND",
+    "message": "Không tìm thấy nhân viên",
+    "details": [ ... ]   // validation errors (nếu có)
+  },
+  "timestamp": "2026-05-25T10:00:00.000Z"
+}
+</code></pre>
+<h3 id="12-pagination-query-params">1.2. Pagination Query Params</h3>
+<pre><code class="language-">?page=1        Trang hiện tại (default: 1)
+?limit=20      Số bản ghi/trang (default: 20, max: 100)
+?sort=fullName Cột sắp xếp
+?order=asc     Hướng sắp xếp: asc | desc
+?search=nguyen Tìm kiếm full-text
+</code></pre>
+<h3 id="13-authentication-header">1.3. Authentication Header</h3>
+<pre><code class="language-">Authorization: Bearer &lt;access_token&gt;
+</code></pre>
+<h3 id="14-date-format">1.4. Date Format</h3>
+<pre><code class="language-">- Date:     YYYY-MM-DD           (2026-05-25)
+- DateTime: ISO 8601 UTC         (2026-05-25T03:00:00.000Z)
+- Time:     HH:mm                (08:30)
+</code></pre>
+<h3 id="15-tiền-tệ">1.5. Tiền tệ</h3>
+<pre><code class="language-">- Lưu DB: DECIMAL(15,2)
+- API response: number (đơn vị VNĐ, không có thập phân thực tế)
+- Ví dụ: 25000000 (không phải "25,000,000" hay 25000000.00)
+</code></pre>
+<hr>
+<h2 id="2-authentication">2. Authentication</h2>
+<h3 id="post-authlogin">POST <code>/auth/login</code></h3>
+<p>Đăng nhập, nhận Access Token + Refresh Token.</p>
+<p><strong>Request:</strong></p>
+<pre><code class="language-json">{
+  "username": "admin",
+  "password": "Abc@12345"
+}
+</code></pre>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGci...",
+    "refreshToken": "eyJhbGci...",
+    "expiresIn": 900,
+    "user": {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@company.com",
+      "role": "admin",
+      "employee": {
+        "id": 1,
+        "fullName": "Nguyễn Văn Admin",
+        "avatarUrl": "https://s3.../avatar.jpg"
+      }
+    }
+  }
+}
+</code></pre>
+<p><strong>Errors:</strong> <code>401 INVALID_CREDENTIALS</code>, <code>423 ACCOUNT_LOCKED</code></p>
+<hr>
+<h3 id="post-authrefresh">POST <code>/auth/refresh</code></h3>
+<p>Lấy Access Token mới bằng Refresh Token.</p>
+<p><strong>Request:</strong></p>
+<pre><code class="language-json">{ "refreshToken": "eyJhbGci..." }
+</code></pre>
+<p><strong>Response 200:</strong> Trả về <code>accessToken</code> mới + <code>refreshToken</code> mới (rotation).</p>
+<hr>
+<h3 id="post-authlogout">POST <code>/auth/logout</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p>Vô hiệu hóa Refresh Token hiện tại.</p>
+<p><strong>Request:</strong> <code>{}</code> (token lấy từ header)</p>
+<hr>
+<h3 id="post-authchange-password">POST <code>/auth/change-password</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<pre><code class="language-json">{
+  "currentPassword": "Abc@12345",
+  "newPassword": "NewPass@2026",
+  "confirmPassword": "NewPass@2026"
+}
+</code></pre>
+<p><strong>Errors:</strong> <code>400 PASSWORD_MISMATCH</code>, <code>401 WRONG_CURRENT_PASSWORD</code></p>
+<hr>
+<h3 id="post-authforgot-password">POST <code>/auth/forgot-password</code></h3>
+<p>Gửi email chứa link đặt lại mật khẩu (link có hiệu lực 30 phút).</p>
+<pre><code class="language-json">{ "email": "user@company.com" }
+</code></pre>
+<hr>
+<h3 id="post-authreset-password">POST <code>/auth/reset-password</code></h3>
+<p>Đặt mật khẩu mới bằng token từ email.</p>
+<pre><code class="language-json">{
+  "token": "&lt;reset_token_from_email&gt;",
+  "newPassword": "NewPass@2026",
+  "confirmPassword": "NewPass@2026"
+}
+</code></pre>
+<p><strong>Errors:</strong> <code>400 RESET_TOKEN_INVALID</code>, <code>400 RESET_TOKEN_EXPIRED</code>, <code>400 PASSWORD_MISMATCH</code></p>
+<hr>
+<h2 id="3-employees-nhân-viên">3. Employees – Nhân viên</h2>
+<h3 id="get-employees">GET <code>/employees</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p><strong>Query params:</strong></p>
+<pre><code class="language-">?search=nguyen     Tìm theo tên, mã NV, email, CCCD
+?departmentId=1    Lọc theo phòng ban
+?positionId=2      Lọc theo chức vụ
+?status=active     Lọc: probation|active|on_leave|resigned|terminated
+?gender=male
+?hireFrom=2024-01-01
+?hireTo=2024-12-31
+</code></pre>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "employeeCode": "NV0001",
+        "fullName": "Nguyễn Thị Lan",
+        "email": "lan.nguyen@company.com",
+        "phone": "0901234567",
+        "gender": "female",
+        "dateOfBirth": "1995-03-15",
+        "department": { "id": 2, "name": "Phòng Kỹ thuật" },
+        "position": { "id": 5, "name": "Developer Senior" },
+        "status": "active",
+        "hireDate": "2022-01-10",
+        "avatarUrl": "https://s3.../avatar.jpg"
+      }
+    ],
+    "meta": { "total": 150, "page": 1, "limit": 20, "totalPages": 8 }
+  }
+}
+</code></pre>
+<hr>
+<h3 id="post-employees">POST <code>/employees</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p><strong>Request:</strong></p>
+<pre><code class="language-json">{
+  "lastName": "Nguyễn",
+  "firstName": "Văn Bình",
+  "dateOfBirth": "1998-07-20",
+  "gender": "male",
+  "maritalStatus": "single",
+  "nationality": "Việt Nam",
+  "ethnicity": "Kinh",
+  "religion": null,
+  "placeOfBirth": "Hà Nội",
+  "hometown": "Hà Nam",
+
+  "cccdNumber": "001098765432",
+  "cccdIssueDate": "2021-05-10",
+  "cccdIssuePlace": "Cục CS QLHC về TTXH Hà Nội",
+
+  "taxCode": "8901234560",
+  "socialInsuranceNo": "0123456789",
+  "healthInsuranceNo": "DN4010000123456",
+
+  "permanentAddress": "Số 10, Ngõ 20, Phố Huế, Hai Bà Trưng, Hà Nội",
+  "provinceCode": "01",
+  "districtCode": "007",
+  "wardCode": "00193",
+
+  "phone": "0912345678",
+  "email": "binh.nguyen@company.com",
+  "personalEmail": "binh.personal@gmail.com",
+
+  "bankAccount": "1234567890",
+  "bankName": "Vietcombank",
+  "bankBranch": "Chi nhánh Hà Nội",
+
+  "positionId": 3,
+  "departmentId": 2,
+  "directManagerId": 5,
+  "hireDate": "2026-06-01",
+  "probationStartDate": "2026-06-01",
+  "probationEndDate": "2026-07-31",
+
+  "educationLevel": "university",
+  "major": "Công nghệ thông tin",
+  "university": "Đại học Bách Khoa Hà Nội",
+  "graduationYear": 2020,
+
+  "notes": ""
+}
+</code></pre>
+<p><strong>Response 201:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "id": 51,
+    "employeeCode": "NV0051",
+    "fullName": "Nguyễn Văn Bình",
+    ...
+  }
+}
+</code></pre>
+<p><strong>Errors:</strong> <code>409 DUPLICATE_CCCD</code>, <code>409 DUPLICATE_EMAIL</code>, <code>409 DUPLICATE_TAX_CODE</code>, <code>400 VALIDATION_ERROR</code></p>
+<hr>
+<h3 id="get-employeesid">GET <code>/employees/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> | Employee xem chính mình</p>
+</blockquote>
+<p><strong>Response 200:</strong> Full employee object bao gồm tất cả thông tin.</p>
+<hr>
+<h3 id="patch-employeesid">PATCH <code>/employees/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p><strong>Request:</strong> Các trường cần cập nhật (partial update).</p>
+<hr>
+<h3 id="delete-employeesid">DELETE <code>/employees/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p>Soft delete – set <code>deletedAt</code>, không xoá khỏi DB.</p>
+<hr>
+<h3 id="post-employeesidavatar">POST <code>/employees/:id/avatar</code></h3>
+<blockquote>
+<p>🔒 Auth required | Employee upload ảnh của chính mình</p>
+</blockquote>
+<p><strong>Content-Type:</strong> <code>multipart/form-data</code>  </p>
+<p><strong>Field:</strong> <code>avatar</code> (file, max 2MB, JPEG/PNG/WEBP)</p>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{ "data": { "avatarUrl": "https://s3.amazonaws.com/..." } }
+</code></pre>
+<hr>
+<h3 id="get-employeesidwork-history">GET <code>/employees/:id/work-history</code></h3>
+<p>Lịch sử công tác của nhân viên.</p>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": [
+    {
+      "id": 1,
+      "eventType": "hire",
+      "toDepartment": { "id": 2, "name": "Phòng Kỹ thuật" },
+      "toPosition": { "id": 3, "name": "Developer Junior" },
+      "toSalary": 12000000,
+      "effectiveDate": "2022-01-10",
+      "reason": "Nhận vào làm"
+    }
+  ]
+}
+</code></pre>
+<hr>
+<h3 id="get-employeesme">GET <code>/employees/me</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p>Nhân viên xem hồ sơ cá nhân của chính mình.</p>
+<hr>
+<h2 id="4-departments-phòng-ban">4. Departments – Phòng ban</h2>
+<h3 id="get-departments">GET <code>/departments</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p><strong>Query:</strong> <code>?tree=true</code> để trả về dạng cây thay vì flat list.</p>
+<p><strong>Response (flat):</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "code": "HR",
+        "name": "Phòng Nhân sự",
+        "parentId": null,
+        "manager": { "id": 5, "fullName": "Trần Thị Mai" },
+        "employeeCount": 5,
+        "isActive": true
+      }
+    ]
+  }
+}
+</code></pre>
+<p><strong>Response (tree):</strong></p>
+<pre><code class="language-json">{
+  "data": [
+    {
+      "id": 1, "name": "Ban Giám đốc",
+      "children": [
+        { "id": 2, "name": "Phòng Kỹ thuật", "children": [] },
+        { "id": 3, "name": "Phòng Nhân sự", "children": [] }
+      ]
+    }
+  ]
+}
+</code></pre>
+<hr>
+<h3 id="post-departments">POST <code>/departments</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<pre><code class="language-json">{
+  "code": "FIN",
+  "name": "Phòng Tài chính",
+  "parentId": null,
+  "managerId": 10,
+  "description": ""
+}
+</code></pre>
+<hr>
+<h3 id="patch-departmentsid-delete-departmentsid">PATCH <code>/departments/:id</code> | DELETE <code>/departments/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<hr>
+<h2 id="5-positions-chức-vụ">5. Positions – Chức vụ</h2>
+<h3 id="get-positions">GET <code>/positions</code></h3>
+<p><strong>Query:</strong> <code>?departmentId=2</code></p>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "items": [
+      {
+        "id": 3,
+        "code": "DEV_SENIOR",
+        "name": "Developer Senior",
+        "department": { "id": 2, "name": "Phòng Kỹ thuật" },
+        "level": 2,
+        "minSalary": 20000000,
+        "maxSalary": 35000000
+      }
+    ]
+  }
+}
+</code></pre>
+<h3 id="post-patch-delete-positions-positionsid">POST | PATCH | DELETE <code>/positions</code> | <code>/positions/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<hr>
+<h2 id="6-contracts-hợp-đồng">6. Contracts – Hợp đồng</h2>
+<h3 id="get-contracts">GET <code>/contracts</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?employeeId=1</code>, <code>?status=active</code>, <code>?expiringDays=30</code> (hợp đồng sắp hết hạn)</p>
+<hr>
+<h3 id="post-contracts">POST <code>/contracts</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<pre><code class="language-json">{
+  "employeeId": 51,
+  "contractNumber": "HDLD-2026-051",
+  "contractType": "fixed_term",
+  "startDate": "2026-08-01",
+  "endDate": "2027-07-31",
+  "signDate": "2026-07-28",
+  "baseSalary": 15000000,
+  "insuranceSalary": 15000000,
+  "positionAllowance": 500000,
+  "workingHours": 8,
+  "workingDays": 5,
+  "fileUrl": "https://s3.../contracts/hdld-2026-051.pdf"
+}
+</code></pre>
+<hr>
+<h3 id="patch-contractsidterminate">PATCH <code>/contracts/:id/terminate</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<pre><code class="language-json">{
+  "terminatedDate": "2026-10-31",
+  "terminatedReason": "Nhân viên xin thôi việc"
+}
+</code></pre>
+<hr>
+<h2 id="7-attendances-chấm-công">7. Attendances – Chấm công</h2>
+<h3 id="post-attendancescheck-in">POST <code>/attendances/check-in</code></h3>
+<blockquote>
+<p>🔒 Auth required (employee tự chấm)</p>
+</blockquote>
+<pre><code class="language-json">{
+  "note": ""
+}
+</code></pre>
+<p><strong>Response 201:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "id": 1001,
+    "employeeId": 51,
+    "workDate": "2026-05-25",
+    "checkIn": "08:05",
+    "isLate": false,
+    "lateMinutes": 0
+  }
+}
+</code></pre>
+<p><strong>Errors:</strong> <code>409 ALREADY_CHECKED_IN</code></p>
+<hr>
+<h3 id="post-attendancescheck-out">POST <code>/attendances/check-out</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<pre><code class="language-json">{ "note": "" }
+</code></pre>
+<p><strong>Response 200:</strong> Trả về record đầy đủ bao gồm <code>workHours</code>, <code>overtimeHours</code>.</p>
+<hr>
+<h3 id="get-attendances">GET <code>/attendances</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code></p>
+</blockquote>
+<p><strong>Query:</strong></p>
+<pre><code class="language-">?employeeId=51
+?departmentId=2
+?month=5&amp;year=2026
+?status=absent
+</code></pre>
+<hr>
+<h3 id="get-attendancesme">GET <code>/attendances/me</code></h3>
+<blockquote>
+<p>🔒 Auth required (employee)</p>
+</blockquote>
+<p><strong>Query:</strong> <code>?month=5&year=2026</code></p>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "summary": {
+      "workingDays": 22,
+      "presentDays": 20,
+      "absentDays": 1,
+      "lateDays": 1,
+      "overtimeHours": 4.5
+    },
+    "records": [ ... ]
+  }
+}
+</code></pre>
+<hr>
+<h3 id="patch-attendancesid">PATCH <code>/attendances/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p>Điều chỉnh chấm công (khi máy lỗi, quên chấm...).</p>
+<pre><code class="language-json">{
+  "checkIn": "08:00",
+  "checkOut": "17:30",
+  "note": "Điều chỉnh do máy chấm công lỗi"
+}
+</code></pre>
+<hr>
+<h3 id="post-attendancesbulk-import">POST <code>/attendances/bulk-import</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p>Import chấm công từ file Excel.</p>
+<p><strong>Content-Type:</strong> <code>multipart/form-data</code>, field: <code>file</code> (.xlsx)</p>
+<hr>
+<h2 id="8-leaves-nghỉ-phép">8. Leaves – Nghỉ phép</h2>
+<h3 id="get-leave-types">GET <code>/leave-types</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  "data": [
+    {
+      "id": 1,
+      "code": "ANNUAL",
+      "name": "Nghỉ phép năm",
+      "daysPerYear": 12,
+      "isPaid": true,
+      "requireApproval": true
+    }
+  ]
+}
+</code></pre>
+<hr>
+<h3 id="get-leavesbalance">GET <code>/leaves/balance</code></h3>
+<blockquote>
+<p>🔒 Auth required (employee xem balance của mình)</p>
+</blockquote>
+<p><strong>Query:</strong> <code>?year=2026</code></p>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  "data": [
+    {
+      "leaveType": { "id": 1, "name": "Nghỉ phép năm" },
+      "year": 2026,
+      "allocatedDays": 12,
+      "usedDays": 3,
+      "pendingDays": 1,
+      "carriedOver": 0,
+      "remainingDays": 8
+    }
+  ]
+}
+</code></pre>
+<hr>
+<h3 id="post-leaves">POST <code>/leaves</code></h3>
+<blockquote>
+<p>🔒 Auth required (employee tạo đơn)</p>
+</blockquote>
+<pre><code class="language-json">{
+  "leaveTypeId": 1,
+  "startDate": "2026-06-02",
+  "endDate": "2026-06-04",
+  "startHalf": "full",
+  "endHalf": "full",
+  "reason": "Về quê thăm gia đình",
+  "attachmentUrl": null
+}
+</code></pre>
+<p><strong>Response 201:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "id": 201,
+    "totalDays": 3,
+    "status": "pending",
+    ...
+  }
+}
+</code></pre>
+<p><strong>Errors:</strong> <code>400 INSUFFICIENT_LEAVE_BALANCE</code>, <code>400 OVERLAPPING_LEAVE</code></p>
+<hr>
+<h3 id="get-leaves">GET <code>/leaves</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?status=pending</code>, <code>?employeeId=51</code>, <code>?departmentId=2</code></p>
+<hr>
+<h3 id="get-leavesme">GET <code>/leaves/me</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p>Lịch sử đơn nghỉ của nhân viên.</p>
+<hr>
+<h3 id="patch-leavesidapprove">PATCH <code>/leaves/:id/approve</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
+</blockquote>
+<pre><code class="language-json">{ "note": "Đã duyệt" }
+</code></pre>
+<hr>
+<h3 id="patch-leavesidreject">PATCH <code>/leaves/:id/reject</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
+</blockquote>
+<pre><code class="language-json">{ "reason": "Phòng ban đang bận dự án, vui lòng dời sang tháng sau" }
+</code></pre>
+<hr>
+<h3 id="delete-leavesid">DELETE <code>/leaves/:id</code></h3>
+<blockquote>
+<p>🔒 Auth required (chỉ NV tự huỷ đơn của mình, khi status=pending)</p>
+</blockquote>
+<hr>
+<h2 id="9-salaries-lương">9. Salaries – Lương</h2>
+<h3 id="post-salariescalculate">POST <code>/salaries/calculate</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p>Tính lương hàng loạt cho toàn bộ NV hoặc 1 phòng ban.</p>
+<pre><code class="language-json">{
+  "month": 5,
+  "year": 2026,
+  "departmentId": null,      // null = toàn công ty
+  "overwrite": false         // true = tính lại nếu đã tồn tại
+}
+</code></pre>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "processed": 45,
+    "skipped": 2,
+    "errors": [],
+    "totalNetSalary": 850000000
+  }
+}
+</code></pre>
+<hr>
+<h3 id="get-salaries">GET <code>/salaries</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?month=5&year=2026&departmentId=2&status=draft</code></p>
+<hr>
+<h3 id="get-salariesmeyearmonth">GET <code>/salaries/me/:year/:month</code></h3>
+<blockquote>
+<p>🔒 Auth required (employee xem phiếu lương)</p>
+</blockquote>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "id": 501,
+    "month": 5,
+    "year": 2026,
+    "employee": { "id": 51, "fullName": "Nguyễn Văn Bình", "employeeCode": "NV0051" },
+
+    "workingDays": {
+      "standard": 22,
+      "actual": 21,
+      "paidLeave": 1,
+      "unpaidLeave": 0,
+      "overtimeHours": 4
+    },
+
+    "income": {
+      "baseSalary": 15000000,
+      "positionAllowance": 500000,
+      "mealAllowance": 730000,
+      "transportAllowance": 300000,
+      "phoneAllowance": 200000,
+      "overtimePay": 227272,
+      "performanceBonus": 0,
+      "grossSalary": 16957272
+    },
+
+    "insurance": {
+      "insuranceSalary": 15000000,
+      "socialInsurance": 1200000,
+      "healthInsurance": 225000,
+      "unemploymentInsurance": 150000,
+      "total": 1575000
+    },
+
+    "tax": {
+      "selfDeduction": 11000000,
+      "dependentDeduction": 0,
+      "dependentCount": 0,
+      "taxableIncome": 2132272,
+      "personalIncomeTax": 106613
+    },
+
+    "summary": {
+      "totalDeductions": 1681613,
+      "netSalary": 15275659
+    },
+
+    "status": "approved",
+    "paidAt": "2026-05-31T02:00:00.000Z"
+  }
+}
+</code></pre>
+<hr>
+<h3 id="patch-salariesidapprove">PATCH <code>/salaries/:id/approve</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<hr>
+<h3 id="patch-salariesidmark-paid">PATCH <code>/salaries/:id/mark-paid</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<pre><code class="language-json">{ "paidAt": "2026-05-31T02:00:00.000Z" }
+</code></pre>
+<hr>
+<h3 id="get-salariesidpayslip">GET <code>/salaries/:id/payslip</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p>Xuất phiếu lương PDF.</p>
+<p><strong>Response:</strong> <code>Content-Type: application/pdf</code></p>
+<hr>
+<h2 id="10-family-members-thành-viên-gia-đình">10. Family Members – Thành viên gia đình</h2>
+<h3 id="get-employeesidfamily-members">GET <code>/employees/:id/family-members</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> | Employee xem của chính mình</p>
+</blockquote>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": [
+    {
+      "id": 1,
+      "fullName": "Nguyễn Thị Vợ",
+      "relationship": "spouse",
+      "dateOfBirth": "1998-03-10",
+      "occupation": "Giáo viên",
+      "phone": "0912345678",
+      "cccdNumber": null
+    }
+  ]
+}
+</code></pre>
+<hr>
+<h3 id="post-employeesidfamily-members">POST <code>/employees/:id/family-members</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<pre><code class="language-json">{
+  "fullName": "Nguyễn Văn Con",
+  "relationship": "child",
+  "dateOfBirth": "2020-08-15",
+  "occupation": null,
+  "phone": null,
+  "cccdNumber": null,
+  "note": ""
+}
+</code></pre>
+<hr>
+<h3 id="patch-employeesidfamily-membersmemberid">PATCH <code>/employees/:id/family-members/:memberId</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p><strong>Request:</strong> Các trường cần cập nhật (partial update).</p>
+<hr>
+<h3 id="delete-employeesidfamily-membersmemberid">DELETE <code>/employees/:id/family-members/:memberId</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<hr>
+<h2 id="11-dependents-người-phụ-thuộc">11. Dependents – Người phụ thuộc</h2>
+<h3 id="get-employeesiddependents">GET <code>/employees/:id/dependents</code></h3>
+<h3 id="post-employeesiddependents">POST <code>/employees/:id/dependents</code></h3>
+<pre><code class="language-json">{
+  "fullName": "Nguyễn Thị Mẹ",
+  "relationship": "mother",
+  "dateOfBirth": "1960-04-15",
+  "cccdNumber": null,
+  "taxCode": null,
+  "registrationDate": "2026-01-01",
+  "documentUrl": "https://s3.../dependent-doc.pdf",
+  "note": "Mẹ ruột, không có thu nhập"
+}
+</code></pre>
+<h3 id="patch-employeesiddependentsdepid">PATCH <code>/employees/:id/dependents/:depId</code></h3>
+<h3 id="delete-employeesiddependentsdepid">DELETE <code>/employees/:id/dependents/:depId</code></h3>
+<hr>
+<h2 id="12-documents-tài-liệu">12. Documents – Tài liệu</h2>
+<h3 id="get-employeesiddocuments">GET <code>/employees/:id/documents</code></h3>
+<p><strong>Query:</strong> <code>?type=cccd</code></p>
+<h3 id="post-employeesiddocuments">POST <code>/employees/:id/documents</code></h3>
+<p><strong>Content-Type:</strong> <code>multipart/form-data</code></p>
+<p><strong>Fields:</strong></p>
+<pre><code class="language-">type: cccd | cv | degree | contract | health_check | other
+name: "CCCD mặt trước"
+file: [file upload, max 10MB, PDF/JPG/PNG]
+issueDate: 2021-05-10
+expiryDate: (optional)
+</code></pre>
+<h3 id="delete-employeesiddocumentsdocid">DELETE <code>/employees/:id/documents/:docId</code></h3>
+<hr>
+<h2 id="13-users-tài-khoản">13. Users – Tài khoản</h2>
+<h3 id="get-users">GET <code>/users</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code></p>
+</blockquote>
+<h3 id="post-users">POST <code>/users</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code></p>
+</blockquote>
+<pre><code class="language-json">{
+  "username": "binh.nguyen",
+  "email": "binh.nguyen@company.com",
+  "password": "Temp@2026",
+  "roleId": 5,
+  "employeeId": 51
+}
+</code></pre>
+<h3 id="patch-usersid">PATCH <code>/users/:id</code></h3>
+<h3 id="patch-usersidreset-password">PATCH <code>/users/:id/reset-password</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code></p>
+</blockquote>
+<pre><code class="language-json">{ "newPassword": "NewTemp@2026" }
+</code></pre>
+<hr>
+<h2 id="14-disciplines-rewards-khen-thưởng-kỷ-luật">14. Disciplines & Rewards – Khen thưởng & Kỷ luật</h2>
+<h3 id="get-employeesiddisciplines-rewards">GET <code>/employees/:id/disciplines-rewards</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> | Employee xem của chính mình</p>
+</blockquote>
+<p><strong>Query:</strong> <code>?type=reward</code> | <code>?type=discipline</code></p>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": [
+    {
+      "id": 1,
+      "type": "reward",
+      "category": "Thưởng KPI",
+      "title": "Hoàn thành xuất sắc Q1/2026",
+      "description": "Vượt KPI 120%",
+      "decisionNumber": "QD-2026-001",
+      "decisionDate": "2026-04-01",
+      "effectiveDate": "2026-04-01",
+      "amount": 5000000,
+      "issuedBy": { "id": 3, "fullName": "Trần Thị Giám Đốc" }
+    }
+  ]
+}
+</code></pre>
+<hr>
+<h3 id="post-employeesiddisciplines-rewards">POST <code>/employees/:id/disciplines-rewards</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<pre><code class="language-json">{
+  "type": "discipline",
+  "category": "Cảnh cáo",
+  "title": "Vi phạm nội quy công ty",
+  "description": "Đi muộn liên tục 3 ngày trong tháng",
+  "decisionNumber": "QD-KC-2026-005",
+  "decisionDate": "2026-05-20",
+  "effectiveDate": "2026-05-20",
+  "amount": null,
+  "issuedById": 3,
+  "documentUrl": null
+}
+</code></pre>
+<hr>
+<h3 id="patch-employeesiddisciplines-rewardsrecordid">PATCH <code>/employees/:id/disciplines-rewards/:recordId</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<hr>
+<h3 id="delete-employeesiddisciplines-rewardsrecordid">DELETE <code>/employees/:id/disciplines-rewards/:recordId</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<hr>
+<h2 id="15-performance-reviews-đánh-giá-hiệu-suất">15. Performance Reviews – Đánh giá hiệu suất</h2>
+<h3 id="get-performance-reviews">GET <code>/performance-reviews</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?employeeId=51&year=2026&period=quarterly</code></p>
+<hr>
+<h3 id="get-performance-reviewsme">GET <code>/performance-reviews/me</code></h3>
+<blockquote>
+<p>🔒 Auth required (employee xem đánh giá của mình)</p>
+</blockquote>
+<hr>
+<h3 id="post-performance-reviews">POST <code>/performance-reviews</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
+</blockquote>
+<pre><code class="language-json">{
+  "employeeId": 51,
+  "reviewPeriod": "quarterly",
+  "periodYear": 2026,
+  "periodQuarter": 2,
+  "kpiScore": 85.5,
+  "attitudeScore": 90.0,
+  "skillScore": 88.0,
+  "strengths": "Chủ động, hoàn thành đúng deadline",
+  "weaknesses": "Cần cải thiện kỹ năng trình bày",
+  "recommendations": "Đề xuất tham gia khoá đào tạo presentation"
+}
+</code></pre>
+<p><strong>Response 201:</strong> Trả về record với <code>overallScore</code> và <code>rating</code> tính tự động.</p>
+<hr>
+<h3 id="patch-performance-reviewsid">PATCH <code>/performance-reviews/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code> (chỉ khi status=draft)</p>
+</blockquote>
+<hr>
+<h3 id="patch-performance-reviewsidsubmit">PATCH <code>/performance-reviews/:id/submit</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
+</blockquote>
+<p>Chuyển trạng thái → <code>submitted</code>, gửi thông báo cho nhân viên.</p>
+<hr>
+<h3 id="patch-performance-reviewsidacknowledge">PATCH <code>/performance-reviews/:id/acknowledge</code></h3>
+<blockquote>
+<p>🔒 Auth required (employee xác nhận đã đọc đánh giá)</p>
+</blockquote>
+<hr>
+<h2 id="16-trainings-đào-tạo">16. Trainings – Đào tạo</h2>
+<h3 id="get-trainings">GET <code>/trainings</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p><strong>Query:</strong> <code>?status=ongoing&type=internal</code></p>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "code": "TRN-2026-001",
+        "name": "Kỹ năng lãnh đạo",
+        "type": "external",
+        "startDate": "2026-06-10",
+        "endDate": "2026-06-12",
+        "location": "Hà Nội",
+        "trainer": "Học viện Kỹ năng PACE",
+        "cost": 5000000,
+        "maxParticipants": 20,
+        "status": "planned"
+      }
+    ]
+  }
+}
+</code></pre>
+<hr>
+<h3 id="post-trainings">POST <code>/trainings</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<pre><code class="language-json">{
+  "code": "TRN-2026-002",
+  "name": "Clean Code &amp; Refactoring",
+  "type": "internal",
+  "startDate": "2026-07-01",
+  "endDate": "2026-07-01",
+  "location": "Phòng họp A",
+  "trainer": "Nguyễn Văn Senior Dev",
+  "cost": 0,
+  "maxParticipants": 15,
+  "description": ""
+}
+</code></pre>
+<hr>
+<h3 id="patch-trainingsid-delete-trainingsid">PATCH <code>/trainings/:id</code> | DELETE <code>/trainings/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<hr>
+<h3 id="get-trainingsidparticipants">GET <code>/trainings/:id/participants</code></h3>
+<p>Danh sách nhân viên tham gia khoá đào tạo.</p>
+<hr>
+<h3 id="post-trainingsidenroll">POST <code>/trainings/:id/enroll</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p>Đăng ký nhân viên vào khoá đào tạo.</p>
+<pre><code class="language-json">{ "employeeIds": [51, 52, 53] }
+</code></pre>
+<hr>
+<h3 id="patch-trainingsidparticipantsemployeeid">PATCH <code>/trainings/:id/participants/:employeeId</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p>Cập nhật kết quả sau khoá học.</p>
+<pre><code class="language-json">{
+  "result": "passed",
+  "score": 88.5,
+  "completionDate": "2026-07-01",
+  "certificateUrl": "https://s3.../cert-001.pdf"
+}
+</code></pre>
+<hr>
+<h2 id="17-announcements-thông-báo-nội-bộ">17. Announcements – Thông báo nội bộ</h2>
+<h3 id="get-announcements">GET <code>/announcements</code></h3>
+<blockquote>
+<p>🔒 Auth required (tất cả nhân viên)</p>
+</blockquote>
+<p>Lấy thông báo theo đối tượng của người dùng hiện tại.</p>
+<p><strong>Query:</strong> <code>?type=urgent&page=1&limit=10</code></p>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "title": "Thông báo nghỉ lễ 30/4 - 01/5",
+        "type": "general",
+        "isPinned": true,
+        "publishDate": "2026-04-25T00:00:00.000Z",
+        "expiryDate": "2026-05-05T00:00:00.000Z",
+        "createdBy": { "id": 2, "fullName": "Nguyễn HR Manager" }
+      }
+    ],
+    "meta": { "total": 5, "page": 1, "limit": 10, "totalPages": 1 }
+  }
+}
+</code></pre>
+<hr>
+<h3 id="get-announcementsid">GET <code>/announcements/:id</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<hr>
+<h3 id="post-announcements">POST <code>/announcements</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<pre><code class="language-json">{
+  "title": "Lịch nghỉ Tết Nguyên Đán 2027",
+  "content": "Công ty thông báo lịch nghỉ Tết ...",
+  "type": "general",
+  "targetAudience": "all",
+  "targetIds": null,
+  "publishDate": null,
+  "expiryDate": "2027-02-01T00:00:00.000Z",
+  "isPinned": false,
+  "attachmentUrl": null
+}
+</code></pre>
+<hr>
+<h3 id="patch-announcementsid-delete-announcementsid">PATCH <code>/announcements/:id</code> | DELETE <code>/announcements/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> (chỉ người tạo hoặc admin)</p>
+</blockquote>
+<hr>
+<h2 id="18-leave-balances-quản-lý-ngày-phép-admin">18. Leave Balances – Quản lý ngày phép (Admin)</h2>
+<h3 id="get-leave-balances">GET <code>/leave-balances</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?year=2026&departmentId=2&employeeId=51</code></p>
+<p>Xem số ngày phép của tất cả nhân viên.</p>
+<hr>
+<h3 id="post-leave-balancesinit-year">POST <code>/leave-balances/init-year</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p>Khởi tạo ngày phép năm mới cho toàn bộ nhân viên (chạy đầu năm).</p>
+<pre><code class="language-json">{
+  "year": 2027,
+  "carryOverLimit": 5
+}
+</code></pre>
+<p><strong>Logic:</strong> Với mỗi nhân viên đang active:</p>
+<ul>
+<li><code>allocated_days</code> = 12 + (số năm làm việc trọn 5 năm)</li>
+<li><code>carried_over</code> = min(remaining_days của năm trước, <code>carryOverLimit</code>)</li>
+</ul>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "processed": 143,
+    "year": 2027
+  }
+}
+</code></pre>
+<hr>
+<h3 id="patch-leave-balancesid">PATCH <code>/leave-balances/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p>Điều chỉnh thủ công số ngày phép (trường hợp đặc biệt).</p>
+<pre><code class="language-json">{
+  "allocatedDays": 15,
+  "note": "Cộng thêm 3 ngày theo quyết định HĐQT"
+}
+</code></pre>
+<hr>
+<h2 id="19-reports-báo-cáo">19. Reports – Báo cáo</h2>
+<h3 id="get-reportsdashboardstats">GET <code>/reports/dashboard/stats</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "totalEmployees": 152,
+    "activeEmployees": 143,
+    "probationEmployees": 5,
+    "newThisMonth": 3,
+    "resignedThisMonth": 1,
+    "pendingLeaveRequests": 8,
+    "birthdaysThisMonth": [
+      { "id": 5, "fullName": "Trần Văn C", "dateOfBirth": "1995-05-28" }
+    ],
+    "expiringContracts": [
+      { "id": 10, "employeeCode": "NV0010", "fullName": "...", "endDate": "2026-06-30" }
+    ]
+  }
+}
+</code></pre>
+<hr>
+<h3 id="get-reportsemployeesexport">GET <code>/reports/employees/export</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p><strong>Query:</strong> Các filter tương tự GET <code>/employees</code></p>
+<p><strong>Response:</strong> <code>Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</code>  </p>
+<p>File Excel với các sheet: Danh sách, Thông tin BH, Thông tin lương.</p>
+<hr>
+<h3 id="get-reportssalariesexport">GET <code>/reports/salaries/export</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?month=5&year=2026&departmentId=2</code></p>
+<p><strong>Response:</strong> Excel bảng lương chi tiết từng khoản.</p>
+<hr>
+<h3 id="get-reportsattendancesexport">GET <code>/reports/attendances/export</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?month=5&year=2026&departmentId=2</code></p>
+<hr>
+<h3 id="get-reportsleavessummary">GET <code>/reports/leaves/summary</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?year=2026</code></p>
+<hr>
+<h2 id="20-system-dữ-liệu-hệ-thống">20. System – Dữ liệu hệ thống</h2>
+<h3 id="get-systemprovinces">GET <code>/system/provinces</code></h3>
+<p>Danh sách 63 tỉnh/thành phố.</p>
+<pre><code class="language-json">{
+  "data": [
+    { "code": "01", "name": "Hà Nội", "type": "Thành phố Trung ương" },
+    { "code": "79", "name": "Thành phố Hồ Chí Minh", "type": "Thành phố Trung ương" }
+  ]
+}
+</code></pre>
+<h3 id="get-systemdistrictsprovincecode">GET <code>/system/districts/:provinceCode</code></h3>
+<h3 id="get-systemwardsdistrictcode">GET <code>/system/wards/:districtCode</code></h3>
+<h3 id="get-systemholidays">GET <code>/system/holidays</code></h3>
+<p><strong>Query:</strong> <code>?year=2026</code></p>
+<h3 id="get-systemleave-types">GET <code>/system/leave-types</code></h3>
+<p>Danh sách loại nghỉ phép (public, không cần auth).</p>
+<hr>
+<h2 id="21-error-codes">21. Error Codes</h2>
+<h3 id="http-status-codes">HTTP Status Codes</h3>
+<table><thead>
+<tr><th>Code</th><th>Ý nghĩa</th></tr>
+</thead><tbody>
+<tr><td>200</td><td>OK</td></tr>
+<tr><td>201</td><td>Created</td></tr>
+<tr><td>400</td><td>Bad Request – Dữ liệu không hợp lệ</td></tr>
+<tr><td>401</td><td>Unauthorized – Chưa đăng nhập / Token hết hạn</td></tr>
+<tr><td>403</td><td>Forbidden – Không có quyền</td></tr>
+<tr><td>404</td><td>Not Found</td></tr>
+<tr><td>409</td><td>Conflict – Trùng dữ liệu</td></tr>
+<tr><td>422</td><td>Unprocessable Entity – Vi phạm business rule</td></tr>
+<tr><td>429</td><td>Too Many Requests – Rate limit</td></tr>
+<tr><td>500</td><td>Internal Server Error</td></tr>
+</tbody></table>
+<h3 id="application-error-codes">Application Error Codes</h3>
+<pre><code class="language-">AUTH
+  INVALID_CREDENTIALS        Sai tên đăng nhập hoặc mật khẩu
+  TOKEN_EXPIRED              Access token hết hạn
+  TOKEN_INVALID              Token không hợp lệ
+  REFRESH_TOKEN_EXPIRED      Refresh token hết hạn, đăng nhập lại
+  ACCOUNT_LOCKED             Tài khoản bị khoá
+  WRONG_CURRENT_PASSWORD     Mật khẩu hiện tại không đúng
+  PASSWORD_MISMATCH          Mật khẩu xác nhận không khớp
+
+EMPLOYEE
+  EMPLOYEE_NOT_FOUND         Không tìm thấy nhân viên
+  DUPLICATE_CCCD             CCCD đã tồn tại
+  DUPLICATE_EMAIL            Email đã tồn tại
+  DUPLICATE_TAX_CODE         Mã số thuế đã tồn tại
+  DUPLICATE_SI_NUMBER        Số sổ BHXH đã tồn tại
+  INVALID_CCCD_FORMAT        CCCD không đúng định dạng 12 số
+  INVALID_HIRE_DATE          Ngày vào làm không hợp lệ
+
+CONTRACT
+  CONTRACT_NOT_FOUND
+  CONTRACT_ALREADY_ACTIVE    Nhân viên đã có hợp đồng đang hiệu lực
+  CONTRACT_TYPE_LIMIT        Đã ký 2 lần HĐXĐTH, phải chuyển indefinite
+
+ATTENDANCE
+  ALREADY_CHECKED_IN         Đã chấm công vào hôm nay
+  NOT_CHECKED_IN             Chưa chấm công vào
+  ALREADY_CHECKED_OUT        Đã chấm công ra
+
+LEAVE
+  LEAVE_NOT_FOUND
+  INSUFFICIENT_LEAVE_BALANCE Không đủ ngày phép
+  OVERLAPPING_LEAVE          Trùng với đơn nghỉ khác đã được duyệt
+  CANNOT_CANCEL_APPROVED     Không thể huỷ đơn đã duyệt
+  LEAVE_IN_PAST              Không thể tạo đơn nghỉ ngày đã qua
+
+SALARY
+  SALARY_ALREADY_EXISTS      Bảng lương tháng này đã được tính
+  SALARY_NOT_FOUND
+  SALARY_ALREADY_APPROVED    Không thể sửa bảng lương đã duyệt
+  NO_ACTIVE_CONTRACT         Nhân viên không có hợp đồng hiệu lực
+
+TRAINING
+  TRAINING_NOT_FOUND
+  TRAINING_FULL              Khoá đào tạo đã đủ chỗ
+  ALREADY_ENROLLED           Nhân viên đã đăng ký khoá này
+
+PERFORMANCE
+  REVIEW_NOT_FOUND
+  REVIEW_ALREADY_SUBMITTED   Không thể sửa đánh giá đã submit
+
+AUTH
+  RESET_TOKEN_INVALID        Token đặt lại mật khẩu không hợp lệ
+  RESET_TOKEN_EXPIRED        Token đặt lại mật khẩu đã hết hạn (30 phút)
+
+LEAVE_BALANCE
+  BALANCE_ALREADY_INITIALIZED  Đã khởi tạo ngày phép cho năm này
+
+SYSTEM
+  VALIDATION_ERROR           Lỗi validate dữ liệu (kèm details[])
+  FORBIDDEN                  Không có quyền thực hiện thao tác
+  RATE_LIMIT_EXCEEDED        Quá nhiều request
+  INTERNAL_ERROR             Lỗi server nội bộ
+</code></pre>
+<h3 id="validation-error-format">Validation Error Format</h3>
+<pre><code class="language-json">{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Dữ liệu không hợp lệ",
+    "details": [
+      {
+        "field": "cccdNumber",
+        "message": "CCCD phải có đúng 12 chữ số"
+      },
+      {
+        "field": "email",
+        "message": "Email không đúng định dạng"
+      }
+    ]
+  }
+}
+</code></pre>
+<hr>
+<p><em>Cập nhật: 26/05/2026 – Version 1.1 – Bổ sung endpoints: family-members, disciplines-rewards, performance-reviews, trainings, announcements, leave-balances admin, reset-password</em></p>
+
+</main>
+<script>
+// Highlight active TOC link on scroll
+const headings = document.querySelectorAll('h1,h2,h3,h4');
+const links = document.querySelectorAll('#sidebar a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('#sidebar a[href="#'+e.target.id+'"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '0px 0px -80% 0px' });
+headings.forEach(h => { if(h.id) obs.observe(h); });
+</script>
+<style>#sidebar a.active { background:#ddf4ff; border-left-color:#0969da; font-weight:600; }</style>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HRM Docs</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #f6f8fa; }
+
+/* Header */
+header { background: #24292f; height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 16px; flex-shrink: 0; }
+.logo { color: #fff; font-weight: 700; font-size: 15px; margin-right: 8px; }
+.logo span { color: #58a6ff; }
+nav { display: flex; gap: 4px; flex: 1; }
+nav button { background: none; border: none; color: #8d96a0; font-size: 13px; padding: 5px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+nav button:hover { background: rgba(255,255,255,.1); color: #e6edf3; }
+nav button.on { background: rgba(88,166,255,.2); color: #58a6ff; }
+.nav-sep { width: 1px; background: rgba(255,255,255,.15); margin: 4px 6px; flex-shrink: 0; }
+.nav-group { color: #57606a; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; padding: 0 6px 0 10px; white-space: nowrap; align-self: center; }
+.right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.btn-edit { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: #e6edf3; font-size: 12px; padding: 4px 12px; border-radius: 6px; cursor: pointer; }
+.btn-edit:hover { background: rgba(255,255,255,.2); }
+.ver { color: #6e7781; font-size: 11px; }
+
+/* Viewer */
+#view { flex: 1; position: relative; }
+iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; opacity: 0; pointer-events: none; transition: opacity .2s; }
+iframe.on { opacity: 1; pointer-events: auto; }
+#spin { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: #57606a; font-size: 14px; background: #f6f8fa; transition: opacity .3s; }
+#spin.hide { opacity: 0; pointer-events: none; }
+.dot { width: 18px; height: 18px; border: 2px solid #d0d7de; border-top-color: #0969da; border-radius: 50%; animation: sp .7s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+/* Editor */
+#ed { display: none; position: absolute; inset: 0; flex-direction: column; background: #1e1e1e; z-index: 50; }
+#ed.show { display: flex; }
+#ed-bar { background: #2d2d2d; border-bottom: 1px solid #3e3e3e; padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+#ed-name { color: #aaa; font-size: 12px; font-family: monospace; background: #1a1a1a; padding: 2px 10px; border-radius: 4px; border: 1px solid #444; }
+.e-btn { border: none; font-size: 12px; font-weight: 600; padding: 5px 14px; border-radius: 5px; cursor: pointer; }
+#btn-save { background: #238636; color: #fff; }
+#btn-save:disabled { opacity: .5; cursor: default; }
+#btn-close { background: #444; color: #ccc; margin-left: auto; }
+#ed-status { font-size: 12px; color: #8b949e; }
+#ed-panes { flex: 1; display: flex; overflow: hidden; }
+textarea { flex: 1; background: #1e1e1e; color: #d4d4d4; border: none; border-right: 1px solid #333; resize: none; outline: none; font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; line-height: 1.7; padding: 20px 24px; tab-size: 2; }
+#preview { flex: 1; overflow-y: auto; padding: 24px 40px; background: #fff; font-size: 14px; line-height: 1.7; color: #24292f; }
+#preview h1,#preview h2 { border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin: 1.5em 0 .7em; }
+#preview h1 { font-size: 1.8em; }
+#preview h2 { font-size: 1.4em; }
+#preview h3 { font-size: 1.15em; margin: 1.3em 0 .5em; }
+#preview p { margin: 0 0 14px; }
+#preview pre { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 14px; overflow-x: auto; font-size: 12.5px; margin: 0 0 14px; }
+#preview code { font-family: "SFMono-Regular", Consolas, monospace; font-size: 85%; }
+#preview :not(pre)>code { background: rgba(175,184,193,.2); padding: .2em .4em; border-radius: 4px; }
+#preview blockquote { border-left: .25em solid #d0d7de; padding: 0 1em; color: #57606a; margin: 0 0 14px; }
+#preview table { border-collapse: collapse; width: 100%; margin: 0 0 14px; font-size: 13px; }
+#preview th,#preview td { border: 1px solid #d0d7de; padding: 6px 12px; }
+#preview thead { background: #f6f8fa; }
+#preview th { font-weight: 600; }
+#preview tr:nth-child(even) { background: #f6f8fa; }
+#preview ul,#preview ol { padding-left: 2em; margin: 0 0 14px; }
+#preview li { margin: 3px 0; }
+#preview hr { border: none; border-top: 1px solid #d0d7de; margin: 20px 0; }
+#preview a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">HRM <span>Docs</span></div>
+  <nav id="nav"></nav>
+  <div class="right">
+    <button class="btn-edit" id="openEd">&#9998; Edit</button>
+    <span class="ver">v1.2</span>
+  </div>
+</header>
+
+<div id="view">
+  <div id="spin"><div class="dot"></div><span>Đang tải...</span></div>
+</div>
+
+<div id="ed">
+  <div id="ed-bar">
+    <span id="ed-name">-</span>
+    <button class="e-btn" id="btn-save">&#128190; Lưu .md</button>
+    <span id="ed-status"></span>
+    <button class="e-btn" id="btn-close">&#10005; Đóng</button>
+  </div>
+  <div id="ed-panes">
+    <textarea id="ta" spellcheck="false"></textarea>
+    <div id="preview"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+var DOCS = [
+  { id:'api',     group:'BE', label:'API Spec',        md:'api-spec.md',                         html:'api-spec.html' },
+  { id:'db',      group:'BE', label:'Database',        md:'database-schema.md',                  html:'database-schema.html' },
+  { id:'rules',   group:'BE', label:'Business Rules',  md:'business-rules.md',                   html:'business-rules.html' },
+  { id:'arch',    group:'BE', label:'Architecture',    md:'architecture.md',                     html:'architecture.html' },
+  { id:'fe-arch', group:'FE', label:'FE Architecture', md:'../../frontend/docs/architecture.md',    html:'../../frontend/docs/architecture.html' },
+  { id:'fe-ui',   group:'FE', label:'UI Conventions',  md:'../../frontend/docs/ui-conventions.md',  html:'../../frontend/docs/ui-conventions.html' },
+  { id:'fe-comp', group:'FE', label:'Components',      md:'../../frontend/docs/component-guide.md', html:'../../frontend/docs/component-guide.html' }
+];
+
+var cur = null;
+var fileHandle = null;
+var frames = {};
+var timer = null;
+
+var navEl    = document.getElementById('nav');
+var viewEl   = document.getElementById('view');
+var spinEl   = document.getElementById('spin');
+var edEl     = document.getElementById('ed');
+var edName   = document.getElementById('ed-name');
+var edStatus = document.getElementById('ed-status');
+var btnSave  = document.getElementById('btn-save');
+var ta       = document.getElementById('ta');
+var preview  = document.getElementById('preview');
+
+// --- Build iframes & nav ---
+var lastGroup = null;
+DOCS.forEach(function(doc) {
+  var iframe = document.createElement('iframe');
+  iframe.src = doc.html;
+  iframe.onload = function() {
+    if (iframe.classList.contains('on')) spinEl.classList.add('hide');
+  };
+  viewEl.appendChild(iframe);
+  frames[doc.id] = iframe;
+
+  if (doc.group !== lastGroup) {
+    if (lastGroup !== null) {
+      var sep = document.createElement('span');
+      sep.className = 'nav-sep';
+      navEl.appendChild(sep);
+    }
+    var grp = document.createElement('span');
+    grp.className = 'nav-group';
+    grp.textContent = doc.group;
+    navEl.appendChild(grp);
+    lastGroup = doc.group;
+  }
+
+  var btn = document.createElement('button');
+  btn.textContent = doc.label;
+  btn.onclick = function() { show(doc.id); };
+  navEl.appendChild(btn);
+  doc.btn = btn;
+});
+
+function show(id) {
+  if (cur) {
+    frames[cur].classList.remove('on');
+    var prev = findDoc(cur); if (prev) prev.btn.classList.remove('on');
+  }
+  var iframe = frames[id];
+  var loaded = iframe.contentDocument && iframe.contentDocument.readyState === 'complete';
+  if (!loaded) {
+    spinEl.classList.remove('hide');
+    iframe.onload = function() { spinEl.classList.add('hide'); };
+  } else {
+    spinEl.classList.add('hide');
+  }
+  iframe.classList.add('on');
+  var doc = findDoc(id); if (doc) doc.btn.classList.add('on');
+  cur = id;
+  try { sessionStorage.setItem('hrm', id); } catch(e) {}
+}
+
+var saved = null;
+try { saved = sessionStorage.getItem('hrm'); } catch(e) {}
+show(saved && findDoc(saved) ? saved : DOCS[0].id);
+
+// --- Editor ---
+document.getElementById('openEd').onclick = function() { openEditor(); };
+document.getElementById('btn-close').onclick = function() {
+  edEl.classList.remove('show');
+  fileHandle = null;
+  edStatus.textContent = '';
+};
+
+function openEditor() {
+  var doc = findDoc(cur);
+  if (!doc) return;
+  fileHandle = null;
+  edName.textContent = doc.md;
+  edStatus.textContent = '';
+  ta.value = '';
+  preview.innerHTML = '<p style="color:#999">Đang tải...</p>';
+  edEl.classList.add('show');
+
+  fetch(doc.md + '?t=' + Date.now())
+    .then(function(r) {
+      if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+      return r.text();
+    })
+    .then(function(text) {
+      ta.value = text;
+      render(text);
+      ta.focus();
+    })
+    .catch(function(err) {
+      preview.innerHTML = '<p style="color:#f85149">Lỗi: ' + err.message + '</p>';
+      edStatus.textContent = 'Không tải được file';
+    });
+}
+
+ta.addEventListener('input', function() {
+  clearTimeout(timer);
+  timer = setTimeout(function() { render(ta.value); }, 250);
+});
+
+ta.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); save(); }
+});
+
+function render(text) {
+  if (window.marked) {
+    try { preview.innerHTML = marked.parse(text); return; } catch(e) {}
+  }
+  preview.textContent = text;
+}
+
+btnSave.onclick = function() { save(); };
+
+async function save() {
+  var doc = findDoc(cur);
+  if (!doc) return;
+  var content = ta.value;
+
+  if (!window.showSaveFilePicker) {
+    // fallback: download
+    var blob = new Blob([content], { type: 'text/markdown' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = doc.md; a.click();
+    URL.revokeObjectURL(url);
+    edStatus.textContent = 'Đã tải xuống ' + doc.md;
+    return;
+  }
+
+  btnSave.disabled = true;
+  edStatus.textContent = 'Đang lưu...';
+
+  try {
+    if (!fileHandle) {
+      fileHandle = await window.showSaveFilePicker({
+        suggestedName: doc.md,
+        types: [{ description: 'Markdown', accept: { 'text/markdown': ['.md'] } }]
+      });
+    }
+    var writable = await fileHandle.createWritable();
+    await writable.write(content);
+    await writable.close();
+    edStatus.textContent = '✓ Đã lưu ' + doc.md;
+    setTimeout(function() { edStatus.textContent = '(Chạy lại convert-to-html.ps1 để cập nhật HTML)'; }, 2000);
+  } catch(e) {
+    if (e.name !== 'AbortError') edStatus.textContent = 'Lỗi: ' + e.message;
+    else edStatus.textContent = '';
+  } finally {
+    btnSave.disabled = false;
+  }
+}
+
+function findDoc(id) {
+  for (var i = 0; i < DOCS.length; i++) { if (DOCS[i].id === id) return DOCS[i]; }
+  return null;
+}
+</script>
+</body>
+</html>

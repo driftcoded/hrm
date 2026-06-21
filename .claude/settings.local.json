@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\nvq18\\\\Desktop\\\\hrm-projects\" -Directory)",
+      "Bash(Select-Object Name)",
+      "PowerShell(ls *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\nvq18\\\\Desktop\\\\hrm-projects\\\\hrm-backend\" -Recurse -File | Select-Object @{N='Path';E={$_.FullName -replace [regex]::Escape\\('C:\\\\Users\\\\nvq18\\\\Desktop\\\\hrm-projects\\\\'\\)}} | Select-Object -First 100 Path)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\nvq18\\\\Desktop\\\\hrm-projects\\\\hrm-frontend\" -Recurse -File | Select-Object @{N='Path';E={$_.FullName -replace [regex]::Escape\\('C:\\\\Users\\\\nvq18\\\\Desktop\\\\hrm-projects\\\\'\\)}} | Select-Object -First 100 Path)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\nvq18\\\\Desktop\\\\hrm-projects\\\\hrm-backend\\\\docs\\\\convert-to-html.ps1\")",
+      "Skill(update-config)",
+      "WebSearch"
+    ]
+  }
+}
