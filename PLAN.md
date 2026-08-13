@@ -9,17 +9,17 @@
 
 | Giai đoạn | Tên | Tiến độ | Trạng thái |
 |-----------|-----|---------|------------|
-| 0 | Khởi tạo project | 0 / 10 | ⬜ Chưa bắt đầu |
-| 1 | Auth & User | 0 / 8 | ⬜ Chưa bắt đầu |
-| 2 | Master Data | 0 / 10 | ⬜ Chưa bắt đầu |
-| 3 | Nhân viên | 0 / 10 | ⬜ Chưa bắt đầu |
-| 4 | Chấm công | 0 / 6 | ⬜ Chưa bắt đầu |
-| 5 | Phép | 0 / 8 | ⬜ Chưa bắt đầu |
-| 6 | Lương | 0 / 10 | ⬜ Chưa bắt đầu |
-| 7 | HR Processes | 0 / 6 | ⬜ Chưa bắt đầu |
-| 8 | Thông báo & Hoàn thiện | 0 / 8 | ⬜ Chưa bắt đầu |
+| 0 | Khởi tạo project | 0 / 14 | ⬜ Chưa bắt đầu |
+| 1 | Auth & User | 0 / 21 | ⬜ Chưa bắt đầu |
+| 2 | Master Data | 0 / 11 | ⬜ Chưa bắt đầu |
+| 3 | Nhân viên | 0 / 16 | ⬜ Chưa bắt đầu |
+| 4 | Chấm công | 0 / 10 | ⬜ Chưa bắt đầu |
+| 5 | Phép | 0 / 12 | ⬜ Chưa bắt đầu |
+| 6 | Lương | 0 / 13 | ⬜ Chưa bắt đầu |
+| 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
+| 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 0 / 76 tasks hoàn thành
+**Tổng:** 0 / 128 tasks hoàn thành
 
 ---
 
@@ -85,17 +85,27 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [ ] `@CurrentUser()` decorator — lấy user từ JWT payload
 - [ ] `POST /auth/forgot-password` — gửi email reset link (SES)
 - [ ] `POST /auth/reset-password` — đặt mật khẩu mới từ token
+- [ ] **[Security]** Account lockout: Redis đếm failed login, khóa 15 phút sau 5 lần sai liên tiếp
+- [ ] **[Security]** Giới hạn tối đa 5 sessions đồng thời/user — login mới kick session cũ nhất
+- [ ] **[Security]** Cookie refresh token: xác nhận `SameSite=Strict; Secure; HttpOnly`
+- [ ] **[Security]** JWT secret tối thiểu 256-bit random (không dùng string dễ đoán)
+- [ ] **[Security]** `assertOwnership()` helper — kiểm tra resource thuộc về user hiện tại trước mọi thao tác
 
 **Tests (1.1):**
 - [ ] Login đúng → trả `access_token` + cookie
 - [ ] Login sai mật khẩu → 401 với `error.message` rõ ràng
+- [ ] Login sai 5 lần → 429, tài khoản bị khóa 15 phút
+- [ ] Login sau khi bị khóa → 423 với thời gian còn lại
 - [ ] Request không có token → 401
-- [ ] Refresh token hợp lệ → trả token mới
+- [ ] Refresh token hợp lệ → trả token mới, token cũ bị revoke ngay
 - [ ] Refresh token hết hạn → 401
+- [ ] Dùng lại refresh token đã bị revoke → 401 + revoke toàn bộ session user đó
 - [ ] Logout → cookie bị xóa, refresh token trong DB bị xóa
+- [ ] Login thứ 6 → session cũ nhất tự động bị kick
 - [ ] Forgot password → email được gửi (kiểm tra SES log)
 - [ ] Reset password với token hợp lệ → mật khẩu thay đổi được
 - [ ] Reset password với token hết hạn → 400
+- [ ] `assertOwnership()`: NV A cố truy cập resource của NV B → 403
 
 ### 1.2 Frontend Auth
 - [ ] Trang `/login`: form email + mật khẩu, validate
@@ -327,12 +337,26 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [ ] Rate limiting per endpoint (Throttler)
 - [ ] Security: Helmet headers, CORS whitelist
 - [ ] Logging: Winston → file + CloudWatch
+- [ ] **[Security]** Request size limit: `json({ limit: '1mb' })` + timeout cho long-running jobs
+- [ ] **[Security]** Pagination hard cap: server luôn cap `pageSize` tối đa 100, bỏ qua giá trị lớn hơn
+- [ ] **[Security]** `X-Request-ID` header cho mọi request — trace log end-to-end
+- [ ] **[Security]** `npm audit` trong CI — block deploy nếu có `critical` vulnerability
+- [ ] **[Security]** File upload: validate magic bytes server-side (không chỉ extension), giới hạn 2MB enforce phía server
+- [ ] **[Security]** S3 files (avatar, phiếu lương, hợp đồng): bucket private, truy cập qua presigned URL TTL 15 phút
+- [ ] **[Security]** Mã hóa CCCD và số tài khoản ngân hàng at-rest (AES-256) trước khi lưu DB
+- [ ] **[Security]** Input sanitization: strip HTML tags khỏi text fields (tên, ghi chú, thông báo) trước khi lưu
 
 **Tests (8.1):**
 - [ ] Tạo thông báo gửi toàn công ty → tất cả NV nhận được
 - [ ] Email duyệt phép được gửi đúng địa chỉ, nội dung đúng
 - [ ] Rate limit: gọi quá 10 lần/phút → 429
 - [ ] Request không hợp lệ không lọt qua Helmet headers
+- [ ] Upload file > 2MB → 413 từ server (không phải chỉ FE validate)
+- [ ] Upload file .php đổi tên thành .jpg → bị chặn (magic bytes check)
+- [ ] Presigned URL hết hạn sau 15 phút → 403
+- [ ] Payload JSON > 1MB → 413
+- [ ] `pageSize=99999` → server trả tối đa 100 records
+- [ ] Lưu tên NV có `<script>alert(1)</script>` → lấy ra không có thẻ script
 
 ### 8.2 Frontend Dashboard & Polish
 - [ ] Dashboard: tổng NV đang làm, đơn phép chờ duyệt, lương tháng gần nhất
@@ -355,16 +379,28 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 
 Trước khi đưa vào production, hoàn thành toàn bộ:
 
-- [ ] Tất cả 76 tasks trên đã tick `[x]`
-- [ ] Không có `console.log` trong production code
-- [ ] File `.env.example` có đủ mọi biến môi trường
-- [ ] DB backup strategy đã cấu hình (RDS automated backup)
-- [ ] PM2 ecosystem config cho backend
-- [ ] Nginx config cho frontend static + proxy API
-- [ ] SSL certificate đã gắn
-- [ ] CloudWatch alerts đã thiết lập
-- [ ] Sentry DSN đã kết nối (BE + FE)
+**Chức năng:**
+- [ ] Tất cả tasks trên đã tick `[x]`
 - [ ] Test smoke: đăng nhập → tạo NV → chấm công → xin phép → tính lương → in phiếu lương
+
+**Bảo mật:**
+- [ ] Không có `console.log` trong production code
+- [ ] Không có credentials nào hardcode trong source code (`git grep -r "password\s*=" src/`)
+- [ ] File `.env` trên server có quyền `chmod 600`
+- [ ] File `.env.example` có đủ mọi biến môi trường, không có giá trị thật
+- [ ] JWT_SECRET tối thiểu 64 ký tự random (`openssl rand -base64 64`)
+- [ ] S3 bucket không có public access, chỉ dùng presigned URL
+- [ ] Security headers kiểm tra qua securityheaders.com — đạt A
+- [ ] OWASP Top 10 tự review: SQLi, XSS, IDOR, Broken Auth, Sensitive Data
+
+**Hạ tầng:**
+- [ ] DB backup strategy đã cấu hình (RDS automated backup hàng ngày, giữ 7 ngày)
+- [ ] PM2 ecosystem config cho backend (cluster mode, auto-restart)
+- [ ] Nginx config cho frontend static + proxy API + gzip + cache headers
+- [ ] SSL certificate đã gắn (Let's Encrypt hoặc ACM)
+- [ ] CloudWatch alerts: CPU > 80%, Memory > 85%, 5xx rate > 1%
+- [ ] Sentry DSN đã kết nối (BE + FE), alert khi error mới
+- [ ] `npm audit` clean — không có `critical` hoặc `high` vulnerability
 
 ---
 
