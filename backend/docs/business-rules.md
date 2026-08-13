@@ -27,31 +27,37 @@
 
 ## 1. Hằng số hệ thống
 
-> Cập nhật từ 01/07/2024 theo Nghị định 73/2024/NĐ-CP và Nghị định 74/2024/NĐ-CP
+> Cập nhật theo các thay đổi pháp luật có hiệu lực từ 01/01/2026 và 01/07/2026.
+> Căn cứ: Luật BHXH 2024 (Luật 41/2024/QH15), Luật Việc làm 2025, Luật 109/2025/QH15, Nghị quyết 110/2025/UBTVQH15, Nghị định 293/2025/NĐ-CP, Nghị định 161/2026/NĐ-CP.
 
-### 1.1. Lương cơ sở và lương tối thiểu vùng
+### 1.1. Mức tham chiếu, lương cơ sở và lương tối thiểu vùng
+
+> **Quan trọng:** Từ khi Luật BHXH 2024 có hiệu lực, khái niệm **mức tham chiếu** thay thế "lương cơ sở" làm cơ sở tính trần BHXH/BHYT cho khu vực ngoài nhà nước. "Lương cơ sở" vẫn tồn tại nhưng chỉ áp dụng cho cán bộ hưởng lương nhà nước.
 
 | Loại | Giá trị | Ghi chú |
 |------|---------|---------|
-| Lương cơ sở nhà nước | 2.340.000 VNĐ/tháng | Dùng tính trần đóng BHXH, BHYT |
-| Lương tối thiểu Vùng I | 4.960.000 VNĐ/tháng | Hà Nội, TP.HCM, Bình Dương, Đồng Nai, BR-VT |
-| Lương tối thiểu Vùng II | 4.410.000 VNĐ/tháng | Thành phố trực thuộc tỉnh, một số huyện |
-| Lương tối thiểu Vùng III | 3.860.000 VNĐ/tháng | Đô thị loại vừa còn lại |
-| Lương tối thiểu Vùng IV | 3.450.000 VNĐ/tháng | Nông thôn, vùng sâu vùng xa |
+| **Mức tham chiếu** | **2.340.000 VNĐ/tháng** (→ **2.530.000** từ 01/07/2026) | Căn cứ tính trần BHXH, BHYT; Luật 41/2024/QH15 + NĐ 161/2026/NĐ-CP |
+| Lương cơ sở nhà nước | 2.340.000 VNĐ/tháng (→ 2.530.000 từ 01/07/2026) | Chỉ áp dụng khu vực nhà nước |
+| Lương tối thiểu Vùng I | **5.310.000 VNĐ/tháng** | Hà Nội, TP.HCM, Bình Dương, Đồng Nai, BR-VT |
+| Lương tối thiểu Vùng II | **4.730.000 VNĐ/tháng** | Thành phố trực thuộc tỉnh, một số huyện |
+| Lương tối thiểu Vùng III | **4.140.000 VNĐ/tháng** | Đô thị loại vừa còn lại |
+| Lương tối thiểu Vùng IV | **3.700.000 VNĐ/tháng** | Nông thôn, vùng sâu vùng xa |
+
+Lương tối thiểu vùng áp dụng từ 01/01/2026 theo Nghị định 293/2025/NĐ-CP (tăng ~7,2% so với 2025).
 
 ### 1.2. Trần lương đóng bảo hiểm
 
 | Loại bảo hiểm | Trần lương đóng | Tính theo |
 |---------------|----------------|-----------|
-| BHXH, BHYT | 46.800.000 VNĐ/tháng | 20 × lương cơ sở |
-| BHTN | 20 × lương tối thiểu vùng | Theo vùng của đơn vị |
+| BHXH, BHYT | 46.800.000 VNĐ/tháng (→ 50.600.000 từ 01/07/2026) | 20 × mức tham chiếu |
+| BHTN | Tối đa 20 × lương tối thiểu vùng | Theo vùng của đơn vị; Luật Việc làm 2025 |
 
 ### 1.3. Các hằng số khác
 
 | Hằng số | Giá trị |
 |---------|---------|
-| Giảm trừ bản thân | 11.000.000 VNĐ/tháng |
-| Giảm trừ mỗi người phụ thuộc | 4.400.000 VNĐ/tháng |
+| Giảm trừ bản thân | **15.500.000 VNĐ/tháng** (từ 01/01/2026) |
+| Giảm trừ mỗi người phụ thuộc | **6.200.000 VNĐ/tháng** (từ 01/01/2026) |
 | Ngày phép năm tối thiểu | 12 ngày/năm |
 | Giờ làm việc chuẩn | 8 giờ/ngày |
 | Ngày làm việc chuẩn | 5 ngày/tuần (Thứ 2 – Thứ 6) |
@@ -114,7 +120,8 @@ Trong đó: **Ngày công thực tế** = ngày thực làm + ngày phép có l�
 
 **Bước 1 – Xác định lương đóng bảo hiểm và áp trần:**
 
-- Lương đóng BHXH, BHYT = min(lương ghi trong hợp đồng, 46.800.000)
+- Lương đóng BHXH, BHYT = min(lương ghi trong hợp đồng, 20 × mức tham chiếu)
+  _(= 46.800.000 trước 01/07/2026; = 50.600.000 từ 01/07/2026)_
 - Lương đóng BHTN = min(lương ghi trong hợp đồng, 20 × lương tối thiểu vùng)
 
 **Bước 2 – Tính từng khoản (làm tròn đến đơn vị VNĐ):**
@@ -128,36 +135,34 @@ Trong đó: **Ngày công thực tế** = ngày thực làm + ngày phép có l�
 
 ## 4. Thuế thu nhập cá nhân (TNCN)
 
-> Căn cứ: Luật Thuế TNCN 2007, sửa đổi 2012; Nghị quyết 954/2020/UBTVQH14
+> Căn cứ: **Luật 109/2025/QH15** (hiệu lực từ **01/01/2026**). Rút gọn từ 7 bậc xuống còn 5 bậc, mở rộng các ngưỡng thu nhập tính thuế.
 
-### 4.1. Biểu thuế lũy tiến 7 bậc
+### 4.1. Biểu thuế lũy tiến 5 bậc (từ 01/01/2026)
 
 | Bậc | Thu nhập tính thuế/tháng | Thuế suất | Số thuế phải nộp (rút gọn) |
 |-----|--------------------------|:---------:|---------------------------|
-| 1 | Đến 5.000.000 | 5% | 5% TNTT |
-| 2 | Trên 5.000.000 đến 10.000.000 | 10% | 10% TNTT − 250.000 |
-| 3 | Trên 10.000.000 đến 18.000.000 | 15% | 15% TNTT − 750.000 |
-| 4 | Trên 18.000.000 đến 32.000.000 | 20% | 20% TNTT − 1.650.000 |
-| 5 | Trên 32.000.000 đến 52.000.000 | 25% | 25% TNTT − 3.250.000 |
-| 6 | Trên 52.000.000 đến 80.000.000 | 30% | 30% TNTT − 5.850.000 |
-| 7 | Trên 80.000.000 | 35% | 35% TNTT − 9.850.000 |
+| 1 | Đến 10.000.000 | 5% | 5% TNTT |
+| 2 | Trên 10.000.000 đến 30.000.000 | 10% | 10% TNTT − 500.000 |
+| 3 | Trên 30.000.000 đến 60.000.000 | 20% | 20% TNTT − 3.500.000 |
+| 4 | Trên 60.000.000 đến 100.000.000 | 30% | 30% TNTT − 9.500.000 |
+| 5 | Trên 100.000.000 | 35% | 35% TNTT − 14.500.000 |
 
 **Công thức rút gọn:**
 
 > Thuế TNCN = Thu nhập tính thuế × Thuế suất bậc tương ứng − Số khấu trừ nhanh
 
-**Ví dụ:** Thu nhập tính thuế = 25.000.000 VNĐ → bậc 4
-> Thuế = 25.000.000 × 20% − 1.650.000 = **3.350.000 VNĐ**
+**Ví dụ:** Thu nhập tính thuế = 25.000.000 VNĐ → bậc 2
+> Thuế = 25.000.000 × 10% − 500.000 = **2.000.000 VNĐ**
 
 ---
 
 ## 5. Giảm trừ gia cảnh
 
-> Căn cứ: Nghị quyết 954/2020/UBTVQH14
+> Căn cứ: **Nghị quyết 110/2025/UBTVQH15** (hiệu lực từ **01/01/2026**). Tăng mức giảm trừ bản thân từ 11 triệu → 15,5 triệu; người phụ thuộc từ 4,4 triệu → 6,2 triệu.
 
 **Công thức:**
 
-> Tổng giảm trừ = 11.000.000 + (4.400.000 × Số người phụ thuộc)
+> Tổng giảm trừ = 15.500.000 + (6.200.000 × Số người phụ thuộc)
 
 **Điều kiện để người phụ thuộc được tính giảm trừ:**
 
@@ -192,7 +197,7 @@ Theo Thông tư 111/2013/TT-BTC, các khoản phụ cấp sau được miễn th
 
 **Bước 5 – Giảm trừ gia cảnh**
 
-> Giảm trừ = 11.000.000 + (4.400.000 × Số người phụ thuộc)
+> Giảm trừ = 15.500.000 + (6.200.000 × Số người phụ thuộc)
 
 **Bước 6 – Thu nhập tính thuế (TNTT)**
 
@@ -201,7 +206,7 @@ Theo Thông tư 111/2013/TT-BTC, các khoản phụ cấp sau được miễn th
 
 **Bước 7 – Thuế TNCN**
 
-Áp dụng biểu lũy tiến 7 bậc theo mục 4.1.
+Áp dụng biểu lũy tiến 5 bậc theo mục 4.1.
 
 **Bước 8 – Lương thực nhận (Net)**
 
@@ -225,10 +230,10 @@ Theo Thông tư 111/2013/TT-BTC, các khoản phụ cấp sau được miễn th
 | BHTN (1%) | 200.000 |
 | **Tổng BH** | **2.100.000** |
 | Thu nhập chịu thuế | 23.530.000 − 1.530.000 = 22.000.000 |
-| Giảm trừ (bản thân + 1 NPT) | 11.000.000 + 4.400.000 = 15.400.000 |
-| **TNTT** | **22.000.000 − 2.100.000 − 15.400.000 = 4.500.000** |
-| Thuế TNCN (bậc 1, 5%) | 4.500.000 × 5% = 225.000 |
-| **Net** | **23.530.000 − 2.100.000 − 225.000 = 21.205.000 VNĐ** |
+| Giảm trừ (bản thân + 1 NPT) | 15.500.000 + 6.200.000 = 21.700.000 |
+| **TNTT** | **22.000.000 − 2.100.000 − 21.700.000 = −1.800.000 → 0** |
+| Thuế TNCN | 0 (TNTT ≤ 0, không phát sinh thuế) |
+| **Net** | **23.530.000 − 2.100.000 − 0 = 21.430.000 VNĐ** |
 
 ---
 
@@ -397,7 +402,7 @@ Giờ làm thêm = thời gian làm việc vượt quá 8 giờ/ngày (sau giờ
 - Tổng thời gian nghỉ thai sản: **6 tháng** (180 ngày).
 - Có thể nghỉ trước sinh tối đa 2 tháng.
 - Mức hưởng: **100%** bình quân lương đóng BHXH 6 tháng trước khi nghỉ (BHXH chi trả, không phải công ty).
-- Trợ cấp một lần khi sinh: 2 × lương cơ sở = 4.680.000 VNĐ.
+- Trợ cấp một lần khi sinh: 2 × mức tham chiếu = 4.680.000 VNĐ (từ 01/07/2026: 5.060.000 VNĐ).
 
 **Lao động nam khi vợ sinh:**
 
@@ -485,7 +490,9 @@ Mức cao hơn trợ cấp thôi việc (1 tháng/năm thay vì 0,5 tháng/năm)
 
 ---
 
-*Căn cứ pháp lý: BLLĐ 2019, Luật BHXH 2014 (sửa đổi 2024), Luật Thuế TNCN 2007 (sửa đổi),
-Nghị quyết 954/2020/UBTVQH14, Nghị định 74/2024/NĐ-CP, TT 111/2013/TT-BTC*
+*Căn cứ pháp lý: BLLĐ 2019, Luật BHXH 2024 (Luật 41/2024/QH15), Luật Việc làm 2025,
+Luật Thuế TNCN sửa đổi (Luật 109/2025/QH15), Nghị quyết 110/2025/UBTVQH15,
+Nghị định 293/2025/NĐ-CP (lương tối thiểu vùng 2026), Nghị định 161/2026/NĐ-CP (mức tham chiếu),
+Thông tư 111/2013/TT-BTC*
 
-*Cập nhật: 26/05/2026 – Version 1.1*
+*Cập nhật: 13/08/2026 – Version 2.0 (cập nhật luật 2026)*

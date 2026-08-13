@@ -51,9 +51,10 @@ Lỗi xử lý qua HttpExceptionFilter, KHÔNG throw Error trần.
 
 ## Domain knowledge – Tính lương VN
 Tỷ lệ NLĐ đóng: BHXH 8%, BHYT 1.5%, BHTN 1% (tổng 10.5%)
-Thuế TNCN biểu lũy tiến 7 bậc (5% → 35%)
-Giảm trừ bản thân: 11tr/tháng. Người phụ thuộc: 4.4tr/người/tháng
-Xem chi tiết: docs/vn-business-rules.md
+Thuế TNCN biểu lũy tiến **5 bậc** từ 01/01/2026 (Luật 109/2025/QH15): 5%/10%/20%/30%/35%
+Giảm trừ bản thân: **15.5tr**/tháng. Người phụ thuộc: **6.2tr**/người/tháng (từ 01/01/2026)
+Trần BHXH/BHYT = 20 × mức tham chiếu (2.34tr → 2.53tr từ 01/07/2026)
+Xem chi tiết: docs/business-rules.md
 
 ## Bảo mật (NEVER violate)
 - KHÔNG bao giờ commit `.env`
