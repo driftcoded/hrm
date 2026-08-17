@@ -40,11 +40,10 @@
 Mọi response đều bọc trong envelope sau:
 
 ```json
-// ✅ Thành công
+// ✅ Thành công – single object
 {
   "success": true,
   "data": { ... },
-  "message": "Tạo nhân viên thành công",
   "timestamp": "2026-05-25T10:00:00.000Z"
 }
 
@@ -63,17 +62,31 @@ Mọi response đều bọc trong envelope sau:
   "timestamp": "2026-05-25T10:00:00.000Z"
 }
 
-// ❌ Lỗi
+// ❌ Lỗi thông thường (404, 403, 409, 422 …)
 {
   "success": false,
   "error": {
     "code": "EMPLOYEE_NOT_FOUND",
-    "message": "Không tìm thấy nhân viên",
-    "details": [ ... ]   // validation errors (nếu có)
+    "message": "Cannot find employee with id 42"
+  },
+  "timestamp": "2026-05-25T10:00:00.000Z"
+}
+
+// ❌ Lỗi validation (400) – có thêm details[]
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request validation failed",
+    "details": [
+      { "field": "email", "code": "INVALID_EMAIL", "message": "Invalid email format" }
+    ]
   },
   "timestamp": "2026-05-25T10:00:00.000Z"
 }
 ```
+
+> **Quy tắc:** `message` trong error dùng tiếng Anh, phục vụ developer/log — frontend dùng `error.code` để lookup i18n text. `details[]` **chỉ có** khi `code === "VALIDATION_ERROR"`.
 
 ### 1.2. Pagination Query Params
 
@@ -1465,26 +1478,34 @@ SYSTEM
 
 ### Validation Error Format
 
+`details[]` chỉ xuất hiện khi `code === "VALIDATION_ERROR"`. Mỗi phần tử có đủ 3 trường:
+
 ```json
 {
   "success": false,
   "error": {
     "code": "VALIDATION_ERROR",
-    "message": "Dữ liệu không hợp lệ",
+    "message": "Request validation failed",
     "details": [
-      {
-        "field": "cccdNumber",
-        "message": "CCCD phải có đúng 12 chữ số"
-      },
-      {
-        "field": "email",
-        "message": "Email không đúng định dạng"
-      }
+      { "field": "cccdNumber", "code": "INVALID_CCCD",  "message": "CCCD must be exactly 12 digits" },
+      { "field": "email",      "code": "INVALID_EMAIL", "message": "Invalid email format" },
+      { "field": "salary",     "code": "REQUIRED",      "message": "salary is required" }
     ]
-  }
+  },
+  "timestamp": "2026-05-25T10:00:00.000Z"
 }
+```
+
+**TypeScript type (dùng ở frontend):**
+
+```typescript
+type ApiError =
+  | { code: 'VALIDATION_ERROR'; message: string; details: ValidationDetail[] }
+  | { code: string;             message: string }
+
+type ValidationDetail = { field: string; code: string; message: string }
 ```
 
 ---
 
-*Cập nhật: 26/05/2026 – Version 1.1 – Bổ sung endpoints: family-members, disciplines-rewards, performance-reviews, trainings, announcements, leave-balances admin, reset-password*
+*Cập nhật: 13/08/2026 – Version 1.2 – Chuẩn hóa response format: bỏ `message` khỏi success, `details[]` chỉ có ở VALIDATION_ERROR, mỗi detail item gồm `field`+`code`+`message`*

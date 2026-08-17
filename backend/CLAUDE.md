@@ -36,10 +36,16 @@ Mọi response phải qua TransformInterceptor về format:
 {
   "success": true,
   "data": {...},
-  "message": "...",
   "timestamp": "ISO-8601"
 }
-Lỗi xử lý qua HttpExceptionFilter, KHÔNG throw Error trần.
+Lỗi xử lý qua HttpExceptionFilter, KHÔNG throw Error trần:
+{
+  "success": false,
+  "error": { "code": "SNAKE_CASE_CODE", "message": "English dev message" },
+  "timestamp": "ISO-8601"
+}
+VALIDATION_ERROR thêm "details": [{ "field", "code", "message" }].
+KHÔNG có "message" trong success response. "message" trong error dùng tiếng Anh cho log.
 
 ## Validation chuẩn Việt Nam (BẮT BUỘC)
 - CCCD: 12 chữ số (`/^\d{12}$/`)
