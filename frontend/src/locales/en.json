@@ -1,0 +1,35 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "noData": "No data"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "employees": "Employees",
+    "attendance": "Attendance",
+    "leave": "Leave",
+    "payroll": "Payroll",
+    "settings": "Settings"
+  },
+  "app": {
+    "name": "HRM"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Sign in"
+  },
+  "layout": {
+    "profile": "Profile",
+    "logout": "Log out",
+    "collapseSidebar": "Collapse menu",
+    "expandSidebar": "Expand menu"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to the HRM system"
+  }
+}
