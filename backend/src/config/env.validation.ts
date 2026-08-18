@@ -34,6 +34,23 @@ export const envValidationSchema = Joi.object({
   MAIL_DEV_OUTPUT_DIR: Joi.string().default('logs/mail'),
   AWS_REGION: Joi.string().default('ap-southeast-1'),
 
+  // ---- Storage (avatar, file đính kèm) ----
+  STORAGE_DRIVER: Joi.string().valid('local', 's3').default('local'),
+  STORAGE_LOCAL_DIR: Joi.string().default('uploads'),
+  STORAGE_LOCAL_PUBLIC_PATH: Joi.string().optional(),
+  // Bắt buộc khi chạy driver s3: thiếu bucket thì upload không thể thành công,
+  // fail-fast lúc bootstrap tốt hơn 500 lúc HR bấm lưu ảnh.
+  S3_BUCKET: Joi.string().when('STORAGE_DRIVER', {
+    is: 's3',
+    then: Joi.required(),
+    otherwise: Joi.optional().allow(''),
+  }),
+  S3_PUBLIC_BASE_URL: Joi.string().uri().optional().allow(''),
+  AVATAR_MAX_BYTES: Joi.number()
+    .integer()
+    .min(1)
+    .default(2 * 1024 * 1024),
+
   // ---- Seed (dev only) ----
   SEED_DEFAULT_PASSWORD: Joi.string().min(8).optional(),
 });

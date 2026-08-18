@@ -1,0 +1,354 @@
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import { PaginatedResponseDto } from '@/common/dto/pagination-response.dto';
+import { normalizeCode } from '@/common/utils/code.util';
+import { toIsoString } from '@/common/utils/date.util';
+import { resolvePagination } from '@/common/utils/pagination.util';
+import { rejectUnexpectedNulls } from '@/common/utils/reject-null.util';
+import { DepartmentsRepository } from './departments.repository';
+import { CreateDepartmentDto } from './dto/create-department.dto';
+import {
+  DepartmentResponseDto,
+  DepartmentTreeNodeDto,
+} from './dto/department-response.dto';
+import { FilterDepartmentDto } from './dto/filter-department.dto';
+import { UpdateDepartmentDto } from './dto/update-department.dto';
+import { Department } from './entities/department.entity';
+
+/**
+ * All department business logic (CLAUDE.md §Module architecture).
+ *
+ * The error codes used here are NOT listed in api-spec.md §21 (that document
+ * only enumerates the EMPLOYEE/CONTRACT/LEAVE/... groups), so new ones were
+ * coined following the doc's SNAKE_CASE convention — see the Phase 2.1
+ * report.
+ */
+@Injectable()
+export class DepartmentsService {
+  private readonly logger = new Logger(DepartmentsService.name);
+
+  constructor(private readonly departmentsRepository: DepartmentsRepository) {}
+
+  async findAll(
+    filter: FilterDepartmentDto,
+  ): Promise<PaginatedResponseDto<DepartmentResponseDto>> {
+    const { page, limit, skip } = resolvePagination(filter);
+    const search = filter.search?.trim();
+
+    const [departments, total] = await this.departmentsRepository.findPaginated(
+      {
+        skip,
+        take: limit,
+        sort: filter.sort ?? 'sortOrder',
+        order: filter.order === 'desc' ? 'DESC' : 'ASC',
+        parentId: filter.parentId,
+        isActive: filter.isActive,
+        search: search && search.length > 0 ? search : undefined,
+      },
+    );
+
+    const employeeCounts = await this.loadEmployeeCounts(departments);
+
+    return new PaginatedResponseDto(
+      departments.map((department) =>
+        this.toResponse(department, employeeCounts),
+      ),
+      total,
+      page,
+      limit,
+    );
+  }
+
+  /**
+   * Department tree (api-spec.md §4 `?tree=true`).
+   * A department whose parent was soft-deleted is promoted to a root node so
+   * it doesn't disappear from the tree.
+   */
+  async findTree(): Promise<DepartmentTreeNodeDto[]> {
+    const departments = await this.departmentsRepository.findAllOrdered();
+    const employeeCounts = await this.loadEmployeeCounts(departments);
+
+    const nodes = new Map<number, DepartmentTreeNodeDto>();
+    for (const department of departments) {
+      const node: DepartmentTreeNodeDto = {
+        ...this.toResponse(department, employeeCounts),
+        children: [],
+      };
+      nodes.set(node.id, node);
+    }
+
+    const roots: DepartmentTreeNodeDto[] = [];
+    for (const node of nodes.values()) {
+      const parent =
+        node.parentId !== null ? nodes.get(node.parentId) : undefined;
+
+      if (parent) {
+        parent.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+
+    return roots;
+  }
+
+  async findOne(id: number): Promise<DepartmentResponseDto> {
+    const department = await this.getExistingOrThrow(id);
+    const employeeCounts = await this.loadEmployeeCounts([department]);
+
+    return this.toResponse(department, employeeCounts);
+  }
+
+  async create(dto: CreateDepartmentDto): Promise<DepartmentResponseDto> {
+    const code = normalizeCode(dto.code);
+    await this.assertCodeAvailable(code);
+
+    const parentId = dto.parentId ?? null;
+    if (parentId !== null) {
+      await this.assertParentExists(parentId);
+    }
+
+    const managerId = dto.managerId ?? null;
+    if (managerId !== null) {
+      await this.assertManagerExists(managerId);
+    }
+
+    const created = await this.departmentsRepository.create({
+      code,
+      name: dto.name.trim(),
+      description: dto.description ?? null,
+      parentId,
+      managerId,
+      sortOrder: dto.sortOrder ?? 0,
+      isActive: dto.isActive ?? true,
+    });
+
+    return this.findOne(Number(created.id));
+  }
+
+  async update(
+    id: number,
+    dto: UpdateDepartmentDto,
+  ): Promise<DepartmentResponseDto> {
+    const department = await this.getExistingOrThrow(id);
+    rejectUnexpectedNulls(dto, ['description', 'parentId', 'managerId']);
+    const patch: Partial<Department> = {};
+
+    if (dto.code !== undefined) {
+      const code = normalizeCode(dto.code);
+      if (code !== department.code) {
+        await this.assertCodeAvailable(code);
+      }
+      patch.code = code;
+    }
+
+    if (dto.name !== undefined) {
+      patch.name = dto.name.trim();
+    }
+
+    if (dto.description !== undefined) {
+      patch.description = dto.description ?? null;
+    }
+
+    if (dto.parentId !== undefined) {
+      const parentId = dto.parentId ?? null;
+      if (parentId !== null) {
+        await this.assertParentExists(parentId);
+        await this.assertNoCycle(id, parentId);
+      }
+      patch.parentId = parentId;
+    }
+
+    if (dto.managerId !== undefined) {
+      const managerId = dto.managerId ?? null;
+      if (managerId !== null) {
+        await this.assertManagerExists(managerId);
+      }
+      patch.managerId = managerId;
+    }
+
+    if (dto.sortOrder !== undefined) {
+      patch.sortOrder = dto.sortOrder;
+    }
+
+    if (dto.isActive !== undefined) {
+      patch.isActive = dto.isActive;
+    }
+
+    if (Object.keys(patch).length > 0) {
+      await this.departmentsRepository.update(id, patch);
+    }
+
+    return this.findOne(id);
+  }
+
+  /**
+   * Soft delete. MUST NOT cascade to employees/positions/child departments:
+   * if any referencing records still exist, reject with 422 and state the
+   * count.
+   */
+  async remove(id: number): Promise<{ id: number; deleted: boolean }> {
+    await this.getExistingOrThrow(id);
+
+    const employeeCount = await this.departmentsRepository.countEmployees(id);
+    if (employeeCount > 0) {
+      throw new UnprocessableEntityException({
+        code: 'DEPARTMENT_HAS_EMPLOYEES',
+        message: `Cannot delete department ${id}: ${employeeCount} employee(s) still assigned to it`,
+      });
+    }
+
+    const childCount = await this.departmentsRepository.countChildren(id);
+    if (childCount > 0) {
+      throw new UnprocessableEntityException({
+        code: 'DEPARTMENT_HAS_CHILDREN',
+        message: `Cannot delete department ${id}: ${childCount} child department(s) still reference it as parent`,
+      });
+    }
+
+    const positionCount = await this.departmentsRepository.countPositions(id);
+    if (positionCount > 0) {
+      throw new UnprocessableEntityException({
+        code: 'DEPARTMENT_HAS_POSITIONS',
+        message: `Cannot delete department ${id}: ${positionCount} position(s) still belong to it`,
+      });
+    }
+
+    await this.departmentsRepository.softDelete(id);
+
+    return { id, deleted: true };
+  }
+
+  // ------------------------------------------------------------ internals ----
+
+  private async getExistingOrThrow(id: number): Promise<Department> {
+    const department = await this.departmentsRepository.findById(id);
+
+    if (!department) {
+      throw new NotFoundException({
+        code: 'DEPARTMENT_NOT_FOUND',
+        message: `Cannot find department with id ${id}`,
+      });
+    }
+
+    return department;
+  }
+
+  private async assertCodeAvailable(code: string): Promise<void> {
+    const existing = await this.departmentsRepository.findByCode(code);
+
+    if (existing) {
+      throw new ConflictException({
+        code: 'DUPLICATE_DEPARTMENT_CODE',
+        message: `Department code "${code}" already exists`,
+      });
+    }
+  }
+
+  private async assertParentExists(parentId: number): Promise<void> {
+    const parent = await this.departmentsRepository.findById(parentId);
+
+    if (!parent) {
+      throw new UnprocessableEntityException({
+        code: 'PARENT_DEPARTMENT_NOT_FOUND',
+        message: `Cannot find parent department with id ${parentId}`,
+      });
+    }
+  }
+
+  private async assertManagerExists(managerId: number): Promise<void> {
+    const count =
+      await this.departmentsRepository.countManagerCandidate(managerId);
+
+    if (count === 0) {
+      // Reusing the EMPLOYEE_NOT_FOUND code already defined in api-spec.md
+      // §21; status is 422 (not 404) because the request's resource is the
+      // department, not the employee.
+      throw new UnprocessableEntityException({
+        code: 'EMPLOYEE_NOT_FOUND',
+        message: `Cannot find employee with id ${managerId} to set as department manager`,
+      });
+    }
+  }
+
+  /**
+   * Blocks cycles: a department cannot become its own descendant.
+   * Walks up from `newParentId` toward the root; encountering `departmentId`
+   * again means `newParentId` sits within its own subtree → reject, do NOT
+   * write to the DB.
+   */
+  private async assertNoCycle(
+    departmentId: number,
+    newParentId: number,
+  ): Promise<void> {
+    const visited = new Set<number>();
+    let cursor: number | null = newParentId;
+
+    while (cursor !== null) {
+      if (cursor === departmentId) {
+        throw new UnprocessableEntityException({
+          code: 'DEPARTMENT_CYCLE',
+          message:
+            newParentId === departmentId
+              ? `Department ${departmentId} cannot be its own parent`
+              : `Department ${newParentId} is a descendant of department ${departmentId}; setting it as parent would create a cycle`,
+        });
+      }
+
+      if (visited.has(cursor)) {
+        // A cycle already exists in the data (not caused by this request):
+        // stop here to avoid an infinite loop, and log it for HR/dev to
+        // investigate.
+        this.logger.warn(
+          `Existing parent cycle detected in departments while walking up from ${newParentId} (repeated id ${cursor})`,
+        );
+        return;
+      }
+
+      visited.add(cursor);
+      cursor = await this.departmentsRepository.findParentId(cursor);
+    }
+  }
+
+  private async loadEmployeeCounts(
+    departments: Department[],
+  ): Promise<Map<number, number>> {
+    const ids = departments.map((department) => Number(department.id));
+    const rows =
+      await this.departmentsRepository.countEmployeesByDepartmentIds(ids);
+
+    return new Map(rows.map((row) => [row.departmentId, row.employeeCount]));
+  }
+
+  private toResponse(
+    department: Department,
+    employeeCounts: Map<number, number>,
+  ): DepartmentResponseDto {
+    const id = Number(department.id);
+
+    return {
+      id,
+      code: department.code,
+      name: department.name,
+      description: department.description ?? null,
+      parentId:
+        department.parentId === null ? null : Number(department.parentId),
+      manager: department.manager
+        ? {
+            id: Number(department.manager.id),
+            fullName: department.manager.fullName,
+          }
+        : null,
+      employeeCount: employeeCounts.get(id) ?? 0,
+      sortOrder: Number(department.sortOrder),
+      isActive: Boolean(department.isActive),
+      createdAt: toIsoString(department.createdAt),
+      updatedAt: toIsoString(department.updatedAt),
+    };
+  }
+}

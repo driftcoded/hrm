@@ -62,4 +62,8 @@ export class LeaveType {
 
   @Column({ name: 'sort_order', type: 'smallint', default: 0 })
   sortOrder: number;
+
+  /** Statutory row seeded from Vietnamese labor law; code/deletion are locked (see the migration that added this column). */
+  @Column({ name: 'is_system', type: 'boolean', default: false })
+  isSystem: boolean;
 }

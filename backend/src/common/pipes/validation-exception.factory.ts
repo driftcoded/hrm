@@ -22,6 +22,7 @@ const CONSTRAINT_CODE_MAP: Record<string, string> = {
   isArray: 'INVALID_TYPE',
   isDate: 'INVALID_DATE',
   isDateString: 'INVALID_DATE',
+  isCalendarDate: 'INVALID_DATE',
   matches: 'INVALID_FORMAT',
   isEnum: 'INVALID_VALUE',
   isIn: 'INVALID_VALUE',
@@ -31,6 +32,14 @@ const CONSTRAINT_CODE_MAP: Record<string, string> = {
   max: 'OUT_OF_RANGE',
   isPositive: 'OUT_OF_RANGE',
   isPhoneNumber: 'INVALID_PHONE',
+  // Validator riêng cho định danh Việt Nam (common/validators/vn-identity.validator.ts).
+  // Code lấy đúng theo api-spec.md §21 để frontend lookup i18n bằng code.
+  isVnPhone: 'INVALID_PHONE',
+  isCccdNumber: 'INVALID_CCCD',
+  isTaxCode: 'INVALID_TAX_CODE',
+  isSocialInsuranceNo: 'INVALID_SI_NUMBER',
+  isHealthInsuranceNo: 'INVALID_HI_NUMBER',
+  isVnPersonName: 'INVALID_NAME',
 };
 
 function camelToSnakeUpper(value: string): string {

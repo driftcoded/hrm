@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { resolve } from 'path';
 import { WinstonModule } from 'nest-winston';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
@@ -9,9 +11,10 @@ import { AppModule } from './app.module';
 import { winstonLoggerOptions } from './config/winston.config';
 import { validationExceptionFactory } from './common/pipes/validation-exception.factory';
 import { SWAGGER_BEARER_AUTH_NAME } from './common/decorators/api-auth.decorator';
+import { StorageConfig } from './config/storage.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(winstonLoggerOptions),
   });
 
@@ -40,6 +43,22 @@ async function bootstrap() {
   // truyền trực tiếp vào SwaggerModule.setup (Nest global prefix chỉ ảnh
   // hưởng @Controller() routes).
   app.setGlobalPrefix(apiPrefix);
+
+  // Driver lưu trữ `local` ghi file xuống đĩa; phải có route tĩnh thì frontend
+  // mới lấy được ảnh. Với driver `s3` file nằm trên AWS nên không cần route này
+  // (docs: src/shared/storage/storage.module.ts).
+  const storage = configService.getOrThrow<StorageConfig>('storage');
+  if (storage.driver === 'local') {
+    app.useStaticAssets(resolve(process.cwd(), storage.localDir), {
+      prefix: storage.localPublicPath,
+      index: false,
+      // File upload KHÔNG bao giờ được trình duyệt thực thi như HTML/script.
+      setHeaders: (res) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Content-Disposition', 'inline');
+      },
+    });
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({

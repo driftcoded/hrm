@@ -8,6 +8,7 @@ import { authConfig } from './config/auth.config';
 import { databaseConfig } from './config/database.config';
 import { jwtConfig } from './config/jwt.config';
 import { mailConfig } from './config/mail.config';
+import { storageConfig } from './config/storage.config';
 import { envValidationSchema } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -16,7 +17,15 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { CacheModule } from './shared/cache/cache.module';
 import { MailModule } from './shared/mail/mail.module';
+import { StorageModule } from './shared/storage/storage.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ContractTypesModule } from './modules/contracts/contract-types.module';
+import { DepartmentsModule } from './modules/departments/departments.module';
+import { EmployeesModule } from './modules/employees/employees.module';
+import { LeaveTypesModule } from './modules/leaves/leave-types.module';
+import { PositionsModule } from './modules/positions/positions.module';
+import { HolidaysModule } from './modules/system/holidays.module';
+import { SystemModule } from './modules/system/system.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -24,7 +33,14 @@ import { UsersModule } from './modules/users/users.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],
-      load: [appConfig, databaseConfig, jwtConfig, authConfig, mailConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        jwtConfig,
+        authConfig,
+        mailConfig,
+        storageConfig,
+      ],
       validationSchema: envValidationSchema,
       validationOptions: {
         abortEarly: false,
@@ -33,8 +49,18 @@ import { UsersModule } from './modules/users/users.module';
     DatabaseModule,
     CacheModule,
     MailModule,
+    StorageModule,
     AuthModule,
     UsersModule,
+    // Master data – Giai đoạn 2.1
+    DepartmentsModule,
+    PositionsModule,
+    ContractTypesModule,
+    LeaveTypesModule,
+    HolidaysModule,
+    SystemModule,
+    // Nhân viên & hồ sơ – Giai đoạn 3.1
+    EmployeesModule,
   ],
   controllers: [AppController],
   providers: [
