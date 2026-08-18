@@ -17,6 +17,9 @@ build/
 *.log
 logs/
 
+# File nguoi dung upload khi STORAGE_DRIVER=local
+backend/uploads/
+
 # OS
 .DS_Store
 Thumbs.db
