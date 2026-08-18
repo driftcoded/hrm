@@ -1,12 +1,16 @@
 import { AppDataSource } from '../data-source';
 import { seedRoles } from './roles.seed';
 import { seedHolidays } from './holidays.seed';
+import { seedUsers } from './users.seed';
 
 /**
- * Entry point cho `npm run seed`.
- * Chỉ seed master data infra-phase: roles + holidays (2025 & 2026).
- * Provinces/districts/wards KHÔNG có bảng riêng (xem
- * src/common/data/vn-provinces.json thay thế — quyết định scope phase 0.1).
+ * Entry point for `npm run seed`.
+ * Seeds infra-phase master data (roles + holidays 2025 & 2026) plus the minimal
+ * auth data set of Giai đoạn 1.1 (department/position/employees/dev accounts).
+ * Provinces/districts/wards have NO dedicated table (see
+ * src/common/data/vn-provinces.json instead — scope decision from phase 0.1).
+ *
+ * Idempotent: safe to re-run, never creates duplicates.
  */
 async function main() {
   const dataSource = await AppDataSource.initialize();
@@ -15,6 +19,7 @@ async function main() {
   try {
     await seedRoles(dataSource);
     await seedHolidays(dataSource);
+    await seedUsers(dataSource);
     console.log('Seed completed successfully.');
   } finally {
     await dataSource.destroy();

@@ -31,4 +31,16 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'warn'
     },
   },
+  {
+    // Chỉ áp dụng cho file test.
+    // `unbound-method` báo lỗi với chính cách dùng chuẩn của jest
+    // (`expect(service.method).toHaveBeenCalled()` truyền method như một value) —
+    // đây là khuyến nghị của chính typescript-eslint cho project dùng jest.
+    // KHÔNG tắt các rule an toàn kiểu khác: body của supertest được ép kiểu qua
+    // helper trong test/support/e2e-app.ts để vẫn được type-check.
+    files: ['**/*.spec.ts', 'test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/unbound-method': 'off',
+    },
+  },
 );

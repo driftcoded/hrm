@@ -55,7 +55,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const { status, code, message, details } = this.resolveException(exception);
+    const { status, code, message, details, retryAfterSeconds } =
+      this.resolveException(exception);
 
     if (status >= 500) {
       const stack = exception instanceof Error ? exception.stack : undefined;
@@ -79,6 +80,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
     };
 
+    // `Retry-After` is the standard way to tell a client when it may try again
+    // (RFC 9110 §10.2.3) and is the only machine-readable channel for it: the
+    // JSON envelope is fixed by api-spec.md, and `error.message` is English
+    // developer text the UI must not surface. Carried on the thrown payload,
+    // emitted here as a header, never echoed into the body.
+    if (retryAfterSeconds !== undefined) {
+      response.setHeader(
+        'Retry-After',
+        String(Math.max(0, Math.ceil(retryAfterSeconds))),
+      );
+    }
+
     response.status(status).json(body);
   }
 
@@ -87,6 +100,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     code: string;
     message: string;
     details?: ValidationErrorDetail[];
+    retryAfterSeconds?: number;
   } {
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
@@ -98,6 +112,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
           code: responseBody.code,
           message: responseBody.message ?? exception.message,
           details: responseBody.details,
+          retryAfterSeconds: responseBody.retryAfterSeconds,
         };
       }
 
