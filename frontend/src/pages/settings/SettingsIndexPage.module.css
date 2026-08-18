@@ -1,0 +1,60 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--hrm-grid-gap);
+  align-items: stretch;
+}
+
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.card {
+  height: 100%;
+}
+
+.card :global(.ant-card-body) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-2);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hrm-activity-tile-size);
+  height: var(--hrm-activity-tile-size);
+  border-radius: var(--hrm-radius-tile);
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+  font-size: var(--hrm-font-size-h3);
+  margin-bottom: var(--hrm-space-1);
+}
+
+.cardTitle {
+  font-size: var(--hrm-font-size-h3);
+  font-weight: 600;
+  color: var(--hrm-color-heading);
+}
+
+.cardText {
+  font-size: var(--hrm-font-size-base);
+  line-height: var(--hrm-line-height-base);
+  color: var(--hrm-color-text-secondary);
+}
+
+/* Tablet: two columns; mobile: one (§10). */
+@media (max-width: 1199px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

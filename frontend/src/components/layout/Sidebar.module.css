@@ -64,6 +64,35 @@
   color: var(--hrm-sidebar-text-strong);
 }
 
+/*
+ * Submenu (Cài đặt) — the collapsible parent row must match the plain items, and
+ * its nested list has to inherit the sidebar navy instead of AntD's default
+ * darker "sub" background, or the group reads as a hole in the sidebar.
+ */
+.menu :global(.ant-menu-submenu-title) {
+  height: var(--hrm-nav-item-height);
+  line-height: var(--hrm-nav-item-height);
+  border-radius: var(--hrm-nav-radius);
+  margin-block: var(--hrm-space-1);
+  color: var(--hrm-sidebar-text);
+}
+
+.menu :global(.ant-menu-submenu-title:hover) {
+  background: var(--hrm-sidebar-bg-hover);
+  color: var(--hrm-sidebar-text-strong);
+}
+
+.menu :global(.ant-menu-sub) {
+  background: transparent !important;
+}
+
+/* A selected child already carries the primary fill; keep the parent row quiet
+   so only one item looks active at a time. */
+.menu :global(.ant-menu-submenu-selected > .ant-menu-submenu-title) {
+  color: var(--hrm-sidebar-text-strong);
+  background: transparent;
+}
+
 .footer {
   flex: none;
   padding: var(--hrm-space-2);

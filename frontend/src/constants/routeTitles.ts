@@ -8,12 +8,18 @@
 export const ROUTE_TITLES: Record<string, string> = {
   '/dashboard': 'nav.dashboard',
   '/employees': 'nav.employees',
-  '/departments': 'nav.departments',
   '/attendance': 'nav.attendance',
   '/payroll': 'nav.payroll',
   '/leave': 'nav.leave',
   '/reports': 'nav.reports',
   '/settings': 'nav.settings',
+  // Master-data screens (Giai đoạn 2.2). Registered individually so the tab bar
+  // and breadcrumb name each one, instead of five tabs all reading "Cài đặt".
+  '/settings/departments': 'nav.departments',
+  '/settings/positions': 'nav.positions',
+  '/settings/contract-types': 'nav.contractTypes',
+  '/settings/leave-types': 'nav.leaveTypes',
+  '/settings/holidays': 'nav.holidays',
   '/profile': 'nav.profile',
 };
 
@@ -35,4 +41,24 @@ export function matchRoute(pathname: string): string | undefined {
 export function routeTitleKey(pathname: string): string | undefined {
   const matched = matchRoute(pathname);
   return matched ? ROUTE_TITLES[matched] : undefined;
+}
+
+export interface RouteCrumb {
+  path: string;
+  titleKey: string;
+}
+
+/**
+ * The registered ancestors of a pathname, outermost first — e.g.
+ * `/settings/departments` -> `[{/settings}, {/settings/departments}]`.
+ *
+ * This is what lets the header show "Trang chủ > Cài đặt > Phòng ban" for a
+ * nested route (up to 3 levels, docs/ui-conventions.md §3) while still reading
+ * from this one registry rather than a second hand-written list.
+ */
+export function routeBreadcrumb(pathname: string): RouteCrumb[] {
+  return Object.keys(ROUTE_TITLES)
+    .filter((path) => pathname === path || pathname.startsWith(`${path}/`))
+    .sort((a, b) => a.length - b.length)
+    .map((path) => ({ path, titleKey: ROUTE_TITLES[path] }));
 }

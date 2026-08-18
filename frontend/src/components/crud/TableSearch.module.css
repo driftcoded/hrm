@@ -1,0 +1,10 @@
+.search {
+  width: var(--hrm-search-width);
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  .search {
+    width: 100%;
+  }
+}

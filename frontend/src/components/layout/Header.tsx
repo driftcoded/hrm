@@ -21,7 +21,7 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { HOME_PATH, matchRoute, routeTitleKey } from '@/constants/routeTitles';
+import { HOME_PATH, routeBreadcrumb } from '@/constants/routeTitles';
 import { useLogout } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore, type Locale } from '@/store/uiStore';
@@ -53,13 +53,21 @@ export function Header() {
   /**
    * Breadcrumb lives in the header (not in each page's PageHeader) so it sits in
    * one fixed place regardless of which page is open. Home is always the first
-   * crumb; the current route adds a second one unless it *is* home.
+   * crumb, then every registered ancestor of the current route — so a nested
+   * screen reads "Trang chủ > Cài đặt > Phòng ban" (up to 3 levels, §3). Only the
+   * last crumb is plain text; the ones above it navigate.
    */
-  const currentPath = matchRoute(location.pathname) ?? location.pathname;
-  const currentTitleKey = routeTitleKey(location.pathname);
+  const crumbs = routeBreadcrumb(location.pathname).filter((crumb) => crumb.path !== HOME_PATH);
   const breadcrumbItems = [
     { title: <Link to={HOME_PATH}>{t('nav.dashboard')}</Link> },
-    ...(currentTitleKey && currentPath !== HOME_PATH ? [{ title: t(currentTitleKey) }] : []),
+    ...crumbs.map((crumb, index) => ({
+      title:
+        index === crumbs.length - 1 ? (
+          t(crumb.titleKey)
+        ) : (
+          <Link to={crumb.path}>{t(crumb.titleKey)}</Link>
+        ),
+    })),
   ];
 
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);

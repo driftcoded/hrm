@@ -1,0 +1,45 @@
+.toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--hrm-space-4);
+  margin-bottom: var(--hrm-space-4);
+  flex-wrap: wrap;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  flex-wrap: wrap;
+}
+
+.count {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-base);
+  white-space: nowrap;
+}
+
+.empty {
+  padding: var(--hrm-space-5) 0;
+}
+
+/* Mobile: let the filter bar and the action bar stack full width (§10). */
+@media (max-width: 767px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+}

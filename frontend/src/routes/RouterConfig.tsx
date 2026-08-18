@@ -38,19 +38,47 @@ const ComingSoonPage = lazy(() =>
   import('@/pages/ComingSoonPage').then((module) => ({ default: module.ComingSoonPage })),
 );
 
+// Master-data settings screens (Giai đoạn 2.2), each its own chunk.
+const SettingsIndexPage = lazy(() =>
+  import('@/pages/settings/SettingsIndexPage').then((module) => ({
+    default: module.SettingsIndexPage,
+  })),
+);
+const DepartmentsPage = lazy(() =>
+  import('@/pages/settings/DepartmentsPage').then((module) => ({
+    default: module.DepartmentsPage,
+  })),
+);
+const PositionsPage = lazy(() =>
+  import('@/pages/settings/PositionsPage').then((module) => ({ default: module.PositionsPage })),
+);
+const ContractTypesPage = lazy(() =>
+  import('@/pages/settings/ContractTypesPage').then((module) => ({
+    default: module.ContractTypesPage,
+  })),
+);
+const LeaveTypesPage = lazy(() =>
+  import('@/pages/settings/LeaveTypesPage').then((module) => ({ default: module.LeaveTypesPage })),
+);
+const HolidaysPage = lazy(() =>
+  import('@/pages/settings/HolidaysPage').then((module) => ({ default: module.HolidaysPage })),
+);
+
 /**
  * Modules the sidebar links to whose feature ships in a later phase. They get
  * real routes with an explicit "coming soon" page so navigation never lands on
  * a dead link or a redirect that looks like a bug.
+ *
+ * `departments` left this list in Giai đoạn 2.2: departments are master data and
+ * now live at `/settings/departments`. The old top-level path is kept below as a
+ * redirect so links and bookmarks to it still work.
  */
 const UPCOMING_MODULES: Array<{ path: string; titleKey: string; phase: string }> = [
   { path: 'employees', titleKey: 'nav.employees', phase: '3' },
-  { path: 'departments', titleKey: 'nav.departments', phase: '2' },
   { path: 'attendance', titleKey: 'nav.attendance', phase: '4' },
   { path: 'payroll', titleKey: 'nav.payroll', phase: '6' },
   { path: 'leave', titleKey: 'nav.leave', phase: '5' },
   { path: 'reports', titleKey: 'nav.reports', phase: '8' },
-  { path: 'settings', titleKey: 'nav.settings', phase: '2' },
 ];
 
 function fullPage(node: ReactNode) {
@@ -80,6 +108,20 @@ const router = createBrowserRouter([
           { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'profile', element: <ProfilePage /> },
+          {
+            path: 'settings',
+            children: [
+              { index: true, element: <SettingsIndexPage /> },
+              { path: 'departments', element: <DepartmentsPage /> },
+              { path: 'positions', element: <PositionsPage /> },
+              { path: 'contract-types', element: <ContractTypesPage /> },
+              { path: 'leave-types', element: <LeaveTypesPage /> },
+              { path: 'holidays', element: <HolidaysPage /> },
+            ],
+          },
+          // Departments moved under /settings in Giai đoạn 2.2 — keep the old
+          // path working instead of 404-ing bookmarks and open tabs.
+          { path: 'departments', element: <Navigate to="/settings/departments" replace /> },
           ...UPCOMING_MODULES.map(({ path, titleKey, phase }) => ({
             path,
             element: <ComingSoonPage titleKey={titleKey} phase={phase} />,

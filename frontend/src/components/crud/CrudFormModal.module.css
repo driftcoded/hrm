@@ -1,0 +1,9 @@
+.alert {
+  margin-bottom: var(--hrm-space-4);
+}
+
+/* The footer buttons already sit under the form, so the last field does not
+   need AntD's default 24px bottom margin as well. */
+.form :global(.ant-form-item:last-child) {
+  margin-bottom: 0;
+}

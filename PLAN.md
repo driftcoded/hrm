@@ -1,7 +1,7 @@
 # HRM Project — Kế hoạch xây dựng
 
 **Cập nhật lần cuối:** 19/08/2026  
-**Trạng thái tổng thể:** 🟢 Giai đoạn 0 + 1 hoàn thành và đã nghiệm thu — sẵn sàng vào Giai đoạn 2
+**Trạng thái tổng thể:** 🟢 Giai đoạn 0, 1, 2 hoàn thành và đã nghiệm thu — sẵn sàng vào Giai đoạn 3
 
 ---
 
@@ -11,7 +11,7 @@
 |-----------|-----|---------|------------|
 | 0 | Khởi tạo project | 28 / 28 | ✅ Hoàn thành |
 | 1 | Auth & User | 43 / 43 | ✅ Hoàn thành (đã nghiệm thu) |
-| 2 | Master Data | 0 / 11 | ⬜ Chưa bắt đầu |
+| 2 | Master Data | 18 / 18 | ✅ Hoàn thành (đã nghiệm thu) |
 | 3 | Nhân viên | 0 / 16 | ⬜ Chưa bắt đầu |
 | 4 | Chấm công | 0 / 10 | ⬜ Chưa bắt đầu |
 | 5 | Phép | 0 / 12 | ⬜ Chưa bắt đầu |
@@ -19,11 +19,12 @@
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 71 / 128 tasks hoàn thành *(xem lưu ý đếm bên dưới — tổng 128 gốc không khớp số checkbox thực tế)*
+**Tổng:** 89 / 128 tasks hoàn thành *(xem lưu ý đếm bên dưới — tổng 128 gốc không khớp số checkbox thực tế)*
 
 > ⚠️ **Lưu ý đếm.** Con số trong bảng gốc không khớp số dòng checkbox thực tế:
 > - Giai đoạn 0: bảng ghi 14, thực tế 28 dòng (0.1 và 0.2 mỗi mục 14).
 > - Giai đoạn 1: bảng ghi 21, thực tế 43 dòng (1.1 = 13 task + 14 test, 1.2 = 8 task + 8 test).
+> - Giai đoạn 2: bảng ghi 11, thực tế 18 dòng (2.1 = 6 task + 3 test, 2.2 = 6 task + 3 test).
 >
 > Đã sửa 2 dòng trên theo số thực tế. Cột "Tổng: /128" vì thế cũng sai theo — cần rà lại toàn bộ các giai đoạn còn lại rồi chốt lại một cách đếm duy nhất (đếm cả test hay chỉ đếm task).
 
@@ -152,30 +153,41 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 ## Giai đoạn 2 — Master Data
 
 ### 2.1 Backend Master Data
-- [ ] `DepartmentsModule`: CRUD + cây phân cấp (parent_id)
-- [ ] `PositionsModule`: CRUD + liên kết department
-- [ ] `ContractTypesModule`: CRUD loại hợp đồng
-- [ ] `LeaveTypesModule`: CRUD loại phép + số ngày được hưởng mặc định
-- [ ] `HolidaysModule`: CRUD ngày lễ theo năm
-- [ ] Phân quyền: chỉ Admin/HR mới CRUD, các role khác chỉ GET
+- [x] `DepartmentsModule`: CRUD + cây phân cấp (parent_id) — *có `GET /departments/tree`; chống tạo vòng ở cả 2 hướng (tự làm cha mình, và đặt cha là con cháu) → `422 DEPARTMENT_CYCLE`, test assert cây không bị hỏng*
+- [x] `PositionsModule`: CRUD + liên kết department — *thêm validate `level` 1..5 và `minSalary > maxSalary` → `422 INVALID_SALARY_RANGE`*
+- [x] ~~`ContractTypesModule`: CRUD loại hợp đồng~~ → **`GET /contract-types` CHỈ ĐỌC** — *⚠️ quyết định: KHÔNG thêm bảng `contract_types`. Trong 26 bảng không có bảng này; loại hợp đồng là enum `contracts.contract_type` (`probation`/`fixed_term`/`indefinite`/`seasonal`) do BLLĐ 2019 quy định. Mỗi loại kéo theo hệ quả pháp lý khác nhau về BHXH, giới hạn thử việc, thời hạn báo trước — cho HR tự tạo loại mới sẽ sinh ra hợp đồng mà logic lương/bảo hiểm không xử lý được. Test khẳng định `POST /contract-types` → 404.*
+- [x] `LeaveTypesModule`: CRUD loại phép + số ngày được hưởng mặc định — *kèm **seed 9 loại theo BLLĐ 2019 & Luật BHXH** (bảng này trước đó trống, Giai đoạn 5 phụ thuộc). PATERNITY lấy 5 ngày = mức tối thiểu luật định (doc ghi "5–14" nhưng cột chỉ chứa 1 số).*
+- [x] `HolidaysModule`: CRUD ngày lễ theo năm — *`year` do server tự suy ra từ `holidayDate`, client không gửi. **Không có field "lặp lại hàng năm"** — xem ghi chú bên dưới.*
+- [x] Phân quyền: chỉ Admin/HR mới CRUD, các role khác chỉ GET — *`MASTER_DATA_WRITE_ROLES` = admin, hr_manager, hr_staff*
 
-**Tests (2.1):**
-- [ ] CRUD đầy đủ 5 module, response đúng format
-- [ ] Xóa department có nhân viên → trả lỗi rõ ràng (không xóa cascade NV)
-- [ ] Phân quyền: nhân viên thường GET được, không POST/PUT/DELETE được
+> **Ngày lễ không thể "lặp lại hàng năm".** PLAN 2.2 mô tả tính năng này nhưng schema không có field đó, và về bản chất cũng không dùng được: Tết và Giỗ Tổ Hùng Vương tính theo âm lịch nên ngày dương thay đổi mỗi năm (Tết 2025 là 27/01, Tết 2026 là 16/02). Mỗi năm phải là một tập bản ghi riêng, đọc theo `?year=`. Không dựng UI cho field mà API sẽ từ chối.
+
+**Tests (2.1):** — *đã nghiệm thu độc lập: **131 unit + 91 e2e** pass (từ 64+40 của Giai đoạn 1), build sạch, eslint sạch*
+- [x] CRUD đầy đủ 5 module, response đúng format *(vòng đời POST→PATCH→DELETE cho từng module + envelope phân trang chuẩn; chặn `limit > 100`)*
+- [x] Xóa department có nhân viên → trả lỗi rõ ràng (không xóa cascade NV) — *`422 DEPARTMENT_HAS_EMPLOYEES`, test assert **nhân viên còn nguyên**. Thêm cả `DEPARTMENT_HAS_CHILDREN`, `DEPARTMENT_HAS_POSITIONS`, `POSITION_HAS_EMPLOYEES`.*
+- [x] Phân quyền: nhân viên thường GET được, không POST/PUT/DELETE được — *verify live: `manager` GET 200 / POST `403 FORBIDDEN`; `hr_staff` ghi được*
 
 ### 2.2 Frontend Settings
-- [ ] Trang `/settings/departments`: bảng + modal tạo/sửa + xóa
-- [ ] Trang `/settings/positions`: bảng + modal
-- [ ] Trang `/settings/contract-types`: bảng + modal
-- [ ] Trang `/settings/leave-types`: bảng + số ngày mặc định
-- [ ] Trang `/settings/holidays`: bảng + chọn ngày lặp lại hàng năm
-- [ ] Sidebar Settings menu chỉ hiện với Admin
+- [x] Trang `/settings/departments`: bảng + modal tạo/sửa + xóa — *2 chế độ xem: Cây (mặc định) và Danh sách phân trang có search/filter/sort. Ô chọn phòng ban cha là `TreeSelect` **tự ẩn chính nó và toàn bộ nhánh con** vì API sẽ trả `DEPARTMENT_CYCLE`.*
+- [x] Trang `/settings/positions`: bảng + modal — *dropdown phòng ban lấy từ endpoint **tree**, không lấy từ danh sách phẳng vì danh sách phẳng bị cap `limit` 100 sẽ âm thầm thiếu phòng ban*
+- [x] ~~Trang `/settings/contract-types`: bảng + modal~~ → **bảng CHỈ ĐỌC, không modal** — *không có endpoint ghi (xem quyết định ở 2.1). Trang có `Alert` giải thích danh sách do BLLĐ 2019 cố định, thay vì nút bấm vào không làm gì.*
+- [x] Trang `/settings/leave-types`: bảng + số ngày mặc định — *không phân trang vì API trả mảng thuần (PK là TINYINT nên tối đa 255 dòng)*
+- [x] Trang `/settings/holidays`: bảng + ~~chọn ngày lặp lại hàng năm~~ **filter theo năm** — *field "lặp lại hàng năm" không tồn tại và không khả thi, xem ghi chú ở 2.1*
+- [x] Sidebar Settings menu ~~chỉ hiện với Admin~~ **hiện với admin + hr_manager + hr_staff** — *⚠️ lệch có chủ ý: 2.1 cho cả HR quyền CRUD, ẩn menu khỏi người có quyền sửa là vô lý. Dùng hook `useCanWriteMasterData()` đọc `MASTER_DATA_WRITE_ROLES`, không so sánh role rải rác trong component. Nếu muốn đúng nghĩa "chỉ admin" thì phải siết quyền ghi ở backend cho khớp.*
 
 **Tests (2.2):**
-- [ ] CRUD trên UI hoạt động, refresh trang không mất data
-- [ ] Validation: tên trùng → hiện lỗi
-- [ ] Không có permission → redirect hoặc ẩn menu
+- [x] CRUD trên UI hoạt động, refresh trang không mất data — *mọi mutation `invalidateQueries`; toàn bộ page/pageSize/search/sort nằm trong URL query string nên F5 fetch lại đúng dữ liệu. Verify live qua proxy: tạo/sửa/xoá thật trên cả 4 entity ghi được.*
+- [x] Validation: tên trùng → hiện lỗi — *⚠️ chính xác hơn: backend ràng buộc duy nhất trên **`code`** (và `holidayDate`), **không phải `name`** — tên trùng vẫn được chấp nhận. Verify live 409 `DUPLICATE_DEPARTMENT_CODE`, hiện `Alert` inline trong modal đang mở.*
+- [x] Không có permission → redirect hoặc ẩn menu — *chọn **ẩn control** thay vì redirect: `manager`/`employee` vẫn xem được bảng nhưng không có nút Thêm/Sửa/Xoá và cột "Thao tác" bị ẩn hoàn toàn. Verify live: `manager` GET 200, POST 403.*
+
+> **Kiến trúc:** 5 trang settings không copy-paste. Phần chung tách thành `DataTableCard` (khung bảng + filter/action bar + empty/error state), `CrudFormModal`, `useCrudResource` (query + mutation + invalidate), `useCrudScreen` (modal/submit/xoá) và `useTableQuery` (đồng bộ URL). Mỗi trang chỉ khai báo cột, field form và filter.
+>
+> **Quy ước thông báo:** toàn bộ `src/` **không còn một toast lỗi nào** — lỗi submit hiện `Alert` inline trong modal, lỗi tải bảng hiện inline kèm "Thử lại", từ chối xoá do đang được dùng hiện `Modal.error` kèm hướng xử lý. `message.success` chỉ dùng 4 chỗ, đều sau khi modal đã đóng hoặc đã điều hướng.
+>
+> **Còn thiếu / phát hiện cho giai đoạn sau:**
+> - **Chọn trưởng phòng đang là ô nhập ID**, không phải dropdown — vì **chưa có endpoint `/employees`** (Giai đoạn 3). Sẽ thay bằng picker khi có.
+> - **Mã của bản ghi đã xoá mềm vẫn giữ unique index**: tạo lại phòng ban với mã cũ trả `DUPLICATE_DEPARTMENT_CODE` nhưng thông báo không nói rõ mã đang bị bản ghi đã xoá chiếm. Cần xử lý (cho phép tái dùng mã, hoặc nói rõ lý do).
+> - **Xuất Excel** (ui-conventions §5 có nhắc) chưa làm — không thuộc phạm vi 2.2.
 
 ---
 

@@ -1,0 +1,46 @@
+/*
+ * Shared cell / field styling for the five Settings screens, so each page adds
+ * columns and fields rather than its own copy of the same three rules.
+ */
+
+.strongCell {
+  font-weight: 500;
+  color: var(--hrm-color-text);
+}
+
+.muted {
+  color: var(--hrm-color-text-tertiary);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-secondary);
+}
+
+/* Long legal citations in a table cell — keep the row height sane. */
+.clampedText {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--hrm-color-text-secondary);
+}
+
+.filterSelect {
+  min-width: 160px;
+}
+
+.filterSelectWide {
+  min-width: 220px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Notice above a read-only table (contract types). */
+.notice {
+  margin-bottom: var(--hrm-space-4);
+}
