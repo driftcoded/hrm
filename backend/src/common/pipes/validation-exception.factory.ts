@@ -1,0 +1,98 @@
+import { BadRequestException, ValidationError } from '@nestjs/common';
+import {
+  HttpExceptionBody,
+  VALIDATION_ERROR_CODE,
+  ValidationErrorDetail,
+} from '../dto/error-response.dto';
+
+/**
+ * Map tên constraint của class-validator (camelCase) sang một code SNAKE_CASE
+ * hợp lý. Các rule nghiệp vụ VN cụ thể (CCCD, mã số thuế...) sẽ dùng custom
+ * validator decorator riêng ở các phase sau và có thể trả code tuỳ chỉnh qua
+ * cùng cơ chế này.
+ */
+const CONSTRAINT_CODE_MAP: Record<string, string> = {
+  isNotEmpty: 'REQUIRED',
+  isDefined: 'REQUIRED',
+  isEmail: 'INVALID_EMAIL',
+  isString: 'INVALID_TYPE',
+  isNumber: 'INVALID_TYPE',
+  isInt: 'INVALID_TYPE',
+  isBoolean: 'INVALID_TYPE',
+  isArray: 'INVALID_TYPE',
+  isDate: 'INVALID_DATE',
+  isDateString: 'INVALID_DATE',
+  matches: 'INVALID_FORMAT',
+  isEnum: 'INVALID_VALUE',
+  isIn: 'INVALID_VALUE',
+  minLength: 'INVALID_LENGTH',
+  maxLength: 'INVALID_LENGTH',
+  min: 'OUT_OF_RANGE',
+  max: 'OUT_OF_RANGE',
+  isPositive: 'OUT_OF_RANGE',
+  isPhoneNumber: 'INVALID_PHONE',
+};
+
+function camelToSnakeUpper(value: string): string {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[- ]/g, '_')
+    .toUpperCase();
+}
+
+function constraintToCode(constraintKey: string): string {
+  return CONSTRAINT_CODE_MAP[constraintKey] ?? camelToSnakeUpper(constraintKey);
+}
+
+/**
+ * Đệ quy flatten ValidationError[] (bao gồm nested object) thành details[].
+ */
+function flattenErrors(
+  errors: ValidationError[],
+  parentPath = '',
+): ValidationErrorDetail[] {
+  const details: ValidationErrorDetail[] = [];
+
+  for (const error of errors) {
+    const field = parentPath
+      ? `${parentPath}.${error.property}`
+      : error.property;
+
+    if (error.constraints) {
+      for (const [constraintKey, message] of Object.entries(
+        error.constraints,
+      )) {
+        details.push({
+          field,
+          code: constraintToCode(constraintKey),
+          message,
+        });
+      }
+    }
+
+    if (error.children && error.children.length > 0) {
+      details.push(...flattenErrors(error.children, field));
+    }
+  }
+
+  return details;
+}
+
+/**
+ * Dùng làm `exceptionFactory` cho global ValidationPipe (main.ts).
+ * Throw BadRequestException với body đúng shape VALIDATION_ERROR để
+ * HttpExceptionFilter nhận diện và pass-through `details[]`.
+ */
+export function validationExceptionFactory(
+  errors: ValidationError[],
+): BadRequestException {
+  const details = flattenErrors(errors);
+
+  const body: HttpExceptionBody = {
+    code: VALIDATION_ERROR_CODE,
+    message: 'Request validation failed',
+    details,
+  };
+
+  return new BadRequestException(body);
+}
