@@ -1,40 +1,35 @@
 import type { ReactNode } from 'react';
-import { Breadcrumb, Typography, Space } from 'antd';
-import { Link } from 'react-router';
+import { Typography, Space } from 'antd';
 import styles from './PageHeader.module.css';
 
 const { Title } = Typography;
 
-export interface PageBreadcrumbItem {
-  label: string;
-  path?: string;
-}
-
 interface PageHeaderProps {
   title: string;
-  breadcrumbs?: PageBreadcrumbItem[];
+  /** One-line description under the title (gray, smaller). */
+  subtitle?: string;
   actions?: ReactNode;
 }
 
 /**
- * Reusable page header: breadcrumb (max 3 levels per
- * docs/ui-conventions.md §3) + title + right-aligned actions slot.
+ * Reusable page header: title + optional subtitle + right-aligned actions slot.
+ *
+ * The breadcrumb deliberately lives in the app Header instead of here — it used
+ * to be rendered per page, which meant every page had to remember to pass it and
+ * the trail moved around depending on the page. One fixed location in the header
+ * is both less code and less for the reader to track.
  */
-export function PageHeader({ title, breadcrumbs, actions }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
     <div className={styles.pageHeader}>
-      {breadcrumbs && breadcrumbs.length > 0 && (
-        <Breadcrumb
-          items={breadcrumbs.map((item) => ({
-            title: item.path ? <Link to={item.path}>{item.label}</Link> : item.label,
-          }))}
-        />
-      )}
       <div className={styles.titleRow}>
-        <Title level={4} className={styles.title}>
-          {title}
-        </Title>
-        {actions && <Space>{actions}</Space>}
+        <div className={styles.titleBlock}>
+          <Title level={4} className={styles.title}>
+            {title}
+          </Title>
+          {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+        </div>
+        {actions && <Space wrap>{actions}</Space>}
       </div>
     </div>
   );

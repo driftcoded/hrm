@@ -1,0 +1,7 @@
+.notice {
+  margin-bottom: var(--hrm-grid-gap);
+}
+
+.bottomRow {
+  margin-top: var(--hrm-grid-gap);
+}

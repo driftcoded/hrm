@@ -2,31 +2,115 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  gap: var(--hrm-space-4);
+  height: var(--hrm-header-height);
+  padding: 0 var(--hrm-space-5);
+  background: var(--hrm-card-bg);
+  border-bottom: var(--hrm-card-border);
 }
 
 .left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--hrm-space-2);
+  /* Let the search shrink instead of shoving the right cluster off-screen. */
+  min-width: 0;
+  flex: 1;
 }
 
-.logo {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1677ff;
+.breadcrumb {
+  flex: none;
+  white-space: nowrap;
+  margin-inline-end: var(--hrm-space-2);
 }
 
-.trigger {
-  font-size: 18px;
-  cursor: pointer;
+.search {
+  width: var(--hrm-search-width);
+  max-width: 100%;
+  border-radius: var(--hrm-nav-radius);
 }
 
 .right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--hrm-space-2);
+  flex: none;
+}
+
+.localeButton,
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--hrm-color-text);
   cursor: pointer;
+  border-radius: var(--hrm-nav-radius);
+}
+
+.localeButton {
+  height: 36px;
+  padding: 0 var(--hrm-space-3);
+  border: 1px solid var(--hrm-color-border);
+}
+
+.localeButton:hover,
+.userButton:hover {
+  background: var(--hrm-page-bg);
+}
+
+.userButton {
+  padding: var(--hrm-space-1) var(--hrm-space-2);
+}
+
+.userText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: var(--hrm-line-height-tight);
+  min-width: 0;
+}
+
+.userName {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.userRole {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+.chevron {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+/* Below tablet the name/role text and the search box lose their room first. */
+@media (max-width: 991px) {
+  .search {
+    width: 100%;
+  }
+
+  .userText {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    padding: 0 var(--hrm-space-4);
+  }
+
+  /* On a phone the tab bar below already names the current page. */
+  .breadcrumb,
+  .search {
+    display: none;
+  }
 }

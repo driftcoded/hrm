@@ -1,0 +1,109 @@
+/**
+ * Design tokens — single source of truth for CSS modules.
+ * Mirrors docs/ui-conventions.md §1 (colors, typography, 8px spacing scale)
+ * and §2 (AntD theme: borderRadius 6, colorPrimary #1677ff, fontSize 14).
+ *
+ * RULE: CSS modules must never hardcode a hex value / raw px scale value —
+ * always reference a token from this file. The same primitives are fed to
+ * AntD's ConfigProvider theme in src/App.tsx, so the two stay in sync.
+ */
+:root {
+  /* --- Brand / status colors (§1) --- */
+  --hrm-color-primary: #1677ff;
+  --hrm-color-primary-hover: #4096ff;
+  --hrm-color-primary-active: #0958d9;
+  --hrm-color-primary-soft: #e6f4ff;
+  --hrm-color-primary-softer: #f0f7ff;
+  --hrm-color-success: #52c41a;
+  --hrm-color-success-soft: #f6ffed;
+  --hrm-color-warning: #faad14;
+  --hrm-color-warning-soft: #fffbe6;
+  --hrm-color-error: #ff4d4f;
+  --hrm-color-accent: #722ed1;
+  --hrm-color-accent-soft: #f9f0ff;
+
+  /* --- Text --- */
+  --hrm-color-text: rgba(0, 0, 0, 0.88);
+  --hrm-color-text-secondary: rgba(0, 0, 0, 0.65);
+  --hrm-color-text-tertiary: rgba(0, 0, 0, 0.45);
+  /* Dark navy used for the marketing headline on the auth brand panel */
+  --hrm-color-heading: #0f2747;
+  --hrm-color-muted: #5c7099;
+
+  /* --- Surfaces --- */
+  --hrm-color-bg: #ffffff;
+  --hrm-color-bg-layout: #f0f2f5;
+  --hrm-color-border: #d9d9d9;
+  --hrm-color-border-subtle: #eef2f7;
+
+  /* Soft blue-tinted gradient behind the auth screens */
+  --hrm-auth-bg: linear-gradient(135deg, #eff5ff 0%, #e7f0fe 42%, #f6faff 100%);
+  --hrm-auth-footer-bg: rgba(255, 255, 255, 0.72);
+
+  /* --- Radius (§2) --- */
+  --hrm-radius: 6px;
+  --hrm-radius-md: 10px;
+  --hrm-radius-tile: 12px;
+  --hrm-radius-lg: 16px;
+  --hrm-radius-pill: 999px;
+
+  /* --- Spacing scale: multiples of 8 (§1) --- */
+  --hrm-space-1: 4px;
+  --hrm-space-2: 8px;
+  --hrm-space-3: 12px;
+  --hrm-space-4: 16px;
+  --hrm-space-5: 24px;
+  --hrm-space-6: 32px;
+  --hrm-space-7: 48px;
+
+  /* --- Typography (§1) --- */
+  --hrm-font-size-caption: 12px;
+  --hrm-font-size-base: 14px;
+  --hrm-font-size-h3: 16px;
+  --hrm-font-size-h2: 20px;
+  --hrm-font-size-h1: 24px;
+  --hrm-font-size-display: 40px;
+  --hrm-line-height-tight: 1.25;
+  --hrm-line-height-base: 1.6;
+
+  /* --- Elevation --- */
+  --hrm-shadow-card: 0 12px 32px rgba(15, 39, 71, 0.1);
+  --hrm-shadow-tile: 0 4px 12px rgba(15, 39, 71, 0.06);
+
+  /* --- Admin shell layout ---
+     Sidebar 240px / collapsed 80px and header 64px come from
+     docs/ui-conventions.md §3. The page canvas is deliberately a tinted
+     neutral (not white) so white cards read as raised against it. --- */
+  --hrm-sidebar-width: 240px;
+  --hrm-sidebar-width-collapsed: 80px;
+  /* Dark sidebar: a deep navy from the same family as --hrm-color-heading, so
+     the shell reads as one brand rather than a black slab next to blue. */
+  --hrm-sidebar-bg: #0f2747;
+  --hrm-sidebar-bg-hover: #1b3a63;
+  --hrm-sidebar-border: rgba(255, 255, 255, 0.08);
+  --hrm-sidebar-text: rgba(255, 255, 255, 0.75);
+  --hrm-sidebar-text-strong: #ffffff;
+  --hrm-sidebar-text-muted: rgba(255, 255, 255, 0.45);
+  --hrm-header-height: 64px;
+  --hrm-page-bg: #f7f8fa;
+  --hrm-card-bg: #ffffff;
+  --hrm-card-radius: 12px;
+  --hrm-card-border: 1px solid #f0f0f0;
+  --hrm-card-padding: 20px;
+  --hrm-grid-gap: 16px;
+  --hrm-nav-item-height: 40px;
+  --hrm-nav-radius: 8px;
+  --hrm-search-width: 320px;
+  --hrm-kpi-tile-size: 48px;
+  --hrm-activity-tile-size: 36px;
+
+  /* --- Auth screen layout --- */
+  --hrm-auth-card-width: 440px;
+  --hrm-auth-card-width-compact: 420px;
+  --hrm-auth-brand-width: 58%;
+  --hrm-auth-tile-size: 44px;
+
+  /* --- Breakpoints (§10) are duplicated in media queries because
+         CSS custom properties can't be used inside @media conditions:
+         mobile < 768px, tablet 768–1199px, desktop >= 1200px. --- */
+}

@@ -1,0 +1,46 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  padding: var(--hrm-space-2) var(--hrm-space-5) 0;
+  background: var(--hrm-card-bg);
+  border-bottom: var(--hrm-card-border);
+  /* Many open tabs scroll horizontally here instead of widening the page. */
+  min-width: 0;
+}
+
+.tabs {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Card tabs ship with a bottom margin meant for page content; the bar owns its
+   own spacing, so remove it. */
+.tabs :global(.ant-tabs-nav) {
+  margin: 0;
+}
+
+.moreButton {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin-bottom: var(--hrm-space-2);
+  border: 1px solid var(--hrm-color-border);
+  border-radius: var(--hrm-radius);
+  background: transparent;
+  color: var(--hrm-color-text-secondary);
+  font-size: var(--hrm-font-size-base);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.moreButton:hover {
+  background: var(--hrm-page-bg);
+  color: var(--hrm-color-text);
+}
+
+@media (max-width: 767px) {
+  .wrapper {
+    padding-inline: var(--hrm-space-4);
+  }
+}

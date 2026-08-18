@@ -1,0 +1,94 @@
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--hrm-space-4);
+  padding: var(--hrm-card-padding);
+  background: var(--hrm-card-bg);
+  border: var(--hrm-card-border);
+  border-radius: var(--hrm-card-radius);
+  height: 100%;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--hrm-kpi-tile-size);
+  height: var(--hrm-kpi-tile-size);
+  border-radius: var(--hrm-radius-tile);
+  font-size: var(--hrm-font-size-h2);
+}
+
+.blue {
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+}
+
+.green {
+  background: var(--hrm-color-success-soft);
+  color: var(--hrm-color-success);
+}
+
+.cyan {
+  background: #e6fffb;
+  color: #13a8a8;
+}
+
+.purple {
+  background: var(--hrm-color-accent-soft);
+  color: var(--hrm-color-accent);
+}
+
+.body {
+  min-width: 0;
+  flex: 1;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-1);
+}
+
+.label {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.hintButton {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+  cursor: help;
+  line-height: 1;
+}
+
+.value {
+  margin: var(--hrm-space-1) 0 0;
+  font-size: var(--hrm-font-size-h1);
+  font-weight: 700;
+  line-height: var(--hrm-line-height-tight);
+  color: var(--hrm-color-heading);
+  /* A long currency value must wrap rather than widen the grid column. */
+  overflow-wrap: anywhere;
+}
+
+.deltaUp,
+.deltaFlat {
+  margin: var(--hrm-space-2) 0 0;
+  font-size: var(--hrm-font-size-caption);
+}
+
+.deltaUp {
+  color: var(--hrm-color-success);
+}
+
+.deltaFlat {
+  color: var(--hrm-color-text-tertiary);
+}

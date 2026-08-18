@@ -1,14 +1,44 @@
 .layout {
   min-height: 100vh;
+  background: var(--hrm-page-bg);
 }
 
-.contentWrapper {
-  overflow: initial;
+/*
+ * The sidebar is its own full-height column and stays put while the content
+ * column scrolls, so navigation is always reachable on long pages.
+ */
+.sider {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  /* AntD's dark Sider defaults to its own `#001529`; force the brand navy so
+     the Sider chrome and the Sidebar contents are one surface. */
+  background: var(--hrm-sidebar-bg);
+}
+
+/* Mobile nav drawer: same dark surface as the desktop sidebar, no padding so
+   the menu reaches the edges. */
+.drawerBody {
+  padding: 0;
+  background: var(--hrm-sidebar-bg);
+}
+
+.main {
+  background: var(--hrm-page-bg);
+  /* Without this, a wide table inside a flex child can push the whole
+     column past the viewport instead of scrolling inside its own card. */
+  min-width: 0;
 }
 
 .content {
-  margin: 24px 16px;
-  padding: 24px;
-  background: #fff;
-  border-radius: 6px;
+  /* No card chrome here on purpose: each dashboard section brings its own
+     card, and page-level padding would double up the borders. */
+  padding: var(--hrm-space-5);
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .content {
+    padding: var(--hrm-space-4);
+  }
 }

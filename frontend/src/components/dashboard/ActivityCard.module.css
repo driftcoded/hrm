@@ -1,0 +1,108 @@
+.card {
+  border: var(--hrm-card-border);
+  border-radius: var(--hrm-card-radius);
+  height: 100%;
+}
+
+.cardTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hrm-space-1);
+}
+
+.hintButton {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+  cursor: help;
+  line-height: 1;
+}
+
+.feed {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--hrm-space-3);
+  padding: var(--hrm-space-3) 0;
+  border-bottom: var(--hrm-card-border);
+}
+
+.item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--hrm-activity-tile-size);
+  height: var(--hrm-activity-tile-size);
+  border-radius: var(--hrm-radius-tile);
+}
+
+.employee {
+  background: var(--hrm-color-success-soft);
+  color: var(--hrm-color-success);
+}
+
+.leave {
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+}
+
+.payroll {
+  background: var(--hrm-color-accent-soft);
+  color: var(--hrm-color-accent);
+}
+
+.contract {
+  background: var(--hrm-color-warning-soft);
+  color: var(--hrm-color-warning);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.title {
+  font-weight: 500;
+  color: var(--hrm-color-text);
+}
+
+.detail {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+.when {
+  flex: none;
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  white-space: nowrap;
+}
+
+@media (max-width: 575px) {
+  /* On a phone the timestamp drops under the text instead of squeezing it. */
+  .item {
+    flex-wrap: wrap;
+  }
+
+  .when {
+    width: 100%;
+    padding-left: calc(var(--hrm-activity-tile-size) + var(--hrm-space-3));
+  }
+}

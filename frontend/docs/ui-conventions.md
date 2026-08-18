@@ -236,12 +236,28 @@ Không dùng `Spin` (spinner tròn) cho trang — dễ gây layout shift.
 | Loại | AntD component | Khi dùng |
 |------|---------------|---------|
 | Thành công | `message.success()` | Lưu, xóa, duyệt thành công |
-| Lỗi ngắn | `message.error()` | Lỗi validate, lỗi API nhẹ |
+| Lỗi ngắn | `message.error()` | Lỗi API nhẹ **khi trên màn hình không có chỗ hiển thị inline** |
 | Cảnh báo | `message.warning()` | Nhắc nhở, xác nhận hành động |
 | Thông báo chi tiết | `notification.open()` | Thông báo có action button |
 | Xác nhận xóa | `Modal.confirm()` | Trước khi xóa bản ghi |
 
 Thời gian hiển thị `message`: 3 giây. `notification`: 5 giây.
+
+### KHÔNG thông báo trùng (BẮT BUỘC)
+
+**Mỗi sự kiện chỉ được thông báo qua ĐÚNG MỘT kênh.** Nơi nào đã hiển thị thông báo
+inline thì KHÔNG được bắn toast cho cùng sự kiện đó.
+
+| Tình huống | Dùng | KHÔNG dùng |
+|-----------|------|-----------|
+| Lỗi validate từng trường | Inline dưới input (AntD `Form` tự render) | `message.error()` |
+| Lỗi submit form (sai mật khẩu, token hết hạn…) | `Alert` inline trong form/card | Toast kèm theo |
+| Card/bảng tải lỗi | Error state inline trong card + nút "Thử lại" (xem §7) | Toast |
+| Thao tác xong rồi điều hướng sang trang khác | `message.success()` (trang cũ đã biến mất, không còn chỗ inline) | – |
+| Thao tác nền, không có gì hiện trên màn hình | `message.*` | – |
+
+Nguyên tắc: nếu người dùng đã thấy lỗi ngay tại ngữ cảnh gây ra lỗi, đó là nơi duy nhất
+lỗi được hiển thị.
 
 ---
 

@@ -1,35 +1,221 @@
 {
-  "common": {
-    "save": "Lưu",
-    "cancel": "Hủy",
-    "loading": "Đang tải...",
-    "noData": "Chưa có dữ liệu"
-  },
-  "nav": {
-    "dashboard": "Tổng quan",
-    "employees": "Nhân viên",
-    "attendance": "Chấm công",
-    "leave": "Nghỉ phép",
-    "payroll": "Bảng lương",
-    "settings": "Cài đặt"
-  },
   "app": {
     "name": "HRM"
   },
   "auth": {
     "loginTitle": "Đăng nhập",
+    "loginSubtitle": "Chào mừng bạn trở lại! Vui lòng đăng nhập để tiếp tục.",
+    "loginButton": "Đăng nhập",
+    "loginSuccess": "Đăng nhập thành công",
+    "identifier": "Email hoặc tên đăng nhập",
+    "identifierPlaceholder": "Nhập email hoặc tên đăng nhập",
     "email": "Email",
+    "emailPlaceholder": "Nhập email của bạn",
     "password": "Mật khẩu",
-    "loginButton": "Đăng nhập"
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "rememberMe": "Ghi nhớ đăng nhập",
+    "forgotPasswordLink": "Quên mật khẩu?",
+    "orDivider": "hoặc",
+    "noAccount": "Chưa có tài khoản?",
+    "contactAdmin": "Liên hệ quản trị viên",
+    "backToLogin": "Quay lại đăng nhập",
+    "forgotTitle": "Quên mật khẩu",
+    "forgotSubtitle": "Nhập email của bạn, chúng tôi sẽ gửi liên kết đặt lại mật khẩu.",
+    "forgotSubmit": "Gửi liên kết đặt lại",
+    "forgotSentTitle": "Đã gửi yêu cầu",
+    "forgotSentDescription": "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi liên kết đặt lại mật khẩu tới địa chỉ đó. Liên kết có hiệu lực trong 30 phút.",
+    "resetTitle": "Đặt lại mật khẩu",
+    "resetSubtitle": "Tạo mật khẩu mới cho tài khoản của bạn.",
+    "resetLinkDeadSubtitle": "Liên kết đặt lại mật khẩu không còn hiệu lực.",
+    "resetSubmit": "Đặt lại mật khẩu",
+    "resetSuccess": "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.",
+    "requestNewLink": "Yêu cầu liên kết mới",
+    "newPassword": "Mật khẩu mới",
+    "newPasswordPlaceholder": "Nhập mật khẩu mới",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "confirmPasswordPlaceholder": "Nhập lại mật khẩu mới",
+    "sso": {
+      "google": "Tiếp tục với Google",
+      "microsoft": "Tiếp tục với Microsoft"
+    },
+    "brand": {
+      "badge": "Chuẩn nghiệp vụ nhân sự Việt Nam",
+      "headlineLine1": "Quản trị nhân sự trọn vẹn",
+      "headlineLine2": "cho doanh nghiệp",
+      "headlineAccent": "Việt Nam",
+      "description": "Hồ sơ, hợp đồng, chấm công, nghỉ phép và tiền lương cùng nằm trên một nền tảng duy nhất. Số liệu cập nhật liên tục giúp phòng nhân sự ra quyết định nhanh và chính xác hơn.",
+      "features": {
+        "records": {
+          "title": "Hồ sơ nhân sự tập trung",
+          "description": "Thông tin, hợp đồng và quá trình công tác của từng nhân viên ở cùng một nơi."
+        },
+        "attendance": {
+          "title": "Chấm công và nghỉ phép",
+          "description": "Theo dõi giờ làm, đơn nghỉ phép và số ngày phép còn lại theo từng kỳ."
+        },
+        "payroll": {
+          "title": "Tính lương minh bạch",
+          "description": "Bảng lương, thuế thu nhập cá nhân và các khoản bảo hiểm được tính theo kỳ."
+        }
+      }
+    },
+    "footer": {
+      "copyright": "© {{year}} {{app}}. Hệ thống quản trị nhân sự nội bộ.",
+      "privacy": "Chính sách bảo mật",
+      "terms": "Điều khoản sử dụng"
+    },
+    "validation": {
+      "identifierRequired": "Vui lòng nhập email hoặc tên đăng nhập",
+      "emailRequired": "Vui lòng nhập email",
+      "emailInvalid": "Email không đúng định dạng",
+      "passwordRequired": "Vui lòng nhập mật khẩu",
+      "passwordMin": "Mật khẩu phải có ít nhất {{min}} ký tự",
+      "confirmPasswordRequired": "Vui lòng nhập lại mật khẩu",
+      "passwordMismatch": "Mật khẩu xác nhận không khớp"
+    }
+  },
+  "comingSoon": {
+    "title": "Phân hệ {{module}} đang được xây dựng.",
+    "phase": "Dự kiến hoàn thành ở Giai đoạn {{phase}}."
+  },
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "loading": "Đang tải...",
+    "noData": "Chưa có dữ liệu",
+    "retry": "Thử lại",
+    "comingSoon": "Sắp có",
+    "comingSoonAria": "{{label}} (sắp có)"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Chào mừng đến với hệ thống HRM",
+    "subtitle": "Cập nhật tình hình nhân sự và các chỉ số quan trọng của công ty.",
+    "placeholderNotice": "Số liệu trên trang này là dữ liệu mẫu. Dashboard sẽ được nối với API thật ở Giai đoạn 8.",
+    "viewAll": "Xem tất cả",
+    "kpi": {
+      "unchanged": "Không thay đổi",
+      "deltaVsLastMonth": "{{value}} so với tháng trước",
+      "totalEmployees": "Tổng nhân viên",
+      "totalEmployeesHint": "Tổng số nhân viên có hồ sơ trong hệ thống, gồm cả người đã nghỉ việc.",
+      "departments": "Phòng ban",
+      "departmentsHint": "Số phòng ban đang hoạt động.",
+      "activeEmployees": "Đang làm việc",
+      "activeEmployeesHint": "Nhân viên có trạng thái đang làm việc hoặc thử việc.",
+      "payrollCost": "Chi phí lương tháng này",
+      "payrollCostHint": "Tổng chi phí lương của kỳ lương gần nhất, gồm phụ cấp và các khoản công ty đóng."
+    },
+    "expiring": {
+      "title": "Sắp hết hạn / Cần xử lý",
+      "hint": "Các mốc thời hạn cần xử lý trong 30 ngày tới.",
+      "employee": "Nhân viên",
+      "position": "Vị trí",
+      "department": "Phòng ban",
+      "dueDate": "Ngày hết hạn",
+      "daysLeft": "Còn lại",
+      "days": "{{count}} ngày",
+      "tabs": {
+        "probation": "Thử việc",
+        "contract": "Hợp đồng",
+        "leave": "Nghỉ phép chờ duyệt"
+      }
+    },
+    "activity": {
+      "title": "Hoạt động gần đây",
+      "hint": "Các thao tác gần nhất trên hệ thống.",
+      "yesterday": "Hôm qua",
+      "employeeAdded": "Đã thêm mới nhân viên {{name}}",
+      "departmentDetail": "Phòng {{department}}",
+      "leaveRequested": "Đơn xin nghỉ phép của {{name}}",
+      "leaveRange": "Từ {{from}} đến {{to}}",
+      "payrollCreated": "Bảng lương tháng {{period}} đã được tạo",
+      "payrollTotal": "Tổng chi phí: {{total}}",
+      "contractExpiring": "Hợp đồng của {{name}} sắp hết hạn",
+      "dueDetail": "Ngày hết hạn: {{date}}"
+    }
+  },
+  "errors": {
+    "api": {
+      "INVALID_CREDENTIALS": "Tên đăng nhập hoặc mật khẩu không đúng.",
+      "ACCOUNT_LOCKED": "Tài khoản đang bị tạm khóa. Vui lòng thử lại sau hoặc liên hệ quản trị viên.",
+      "ACCOUNT_LOCKED_WITH_TIME": "Tài khoản đang bị tạm khóa. Vui lòng thử lại sau {{minutes}} phút.",
+      "LOGIN_ATTEMPTS_EXCEEDED": "Bạn đã nhập sai quá nhiều lần nên tài khoản bị tạm khóa. Vui lòng thử lại sau ít phút.",
+      "LOGIN_ATTEMPTS_EXCEEDED_WITH_TIME": "Bạn đã nhập sai quá nhiều lần nên tài khoản bị tạm khóa. Vui lòng thử lại sau {{minutes}} phút.",
+      "RATE_LIMIT_EXCEEDED": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
+      "TOKEN_EXPIRED": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+      "TOKEN_INVALID": "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.",
+      "REFRESH_TOKEN_EXPIRED": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+      "WRONG_CURRENT_PASSWORD": "Mật khẩu hiện tại không đúng.",
+      "PASSWORD_MISMATCH": "Mật khẩu xác nhận không khớp.",
+      "RESET_TOKEN_INVALID": "Liên kết đặt lại mật khẩu không hợp lệ. Vui lòng yêu cầu liên kết mới.",
+      "RESET_TOKEN_EXPIRED": "Liên kết đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu liên kết mới.",
+      "VALIDATION_ERROR": "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại các trường đã nhập.",
+      "FORBIDDEN": "Bạn không có quyền thực hiện thao tác này.",
+      "NETWORK_ERROR": "Không kết nối được tới hệ thống. Vui lòng kiểm tra kết nối mạng và thử lại.",
+      "ERR_NETWORK": "Không kết nối được tới hệ thống. Vui lòng kiểm tra kết nối mạng và thử lại.",
+      "ECONNABORTED": "Yêu cầu bị hủy do quá thời gian chờ. Vui lòng thử lại.",
+      "UNKNOWN_ERROR": "Đã xảy ra lỗi. Vui lòng thử lại."
+    }
   },
   "layout": {
     "profile": "Hồ sơ cá nhân",
+    "viewProfile": "Xem profile",
+    "userMenu": "Menu người dùng",
     "logout": "Đăng xuất",
     "collapseSidebar": "Thu gọn menu",
-    "expandSidebar": "Mở rộng menu"
+    "expandSidebar": "Mở rộng menu",
+    "navigation": "Điều hướng chính",
+    "openNavigation": "Mở menu điều hướng",
+    "collapse": "Thu gọn",
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm kiếm nhân viên, phòng ban, đơn từ...",
+    "notifications": "Thông báo",
+    "help": "Trợ giúp",
+    "language": "Ngôn ngữ"
   },
-  "dashboard": {
-    "title": "Tổng quan",
-    "welcome": "Chào mừng đến với hệ thống HRM"
+  "locale": {
+    "vi": "Tiếng Việt",
+    "en": "English"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "employees": "Nhân viên",
+    "attendance": "Chấm công",
+    "leave": "Nghỉ phép",
+    "payroll": "Bảng lương",
+    "settings": "Cài đặt",
+    "profile": "Hồ sơ cá nhân",
+    "departments": "Phòng ban",
+    "reports": "Báo cáo"
+  },
+  "profile": {
+    "title": "Hồ sơ cá nhân",
+    "infoTitle": "Thông tin tài khoản",
+    "username": "Tên đăng nhập",
+    "email": "Email",
+    "employeeName": "Nhân viên",
+    "noEmployeeLink": "Chưa liên kết hồ sơ nhân viên",
+    "loadError": "Không tải được thông tin tài khoản.",
+    "changePasswordTitle": "Đổi mật khẩu",
+    "changePasswordHint": "Sau khi đổi mật khẩu, tất cả phiên đăng nhập sẽ bị kết thúc và bạn cần đăng nhập lại.",
+    "currentPassword": "Mật khẩu hiện tại:",
+    "currentPasswordPlaceholder": "Nhập mật khẩu hiện tại",
+    "newPassword": "Mật khẩu mới:",
+    "confirmPassword": "Xác nhận mật khẩu mới:",
+    "changePasswordSubmit": "Đổi mật khẩu",
+    "changePasswordSuccess": "Đổi mật khẩu thành công. Vui lòng đăng nhập lại."
+  },
+  "roles": {
+    "admin": "Quản trị hệ thống",
+    "hr_manager": "Trưởng phòng Nhân sự",
+    "hr_staff": "Nhân viên Nhân sự",
+    "manager": "Quản lý phòng ban",
+    "employee": "Nhân viên",
+    "unknown": "Không rõ"
+  },
+  "tabs": {
+    "closeOthers": "Đóng các tab khác",
+    "closeAll": "Đóng tất cả tab",
+    "actions": "Thao tác với tab"
   }
 }

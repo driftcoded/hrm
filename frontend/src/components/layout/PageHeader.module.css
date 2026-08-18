@@ -1,14 +1,27 @@
 .pageHeader {
-  margin-bottom: 16px;
+  margin-bottom: var(--hrm-space-5);
 }
 
 .titleRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-top: 8px;
+  gap: var(--hrm-space-4);
+  margin-top: var(--hrm-space-2);
+  flex-wrap: wrap;
+}
+
+.titleBlock {
+  min-width: 0;
 }
 
 .title {
   margin: 0 !important;
+  font-size: var(--hrm-font-size-h1) !important;
+}
+
+.subtitle {
+  margin: var(--hrm-space-1) 0 0;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-base);
 }

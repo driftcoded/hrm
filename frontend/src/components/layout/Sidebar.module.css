@@ -1,4 +1,95 @@
-.menu {
+.sidebar {
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  background: var(--hrm-sidebar-bg);
+  /* Recolours the shared BrandMark wordmark for this dark container. */
+  --hrm-brand-wordmark-color: var(--hrm-sidebar-text-strong);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  height: var(--hrm-header-height);
+  padding: 0 var(--hrm-space-4);
+  flex: none;
+}
+
+.brandCollapsed {
+  justify-content: center;
+  padding: 0;
+}
+
+/*
+ * `flex: 1` + scroll keeps the collapse row pinned to the bottom once the menu
+ * outgrows the viewport, instead of pushing it off-screen.
+ */
+.menu {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--hrm-space-2);
   border-inline-end: 0;
+  background: transparent;
+}
+
+/*
+ * AntD's dark Menu paints the selected item with its own fill and keeps a
+ * tinted hover. The design wants a solid primary fill with white text, and the
+ * menu must inherit the sidebar's navy rather than AntD's default `#001529`.
+ * `:global` is required because these are AntD's class names, not this module's.
+ */
+.menu :global(.ant-menu-item) {
+  height: var(--hrm-nav-item-height);
+  line-height: var(--hrm-nav-item-height);
+  border-radius: var(--hrm-nav-radius);
+  margin-block: var(--hrm-space-1);
+  width: 100%;
+  color: var(--hrm-sidebar-text);
+}
+
+.menu :global(.ant-menu-item:hover) {
+  background: var(--hrm-sidebar-bg-hover);
+  color: var(--hrm-sidebar-text-strong);
+}
+
+.menu :global(.ant-menu-item-selected),
+.menu :global(.ant-menu-item-selected:hover) {
+  background: var(--hrm-color-primary);
+  color: var(--hrm-sidebar-text-strong);
+  font-weight: 600;
+}
+
+.menu :global(.ant-menu-item-selected .ant-menu-item-icon) {
+  color: var(--hrm-sidebar-text-strong);
+}
+
+.footer {
+  flex: none;
+  padding: var(--hrm-space-2);
+  border-top: 1px solid var(--hrm-sidebar-border);
+}
+
+.collapseButton {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  width: 100%;
+  height: var(--hrm-nav-item-height);
+  padding: 0 var(--hrm-space-3);
+  border: none;
+  border-radius: var(--hrm-nav-radius);
+  background: transparent;
+  font: inherit;
+  color: var(--hrm-sidebar-text-muted);
+  cursor: pointer;
+}
+
+.collapseButton:hover {
+  background: var(--hrm-sidebar-bg-hover);
+  color: var(--hrm-sidebar-text-strong);
+}
+
+.collapseIcon {
+  font-size: var(--hrm-font-size-base);
 }

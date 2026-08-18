@@ -1,9 +1,181 @@
 {
+  "app": {
+    "name": "HRM"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "loginSubtitle": "Welcome back! Please sign in to continue.",
+    "loginButton": "Sign in",
+    "loginSuccess": "Signed in successfully",
+    "identifier": "Email or username",
+    "identifierPlaceholder": "Enter your email or username",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "rememberMe": "Remember me",
+    "forgotPasswordLink": "Forgot password?",
+    "orDivider": "or",
+    "noAccount": "Don't have an account?",
+    "contactAdmin": "Contact your administrator",
+    "backToLogin": "Back to sign in",
+    "forgotTitle": "Forgot password",
+    "forgotSubtitle": "Enter your email and we'll send you a reset link.",
+    "forgotSubmit": "Send reset link",
+    "forgotSentTitle": "Request sent",
+    "forgotSentDescription": "If that email exists in the system, we've sent a password reset link to it. The link is valid for 30 minutes.",
+    "resetTitle": "Reset password",
+    "resetSubtitle": "Create a new password for your account.",
+    "resetLinkDeadSubtitle": "This password reset link is no longer valid.",
+    "resetSubmit": "Reset password",
+    "resetSuccess": "Password reset successfully. Please sign in again.",
+    "requestNewLink": "Request a new link",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Re-enter your new password",
+    "sso": {
+      "google": "Continue with Google",
+      "microsoft": "Continue with Microsoft"
+    },
+    "brand": {
+      "badge": "Built for Vietnamese HR practice",
+      "headlineLine1": "Complete HR management",
+      "headlineLine2": "for companies in",
+      "headlineAccent": "Vietnam",
+      "description": "Employee records, contracts, attendance, leave and payroll all live on a single platform. Continuously updated figures help your HR team decide faster and more accurately.",
+      "features": {
+        "records": {
+          "title": "Centralised employee records",
+          "description": "Personal details, contracts and job history for every employee in one place."
+        },
+        "attendance": {
+          "title": "Attendance and leave",
+          "description": "Track working hours, leave requests and the remaining balance for each period."
+        },
+        "payroll": {
+          "title": "Transparent payroll",
+          "description": "Payslips, personal income tax and insurance contributions calculated per period."
+        }
+      }
+    },
+    "footer": {
+      "copyright": "© {{year}} {{app}}. Internal HR management system.",
+      "privacy": "Privacy policy",
+      "terms": "Terms of use"
+    },
+    "validation": {
+      "identifierRequired": "Please enter your email or username",
+      "emailRequired": "Please enter your email",
+      "emailInvalid": "Invalid email format",
+      "passwordRequired": "Please enter your password",
+      "passwordMin": "Password must be at least {{min}} characters",
+      "confirmPasswordRequired": "Please re-enter your password",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "comingSoon": {
+    "title": "The {{module}} module is under construction.",
+    "phase": "Planned for phase {{phase}}."
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
     "loading": "Loading...",
-    "noData": "No data"
+    "noData": "No data",
+    "retry": "Retry",
+    "comingSoon": "Coming soon",
+    "comingSoonAria": "{{label}} (coming soon)"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to the HRM system",
+    "subtitle": "Current headcount and the key metrics for the company.",
+    "placeholderNotice": "Figures on this page are sample data. The dashboard will be wired to the real API in phase 8.",
+    "viewAll": "View all",
+    "kpi": {
+      "unchanged": "No change",
+      "deltaVsLastMonth": "{{value}} vs last month",
+      "totalEmployees": "Total employees",
+      "totalEmployeesHint": "All employee records in the system, including former staff.",
+      "departments": "Departments",
+      "departmentsHint": "Number of active departments.",
+      "activeEmployees": "Currently working",
+      "activeEmployeesHint": "Employees whose status is working or on probation.",
+      "payrollCost": "This month's payroll cost",
+      "payrollCostHint": "Total payroll cost for the latest period, including allowances and employer contributions."
+    },
+    "expiring": {
+      "title": "Expiring / needs action",
+      "hint": "Deadlines that need attention in the next 30 days.",
+      "employee": "Employee",
+      "position": "Position",
+      "department": "Department",
+      "dueDate": "Due date",
+      "daysLeft": "Remaining",
+      "days": "{{count}} days",
+      "tabs": {
+        "probation": "Probation",
+        "contract": "Contracts",
+        "leave": "Leave awaiting approval"
+      }
+    },
+    "activity": {
+      "title": "Recent activity",
+      "hint": "The most recent actions in the system.",
+      "yesterday": "Yesterday",
+      "employeeAdded": "Added new employee {{name}}",
+      "departmentDetail": "{{department}} department",
+      "leaveRequested": "Leave request from {{name}}",
+      "leaveRange": "From {{from}} to {{to}}",
+      "payrollCreated": "Payroll for {{period}} has been created",
+      "payrollTotal": "Total cost: {{total}}",
+      "contractExpiring": "{{name}}'s contract is expiring",
+      "dueDetail": "Due date: {{date}}"
+    }
+  },
+  "errors": {
+    "api": {
+      "INVALID_CREDENTIALS": "Incorrect username or password.",
+      "ACCOUNT_LOCKED": "This account is temporarily locked. Please try again later or contact your administrator.",
+      "ACCOUNT_LOCKED_WITH_TIME": "This account is temporarily locked. Please try again in {{minutes}} minutes.",
+      "LOGIN_ATTEMPTS_EXCEEDED": "Too many failed attempts, so the account is temporarily locked. Please try again in a few minutes.",
+      "LOGIN_ATTEMPTS_EXCEEDED_WITH_TIME": "Too many failed attempts, so the account is temporarily locked. Please try again in {{minutes}} minutes.",
+      "RATE_LIMIT_EXCEEDED": "Too many requests. Please try again in a few minutes.",
+      "TOKEN_EXPIRED": "Your session has expired. Please sign in again.",
+      "TOKEN_INVALID": "Your session is invalid. Please sign in again.",
+      "REFRESH_TOKEN_EXPIRED": "Your session has expired. Please sign in again.",
+      "WRONG_CURRENT_PASSWORD": "Your current password is incorrect.",
+      "PASSWORD_MISMATCH": "Passwords do not match.",
+      "RESET_TOKEN_INVALID": "This password reset link is invalid. Please request a new one.",
+      "RESET_TOKEN_EXPIRED": "This password reset link has expired. Please request a new one.",
+      "VALIDATION_ERROR": "Invalid data. Please check the fields you entered.",
+      "FORBIDDEN": "You don't have permission to perform this action.",
+      "NETWORK_ERROR": "Cannot reach the server. Please check your connection and try again.",
+      "ERR_NETWORK": "Cannot reach the server. Please check your connection and try again.",
+      "ECONNABORTED": "The request timed out. Please try again.",
+      "UNKNOWN_ERROR": "Something went wrong. Please try again."
+    }
+  },
+  "layout": {
+    "profile": "Profile",
+    "viewProfile": "View profile",
+    "userMenu": "User menu",
+    "logout": "Log out",
+    "collapseSidebar": "Collapse menu",
+    "expandSidebar": "Expand menu",
+    "navigation": "Main navigation",
+    "openNavigation": "Open navigation menu",
+    "collapse": "Collapse",
+    "search": "Search",
+    "searchPlaceholder": "Search employees, departments, requests...",
+    "notifications": "Notifications",
+    "help": "Help",
+    "language": "Language"
+  },
+  "locale": {
+    "vi": "Tiếng Việt",
+    "en": "English"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -11,25 +183,39 @@
     "attendance": "Attendance",
     "leave": "Leave",
     "payroll": "Payroll",
-    "settings": "Settings"
+    "settings": "Settings",
+    "profile": "My profile",
+    "departments": "Departments",
+    "reports": "Reports"
   },
-  "app": {
-    "name": "HRM"
-  },
-  "auth": {
-    "loginTitle": "Sign in",
+  "profile": {
+    "title": "My profile",
+    "infoTitle": "Account information",
+    "username": "Username",
     "email": "Email",
-    "password": "Password",
-    "loginButton": "Sign in"
+    "employeeName": "Employee",
+    "noEmployeeLink": "Not linked to an employee record",
+    "loadError": "Could not load your account information.",
+    "changePasswordTitle": "Change password",
+    "changePasswordHint": "Changing your password ends every active session, so you will need to sign in again.",
+    "currentPassword": "Current password:",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "newPassword": "New password:",
+    "confirmPassword": "Confirm new password:",
+    "changePasswordSubmit": "Change password",
+    "changePasswordSuccess": "Password changed successfully. Please sign in again."
   },
-  "layout": {
-    "profile": "Profile",
-    "logout": "Log out",
-    "collapseSidebar": "Collapse menu",
-    "expandSidebar": "Expand menu"
+  "roles": {
+    "admin": "System administrator",
+    "hr_manager": "HR Manager",
+    "hr_staff": "HR Staff",
+    "manager": "Department manager",
+    "employee": "Employee",
+    "unknown": "Unknown"
   },
-  "dashboard": {
-    "title": "Dashboard",
-    "welcome": "Welcome to the HRM system"
+  "tabs": {
+    "closeOthers": "Close other tabs",
+    "closeAll": "Close all tabs",
+    "actions": "Tab actions"
   }
 }
