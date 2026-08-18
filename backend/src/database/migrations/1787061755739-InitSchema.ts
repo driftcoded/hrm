@@ -1,22 +1,23 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * Migration khởi tạo toàn bộ 26 bảng theo đúng thứ tự trong
- * docs/database-schema.md §"Thứ tự Migration" (tránh lỗi FK constraint).
+ * Migration that creates all 26 tables in the exact order defined in
+ * docs/database-schema.md §"Migration Order" (to avoid FK constraint errors).
  *
- * Viết tay (raw SQL) thay vì `migration:generate` vì có nhiều self-reference
- * (departments.parent_id, employees.direct_manager_id) và circular FK
- * (departments <-> employees, users <-> employees) cần kiểm soát chính xác
- * thứ tự tạo bảng + thời điểm thêm constraint.
+ * Written by hand (raw SQL) instead of using `migration:generate` because of
+ * several self-references (departments.parent_id, employees.direct_manager_id)
+ * and circular FKs (departments <-> employees, users <-> employees) that
+ * require precise control over table creation order and when constraints
+ * are added.
  *
- * Lưu ý quan trọng (deviation so với docs):
- *   - `departments.manager_id -> employees.id`: cột được tạo ở bước 6
- *     nhưng FK constraint chỉ được ALTER thêm sau khi bảng `employees`
- *     tồn tại (bước 8) — đúng như docs mô tả.
- *   - `users.employee_id -> employees.id`: docs KHÔNG nhắc tới trường hợp
- *     này, nhưng đây là circular FK tương tự (users tạo ở bước 4, employees
- *     ở bước 8). Áp dụng cùng kỹ thuật: tạo cột ở bước 4, ALTER thêm FK sau
- *     khi employees tồn tại.
+ * Important note (deviation from the docs):
+ *   - `departments.manager_id -> employees.id`: the column is created in
+ *     step 6, but the FK constraint is only added via ALTER once the
+ *     `employees` table exists (step 8) — as described in the docs.
+ *   - `users.employee_id -> employees.id`: the docs do NOT mention this
+ *     case, but it is a similar circular FK (users is created in step 4,
+ *     employees in step 8). The same technique is applied: create the
+ *     column in step 4, then ALTER to add the FK once employees exists.
  */
 export class InitSchema1787061755739 implements MigrationInterface {
   name = 'InitSchema1787061755739';
@@ -62,7 +63,7 @@ export class InitSchema1787061755739 implements MigrationInterface {
       ) ${charset};
     `);
 
-    // 4. users (employee_id: cột chưa có FK, thêm sau khi có bảng employees)
+    // 4. users (employee_id: no FK yet; added later once the employees table exists)
     await queryRunner.query(`
       CREATE TABLE users (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -99,7 +100,7 @@ export class InitSchema1787061755739 implements MigrationInterface {
       ) ${charset};
     `);
 
-    // 6. departments (manager_id: cột chưa có FK, thêm sau khi có bảng employees)
+    // 6. departments (manager_id: no FK yet; added later once the employees table exists)
     await queryRunner.query(`
       CREATE TABLE departments (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -138,7 +139,7 @@ export class InitSchema1787061755739 implements MigrationInterface {
       ) ${charset};
     `);
 
-    // 8. employees (bảng trung tâm)
+    // 8. employees (central table)
     await queryRunner.query(`
       CREATE TABLE employees (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -221,14 +222,14 @@ export class InitSchema1787061755739 implements MigrationInterface {
       ) ${charset};
     `);
 
-    // Sau bước 8: thêm FK departments.manager_id -> employees.id (đúng theo docs)
+    // After step 8: add FK departments.manager_id -> employees.id (as described in the docs)
     await queryRunner.query(`
       ALTER TABLE departments
       ADD CONSTRAINT fk_dept_manager FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL;
     `);
 
-    // Deviation cần thiết: thêm FK users.employee_id -> employees.id (circular
-    // tương tự departments.manager_id, docs không nhắc tới nhưng cần xử lý).
+    // Necessary deviation: add FK users.employee_id -> employees.id (circular
+    // FK similar to departments.manager_id; not mentioned in the docs but must be handled).
     await queryRunner.query(`
       ALTER TABLE users
       ADD CONSTRAINT fk_users_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE SET NULL;
@@ -575,7 +576,7 @@ export class InitSchema1787061755739 implements MigrationInterface {
       ) ${charset};
     `);
 
-    // 23. work_history (chỉ INSERT, không UPDATE)
+    // 23. work_history (INSERT only, never UPDATE)
     await queryRunner.query(`
       CREATE TABLE work_history (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -643,7 +644,7 @@ export class InitSchema1787061755739 implements MigrationInterface {
       ) ${charset};
     `);
 
-    // 26. audit_logs (chỉ INSERT, giữ tối thiểu 2 năm)
+    // 26. audit_logs (INSERT only; retained for at least 2 years)
     await queryRunner.query(`
       CREATE TABLE audit_logs (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -682,7 +683,7 @@ export class InitSchema1787061755739 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS dependents;`);
     await queryRunner.query(`DROP TABLE IF EXISTS family_members;`);
 
-    // Gỡ 2 FK deferred trước khi drop employees
+    // Remove the 2 deferred FKs before dropping employees
     await queryRunner.query(
       `ALTER TABLE departments DROP FOREIGN KEY fk_dept_manager;`,
     );

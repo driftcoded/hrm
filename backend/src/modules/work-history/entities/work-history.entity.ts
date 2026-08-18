@@ -22,7 +22,7 @@ export enum WorkHistoryEventType {
   TERMINATION = 'termination',
 }
 
-/** Lịch sử công tác – chỉ INSERT, không UPDATE. */
+/** Employee work history — INSERT-only, never UPDATEd. */
 @Entity('work_history')
 export class WorkHistory {
   @PrimaryGeneratedColumn('increment', { type: 'bigint', unsigned: true })

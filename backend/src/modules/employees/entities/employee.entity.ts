@@ -59,7 +59,7 @@ export class Employee {
   @Column({ name: 'employee_code', type: 'varchar', length: 20, unique: true })
   employeeCode: string;
 
-  // ---- Thông tin cá nhân ----
+  // ---- Personal info ----
   @Column({ name: 'last_name', type: 'varchar', length: 50 })
   lastName: string;
 
@@ -98,7 +98,7 @@ export class Employee {
   @Column({ type: 'varchar', length: 255 })
   hometown: string;
 
-  // ---- Giấy tờ tuỳ thân ----
+  // ---- Identity documents ----
   @Column({ name: 'cccd_number', type: 'varchar', length: 12, unique: true })
   cccdNumber: string;
 
@@ -111,7 +111,7 @@ export class Employee {
   @Column({ name: 'cccd_expired_date', type: 'date', nullable: true })
   cccdExpiredDate: string | null;
 
-  // ---- Mã số thuế & Bảo hiểm ----
+  // ---- Tax code & insurance ----
   @Column({
     name: 'tax_code',
     type: 'varchar',
@@ -142,7 +142,7 @@ export class Employee {
   @Column({ name: 'health_insurance_exp', type: 'date', nullable: true })
   healthInsuranceExp: string | null;
 
-  // ---- Địa chỉ ----
+  // ---- Address ----
   @Column({ name: 'permanent_address', type: 'varchar', length: 500 })
   permanentAddress: string;
 
@@ -163,7 +163,7 @@ export class Employee {
   @Column({ name: 'ward_code', type: 'varchar', length: 10 })
   wardCode: string;
 
-  // ---- Liên lạc ----
+  // ---- Contact ----
   @Column({ type: 'varchar', length: 15 })
   phone: string;
 
@@ -202,7 +202,7 @@ export class Employee {
   })
   emergencyContactRel: string | null;
 
-  // ---- Ngân hàng ----
+  // ---- Bank ----
   @Column({ name: 'bank_account', type: 'varchar', length: 30, nullable: true })
   bankAccount: string | null;
 
@@ -212,7 +212,7 @@ export class Employee {
   @Column({ name: 'bank_branch', type: 'varchar', length: 200, nullable: true })
   bankBranch: string | null;
 
-  // ---- Thông tin công việc ----
+  // ---- Employment info ----
   @Column({ name: 'position_id', type: 'bigint', unsigned: true })
   positionId: number;
 
@@ -272,7 +272,7 @@ export class Employee {
   })
   status: EmployeeStatus;
 
-  // ---- Học vấn ----
+  // ---- Education ----
   @Column({
     name: 'education_level',
     type: 'enum',

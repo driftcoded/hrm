@@ -29,7 +29,7 @@ export class User {
   @Column({ type: 'varchar', length: 100, unique: true })
   email: string;
 
-  /** bcrypt hash – salt rounds 10. KHÔNG bao giờ log giá trị này. */
+  /** bcrypt hash, salt rounds 10. Never log this value. */
   @Column({ type: 'varchar', length: 255, select: false })
   password: string;
 

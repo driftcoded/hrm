@@ -46,7 +46,7 @@ export class Document {
   @Column({ name: 'file_url', type: 'varchar', length: 500 })
   fileUrl: string;
 
-  /** bytes, tối đa 10MB */
+  /** Size in bytes; max 10MB */
   @Column({ name: 'file_size', type: 'int', unsigned: true, nullable: true })
   fileSize: number | null;
 

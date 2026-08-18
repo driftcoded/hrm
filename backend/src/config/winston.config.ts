@@ -4,11 +4,11 @@ import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
 const isProduction = process.env.NODE_ENV === 'production';
 
 /**
- * Winston logger dùng cho toàn app (thay thế Nest logger mặc định qua
- * app.useLogger() trong main.ts). 2 transport: console (có màu, dev-friendly)
- * + file trong thư mục logs/ (đã gitignore).
+ * App-wide Winston logger (replaces Nest's default logger via
+ * app.useLogger() in main.ts): a colored, dev-friendly console transport
+ * plus file transports under logs/ (gitignored).
  *
- * KHÔNG log password, token, CCCD (xem CLAUDE.md §Bảo mật).
+ * Never log passwords, tokens, or CCCD numbers (see CLAUDE.md §Security).
  */
 export const winstonLoggerOptions: winston.LoggerOptions = {
   level: isProduction ? 'info' : 'debug',

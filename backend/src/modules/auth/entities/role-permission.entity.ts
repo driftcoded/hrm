@@ -2,10 +2,6 @@ import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Role } from './role.entity';
 import { Permission } from './permission.entity';
 
-/**
- * Bảng trung gian many-to-many roles <-> permissions.
- * Không có cột riêng ngoài 2 khoá ngoại (composite PK).
- */
 @Entity('role_permissions')
 export class RolePermission {
   @PrimaryColumn({ name: 'role_id', type: 'tinyint', unsigned: true })

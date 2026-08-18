@@ -22,7 +22,7 @@ export enum DependentStatus {
   INACTIVE = 'inactive',
 }
 
-/** Người phụ thuộc – giảm trừ gia cảnh thuế TNCN (Điều 19 Luật Thuế TNCN). */
+/** Dependent — personal income tax family circumstance deduction (Article 19, Law on Personal Income Tax). */
 @Entity('dependents')
 export class Dependent {
   @PrimaryGeneratedColumn('increment', { type: 'bigint', unsigned: true })

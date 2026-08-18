@@ -11,9 +11,10 @@ import { Employee } from '../../employees/entities/employee.entity';
 import { LeaveType } from '../../leaves/entities/leave-type.entity';
 
 /**
- * Số ngày phép còn lại. `remainingDays` là cột VIRTUAL GENERATED (MySQL/MariaDB
- * generated column), tính = allocated_days + carried_over - used_days - pending_days.
- * Không lưu vật lý, không thể INSERT/UPDATE trực tiếp giá trị này.
+ * Remaining leave-day balance. `remainingDays` is a VIRTUAL GENERATED column
+ * (MySQL/MariaDB generated column), computed as
+ * allocated_days + carried_over - used_days - pending_days.
+ * Not physically stored; this value cannot be INSERTed/UPDATEd directly.
  */
 @Entity('leave_balances')
 @Unique('uq_leave_balance_employee_type_year', [
@@ -78,8 +79,8 @@ export class LeaveBalance {
   carriedOver: string;
 
   /**
-   * VIRTUAL GENERATED COLUMN (MySQL/MariaDB) — không lưu vật lý, DB tự tính.
-   * `insert`/`update` = false để TypeORM không cố gắng ghi giá trị này.
+   * VIRTUAL GENERATED COLUMN (MySQL/MariaDB) — not physically stored, computed by the DB.
+   * `insert`/`update` are set to false so TypeORM never attempts to write this value.
    */
   @Column({
     name: 'remaining_days',

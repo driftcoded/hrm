@@ -14,12 +14,12 @@ export interface SuccessResponse<T> {
 }
 
 /**
- * Bọc mọi response thành công về format chuẩn:
+ * Wraps every successful response in the standard format:
  * { success: true, data, timestamp }
  *
- * KHÔNG có field "message" (theo api-spec.md §1.1).
- * Hỗ trợ cả object thường lẫn shape đã phân trang { items, meta }
- * (giữ nguyên shape đó bên trong "data").
+ * Has no "message" field (per api-spec.md §1.1).
+ * Works for plain objects as well as the paginated shape { items, meta }
+ * (that shape is preserved as-is inside "data").
  */
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<

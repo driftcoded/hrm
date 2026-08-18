@@ -24,7 +24,7 @@ export enum ContractStatus {
   TERMINATED = 'terminated',
 }
 
-/** Hợp đồng lao động (Điều 20 BLLĐ 2019). */
+/** Labor contract (Article 20, Labor Code 2019). */
 @Entity('contracts')
 export class Contract {
   @PrimaryGeneratedColumn('increment', { type: 'bigint', unsigned: true })

@@ -44,8 +44,9 @@ export class Department {
   children: Department[];
 
   /**
-   * Trưởng phòng. FK này được thêm bằng ALTER TABLE SAU khi tạo bảng
-   * `employees` (tránh circular dependency) — xem migration InitSchema.
+   * Department manager. This FK is added via ALTER TABLE AFTER the
+   * `employees` table is created (to avoid a circular dependency) —
+   * see the InitSchema migration.
    */
   @Column({
     name: 'manager_id',

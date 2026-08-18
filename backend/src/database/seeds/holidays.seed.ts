@@ -12,9 +12,10 @@ interface HolidaySeedRow {
 }
 
 /**
- * Lịch nghỉ lễ VN 2025 (Nghị định 18/2024/NĐ-CP + Thông báo Bộ LĐTBXH) và
- * 2026 (dự kiến theo Thông báo Bộ Nội vụ, dành cho cán bộ/công chức/viên chức
- * — áp dụng chung cho lịch nghỉ công ty).
+ * Vietnam public holiday calendar for 2025 (Decree 18/2024/ND-CP + Ministry
+ * of Labour, Invalids and Social Affairs notice) and 2026 (provisional, per
+ * the Ministry of Home Affairs notice for civil servants/public officials —
+ * applied here as the company's holiday calendar as well).
  */
 const HOLIDAYS_2025: HolidaySeedRow[] = [
   { name: 'Tết Dương lịch', holidayDate: '2025-01-01', year: 2025 },

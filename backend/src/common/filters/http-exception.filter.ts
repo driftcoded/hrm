@@ -40,11 +40,11 @@ function isHttpExceptionBody(value: unknown): value is HttpExceptionBody {
 }
 
 /**
- * Bắt MỌI exception (HttpException của Nest lẫn lỗi không xác định) và trả về
- * format lỗi chuẩn:
+ * Catches every exception (Nest's HttpException as well as unknown errors) and
+ * returns the standard error format:
  *   { success: false, error: { code, message, details? }, timestamp }
  *
- * `details[]` chỉ xuất hiện khi code === 'VALIDATION_ERROR' (api-spec.md §21).
+ * `details[]` is only included when code === 'VALIDATION_ERROR' (api-spec.md §21).
  */
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -101,7 +101,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         };
       }
 
-      // NestJS default HttpException (message string hoặc { message, error, statusCode })
+      // NestJS's default HttpException shape (message string or { message, error, statusCode })
       let message = exception.message;
       if (
         typeof responseBody === 'object' &&
@@ -119,7 +119,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       return { status, code: codeFromStatus(status), message };
     }
 
-    // Lỗi không xác định (bug, DB lỗi kết nối...) -> KHÔNG bao giờ lộ stack trace.
+    // Unknown error (bug, DB connection failure, etc.) -> never leak the stack trace to the client.
     const message =
       exception instanceof Error ? exception.message : 'Unexpected error';
 

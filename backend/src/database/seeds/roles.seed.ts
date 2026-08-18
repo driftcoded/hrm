@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Role } from '../../modules/auth/entities/role.entity';
 
-/** 5 roles mặc định – đúng theo docs/database-schema.md §1.1. */
+/** 5 default roles — per docs/database-schema.md §1.1. */
 export async function seedRoles(dataSource: DataSource): Promise<void> {
   const repo = dataSource.getRepository(Role);
 

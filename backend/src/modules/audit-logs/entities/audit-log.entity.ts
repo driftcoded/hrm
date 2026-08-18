@@ -18,8 +18,8 @@ export enum AuditAction {
 }
 
 /**
- * Nhật ký thao tác — CHỈ INSERT, tuyệt đối không UPDATE/DELETE.
- * Giữ tối thiểu 2 năm.
+ * Audit trail of user actions — INSERT-only, must never be UPDATEd or DELETEd.
+ * Retain for at least 2 years.
  */
 @Entity('audit_logs')
 export class AuditLog {

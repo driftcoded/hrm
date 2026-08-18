@@ -2,8 +2,9 @@ import 'dotenv/config';
 import { DataSource } from 'typeorm';
 
 /**
- * DataSource dùng riêng cho TypeORM CLI (migration:generate / migration:run /
- * migration:revert). App runtime dùng DatabaseModule (TypeOrmModule.forRootAsync).
+ * DataSource used exclusively by the TypeORM CLI (migration:generate /
+ * migration:run / migration:revert). The app runtime uses DatabaseModule
+ * (TypeOrmModule.forRootAsync) instead.
  */
 export const AppDataSource = new DataSource({
   type: 'mysql',

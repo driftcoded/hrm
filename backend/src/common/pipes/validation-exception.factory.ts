@@ -6,10 +6,10 @@ import {
 } from '../dto/error-response.dto';
 
 /**
- * Map tên constraint của class-validator (camelCase) sang một code SNAKE_CASE
- * hợp lý. Các rule nghiệp vụ VN cụ thể (CCCD, mã số thuế...) sẽ dùng custom
- * validator decorator riêng ở các phase sau và có thể trả code tuỳ chỉnh qua
- * cùng cơ chế này.
+ * Maps a class-validator constraint name (camelCase) to a sensible
+ * SNAKE_CASE error code. VN-specific business rules (CCCD, tax code, etc.)
+ * will use their own custom validator decorators in later phases and can
+ * return a custom code through this same mechanism.
  */
 const CONSTRAINT_CODE_MAP: Record<string, string> = {
   isNotEmpty: 'REQUIRED',
@@ -44,9 +44,6 @@ function constraintToCode(constraintKey: string): string {
   return CONSTRAINT_CODE_MAP[constraintKey] ?? camelToSnakeUpper(constraintKey);
 }
 
-/**
- * Đệ quy flatten ValidationError[] (bao gồm nested object) thành details[].
- */
 function flattenErrors(
   errors: ValidationError[],
   parentPath = '',
@@ -79,9 +76,9 @@ function flattenErrors(
 }
 
 /**
- * Dùng làm `exceptionFactory` cho global ValidationPipe (main.ts).
- * Throw BadRequestException với body đúng shape VALIDATION_ERROR để
- * HttpExceptionFilter nhận diện và pass-through `details[]`.
+ * Used as the `exceptionFactory` for the global ValidationPipe (main.ts).
+ * Throws a BadRequestException with the VALIDATION_ERROR body shape so
+ * HttpExceptionFilter recognizes it and passes `details[]` through.
  */
 export function validationExceptionFactory(
   errors: ValidationError[],

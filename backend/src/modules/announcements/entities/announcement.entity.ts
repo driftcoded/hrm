@@ -49,7 +49,7 @@ export class Announcement {
   })
   targetAudience: AnnouncementTargetAudience;
 
-  /** Danh sách ID đối tượng nhận, ví dụ: [1, 2, 3]. NULL khi target_audience = all */
+  /** List of recipient IDs, e.g. [1, 2, 3]. NULL when target_audience = all */
   @Column({ name: 'target_ids', type: 'json', nullable: true })
   targetIds: number[] | null;
 

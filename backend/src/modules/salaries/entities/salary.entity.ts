@@ -40,7 +40,7 @@ export class Salary {
   @Column({ type: 'smallint' })
   year: number;
 
-  // ---- Ngày công ----
+  // ---- Working days ----
   @Column({
     name: 'standard_working_days',
     type: 'decimal',
@@ -85,7 +85,7 @@ export class Salary {
   })
   overtimeHours: string;
 
-  // ---- Thu nhập ----
+  // ---- Income ----
   @Column({ name: 'base_salary', ...money })
   baseSalary: string;
 
@@ -119,7 +119,7 @@ export class Salary {
   @Column({ name: 'gross_salary', ...money })
   grossSalary: string;
 
-  // ---- Bảo hiểm (NLĐ đóng) ----
+  // ---- Insurance (employee-paid portion) ----
   @Column({ name: 'insurance_base_salary', ...money })
   insuranceBaseSalary: string;
 
@@ -135,11 +135,13 @@ export class Salary {
   @Column({ name: 'total_insurance', ...money, default: 0 })
   totalInsurance: string;
 
-  // ---- Thuế TNCN ----
+  // ---- Personal income tax (PIT) ----
   @Column({ name: 'dependent_count', type: 'smallint', default: 0 })
   dependentCount: number;
 
-  @Column({ name: 'self_deduction', ...money, default: 11000000 })
+  // Statutory personal deduction, 15,500,000 VND/month effective 2026-01-01
+  // (Resolution 110/2025/UBTVQH15) — see docs/business-rules.md §5.
+  @Column({ name: 'self_deduction', ...money, default: 15500000 })
   selfDeduction: string;
 
   @Column({ name: 'dependent_deduction', ...money, default: 0 })
@@ -151,7 +153,7 @@ export class Salary {
   @Column({ name: 'personal_income_tax', ...money, default: 0 })
   personalIncomeTax: string;
 
-  // ---- Khấu trừ khác & Thực nhận ----
+  // ---- Other deductions & net pay ----
   @Column({ name: 'advance_deduction', ...money, default: 0 })
   advanceDeduction: string;
 
@@ -161,7 +163,7 @@ export class Salary {
   @Column({ name: 'net_salary', ...money })
   netSalary: string;
 
-  // ---- Trạng thái & Phê duyệt ----
+  // ---- Status & approval ----
   @Column({ type: 'enum', enum: SalaryStatus, default: SalaryStatus.DRAFT })
   status: SalaryStatus;
 

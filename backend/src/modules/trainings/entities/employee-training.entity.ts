@@ -17,7 +17,7 @@ export enum TrainingResult {
   EXEMPTED = 'exempted',
 }
 
-/** Bảng trung gian many-to-many employees <-> trainings, kèm kết quả. */
+/** Many-to-many join table between employees and trainings, carrying the training result. */
 @Entity('employee_trainings')
 @Unique('uq_employee_training', ['employeeId', 'trainingId'])
 export class EmployeeTraining {

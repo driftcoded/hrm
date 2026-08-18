@@ -17,8 +17,8 @@ export interface ErrorResponse {
 }
 
 /**
- * Shape ném ra bởi custom exceptionFactory (ValidationPipe) và bởi các service
- * khi cần trả lỗi domain có "code" cụ thể, ví dụ:
+ * Shape thrown by the custom exceptionFactory (ValidationPipe) and by services
+ * that need to return a domain error with a specific "code", e.g.:
  *   throw new ConflictException({ code: 'DUPLICATE_CCCD', message: 'CCCD already exists' });
  */
 export interface HttpExceptionBody {

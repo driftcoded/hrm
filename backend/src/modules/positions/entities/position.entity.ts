@@ -28,7 +28,7 @@ export class Position {
   @JoinColumn({ name: 'department_id' })
   department: Department;
 
-  /** Cấp bậc: 1 Staff, 2 Senior, 3 Lead, 4 Manager, 5 Director */
+  /** Level: 1 Staff, 2 Senior, 3 Lead, 4 Manager, 5 Director */
   @Column({ type: 'smallint' })
   level: number;
 
