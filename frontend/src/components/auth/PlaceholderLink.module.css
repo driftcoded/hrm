@@ -1,0 +1,12 @@
+.link {
+  color: var(--hrm-color-text-tertiary);
+  cursor: not-allowed;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.emphasis {
+  color: var(--hrm-color-primary);
+  opacity: 0.75;
+}

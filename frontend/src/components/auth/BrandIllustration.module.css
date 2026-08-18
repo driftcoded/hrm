@@ -1,0 +1,103 @@
+.illustration {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+}
+
+/* --- Background blobs --- */
+.blobBlue {
+  fill: var(--hrm-color-primary);
+  fill-opacity: 0.1;
+}
+
+.blobAccent {
+  fill: var(--hrm-color-accent);
+  fill-opacity: 0.08;
+}
+
+.blobSuccess {
+  fill: var(--hrm-color-success);
+  fill-opacity: 0.1;
+}
+
+/* --- Cards --- */
+.card,
+.chip {
+  fill: var(--hrm-color-bg);
+}
+
+.cardShadow,
+.chipShadow {
+  fill: var(--hrm-color-primary);
+  fill-opacity: 0.12;
+}
+
+/* --- Content lines --- */
+.lineStrong {
+  fill: var(--hrm-color-heading);
+  fill-opacity: 0.75;
+}
+
+.lineMuted {
+  fill: var(--hrm-color-muted);
+  fill-opacity: 0.35;
+}
+
+/* --- Bars --- */
+.barBlue {
+  fill: var(--hrm-color-primary);
+  fill-opacity: 0.35;
+}
+
+.barBlueStrong {
+  fill: var(--hrm-color-primary);
+}
+
+.barSuccess {
+  fill: var(--hrm-color-success);
+}
+
+.barAccent {
+  fill: var(--hrm-color-accent);
+  fill-opacity: 0.75;
+}
+
+.axis {
+  fill: var(--hrm-color-muted);
+  fill-opacity: 0.25;
+}
+
+/* --- Trend line --- */
+.trend {
+  fill: none;
+  stroke: var(--hrm-color-primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.7;
+}
+
+.trendNode {
+  fill: var(--hrm-color-primary);
+}
+
+/* --- Chip --- */
+.avatar {
+  fill: var(--hrm-color-primary);
+  fill-opacity: 0.25;
+}
+
+/* --- Status pill --- */
+.pill {
+  fill: var(--hrm-color-success-soft);
+}
+
+.pillDot {
+  fill: var(--hrm-color-success);
+}
+
+.pillLine {
+  fill: var(--hrm-color-success);
+  fill-opacity: 0.45;
+}

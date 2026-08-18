@@ -1,0 +1,56 @@
+.lockup {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+}
+
+.centered {
+  justify-content: center;
+}
+
+.mark {
+  display: block;
+  flex: none;
+}
+
+.stopFrom {
+  stop-color: var(--hrm-color-primary-hover);
+}
+
+.stopTo {
+  stop-color: var(--hrm-color-primary-active);
+}
+
+.glyph {
+  fill: var(--hrm-color-bg);
+  fill-opacity: 0.95;
+}
+
+/*
+ * The wordmark colour is indirected through a variable so a dark container (the
+ * dark sidebar) can recolour it by setting `--hrm-brand-wordmark-color` on an
+ * ancestor, instead of this module needing to know about every context.
+ */
+.wordmark {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--hrm-brand-wordmark-color, var(--hrm-color-heading));
+}
+
+.md .mark {
+  width: 32px;
+  height: 32px;
+}
+
+.md .wordmark {
+  font-size: var(--hrm-font-size-h2);
+}
+
+.lg .mark {
+  width: 40px;
+  height: 40px;
+}
+
+.lg .wordmark {
+  font-size: var(--hrm-font-size-h1);
+}

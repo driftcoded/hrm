@@ -1,0 +1,30 @@
+.root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--hrm-space-5);
+  background: var(--hrm-auth-bg);
+}
+
+.panel {
+  width: 100%;
+  max-width: var(--hrm-auth-card-width);
+  padding: var(--hrm-space-6);
+  background: var(--hrm-color-bg);
+  border-radius: var(--hrm-radius-lg);
+  box-shadow: var(--hrm-shadow-card);
+}
+
+/* Visually hidden but announced by screen readers (§11). */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

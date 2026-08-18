@@ -1,0 +1,105 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--hrm-auth-bg);
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.mainCentered {
+  justify-content: center;
+}
+
+/* Left brand / marketing column (~58% of the viewport). */
+.brandColumn {
+  flex: 0 0 var(--hrm-auth-brand-width);
+  min-width: 0;
+  padding: var(--hrm-space-7) var(--hrm-space-6);
+}
+
+.formColumn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--hrm-space-7) var(--hrm-space-5);
+}
+
+.card {
+  width: var(--hrm-auth-card-width);
+  max-width: 100%;
+  padding: var(--hrm-space-6);
+  background: var(--hrm-color-bg);
+  border-radius: var(--hrm-radius-lg);
+  box-shadow: var(--hrm-shadow-card);
+}
+
+.mainCentered .card {
+  width: var(--hrm-auth-card-width-compact);
+}
+
+/* Slim full-width footer bar. */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hrm-space-3);
+  padding: var(--hrm-space-3) var(--hrm-space-6);
+  border-top: 1px solid var(--hrm-color-border-subtle);
+  background: var(--hrm-auth-footer-bg);
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+.copyright {
+  min-width: 0;
+}
+
+.footerLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-4);
+  flex: none;
+}
+
+/* Tablet (768–1199px): narrower brand column, tighter padding (§10). */
+@media (max-width: 1199px) {
+  .brandColumn {
+    flex-basis: 46%;
+    padding: var(--hrm-space-6) var(--hrm-space-5);
+  }
+
+  .formColumn {
+    padding: var(--hrm-space-6) var(--hrm-space-4);
+  }
+}
+
+/* Mobile (<768px): brand column collapses, card goes full width (§10). */
+@media (max-width: 767px) {
+  .brandColumn {
+    display: none;
+  }
+
+  .formColumn {
+    padding: var(--hrm-space-5) var(--hrm-space-4);
+  }
+
+  .card,
+  .mainCentered .card {
+    width: 100%;
+    padding: var(--hrm-space-5);
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--hrm-space-3) var(--hrm-space-4);
+  }
+}

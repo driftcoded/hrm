@@ -1,0 +1,21 @@
+.root {
+  margin-top: var(--hrm-space-2);
+}
+
+.divider {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-3);
+}
+
+/* Wrapper needed so the tooltip has a hoverable target over a disabled button. */
+.buttonWrapper {
+  display: block;
+  width: 100%;
+  cursor: not-allowed;
+}

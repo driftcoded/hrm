@@ -1,0 +1,80 @@
+/**
+ * Styles shared by the three auth cards (/login, /forgot-password,
+ * /reset-password) so they stay visually identical. Every value comes from
+ * src/styles/tokens.css.
+ */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  margin-bottom: var(--hrm-space-5);
+  text-align: center;
+}
+
+.title {
+  margin: var(--hrm-space-2) 0 0;
+  font-size: var(--hrm-font-size-h1);
+  font-weight: 600;
+  color: var(--hrm-color-heading);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--hrm-font-size-base);
+  line-height: var(--hrm-line-height-base);
+  color: var(--hrm-color-text-tertiary);
+}
+
+.alert {
+  margin-bottom: var(--hrm-space-4);
+}
+
+.inputIcon {
+  color: var(--hrm-color-text-tertiary);
+}
+
+/* "Remember me" + "Forgot password?" row */
+.optionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hrm-space-3);
+  margin-bottom: var(--hrm-space-4);
+  flex-wrap: wrap;
+}
+
+.forgotLink {
+  color: var(--hrm-color-primary);
+  font-size: var(--hrm-font-size-base);
+}
+
+.submitItem {
+  margin-bottom: 0;
+}
+
+.cardFooter {
+  margin: var(--hrm-space-5) 0 0;
+  text-align: center;
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+/* Back-to-login row used by /forgot-password and /reset-password */
+.backRow {
+  margin: var(--hrm-space-5) 0 0;
+  text-align: center;
+  font-size: var(--hrm-font-size-base);
+}
+
+.backLink {
+  color: var(--hrm-color-primary);
+}
+
+.helpText {
+  margin: 0 0 var(--hrm-space-4);
+  font-size: var(--hrm-font-size-base);
+  line-height: var(--hrm-line-height-base);
+  color: var(--hrm-color-text-secondary);
+}

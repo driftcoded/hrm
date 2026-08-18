@@ -1,0 +1,146 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-5);
+  height: 100%;
+  min-width: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-4);
+  max-width: 560px;
+}
+
+/* --- Pill badge --- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  align-self: flex-start;
+  margin: 0;
+  padding: var(--hrm-space-1) var(--hrm-space-3);
+  border-radius: var(--hrm-radius-pill);
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary-active);
+  font-size: var(--hrm-font-size-caption);
+  font-weight: 600;
+}
+
+.badgeIcon {
+  font-size: var(--hrm-font-size-base);
+}
+
+/* --- Headline --- */
+.headline {
+  margin: 0;
+  font-size: var(--hrm-font-size-display);
+  font-weight: 700;
+  line-height: var(--hrm-line-height-tight);
+  color: var(--hrm-color-heading);
+}
+
+.headlineLine {
+  display: block;
+}
+
+.headlineAccent {
+  color: var(--hrm-color-primary);
+}
+
+.description {
+  margin: 0;
+  max-width: 46ch;
+  font-size: var(--hrm-font-size-h3);
+  line-height: var(--hrm-line-height-base);
+  color: var(--hrm-color-muted);
+}
+
+/* --- Feature rows --- */
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-4);
+  margin: var(--hrm-space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--hrm-space-3);
+}
+
+.tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--hrm-auth-tile-size);
+  height: var(--hrm-auth-tile-size);
+  border-radius: var(--hrm-radius-tile);
+  font-size: var(--hrm-font-size-h2);
+  box-shadow: var(--hrm-shadow-tile);
+}
+
+.tilePrimary {
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+}
+
+.tileSuccess {
+  background: var(--hrm-color-success-soft);
+  color: var(--hrm-color-success);
+}
+
+.tileAccent {
+  background: var(--hrm-color-accent-soft);
+  color: var(--hrm-color-accent);
+}
+
+.featureText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-1);
+  min-width: 0;
+}
+
+.featureTitle {
+  font-size: var(--hrm-font-size-h3);
+  font-weight: 600;
+  color: var(--hrm-color-heading);
+}
+
+.featureDescription {
+  font-size: var(--hrm-font-size-base);
+  line-height: var(--hrm-line-height-base);
+  color: var(--hrm-color-muted);
+}
+
+/* --- Illustration fills the remaining lower area --- */
+.illustration {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 180px;
+  margin-top: auto;
+}
+
+/* Tablet (768–1199px): tighten the vertical rhythm, drop the artwork so the
+   copy stays fully readable in the narrower column (§10). */
+@media (max-width: 1199px) {
+  .headline {
+    font-size: var(--hrm-font-size-h1);
+  }
+
+  .description {
+    font-size: var(--hrm-font-size-base);
+  }
+
+  .illustration {
+    display: none;
+  }
+}

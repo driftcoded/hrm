@@ -1,0 +1,62 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--hrm-space-5);
+  align-items: start;
+}
+
+.card {
+  min-width: 0;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-4);
+  margin-bottom: var(--hrm-space-5);
+}
+
+.identityText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-1);
+  min-width: 0;
+}
+
+.displayName {
+  font-size: var(--hrm-font-size-h2);
+  font-weight: 600;
+  color: var(--hrm-color-heading);
+}
+
+.roleLabel {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+.hint {
+  margin: 0 0 var(--hrm-space-4);
+  font-size: var(--hrm-font-size-base);
+  line-height: var(--hrm-line-height-base);
+  color: var(--hrm-color-text-secondary);
+}
+
+.formAlert {
+  margin-bottom: var(--hrm-space-4);
+}
+
+.inputIcon {
+  color: var(--hrm-color-text-tertiary);
+}
+
+.actions {
+  margin-bottom: 0;
+  text-align: right;
+}
+
+/* Tablet + mobile: single column (docs/ui-conventions.md §10). */
+@media (max-width: 1199px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

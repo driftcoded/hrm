@@ -1,6 +1,6 @@
 import axios, { AxiosHeaders, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/authStore';
-import type { ApiErrorBody, ApiErrorResponse } from '@/types/api.types';
+import type { ApiErrorResponse } from '@/types/api.types';
 
 // NOTE: services/auth.service.ts imports `apiClient` from this file, so this
 // is a circular import. It's safe: both sides only touch the other's
@@ -8,23 +8,36 @@ import type { ApiErrorBody, ApiErrorResponse } from '@/types/api.types';
 // module top-level/init time.
 import { refreshAccessToken } from '@/services/auth.service';
 
-
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+
+/**
+ * Per-call opt-in for cookie credentials.
+ *
+ * Only `POST /auth/login` (receives the `Set-Cookie`) and `POST /auth/refresh`
+ * (sends the cookie + gets it rotated) may use this — see
+ * services/auth.service.ts. The refresh token is an HttpOnly cookie that the
+ * backend scopes to `Path=/api/v1/auth/refresh`, and JS can never read it.
+ * Everything else — `/auth/me`, `/auth/logout` (the backend identifies the
+ * session from the `sid` claim in the access token), `/auth/change-password`,
+ * `/auth/forgot-password`, `/auth/reset-password` and all business endpoints —
+ * authenticates with the Bearer token alone.
+ */
+export const CREDENTIALED_REQUEST = { withCredentials: true } as const;
 
 /**
  * Shared axios instance. Components/hooks must NEVER import this directly —
  * only `services/*.service.ts` files are allowed to, per the folder rule in
  * frontend/CLAUDE.md.
+ *
+ * DO NOT add `withCredentials: true` to this config. A global flag would ask
+ * the browser for credentials on every request, including the ones that have no
+ * business with the refresh cookie. Use `CREDENTIALED_REQUEST` per call instead.
  */
 export const apiClient = axios.create({
   baseURL,
-  // Refresh token is an HttpOnly cookie — must be sent for /auth/refresh.
-  withCredentials: true,
 });
 
 type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
-
-// --- Request interceptor: attach access token from authStore -------------
 
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
@@ -39,7 +52,33 @@ apiClient.interceptors.request.use((config) => {
 
 // --- Response interceptor: 401 -> refresh once, queue concurrent 401s ----
 
-const AUTH_ENDPOINTS = ['/auth/login', '/auth/refresh'];
+/**
+ * Endpoints that must never trigger the refresh-and-retry dance:
+ * - `/auth/login`, `/auth/forgot-password`, `/auth/reset-password` are public,
+ *   a 401/400 there is a real answer for the caller.
+ * - `/auth/refresh` returning 401 IS the refresh failure itself (retrying it
+ *   would recurse).
+ * - `/auth/logout` — if the token is already dead there is nothing to save.
+ * `/auth/me` is intentionally absent: it must be retried after a refresh.
+ */
+const NO_REFRESH_ENDPOINTS = [
+  '/auth/login',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
+
+/**
+ * 401 codes that are DOMAIN errors, not "your access token is stale".
+ * `POST /auth/change-password` answers `401 WRONG_CURRENT_PASSWORD`; refreshing
+ * and replaying that request would silently re-submit the wrong password (and
+ * could count toward the account lockout), so never retry these.
+ */
+const NON_TOKEN_401_CODES = ['WRONG_CURRENT_PASSWORD', 'INVALID_CREDENTIALS'];
+
+/** Public routes where a hard redirect to /login would be pointless/annoying. */
+const PUBLIC_PATHS = ['/login', '/forgot-password', '/reset-password'];
 
 let isRefreshing = false;
 let pendingQueue: Array<{
@@ -58,10 +97,22 @@ function flushQueue(error: unknown, token: string | null) {
   pendingQueue = [];
 }
 
+/**
+ * Hard redirect after an unrecoverable refresh failure. Uses `location.replace`
+ * so the authenticated page the user was on cannot be reached with the browser
+ * Back button, and preserves the attempted URL in `?redirect=` so the login
+ * page can send the user back after re-authenticating.
+ */
 function redirectToLogin() {
-  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-    window.location.href = '/login';
+  if (typeof window === 'undefined') {
+    return;
   }
+  const { pathname, search } = window.location;
+  if (PUBLIC_PATHS.includes(pathname)) {
+    return;
+  }
+  const target = `${pathname}${search}`;
+  window.location.replace(`/login?redirect=${encodeURIComponent(target)}`);
 }
 
 apiClient.interceptors.response.use(
@@ -69,9 +120,12 @@ apiClient.interceptors.response.use(
   async (error: AxiosError<ApiErrorResponse>) => {
     const originalRequest = error.config as RetryableConfig | undefined;
     const status = error.response?.status;
-    const isAuthEndpoint = AUTH_ENDPOINTS.some((endpoint) => originalRequest?.url?.includes(endpoint));
+    const errorCode = error.response?.data?.error?.code;
+    const skipRefresh =
+      NO_REFRESH_ENDPOINTS.some((endpoint) => originalRequest?.url?.includes(endpoint)) ||
+      (errorCode ? NON_TOKEN_401_CODES.includes(errorCode) : false);
 
-    if (status !== 401 || !originalRequest || originalRequest._retry || isAuthEndpoint) {
+    if (status !== 401 || !originalRequest || originalRequest._retry || skipRefresh) {
       return Promise.reject(error);
     }
 
@@ -81,6 +135,7 @@ apiClient.interceptors.response.use(
       return new Promise((resolve, reject) => {
         pendingQueue.push({
           resolve: (token) => {
+            originalRequest._retry = true;
             if (!originalRequest.headers) {
               originalRequest.headers = new AxiosHeaders();
             }
@@ -96,6 +151,9 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
+      // Must go through the service function: it is the one that passes
+      // `CREDENTIALED_REQUEST`, so the refresh cookie is actually sent. A bare
+      // `apiClient.post('/auth/refresh')` here would silently omit it.
       const newToken = await refreshAccessToken();
       flushQueue(null, newToken);
 
@@ -114,27 +172,3 @@ apiClient.interceptors.response.use(
     }
   },
 );
-
-/**
- * Safely extract `{ code, message, details }` from any error thrown by
- * `apiClient`, per the real backend envelope:
- *   { success: false, error: { code, message, details? }, timestamp }
- *
- * Callers can still read the raw shape directly via
- * `error.response.data.error.code` — this helper just adds a safe fallback
- * for network-level failures where `error.response` is undefined (e.g. the
- * backend isn't reachable yet).
- */
-export function getApiError(error: unknown): ApiErrorBody {
-  if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    const body = error.response?.data?.error;
-    if (body) {
-      return body;
-    }
-    return {
-      code: error.code || 'NETWORK_ERROR',
-      message: error.message || 'Network error, please try again.',
-    };
-  }
-  return { code: 'UNKNOWN_ERROR', message: 'Unexpected error occurred.' };
-}
