@@ -1,7 +1,7 @@
 # HRM Project — Kế hoạch xây dựng
 
-**Cập nhật lần cuối:** 18/08/2026  
-**Trạng thái tổng thể:** 🟢 Giai đoạn 0 hoàn thành — đang chuẩn bị Giai đoạn 1
+**Cập nhật lần cuối:** 19/08/2026  
+**Trạng thái tổng thể:** 🟢 Giai đoạn 0 + 1 hoàn thành và đã nghiệm thu — sẵn sàng vào Giai đoạn 2
 
 ---
 
@@ -10,7 +10,7 @@
 | Giai đoạn | Tên | Tiến độ | Trạng thái |
 |-----------|-----|---------|------------|
 | 0 | Khởi tạo project | 28 / 28 | ✅ Hoàn thành |
-| 1 | Auth & User | 0 / 21 | ⬜ Chưa bắt đầu |
+| 1 | Auth & User | 43 / 43 | ✅ Hoàn thành (đã nghiệm thu) |
 | 2 | Master Data | 0 / 11 | ⬜ Chưa bắt đầu |
 | 3 | Nhân viên | 0 / 16 | ⬜ Chưa bắt đầu |
 | 4 | Chấm công | 0 / 10 | ⬜ Chưa bắt đầu |
@@ -19,9 +19,13 @@
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 28 / 128 tasks hoàn thành
+**Tổng:** 71 / 128 tasks hoàn thành *(xem lưu ý đếm bên dưới — tổng 128 gốc không khớp số checkbox thực tế)*
 
-> ⚠️ Lưu ý đếm: bảng trên vốn ghi Giai đoạn 0 là "14" (khớp với tổng 128), nhưng mục 0.1 + 0.2 thực tế có 28 dòng checkbox (14 mỗi mục). Đã sửa dòng Giai đoạn 0 thành 28/28 cho đúng thực tế; nếu muốn tổng 128 phía trên chính xác tuyệt đối, cần rà lại đếm của các giai đoạn còn lại.
+> ⚠️ **Lưu ý đếm.** Con số trong bảng gốc không khớp số dòng checkbox thực tế:
+> - Giai đoạn 0: bảng ghi 14, thực tế 28 dòng (0.1 và 0.2 mỗi mục 14).
+> - Giai đoạn 1: bảng ghi 21, thực tế 43 dòng (1.1 = 13 task + 14 test, 1.2 = 8 task + 8 test).
+>
+> Đã sửa 2 dòng trên theo số thực tế. Cột "Tổng: /128" vì thế cũng sai theo — cần rà lại toàn bộ các giai đoạn còn lại rồi chốt lại một cách đếm duy nhất (đếm cả test hay chỉ đếm task).
 
 ---
 
@@ -79,55 +83,69 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 ## Giai đoạn 1 — Auth & User
 
 ### 1.1 Backend Auth
-- [ ] `AuthModule`: `POST /auth/login` trả JWT + set HttpOnly cookie refresh token
-- [ ] `POST /auth/refresh` — refresh access token từ cookie
-- [ ] `POST /auth/logout` — xóa refresh token trong DB + clear cookie
-- [ ] `JwtAuthGuard` — bảo vệ routes cần đăng nhập
-- [ ] `RolesGuard` + `@Roles()` decorator
-- [ ] `@CurrentUser()` decorator — lấy user từ JWT payload
-- [ ] `POST /auth/forgot-password` — gửi email reset link (SES)
-- [ ] `POST /auth/reset-password` — đặt mật khẩu mới từ token
-- [ ] **[Security]** Account lockout: Redis đếm failed login, khóa 15 phút sau 5 lần sai liên tiếp
-- [ ] **[Security]** Giới hạn tối đa 5 sessions đồng thời/user — login mới kick session cũ nhất
-- [ ] **[Security]** Cookie refresh token: xác nhận `SameSite=Strict; Secure; HttpOnly`
-- [ ] **[Security]** JWT secret tối thiểu 256-bit random (không dùng string dễ đoán)
-- [ ] **[Security]** `assertOwnership()` helper — kiểm tra resource thuộc về user hiện tại trước mọi thao tác
+- [x] `AuthModule`: `POST /auth/login` trả JWT + set HttpOnly cookie refresh token — *nhận username HOẶC email (không phân biệt hoa/thường)*
+- [x] `POST /auth/refresh` — refresh access token từ cookie *(không nhận body; có rotation)*
+- [x] `POST /auth/logout` — xóa refresh token trong DB + clear cookie *(định danh session qua claim `sid` trong access token, không cần cookie — xem ghi chú bảo mật bên dưới)*
+- [x] `JwtAuthGuard` — bảo vệ routes cần đăng nhập *(đăng ký global + `@Public()` để bỏ qua)*
+- [x] `RolesGuard` + `@Roles()` decorator
+- [x] `@CurrentUser()` decorator — lấy user từ JWT payload
+- [x] `POST /auth/forgot-password` — gửi email reset link (SES) — *⚠️ chạy qua dev transport ghi file `logs/mail/*.html`, KHÔNG phải SES thật (không có credential AWS). Code SES đã viết nhưng chưa từng chạy, chưa kiểm chứng.*
+- [x] `POST /auth/reset-password` — đặt mật khẩu mới từ token *(token dùng 1 lần, TTL 30 phút)*
+- [x] **[Security]** Account lockout: ~~Redis~~ đếm failed login, khóa 15 phút sau 5 lần sai liên tiếp — *⚠️ dùng `CacheService` in-memory thay Redis theo quyết định của chủ dự án. Mất trạng thái khi restart và KHÔNG hoạt động qua nhiều worker PM2 cluster → phải thay driver Redis trước khi lên production.*
+- [x] **[Security]** Giới hạn tối đa 5 sessions đồng thời/user — login mới kick session cũ nhất
+- [x] **[Security]** Cookie refresh token: xác nhận `SameSite=Strict; Secure; HttpOnly` — *`Secure` chỉ bật ở production: `Secure` trên `http://localhost` khiến browser âm thầm bỏ cookie. Thêm `Path=/api/v1/auth/refresh` (xem ghi chú bảo mật).*
+- [x] **[Security]** JWT secret tối thiểu 256-bit random (không dùng string dễ đoán) — *Joi validate `min(64)`, fail-fast lúc bootstrap*
+- [x] **[Security]** `assertOwnership()` helper — kiểm tra resource thuộc về user hiện tại trước mọi thao tác — *role đặc quyền: admin/hr_manager/hr_staff. `manager` CHƯA đi qua được vì cần phạm vi phòng ban (Giai đoạn 3).*
 
-**Tests (1.1):**
-- [ ] Login đúng → trả `access_token` + cookie
-- [ ] Login sai mật khẩu → 401 với `error.message` rõ ràng
-- [ ] Login sai 5 lần → 429, tài khoản bị khóa 15 phút
-- [ ] Login sau khi bị khóa → 423 với thời gian còn lại
-- [ ] Request không có token → 401
-- [ ] Refresh token hợp lệ → trả token mới, token cũ bị revoke ngay
-- [ ] Refresh token hết hạn → 401
-- [ ] Dùng lại refresh token đã bị revoke → 401 + revoke toàn bộ session user đó
-- [ ] Logout → cookie bị xóa, refresh token trong DB bị xóa
-- [ ] Login thứ 6 → session cũ nhất tự động bị kick
-- [ ] Forgot password → email được gửi (kiểm tra SES log)
-- [ ] Reset password với token hợp lệ → mật khẩu thay đổi được
-- [ ] Reset password với token hết hạn → 400
-- [ ] `assertOwnership()`: NV A cố truy cập resource của NV B → 403
+> **Ghi chú bảo mật — thu hẹp `Path` của cookie refresh token.** Ban đầu cookie set `Path=/`, nên refresh token bị gửi kèm **mọi** request tới origin dù chỉ `/auth/refresh` cần. Đã sửa: `Path` tính từ `API_PREFIX` → `/api/v1/auth/refresh`, và `logout` chuyển sang định danh session bằng claim `sid` trong access token thay vì đọc cookie. Đã kiểm chứng bằng request thật: `GET /auth/me` **không** có header `Cookie`, chỉ `POST /auth/refresh` mới có.
+>
+> **Hệ quả triển khai:** `SameSite=Strict` buộc frontend và API phải **cùng một origin** ở production (Nginx serve static + proxy `/api`). Nếu tách API sang subdomain riêng thì cookie refresh bị chặn hoàn toàn và phải thiết kế lại luồng auth. Ngoài ra nếu đổi đường dẫn endpoint refresh thì cookie đã phát hành trước đó thành mồ côi — không gửi được mà cũng không xoá được.
+
+**Tests (1.1):** — *đã nghiệm thu: 64 unit + 40 e2e test pass, chạy lại độc lập. Mỗi mục dưới đây có test riêng đánh số `[1]`–`[14]` trong `test/*.e2e-spec.ts`.*
+- [x] Login đúng → trả `access_token` + cookie
+- [x] Login sai mật khẩu → 401 với `error.message` rõ ràng
+- [x] Login sai 5 lần → 429, tài khoản bị khóa 15 phút
+- [x] Login sau khi bị khóa → 423 với thời gian còn lại — *⚠️ phát hiện khi nghiệm thu: thời gian còn lại ban đầu CHỈ nằm trong `error.message` tiếng Anh, mà message là text cho developer nên frontend không được hiện cho user → không thể hiển thị "còn 15 phút". Đã sửa: thêm header `Retry-After` (chuẩn RFC 9110), frontend đã dò sẵn header này. Có test hồi quy.*
+- [x] Request không có token → 401
+- [x] Refresh token hợp lệ → trả token mới, token cũ bị revoke ngay
+- [x] Refresh token hết hạn → 401 *(test seed row `expires_at` trong quá khứ — không phải chờ thật)*
+- [x] Dùng lại refresh token đã bị revoke → 401 + revoke toàn bộ session user đó
+- [x] Logout → cookie bị xóa, refresh token trong DB bị xóa *(revoke bằng `revoked_at`, không xoá vật lý — đúng thiết kế `refresh_tokens` trong database-schema.md §1.5)*
+- [x] Login thứ 6 → session cũ nhất tự động bị kick
+- [x] Forgot password → email được gửi (kiểm tra ~~SES log~~ file dev transport) — *test assert file HTML sinh ra có chứa link reset. KHÔNG kiểm chứng qua SES thật.*
+- [x] Reset password với token hợp lệ → mật khẩu thay đổi được
+- [x] Reset password với token hết hạn → 400 *(đẩy `expiresAt` về quá khứ — không chờ 30 phút)*
+- [x] `assertOwnership()`: NV A cố truy cập resource của NV B → 403 — *test mount controller thăm dò khai báo bên trong file test, không đưa scaffold vào `src/`, vì Giai đoạn 1 chưa có endpoint nào thuộc sở hữu nhân viên*
 
 ### 1.2 Frontend Auth
-- [ ] Trang `/login`: form email + mật khẩu, validate
-- [ ] Xử lý login: lưu token vào `authStore`, redirect `/dashboard`
-- [ ] Axios interceptor: tự động refresh khi nhận 401, queue requests
-- [ ] `PrivateRoute`: redirect về `/login` nếu chưa đăng nhập
-- [ ] Trang `/forgot-password` + `/reset-password`
-- [ ] Trang profile cá nhân: xem thông tin, đổi mật khẩu
-- [ ] Dropdown user header: tên, xem profile, đăng xuất
-- [ ] Logout: clear store, redirect `/login`
+- [x] Trang `/login`: form email + mật khẩu, validate — *ô nhập nhận email HOẶC username (chỉ validate định dạng email khi giá trị có `@`). Thiết kế 2 cột theo mẫu chủ dự án cung cấp.*
+- [x] Xử lý login: lưu token vào `authStore`, redirect `/dashboard` *(tôn trọng `?redirect=` khi bị chặn từ route khác, có chống open-redirect)*
+- [x] Axios interceptor: tự động refresh khi nhận 401, queue requests — *đồng thời sửa 2 lỗi có sẵn từ Giai đoạn 0: refresh ghi `user` thành `undefined` (mỗi lần refresh ngầm là đăng xuất), và 401 kèm `WRONG_CURRENT_PASSWORD`/`INVALID_CREDENTIALS` bị đem đi replay (tự gửi lại mật khẩu sai, có thể tự đẩy account vào lockout)*
+- [x] `PrivateRoute`: redirect về `/login` nếu chưa đăng nhập
+- [x] Trang `/forgot-password` + `/reset-password`
+- [x] Trang profile cá nhân: xem thông tin, đổi mật khẩu *(đổi mật khẩu revoke toàn bộ session → thông báo rồi đưa về `/login`)*
+- [x] Dropdown user header: tên, xem profile, đăng xuất
+- [x] Logout: clear store, redirect `/login` *(dùng `replace` để Back không quay lại được trang đã đăng nhập)*
 
-**Tests (1.2):**
-- [ ] Login form: validate email, mật khẩu min 8 ký tự
-- [ ] Login thành công → vào dashboard
-- [ ] Login sai → hiện error message
-- [ ] F5 sau login → vẫn đăng nhập (token còn trong memory, check /auth/me)
-- [ ] Token hết hạn → tự refresh, user không bị kick ra
-- [ ] Refresh fail → redirect login
-- [ ] Truy cập `/dashboard` khi chưa login → redirect `/login`
-- [ ] Logout → không thể back về trang trước
+> **Bổ sung ngoài api-spec:** thêm `GET /auth/me` — access token chỉ nằm trong memory nên sau F5 app phải gọi `/auth/refresh` rồi `/auth/me` để dựng lại session. **Cần cập nhật `api-spec.md`:** tài liệu vẫn ghi `refreshToken` nằm trong body của login và là field request của `/auth/refresh`, trong khi thực tế dùng HttpOnly cookie; đồng thời chưa có `GET /auth/me`, `rememberMe`, `ACCOUNT_INACTIVE`, và header `Retry-After`.
+>
+> **Quy ước thông báo:** áp dụng quy tắc không double-notify (`ui-conventions.md` §8) — lỗi hiển thị inline trong card/form, toàn bộ `src/` chỉ còn 3 lệnh `message.*` và đều là `success` ngay trước khi redirect (lúc đó không còn surface inline).
+
+**Tests (1.2):** — *nghiệm thu: contract FE↔BE kiểm chứng bằng request thật đi qua Vite proxy; các tương tác thuần UI kiểm tra ở mức code + chủ dự án đã tự xác nhận UI.*
+- [x] Login form: validate email, mật khẩu min 8 ký tự *(kiểm ở mức code; regex email được test riêng bằng script)*
+- [x] Login thành công → vào dashboard *(API xác nhận: 200 + `accessToken` + `expiresIn` 900 + `user`)*
+- [x] Login sai → hiện error message *(API xác nhận 401 `INVALID_CREDENTIALS`; UI hiện `Alert` inline, không toast)*
+- [x] F5 sau login → vẫn đăng nhập (token còn trong memory, check /auth/me) *(xác nhận thật: `/auth/refresh` bằng cookie → token mới, rồi `/auth/me` trả đúng user)*
+- [x] Token hết hạn → tự refresh, user không bị kick ra
+- [x] Refresh fail → redirect login
+- [x] Truy cập `/dashboard` khi chưa login → redirect `/login`
+- [x] Logout → không thể back về trang trước *(API xác nhận: logout chỉ bằng Bearer → 200 và cookie bị xoá đúng `Path`)*
+
+**Contract FE↔BE đã chốt khi nghiệm thu** (tài liệu không ghi rõ, xác nhận bằng response thật):
+- `user.id` là **number** (không phải string)
+- `GET /auth/me` trả user **phẳng** trong `data`, không bọc `data.user`
+- `POST /auth/refresh` **không** trả `user` — chỉ `accessToken`
+- Thời gian khoá tài khoản đọc từ header **`Retry-After`** (giây)
 
 ---
 
