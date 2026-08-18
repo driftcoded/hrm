@@ -1,7 +1,7 @@
 # HRM Project — Kế hoạch xây dựng
 
-**Cập nhật lần cuối:** 21/06/2026  
-**Trạng thái tổng thể:** 🟡 Đang chuẩn bị
+**Cập nhật lần cuối:** 18/08/2026  
+**Trạng thái tổng thể:** 🟢 Giai đoạn 0 hoàn thành — đang chuẩn bị Giai đoạn 1
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Giai đoạn | Tên | Tiến độ | Trạng thái |
 |-----------|-----|---------|------------|
-| 0 | Khởi tạo project | 0 / 14 | ⬜ Chưa bắt đầu |
+| 0 | Khởi tạo project | 28 / 28 | ✅ Hoàn thành |
 | 1 | Auth & User | 0 / 21 | ⬜ Chưa bắt đầu |
 | 2 | Master Data | 0 / 11 | ⬜ Chưa bắt đầu |
 | 3 | Nhân viên | 0 / 16 | ⬜ Chưa bắt đầu |
@@ -19,7 +19,9 @@
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 0 / 128 tasks hoàn thành
+**Tổng:** 28 / 128 tasks hoàn thành
+
+> ⚠️ Lưu ý đếm: bảng trên vốn ghi Giai đoạn 0 là "14" (khớp với tổng 128), nhưng mục 0.1 + 0.2 thực tế có 28 dòng checkbox (14 mỗi mục). Đã sửa dòng Giai đoạn 0 thành 28/28 cho đúng thực tế; nếu muốn tổng 128 phía trên chính xác tuyệt đối, cần rà lại đếm của các giai đoạn còn lại.
 
 ---
 
@@ -37,40 +39,40 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 ## Giai đoạn 0 — Khởi tạo project
 
 ### 0.1 Backend scaffold
-- [ ] `nest new` với TypeScript strict, cấu hình `tsconfig.json`
-- [ ] Cài dependencies: TypeORM, MySQL2, JWT, bcrypt, class-validator, class-transformer, Swagger, Helmet, Winston
-- [ ] Cấu hình `ConfigModule` (validate env vars)
-- [ ] Cấu hình `DatabaseModule` (TypeORM + retry on fail)
-- [ ] Setup `TransformInterceptor` (response format chuẩn)
-- [ ] Setup `HttpExceptionFilter` (error format chuẩn)
-- [ ] Setup `ValidationPipe` global
-- [ ] Chạy migration tạo đủ 26 bảng theo `database-schema.md`
-- [ ] Seed master data: tỉnh/huyện/xã, ngày lễ, roles
-- [ ] Swagger UI chạy được tại `/api/docs`
+- [x] `nest new` với TypeScript strict, cấu hình `tsconfig.json`
+- [x] Cài dependencies: TypeORM, MySQL2, JWT, bcrypt, class-validator, class-transformer, Swagger, Helmet, Winston
+- [x] Cấu hình `ConfigModule` (validate env vars)
+- [x] Cấu hình `DatabaseModule` (TypeORM + retry on fail)
+- [x] Setup `TransformInterceptor` (response format chuẩn)
+- [x] Setup `HttpExceptionFilter` (error format chuẩn)
+- [x] Setup `ValidationPipe` global
+- [x] Chạy migration tạo đủ 26 bảng theo `database-schema.md`
+- [x] Seed master data: tỉnh/huyện/xã, ngày lễ, roles — *roles (5) + holidays (2025+2026, 22 bản ghi) seed vào DB; riêng tỉnh/huyện/xã KHÔNG có bảng riêng trong schema 26 bảng (employees chỉ lưu `province_code`/`district_code`/`ward_code` dạng text) nên lưu tạm dưới dạng file tĩnh `src/common/data/vn-provinces.json` (34 tỉnh/thành sau sáp nhập 2025) để dùng cho endpoint `/system/provinces` ở giai đoạn sau.*
+- [x] Swagger UI chạy được tại `/api/docs`
 
 **Tests (0.1):**
-- [ ] `npm run build` không lỗi
-- [ ] `npm run start:dev` khởi động, kết nối DB thành công
-- [ ] Swagger UI hiển thị đúng tại `/api/docs`
-- [ ] Migration chạy không lỗi, 26 bảng được tạo
+- [x] `npm run build` không lỗi
+- [x] `npm run start:dev` khởi động, kết nối DB thành công
+- [x] Swagger UI hiển thị đúng tại `/api/docs`
+- [x] Migration chạy không lỗi, 26 bảng được tạo
 
 ### 0.2 Frontend scaffold
-- [ ] `npm create vite@latest` → React 19 + TypeScript 6
-- [ ] Cài dependencies: antd v6, react-router v7, @tanstack/react-query v5, zustand v5, axios, dayjs (vi locale), i18next 26 + react-i18next 17
-- [ ] Cấu hình alias `@/` trong `vite.config.ts` + `tsconfig.json`
-- [ ] Cấu hình Vite proxy API → `http://localhost:3000`
-- [ ] `ConfigProvider` Ant Design: theme token, locale `vi_VN`
-- [ ] Setup axios instance + interceptors (attach Bearer token, refresh logic)
-- [ ] Setup `authStore` (Zustand) + `uiStore`
-- [ ] Layout shell: `AppLayout`, `Sidebar`, `Header`, `PageHeader`
-- [ ] Route skeleton: `RouterConfig.tsx` với `PrivateRoute`
-- [ ] i18n setup: `locales/vi.json`, `locales/en.json`
+- [x] `npm create vite@latest` → React 19 + TypeScript 6
+- [x] Cài dependencies: antd v6, react-router v7, @tanstack/react-query v5, zustand v5, axios, dayjs (vi locale), i18next 26 + react-i18next 17
+- [x] Cấu hình alias `@/` trong `vite.config.ts` + `tsconfig.json`
+- [x] Cấu hình Vite proxy API → `http://localhost:3000`
+- [x] `ConfigProvider` Ant Design: theme token, locale `vi_VN`
+- [x] Setup axios instance + interceptors (attach Bearer token, refresh logic)
+- [x] Setup `authStore` (Zustand) + `uiStore`
+- [x] Layout shell: `AppLayout`, `Sidebar`, `Header`, `PageHeader`
+- [x] Route skeleton: `RouterConfig.tsx` với `PrivateRoute`
+- [x] i18n setup: `locales/vi.json`, `locales/en.json`
 
 **Tests (0.2):**
-- [ ] `npm run dev` chạy tại `localhost:5173`
-- [ ] `npm run build` không lỗi TypeScript
-- [ ] Layout hiển thị đúng: sidebar, header, content area
-- [ ] Proxy API hoạt động (request từ FE đến BE không bị CORS)
+- [x] `npm run dev` chạy tại `localhost:5173`
+- [x] `npm run build` không lỗi TypeScript
+- [x] Layout hiển thị đúng: sidebar, header, content area — *xác nhận qua code-review `AppLayout.tsx` (Header 64px + Sider 240/80 + Content đúng cấu trúc); không chụp được màn hình live vì trình duyệt thật của máy đang có sẵn app khác (UTPC Admin) chiếm cổng 5173 trên host, còn dev server HRM chạy trong sandbox lệnh — đã verify bằng HTML/JS trả về qua curl thay thế.*
+- [x] Proxy API hoạt động (request từ FE đến BE không bị CORS) — *verify end-to-end thật: `curl http://localhost:5173/api/v1/health` (qua Vite proxy) → 200, JSON đúng envelope từ backend thật đang chạy.*
 
 ---
 
