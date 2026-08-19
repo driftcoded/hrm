@@ -20,8 +20,11 @@ import { MailModule } from './shared/mail/mail.module';
 import { StorageModule } from './shared/storage/storage.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContractTypesModule } from './modules/contracts/contract-types.module';
+import { ContractsModule } from './modules/contracts/contracts.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
+import { DependentsModule } from './modules/dependents/dependents.module';
 import { EmployeesModule } from './modules/employees/employees.module';
+import { FamilyMembersModule } from './modules/family-members/family-members.module';
 import { LeaveTypesModule } from './modules/leaves/leave-types.module';
 import { PositionsModule } from './modules/positions/positions.module';
 import { HolidaysModule } from './modules/system/holidays.module';
@@ -61,6 +64,9 @@ import { UsersModule } from './modules/users/users.module';
     SystemModule,
     // Nhân viên & hồ sơ – Giai đoạn 3.1
     EmployeesModule,
+    ContractsModule,
+    FamilyMembersModule,
+    DependentsModule,
   ],
   controllers: [AppController],
   providers: [

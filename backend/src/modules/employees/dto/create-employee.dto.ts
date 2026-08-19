@@ -184,12 +184,27 @@ export class CreateEmployeeDto {
   @Matches(AREA_CODE_PATTERN, { message: 'provinceCode must be 1-10 digits' })
   provinceCode: string;
 
-  @ApiProperty({ example: '007', maxLength: 10 })
-  @IsString()
+  /**
+   * ⚠️ ĐÃ LỖI THỜI. Cấp huyện chấm dứt hoạt động từ 01/07/2025
+   * (Luật 72/2025/QH15) — cả nước còn 2 cấp: tỉnh/thành và phường/xã/đặc khu.
+   * Field giữ lại để nhập liệu hồ sơ CŨ; hồ sơ mới bỏ trống.
+   */
+  @ApiPropertyOptional({
+    example: null,
+    nullable: true,
+    deprecated: true,
+    description: 'Cấp huyện đã bị bỏ từ 01/07/2025; chỉ dùng cho hồ sơ cũ',
+  })
+  @IsOptional()
   @Matches(AREA_CODE_PATTERN, { message: 'districtCode must be 1-10 digits' })
-  districtCode: string;
+  districtCode?: string | null;
 
-  @ApiProperty({ example: '00193', maxLength: 10 })
+  @ApiProperty({
+    example: '10105001',
+    maxLength: 10,
+    description:
+      'Mã phường/xã/đặc khu theo danh mục cơ quan thuế (src/common/data/vn-wards.json)',
+  })
   @IsString()
   @Matches(AREA_CODE_PATTERN, { message: 'wardCode must be 1-10 digits' })
   wardCode: string;

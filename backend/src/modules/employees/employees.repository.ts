@@ -49,6 +49,41 @@ export interface FindEmployeesOptions {
   departmentScope?: number[];
 }
 
+export interface EmployeeBaseSalary {
+  employeeId: number;
+  baseSalary: number;
+}
+
+export interface StatusCount {
+  status: EmployeeStatus;
+  count: number;
+}
+
+export interface GenderCount {
+  gender: Gender;
+  count: number;
+}
+
+export interface DepartmentHeadcount {
+  departmentId: number;
+  departmentName: string;
+  count: number;
+}
+
+export interface AverageStats {
+  averageAge: number | null;
+  averageTenureYears: number | null;
+}
+
+export interface BirthdayRow {
+  employeeId: number;
+  employeeCode: string;
+  fullName: string;
+  avatarUrl: string | null;
+  birthday: string;
+  daysUntil: number;
+}
+
 /** Cột duy nhất cần kiểm tra trước khi ghi (api-spec.md §21 nhóm EMPLOYEE). */
 export type EmployeeUniqueField =
   | 'cccdNumber'
@@ -267,6 +302,246 @@ export class EmployeesRepository {
 
   async restore(id: number): Promise<void> {
     await this.repository.restore({ id });
+  }
+
+  // ---------------------------------------------------------- thống kê ----
+
+  /**
+   * Lương cơ bản theo hợp đồng đang hiệu lực, cho các nhân viên trên MỘT trang.
+   *
+   * Một truy vấn cho cả trang (tối đa 100 dòng) thay vì join thẳng vào câu
+   * list: một nhân viên có thể có nhiều hợp đồng nên join sẽ nhân đôi dòng và
+   * làm sai `getManyAndCount()`.
+   */
+  async findActiveBaseSalaries(
+    employeeIds: number[],
+  ): Promise<EmployeeBaseSalary[]> {
+    if (employeeIds.length === 0) {
+      return [];
+    }
+
+    const rows = await this.contractRepository
+      .createQueryBuilder('contract')
+      .select('contract.employeeId', 'employeeId')
+      .addSelect('MAX(contract.baseSalary)', 'baseSalary')
+      .where('contract.employeeId IN (:...employeeIds)', { employeeIds })
+      .andWhere('contract.status = :status', { status: ContractStatus.ACTIVE })
+      .groupBy('contract.employeeId')
+      .getRawMany<{
+        employeeId: string | number;
+        baseSalary: string | number;
+      }>();
+
+    return rows.map((row) => ({
+      employeeId: Number(row.employeeId),
+      baseSalary: Number(row.baseSalary),
+    }));
+  }
+
+  countAll(departmentScope?: number[]): Promise<number> {
+    return this.scoped(departmentScope).getCount();
+  }
+
+  async countByStatus(departmentScope?: number[]): Promise<StatusCount[]> {
+    const rows = await this.scoped(departmentScope)
+      .select('employee.status', 'status')
+      .addSelect('COUNT(employee.id)', 'count')
+      .groupBy('employee.status')
+      .getRawMany<{ status: EmployeeStatus; count: string | number }>();
+
+    return rows.map((row) => ({
+      status: row.status,
+      count: Number(row.count),
+    }));
+  }
+
+  async countByGender(departmentScope?: number[]): Promise<GenderCount[]> {
+    const rows = await this.scoped(departmentScope)
+      .select('employee.gender', 'gender')
+      .addSelect('COUNT(employee.id)', 'count')
+      .groupBy('employee.gender')
+      .getRawMany<{ gender: Gender; count: string | number }>();
+
+    return rows.map((row) => ({
+      gender: row.gender,
+      count: Number(row.count),
+    }));
+  }
+
+  /** Nhân viên vào làm trong `days` ngày gần đây. */
+  countHiredWithinDays(
+    days: number,
+    departmentScope?: number[],
+  ): Promise<number> {
+    return this.scoped(departmentScope)
+      .andWhere('employee.hireDate > DATE_SUB(CURDATE(), INTERVAL :days DAY)', {
+        days,
+      })
+      .andWhere('employee.hireDate <= CURDATE()')
+      .getCount();
+  }
+
+  /** Nhân viên sắp hết hạn thử việc trong `days` ngày tới. */
+  countProbationEndingWithinDays(
+    days: number,
+    departmentScope?: number[],
+  ): Promise<number> {
+    return this.scoped(departmentScope)
+      .andWhere('employee.probationEndDate IS NOT NULL')
+      .andWhere('employee.probationEndDate >= CURDATE()')
+      .andWhere(
+        'employee.probationEndDate <= DATE_ADD(CURDATE(), INTERVAL :days DAY)',
+        { days },
+      )
+      .getCount();
+  }
+
+  /** Hợp đồng `active` hết hạn trong `days` ngày tới. */
+  countContractsExpiringWithinDays(
+    days: number,
+    departmentScope?: number[],
+  ): Promise<number> {
+    const query = this.contractRepository
+      .createQueryBuilder('contract')
+      .innerJoin('contract.employee', 'employee')
+      .where('contract.status = :status', { status: ContractStatus.ACTIVE })
+      .andWhere('contract.endDate IS NOT NULL')
+      .andWhere('contract.endDate >= CURDATE()')
+      .andWhere('contract.endDate <= DATE_ADD(CURDATE(), INTERVAL :days DAY)', {
+        days,
+      });
+
+    this.applyScope(query, departmentScope);
+
+    return query.getCount();
+  }
+
+  /**
+   * Tuổi và thâm niên trung bình.
+   *
+   * Chia `DATEDIFF` cho 365.25 chứ không dùng `TIMESTAMPDIFF(YEAR, …)`:
+   * TIMESTAMPDIFF cắt cụt về số năm tròn TRƯỚC khi lấy trung bình, nên một đội
+   * toàn người 29 tuổi 11 tháng sẽ ra "29.0" thay vì gần 30.
+   */
+  async findAverages(departmentScope?: number[]): Promise<AverageStats> {
+    const row = await this.scoped(departmentScope)
+      .select('AVG(DATEDIFF(CURDATE(), employee.dateOfBirth) / 365.25)', 'age')
+      .addSelect(
+        'AVG(DATEDIFF(CURDATE(), employee.hireDate) / 365.25)',
+        'tenure',
+      )
+      .getRawOne<{ age: string | null; tenure: string | null }>();
+
+    return {
+      averageAge:
+        row?.age === null || row?.age === undefined ? null : Number(row.age),
+      averageTenureYears:
+        row?.tenure === null || row?.tenure === undefined
+          ? null
+          : Number(row.tenure),
+    };
+  }
+
+  async countByDepartment(
+    departmentScope?: number[],
+  ): Promise<DepartmentHeadcount[]> {
+    const rows = await this.scoped(departmentScope)
+      .innerJoin('employee.department', 'department')
+      .select('department.id', 'departmentId')
+      .addSelect('department.name', 'departmentName')
+      .addSelect('COUNT(employee.id)', 'count')
+      .groupBy('department.id')
+      .addGroupBy('department.name')
+      .orderBy('count', 'DESC')
+      .getRawMany<{
+        departmentId: string | number;
+        departmentName: string;
+        count: string | number;
+      }>();
+
+    return rows.map((row) => ({
+      departmentId: Number(row.departmentId),
+      departmentName: row.departmentName,
+      count: Number(row.count),
+    }));
+  }
+
+  /**
+   * Sinh nhật trong `days` ngày tới.
+   *
+   * `daysUntil` tính bằng cách dời ngày sinh tới lần kỷ niệm KẾ TIẾP: cộng đủ
+   * số năm, cộng thêm 1 năm nữa nếu phần `MMDD` của ngày sinh đã qua so với
+   * hôm nay. Cách này vượt mốc giao thừa đúng (sinh nhật 02/01 nhìn từ 28/12 ra
+   * 5 ngày, không phải -360) và để MySQL tự xử lý 29/02 ở năm không nhuận.
+   */
+  async findUpcomingBirthdays(
+    days: number,
+    limit: number,
+    departmentScope?: number[],
+  ): Promise<BirthdayRow[]> {
+    const nextBirthday =
+      'DATE_ADD(employee.date_of_birth, INTERVAL (' +
+      'YEAR(CURDATE()) - YEAR(employee.date_of_birth) + ' +
+      "IF(DATE_FORMAT(employee.date_of_birth, '%m%d') < DATE_FORMAT(CURDATE(), '%m%d'), 1, 0)" +
+      ') YEAR)';
+
+    const rows = await this.scoped(departmentScope)
+      .select('employee.id', 'employeeId')
+      .addSelect('employee.employee_code', 'employeeCode')
+      .addSelect('employee.full_name', 'fullName')
+      .addSelect('employee.avatar_url', 'avatarUrl')
+      .addSelect("DATE_FORMAT(employee.date_of_birth, '%m-%d')", 'birthday')
+      .addSelect('DATEDIFF(' + nextBirthday + ', CURDATE())', 'daysUntil')
+      .having('daysUntil <= :days', { days })
+      .orderBy('daysUntil', 'ASC')
+      .addOrderBy('employee.full_name', 'ASC')
+      .limit(limit)
+      .getRawMany<{
+        employeeId: string | number;
+        employeeCode: string;
+        fullName: string;
+        avatarUrl: string | null;
+        birthday: string;
+        daysUntil: string | number;
+      }>();
+
+    return rows.map((row) => ({
+      employeeId: Number(row.employeeId),
+      employeeCode: row.employeeCode,
+      fullName: row.fullName,
+      avatarUrl: row.avatarUrl,
+      birthday: row.birthday,
+      daysUntil: Number(row.daysUntil),
+    }));
+  }
+
+  /** Query nhân viên "sống", đã áp phạm vi phòng ban của role hiện tại. */
+  private scoped(departmentScope?: number[]): SelectQueryBuilder<Employee> {
+    const query = this.repository.createQueryBuilder('employee');
+    this.applyScope(query, departmentScope);
+    return query;
+  }
+
+  /**
+   * Giới hạn theo phòng ban. Mảng RỖNG nghĩa là không có phòng ban nào trong
+   * phạm vi → `1 = 0` để trả rỗng; TUYỆT ĐỐI không rơi về "xem tất cả".
+   */
+  private applyScope(
+    query: SelectQueryBuilder<Employee> | SelectQueryBuilder<Contract>,
+    departmentScope?: number[],
+  ): void {
+    if (!departmentScope) {
+      return;
+    }
+
+    if (departmentScope.length === 0) {
+      query.andWhere('1 = 0');
+      return;
+    }
+
+    query.andWhere('employee.departmentId IN (:...departmentScope)', {
+      departmentScope,
+    });
   }
 
   private baseQuery(): SelectQueryBuilder<Employee> {

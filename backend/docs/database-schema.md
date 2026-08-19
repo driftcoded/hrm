@@ -224,9 +224,9 @@ Bảng trung gian many-to-many giữa `roles` và `permissions`. Không có cộ
 |-----|------|:--------:|-------|
 | permanent_address | text (500) | ✅ | Hộ khẩu thường trú – địa chỉ đầy đủ |
 | current_address | text (500) | ❌ | Chỗ ở hiện tại. `NULL` = giống thường trú |
-| province_code | text (10) | ✅ | Mã tỉnh/thành phố theo Bộ Nội Vụ (63 tỉnh) |
-| district_code | text (10) | ✅ | Mã quận/huyện |
-| ward_code | text (10) | ✅ | Mã phường/xã |
+| province_code | text (10) | ✅ | Mã tỉnh/thành phố theo Bộ Nội Vụ — **34 tỉnh/thành** sau sáp nhập 01/07/2025, mã `01`–`34` |
+| district_code | text (10) | ❌ | ⚠️ **ĐÃ LỖI THỜI.** Cấp huyện chấm dứt hoạt động từ 01/07/2025 (Luật 72/2025/QH15). Cột giữ lại NULLABLE chỉ để đọc hồ sơ tuyển trước mốc đó — xem migration `MakeDistrictCodeNullable` |
+| ward_code | text (10) | ✅ | Mã phường/xã/đặc khu theo danh mục cơ quan thuế (TMS), ví dụ `10105001`. Cả nước 3.321 đơn vị |
 
 #### Liên lạc
 
@@ -282,6 +282,19 @@ Bảng trung gian many-to-many giữa `roles` và `permissions`. Không có cộ
 | created_at | thời điểm | ✅ | Tự động |
 | updated_at | thời điểm | ✅ | Tự động cập nhật |
 | deleted_at | thời điểm | ❌ | Soft delete |
+
+> **Đơn vị hành chính — cập nhật 01/07/2025.** Việt Nam chuyển sang chính quyền
+> địa phương **2 cấp** (Luật 72/2025/QH15): 34 tỉnh/thành → 3.321 phường/xã/đặc
+> khu (2.621 xã + 687 phường + 13 đặc khu). Cấp huyện không còn.
+>
+> Danh mục nằm ở `src/common/data/vn-provinces.json` và `vn-wards.json`, sinh từ
+> danh mục chính thống của cơ quan thuế bằng `scripts/build-vn-admin-data.ts`
+> (đã đối chiếu chéo với provinces.open-api.vn v2: 34/34 tỉnh khớp, 0 tỉnh lệch
+> số lượng, 3.310/3.321 tên khớp tuyệt đối). App KHÔNG gọi API ngoài lúc chạy.
+>
+> Mỗi phường/xã mang kèm `legacyDistrictCode`/`legacyDistrictName` để tra ngược
+> hồ sơ cũ. Mã phường/xã dùng hệ TMS của cơ quan thuế, không phải mã GSO — để
+> số liệu quyết toán thuế TNCN ở Giai đoạn 6 không phải map thêm một lần nữa.
 
 **Validation tầng Application:**
 

@@ -1,4 +1,14 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+  "exclude": [
+    "node_modules",
+    "test",
+    "dist",
+    "**/*spec.ts",
+    // Script chạy tay lúc build dữ liệu (scripts/build-vn-admin-data.ts) nằm
+    // NGOÀI src/. Nếu để nó trong chương trình biên dịch thì rootDir chung trở
+    // thành thư mục gốc của backend và mọi output dịch sang dist/src/... —
+    // `node dist/main` ở start:prod sẽ không tìm thấy file.
+    "scripts"
+  ]
 }

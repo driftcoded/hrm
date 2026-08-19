@@ -233,7 +233,7 @@ export async function insertFixtureEmployee(
        phone, email, position_id, department_id, hire_date, status
      ) VALUES (?, 'Nguyễn', 'Fixture', 'Nguyễn Fixture', '1995-01-01', 'male',
        'Hà Nội', 'Hà Nội', ?, '2021-06-15', 'Cục CS QLHC về TTXH',
-       'Số 1, phố Fixture, Hà Nội', '01', '001', '00001',
+       'Số 1, phố Fixture, Hà Nội', '01', NULL, '10101003',
        ?, ?, ?, ?, '2024-01-02', 'active')`,
     [
       employeeCode,

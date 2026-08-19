@@ -43,6 +43,7 @@ import {
   EmployeeSummaryDto,
   RestoreResponseDto,
 } from './dto/employee-response.dto';
+import { EmployeeStatsDto } from './dto/employee-stats.dto';
 import { FilterEmployeeDto } from './dto/filter-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeesService } from './employees.service';
@@ -99,6 +100,22 @@ export class EmployeesController {
   })
   findMe(@CurrentUser() user: AuthenticatedUser): Promise<EmployeeDetailDto> {
     return this.employeesService.findMe(user);
+  }
+
+  // Cũng phải đứng TRƯỚC `:id` — xem ghi chú ở `me`.
+  @Get('stats')
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Số liệu tổng quan nhân sự cho màn hình danh sách',
+    description:
+      'Gộp mọi con số của các thẻ tổng quan + panel bên phải vào MỘT request. ' +
+      'Tính trong đúng phạm vi của role gọi nó (manager chỉ thấy phòng ban mình). ' +
+      'KHÔNG có số liệu "so với tháng trước": bảng employees chỉ lưu trạng thái hiện tại.',
+  })
+  @ApiOkResponse({ type: EmployeeStatsDto })
+  @ApiForbiddenResponse({ description: 'FORBIDDEN – role không được xem' })
+  findStats(@CurrentUser() user: AuthenticatedUser): Promise<EmployeeStatsDto> {
+    return this.employeesService.findStats(user);
   }
 
   @Get(':id')

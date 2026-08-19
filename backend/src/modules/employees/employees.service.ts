@@ -6,6 +6,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { EmployeeStatsDto } from './dto/employee-stats.dto';
 import {
   EMPLOYEE_READ_ROLES,
   ROLE_MANAGER,
@@ -42,7 +43,7 @@ import {
   EmployeesRepository,
   EmployeeUniqueField,
 } from './employees.repository';
-import { Employee } from './entities/employee.entity';
+import { Employee, EmployeeStatus, Gender } from './entities/employee.entity';
 
 /** Tuổi hợp lệ của nhân viên (database-schema.md §2.3 – Validation tầng App). */
 export const MIN_EMPLOYEE_AGE = 15;
@@ -50,6 +51,23 @@ export const MAX_EMPLOYEE_AGE = 70;
 
 /** Số lần thử lại khi 2 request cùng giành một `employee_code`. */
 const EMPLOYEE_CODE_MAX_ATTEMPTS = 5;
+
+/**
+ * Cửa sổ "sắp tới" của `GET /employees/stats`: hợp đồng sắp hết hạn, hết hạn
+ * thử việc, sinh nhật sắp tới. Một tháng là khoảng HR còn kịp xử lý.
+ */
+export const STATS_WINDOW_DAYS = 30;
+
+/** Cửa sổ "vừa tuyển" — cố định 30 ngày để nhãn "30 ngày qua" luôn đúng. */
+export const HIRED_WINDOW_DAYS = 30;
+
+/** Số người tối đa trong danh sách sinh nhật (panel bên phải chỉ đủ chỗ vài dòng). */
+export const UPCOMING_BIRTHDAY_LIMIT = 5;
+
+/** `29.37…` → `29.4`; giữ nguyên `null` khi chưa có nhân viên nào. */
+function roundToOneDecimal(value: number | null): number | null {
+  return value === null ? null : Math.round(value * 10) / 10;
+}
 
 /** Map cột UNIQUE → error code của api-spec.md §21. */
 const DUPLICATE_CODES: Record<EmployeeUniqueField, string> = {
@@ -114,12 +132,105 @@ export class EmployeesService {
         scope.kind === 'department' ? scope.departmentIds : undefined,
     });
 
+    // Một truy vấn phụ cho cả trang, không phải mỗi dòng một truy vấn.
+    const baseSalaries = await this.loadBaseSalaries(employees);
+
     return new PaginatedResponseDto(
-      employees.map((employee) => this.toListItem(employee)),
+      employees.map((employee) => this.toListItem(employee, baseSalaries)),
       total,
       page,
       limit,
     );
+  }
+
+  /**
+   * `GET /employees/stats` – số liệu cho các thẻ tổng quan của màn hình
+   * `/employees`.
+   *
+   * Mọi con số đều được tính TRONG PHẠM VI của role gọi nó: manager chỉ thấy
+   * thống kê phòng ban mình, đúng như danh sách họ xem được. Nếu không, tổng
+   * số nhân viên toàn công ty sẽ rò rỉ qua một endpoint khác.
+   */
+  async findStats(user: AuthenticatedUser): Promise<EmployeeStatsDto> {
+    const scope = await this.resolveScope(user);
+
+    if (scope.kind === 'self') {
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: `Role "${user.role}" cannot read employee statistics`,
+      });
+    }
+
+    const departmentScope =
+      scope.kind === 'department' ? scope.departmentIds : undefined;
+    const days = STATS_WINDOW_DAYS;
+
+    const [
+      total,
+      statusCounts,
+      genderCounts,
+      contractsExpiringSoon,
+      hiredLast30Days,
+      probationEndingSoon,
+      averages,
+      byDepartment,
+      birthdays,
+    ] = await Promise.all([
+      this.employeesRepository.countAll(departmentScope),
+      this.employeesRepository.countByStatus(departmentScope),
+      this.employeesRepository.countByGender(departmentScope),
+      this.employeesRepository.countContractsExpiringWithinDays(
+        days,
+        departmentScope,
+      ),
+      this.employeesRepository.countHiredWithinDays(
+        HIRED_WINDOW_DAYS,
+        departmentScope,
+      ),
+      this.employeesRepository.countProbationEndingWithinDays(
+        days,
+        departmentScope,
+      ),
+      this.employeesRepository.findAverages(departmentScope),
+      this.employeesRepository.countByDepartment(departmentScope),
+      this.employeesRepository.findUpcomingBirthdays(
+        days,
+        UPCOMING_BIRTHDAY_LIMIT,
+        departmentScope,
+      ),
+    ]);
+
+    // Mọi trạng thái đều có mặt với giá trị 0, để frontend không phải đoán xem
+    // "thiếu key" nghĩa là 0 hay là lỗi.
+    const byStatus = Object.values(EmployeeStatus).reduce(
+      (accumulator, status) => {
+        accumulator[status] =
+          statusCounts.find((row) => row.status === status)?.count ?? 0;
+        return accumulator;
+      },
+      {} as Record<EmployeeStatus, number>,
+    );
+
+    const genderOf = (gender: Gender): number =>
+      genderCounts.find((row) => row.gender === gender)?.count ?? 0;
+
+    return {
+      total,
+      byStatus,
+      contractsExpiringSoon,
+      windowDays: days,
+      hiredLast30Days,
+      probationEndingSoon,
+      byGender: {
+        male: genderOf(Gender.MALE),
+        female: genderOf(Gender.FEMALE),
+        other: genderOf(Gender.OTHER),
+      },
+      averageAge: roundToOneDecimal(averages.averageAge),
+      averageTenureYears: roundToOneDecimal(averages.averageTenureYears),
+      byDepartment,
+      upcomingBirthdays: birthdays,
+    };
   }
 
   async findOne(
@@ -472,7 +583,7 @@ export class EmployeesService {
       permanentAddress: dto.permanentAddress.trim(),
       currentAddress: dto.currentAddress?.trim() || null,
       provinceCode: dto.provinceCode,
-      districtCode: dto.districtCode,
+      districtCode: dto.districtCode ?? null,
       wardCode: dto.wardCode,
       phone: normalizePhone(dto.phone),
       email: dto.email.trim().toLowerCase(),
@@ -531,7 +642,7 @@ export class EmployeesService {
     set('cccdIssuePlace', dto.cccdIssuePlace?.trim());
     set('permanentAddress', dto.permanentAddress?.trim());
     set('provinceCode', dto.provinceCode);
-    set('districtCode', dto.districtCode);
+
     set('wardCode', dto.wardCode);
     set('hireDate', dto.hireDate);
     set('status', dto.status);
@@ -547,6 +658,9 @@ export class EmployeesService {
     }
 
     // Field nullable: `null` là giá trị hợp lệ (xoá), nên không dùng `set()`.
+    // districtCode nhận null tường minh (cấp huyện đã bị bỏ) nên đi qua
+    // setNullable chứ không phải set() — xem migration MakeDistrictCodeNullable.
+    this.setNullable(patch, 'districtCode', dto.districtCode);
     this.setNullable(patch, 'religion', dto.religion, (v) => v.trim() || null);
     this.setNullable(patch, 'cccdExpiredDate', dto.cccdExpiredDate);
     this.setNullable(patch, 'taxCode', dto.taxCode);
@@ -823,9 +937,23 @@ export class EmployeesService {
     return entity ? { id: Number(entity.id), name: entity.name } : null;
   }
 
-  private toListItem(employee: Employee): EmployeeListItemDto {
+  /** `employees.id` → lương cơ bản của hợp đồng đang hiệu lực (nếu có). */
+  private async loadBaseSalaries(
+    employees: Employee[],
+  ): Promise<Map<number, number>> {
+    const ids = employees.map((employee) => Number(employee.id));
+    const rows = await this.employeesRepository.findActiveBaseSalaries(ids);
+
+    return new Map(rows.map((row) => [row.employeeId, row.baseSalary]));
+  }
+
+  private toListItem(
+    employee: Employee,
+    baseSalaries?: Map<number, number>,
+  ): EmployeeListItemDto {
     return {
       id: Number(employee.id),
+      baseSalary: baseSalaries?.get(Number(employee.id)) ?? null,
       employeeCode: employee.employeeCode,
       fullName: employee.fullName,
       email: employee.email,

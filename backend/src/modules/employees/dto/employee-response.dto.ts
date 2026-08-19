@@ -59,6 +59,15 @@ export class EmployeeListItemDto {
   avatarUrl: string | null;
 
   @ApiProperty({
+    example: 15000000,
+    nullable: true,
+    type: Number,
+    description:
+      'Lương cơ bản của hợp đồng đang hiệu lực, VNĐ (api-spec.md §1.5). null = chưa có hợp đồng active.',
+  })
+  baseSalary: number | null;
+
+  @ApiProperty({
     example: null,
     nullable: true,
     type: String,
@@ -131,8 +140,15 @@ export class EmployeeDetailDto extends EmployeeListItemDto {
   @ApiProperty({ example: '01' })
   provinceCode: string;
 
-  @ApiProperty({ example: '007' })
-  districtCode: string;
+  @ApiProperty({
+    example: null,
+    nullable: true,
+    type: String,
+    deprecated: true,
+    description:
+      'Cấp huyện đã bị bỏ từ 01/07/2025 (Luật 72/2025/QH15); chỉ còn giá trị ở hồ sơ cũ',
+  })
+  districtCode: string | null;
 
   @ApiProperty({ example: '00193' })
   wardCode: string;

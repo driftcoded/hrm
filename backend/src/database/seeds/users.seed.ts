@@ -269,9 +269,12 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
           cccdIssueDate: '2021-06-15',
           cccdIssuePlace: 'Cục CS QLHC về TTXH',
           permanentAddress: 'Số 1, phố Mẫu, Hà Nội',
+          // Mã theo danh mục hành chính SAU sáp nhập 01/07/2025
+          // (src/common/data/): tỉnh dùng mã BNV 01–34, phường/xã dùng mã TMS.
+          // `districtCode` để null vì cấp huyện đã chấm dứt hoạt động.
           provinceCode: '01',
-          districtCode: '001',
-          wardCode: '00001',
+          districtCode: null,
+          wardCode: '10101003',
           phone: row.phone,
           email: row.email,
           positionId: position.id,

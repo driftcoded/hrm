@@ -157,8 +157,13 @@ export class Employee {
   @Column({ name: 'province_code', type: 'varchar', length: 10 })
   provinceCode: string;
 
-  @Column({ name: 'district_code', type: 'varchar', length: 10 })
-  districtCode: string;
+  /**
+   * Cấp huyện đã bị bỏ từ 01/07/2025 (Luật 72/2025/QH15) — cột này chỉ còn để
+   * ĐỌC hồ sơ tuyển trước mốc đó, không nhận dữ liệu nhập mới.
+   * Xem migration MakeDistrictCodeNullable.
+   */
+  @Column({ name: 'district_code', type: 'varchar', length: 10, nullable: true })
+  districtCode: string | null;
 
   @Column({ name: 'ward_code', type: 'varchar', length: 10 })
   wardCode: string;
