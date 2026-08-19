@@ -8,13 +8,17 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Employee } from '../../employees/entities/employee.entity';
+import { LeaveHalf } from '../../../common/utils/leave.util';
 import { LeaveType } from './leave-type.entity';
 
-export enum LeaveHalf {
-  FULL = 'full',
-  MORNING = 'morning',
-  AFTERNOON = 'afternoon',
-}
+/**
+ * Nửa ngày nghỉ.
+ *
+ * Định nghĩa nằm ở `leave.util.ts` và được XUẤT LẠI ở đây. Hai enum song song
+ * cùng giá trị buộc service phải ép kiểu giữa chúng, và ngày ai đó thêm một giá
+ * trị vào một bên thì phép ép kiểu đó im lặng nói dối.
+ */
+export { LeaveHalf } from '../../../common/utils/leave.util';
 
 export enum LeaveRequestStatus {
   PENDING = 'pending',
@@ -69,6 +73,25 @@ export class LeaveRequest {
 
   @Column({ type: 'text' })
   reason: string;
+
+  /**
+   * `employees.id` của người GHI NHẬN đơn (quản lý / nhân sự nhập hộ).
+   *
+   * Nhân viên không đăng nhập hệ thống này nên `employeeId` là người ĐƯỢC nghỉ,
+   * không phải người nhập. Cột này giữ nguyên tắc người ghi ≠ người duyệt —
+   * xem migration `AddRecordedByToLeaveRequests`.
+   */
+  @Column({
+    name: 'recorded_by',
+    type: 'bigint',
+    unsigned: true,
+    nullable: true,
+  })
+  recordedBy: number | null;
+
+  @ManyToOne(() => Employee, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'recorded_by' })
+  recorder: Employee | null;
 
   @Column({
     type: 'enum',

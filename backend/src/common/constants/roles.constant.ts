@@ -100,3 +100,29 @@ export const OVERTIME_APPROVE_ROLES: string[] = [
   ROLE_HR_MANAGER,
   ROLE_HR_STAFF,
 ];
+
+/**
+ * Vai trò được GHI NHẬN đơn nghỉ phép cho nhân viên.
+ *
+ * Nhân viên không đăng nhập hệ thống này nên không ai tự nộp đơn: quản lý ghi
+ * cho phòng mình (`resolveScope` giới hạn phạm vi), nhân sự ghi cho bất kỳ ai.
+ */
+export const LEAVE_RECORD_ROLES: string[] = [
+  ROLE_ADMIN,
+  ROLE_HR_MANAGER,
+  ROLE_HR_STAFF,
+  ROLE_MANAGER,
+];
+
+/**
+ * Vai trò được DUYỆT đơn nghỉ phép — nhân sự.
+ *
+ * Hẹp hơn `LEAVE_RECORD_ROLES`: `manager` ghi nhận nhưng KHÔNG duyệt. Ngày nghỉ
+ * phép trừ vào quỹ và ảnh hưởng tới lương, nên bước duyệt là lớp kiểm soát cuối
+ * cùng. Service còn chặn thêm người vừa ghi vừa duyệt chính đơn đó.
+ */
+export const LEAVE_APPROVE_ROLES: string[] = [
+  ROLE_ADMIN,
+  ROLE_HR_MANAGER,
+  ROLE_HR_STAFF,
+];

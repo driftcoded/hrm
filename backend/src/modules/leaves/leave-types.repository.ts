@@ -54,6 +54,17 @@ export class LeaveTypesRepository {
       .getOne();
   }
 
+  /**
+   * Tìm theo `code` — dùng cho các quy tắc gắn với MỘT loại phép cụ thể, ví dụ
+   * `ANNUAL` khi cấp quỹ phép năm theo Điều 113.
+   *
+   * Tra theo mã chứ không viết cứng id: id do DB sinh và khác nhau giữa các môi
+   * trường, còn `code` là thứ seed và tài liệu cùng nói tới.
+   */
+  findByCode(code: string): Promise<LeaveType | null> {
+    return this.repository.findOne({ where: { code } });
+  }
+
   countLeaveRequests(leaveTypeId: number): Promise<number> {
     return this.leaveRequestRepository
       .createQueryBuilder('leaveRequest')

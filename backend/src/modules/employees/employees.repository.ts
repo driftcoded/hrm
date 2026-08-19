@@ -212,6 +212,33 @@ export class EmployeesRepository {
   }
 
   /**
+   * Toàn bộ nhân viên ĐANG LÀM VIỆC — dùng cho các thao tác chạy cho cả công ty
+   * (khởi tạo quỹ phép đầu năm).
+   *
+   * `probation` và `active` được tính, `on_leave` cũng vậy — người đang nghỉ
+   * thai sản vẫn là nhân viên và vẫn có quỹ phép năm. `resigned`/`terminated`
+   * thì không: cấp phép cho người đã nghỉ việc là tạo ra một khoản nợ với người
+   * không còn ở công ty. `suspended` cũng loại — quan hệ lao động đang treo.
+   *
+   * Trả về `id` và `hireDate` thôi: bước khởi tạo chỉ cần hai thứ đó để tính
+   * thâm niên, và kéo cả hồ sơ về cho vài trăm người là lãng phí.
+   */
+  findActiveForAllocation(): Promise<Array<Pick<Employee, 'id' | 'hireDate'>>> {
+    return this.repository
+      .createQueryBuilder('employee')
+      .select(['employee.id', 'employee.hireDate'])
+      .where('employee.status IN (:...statuses)', {
+        statuses: [
+          EmployeeStatus.PROBATION,
+          EmployeeStatus.ACTIVE,
+          EmployeeStatus.ON_LEAVE,
+        ],
+      })
+      .orderBy('employee.id', 'ASC')
+      .getMany();
+  }
+
+  /**
    * Mã nhân viên → id, tra MỘT LẦN cho cả danh sách.
    *
    * KHÔNG `withDeleted()`, khác với `findByUniqueField`: bên kia tra để kiểm
