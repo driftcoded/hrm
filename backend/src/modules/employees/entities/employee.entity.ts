@@ -162,7 +162,12 @@ export class Employee {
    * ĐỌC hồ sơ tuyển trước mốc đó, không nhận dữ liệu nhập mới.
    * Xem migration MakeDistrictCodeNullable.
    */
-  @Column({ name: 'district_code', type: 'varchar', length: 10, nullable: true })
+  @Column({
+    name: 'district_code',
+    type: 'varchar',
+    length: 10,
+    nullable: true,
+  })
   districtCode: string | null;
 
   @Column({ name: 'ward_code', type: 'varchar', length: 10 })

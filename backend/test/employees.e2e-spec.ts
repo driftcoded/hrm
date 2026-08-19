@@ -984,13 +984,25 @@ describe('Employees / contracts / family members (e2e)', () => {
       await request(server)
         .post(`${BASE}/employees/${employeeId}/dependents`)
         .set('Authorization', `Bearer ${hrStaffToken}`)
-        .send(payload({ fullName: 'Nguyễn Văn Con', relationship: 'child', cccdNumber: cccd }))
+        .send(
+          payload({
+            fullName: 'Nguyễn Văn Con',
+            relationship: 'child',
+            cccdNumber: cccd,
+          }),
+        )
         .expect(201);
 
       const response = await request(server)
         .post(`${BASE}/employees/${otherEmployeeId}/dependents`)
         .set('Authorization', `Bearer ${hrStaffToken}`)
-        .send(payload({ fullName: 'Nguyễn Văn Con', relationship: 'child', cccdNumber: cccd }))
+        .send(
+          payload({
+            fullName: 'Nguyễn Văn Con',
+            relationship: 'child',
+            cccdNumber: cccd,
+          }),
+        )
         .expect(409);
 
       expect(errorBody(response).error.code).toBe('DEPENDENT_ALREADY_CLAIMED');
@@ -1020,7 +1032,13 @@ describe('Employees / contracts / family members (e2e)', () => {
       const created = await request(server)
         .post(`${BASE}/employees/${employeeId}/dependents`)
         .set('Authorization', `Bearer ${hrStaffToken}`)
-        .send(payload({ fullName: 'Nguyễn Văn Út', relationship: 'child', cccdNumber: cccd }))
+        .send(
+          payload({
+            fullName: 'Nguyễn Văn Út',
+            relationship: 'child',
+            cccdNumber: cccd,
+          }),
+        )
         .expect(201);
 
       const dependentId = successBody<DependentBody>(created).data.id;
@@ -1040,7 +1058,13 @@ describe('Employees / contracts / family members (e2e)', () => {
       await request(server)
         .post(`${BASE}/employees/${otherEmployeeId}/dependents`)
         .set('Authorization', `Bearer ${hrStaffToken}`)
-        .send(payload({ fullName: 'Nguyễn Văn Út', relationship: 'child', cccdNumber: cccd }))
+        .send(
+          payload({
+            fullName: 'Nguyễn Văn Út',
+            relationship: 'child',
+            cccdNumber: cccd,
+          }),
+        )
         .expect(201);
     });
 
@@ -1623,10 +1647,13 @@ describe('Employees / contracts / family members (e2e)', () => {
 
       expect(wards).toHaveLength(3321);
       // Con số chính thức: 687 phường + 2.621 xã + 13 đặc khu.
-      const byType = wards.reduce<Record<string, number>>((accumulator, ward) => {
-        accumulator[ward.type] = (accumulator[ward.type] ?? 0) + 1;
-        return accumulator;
-      }, {});
+      const byType = wards.reduce<Record<string, number>>(
+        (accumulator, ward) => {
+          accumulator[ward.type] = (accumulator[ward.type] ?? 0) + 1;
+          return accumulator;
+        },
+        {},
+      );
       expect(byType).toEqual({ phuong: 687, xa: 2621, dac_khu: 13 });
     });
 
@@ -1684,7 +1711,9 @@ describe('Employees / contracts / family members (e2e)', () => {
         .send(payload)
         .expect(201);
 
-      expect(successBody<EmployeeDetailBody>(response).data.districtCode).toBeNull();
+      expect(
+        successBody<EmployeeDetailBody>(response).data.districtCode,
+      ).toBeNull();
     });
 
     it('[65] roleId không tồn tại → 422 ROLE_NOT_FOUND', async () => {
