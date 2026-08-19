@@ -212,6 +212,31 @@ export class EmployeesRepository {
   }
 
   /**
+   * Mã nhân viên → id, tra MỘT LẦN cho cả danh sách.
+   *
+   * KHÔNG `withDeleted()`, khác với `findByUniqueField`: bên kia tra để kiểm
+   * tra trùng mã nên phải thấy cả hồ sơ đã xoá, còn ở đây là để GẮN DỮ LIỆU
+   * cho một người — gắn ngày công vào hồ sơ đã nghỉ việc là ghi công cho người
+   * không còn đi làm. Mã không tìm thấy đơn giản là không có trong kết quả, và
+   * người gọi báo lỗi theo từng dòng.
+   *
+   * Một truy vấn cho cả file: tra từng dòng là 20.000 truy vấn cho một tháng.
+   */
+  async findIdsByEmployeeCodes(codes: string[]): Promise<Map<string, number>> {
+    if (codes.length === 0) {
+      return new Map();
+    }
+
+    const rows = await this.repository
+      .createQueryBuilder('employee')
+      .select(['employee.id', 'employee.employeeCode'])
+      .where('employee.employeeCode IN (:...codes)', { codes })
+      .getMany();
+
+    return new Map(rows.map((row) => [row.employeeCode, Number(row.id)]));
+  }
+
+  /**
    * Số lớn nhất đang dùng trong `employee_code` dạng `NV####`.
    * Tính cả bản ghi đã xoá mềm để mã nhân viên không bao giờ bị tái sử dụng.
    */

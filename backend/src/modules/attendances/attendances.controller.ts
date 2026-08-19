@@ -7,22 +7,39 @@ import {
   Patch,
   Post,
   Query,
+  Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
+  ApiBadRequestResponse,
+  ApiBody,
   ApiConflictResponse,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiProduces,
   ApiTags,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { EMPLOYEE_WRITE_ROLES } from '@/common/constants/roles.constant';
 import { ApiAuth } from '@/common/decorators/api-auth.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { PaginatedResponseDto } from '@/common/dto/pagination-response.dto';
 import { AuthenticatedUser } from '@/common/types/authenticated-user';
+import {
+  buildContentDisposition,
+  toAsciiFilename,
+  XLSX_CONTENT_TYPE,
+} from '@/modules/reports/utils/excel.util';
+import { UploadedFileLike } from '@/shared/storage/image-file.util';
+import { AttendanceImportService } from './attendance-import.service';
+import { buildImportTemplate } from './attendance-template.util';
 import { AttendancesService } from './attendances.service';
 import {
   AttendanceResponseDto,
@@ -31,8 +48,20 @@ import {
 import { CheckInDto } from './dto/check-in.dto';
 import { CheckOutDto } from './dto/check-out.dto';
 import { FilterAttendanceDto } from './dto/filter-attendance.dto';
+import { ImportQueryDto } from './dto/import-query.dto';
+import { AttendanceImportResultDto } from './dto/import-attendance.dto';
 import { MonthQueryDto } from './dto/month-query.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
+
+/**
+ * Trần cứng của multer cho file import.
+ *
+ * KHÔNG phải giới hạn nghiệp vụ — giới hạn thật là số DÒNG
+ * (`AttendanceImportService.MAX_IMPORT_ROWS`), vì một file 20.000 dòng vẫn nhỏ
+ * còn một file 5MB có thể chỉ chứa ảnh nhúng. Trần này chỉ để một request
+ * khổng lồ không nuốt hết RAM trước khi tới được tầng service.
+ */
+export const IMPORT_MULTER_HARD_LIMIT_BYTES = 15 * 1024 * 1024;
 
 /**
  * Controller CHỈ nhận request / trả response (CLAUDE.md §Kiến trúc module).
@@ -46,7 +75,10 @@ import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 @ApiTags('Attendances')
 @Controller('attendances')
 export class AttendancesController {
-  constructor(private readonly attendancesService: AttendancesService) {}
+  constructor(
+    private readonly attendancesService: AttendancesService,
+    private readonly attendanceImportService: AttendanceImportService,
+  ) {}
 
   @Post('check-in')
   @ApiAuth()
@@ -97,6 +129,77 @@ export class AttendancesController {
     @Query() query: MonthQueryDto,
   ): Promise<MyAttendanceResponseDto> {
     return this.attendancesService.findMine(user, query);
+  }
+
+  /*
+   * Khai báo TRƯỚC `@Get(':id')`. Nest so khớp theo thứ tự khai báo, nên đặt
+   * sau thì `import-template` sẽ rơi vào `:id` và chết ở `ParseIntPipe`.
+   */
+  @Get('import-template')
+  @Roles(...EMPLOYEE_WRITE_ROLES)
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Tải file Excel mẫu để nhập chấm công',
+    description:
+      'Cách hỏng phổ biến nhất của import là file đúng dữ liệu nhưng sai tiêu đề cột. ' +
+      'File mẫu có sẵn 2 dòng ví dụ, trong đó một dòng chỉ có giờ vào — trường hợp quên chấm ra là HỢP LỆ.',
+  })
+  @ApiProduces(XLSX_CONTENT_TYPE)
+  @ApiOkResponse({
+    description: 'File .xlsx',
+    schema: { type: 'string', format: 'binary' },
+  })
+  async downloadImportTemplate(@Res() response: Response): Promise<void> {
+    const buffer = Buffer.from(await buildImportTemplate().xlsx.writeBuffer());
+    const utf8Filename = 'Mau nhap cham cong.xlsx';
+    const filename = toAsciiFilename(utf8Filename);
+
+    response.setHeader('Content-Type', XLSX_CONTENT_TYPE);
+    response.setHeader(
+      'Content-Disposition',
+      buildContentDisposition(filename, 'Mẫu nhập chấm công.xlsx'),
+    );
+    response.setHeader('Content-Length', buffer.length);
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.end(buffer);
+  }
+
+  @Post('bulk-import')
+  @Roles(...EMPLOYEE_WRITE_ROLES)
+  @ApiAuth()
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: IMPORT_MULTER_HARD_LIMIT_BYTES, files: 1 },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiOperation({
+    summary: 'Nhập chấm công từ file Excel (.xlsx)',
+    description:
+      '**TẤT CẢ HOẶC KHÔNG GÌ CẢ**: chỉ cần một dòng sai là KHÔNG dòng nào được ghi, và toàn bộ lỗi được trả về kèm số dòng trong file. ' +
+      'Nhập một phần sẽ để lại một tháng công nửa vời mà không ai biết thiếu ngày nào — và bảng công thiếu ngày trông y hệt bảng công đủ.\n\n' +
+      '`?dryRun=true` chỉ kiểm tra, không ghi gì. Màn hình import gọi bước này trước.\n\n' +
+      'Cột bắt buộc: `Mã NV`, `Ngày`, `Giờ vào`. Tuỳ chọn: `Giờ ra`, `Ghi chú`. Tiêu đề so khớp không phân biệt hoa thường và dấu.\n\n' +
+      'Bản ghi ghi ĐÈ lên ngày công đã có được đếm riêng ở `updated` — luôn trả về để không ai vô tình sửa dữ liệu cũ mà không biết.',
+  })
+  @ApiCreatedResponse({ type: AttendanceImportResultDto })
+  @ApiBadRequestResponse({
+    description:
+      'IMPORT_FILE_REQUIRED / IMPORT_INVALID_FILE_TYPE / IMPORT_MISSING_COLUMNS / IMPORT_TOO_MANY_ROWS',
+  })
+  bulkImport(
+    @UploadedFile() file: UploadedFileLike | undefined,
+    @Query() query: ImportQueryDto,
+  ): Promise<AttendanceImportResultDto> {
+    return this.attendanceImportService.importFromFile(file, {
+      dryRun: query.dryRun === true,
+    });
   }
 
   @Get()
