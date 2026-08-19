@@ -23,11 +23,17 @@
 /*
  * `flex: 1` + scroll keeps the collapse row pinned to the bottom once the menu
  * outgrows the viewport, instead of pushing it off-screen.
+ *
+ * `overflow-x: hidden` is required alongside `overflow-y: auto`: per the CSS
+ * spec, setting only one axis to non-`visible` makes the other axis compute
+ * to `auto` too, so without this the menu silently gets a horizontal
+ * scrollbar from sub-pixel width rounding (no content actually overflows).
  */
 .menu {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: var(--hrm-space-2);
   border-inline-end: 0;
   background: transparent;
