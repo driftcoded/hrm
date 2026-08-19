@@ -30,6 +30,8 @@ function makeAttendance(overrides: Partial<Attendance> = {}): Attendance {
     workDate: '2026-05-25',
     checkIn: null,
     checkOut: null,
+    breakStart: null,
+    breakEnd: null,
     workHours: null,
     overtimeHours: '0.00',
     isLate: false,

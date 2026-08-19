@@ -43,6 +43,18 @@ export class Attendance {
   @Column({ name: 'check_out', type: 'time', nullable: true })
   checkOut: string | null;
 
+  /**
+   * Giờ nghỉ THỰC TẾ trong ngày, nếu nền tảng chấm công ngoài có ghi.
+   *
+   * `null` = bản ghi không có giờ nghỉ, khi đó giờ công được trừ theo khung
+   * nghỉ chuẩn của công ty.
+   */
+  @Column({ name: 'break_start', type: 'time', nullable: true })
+  breakStart: string | null;
+
+  @Column({ name: 'break_end', type: 'time', nullable: true })
+  breakEnd: string | null;
+
   @Column({
     name: 'work_hours',
     type: 'decimal',

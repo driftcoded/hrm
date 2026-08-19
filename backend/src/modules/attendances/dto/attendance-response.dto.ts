@@ -45,6 +45,18 @@ export class AttendanceResponseDto {
   checkOut: string | null;
 
   @ApiProperty({
+    example: '12:00',
+    nullable: true,
+    type: String,
+    description:
+      'Giờ nghỉ thực tế. `null` = không rõ, khi đó giờ công được tính theo khung nghỉ chuẩn của công ty.',
+  })
+  breakStart: string | null;
+
+  @ApiProperty({ example: '13:00', nullable: true, type: String })
+  breakEnd: string | null;
+
+  @ApiProperty({
     example: 8.5,
     nullable: true,
     type: Number,

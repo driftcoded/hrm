@@ -34,6 +34,20 @@ export class UpdateAttendanceDto {
   checkOut?: string;
 
   @ApiPropertyOptional({
+    example: '12:00',
+    description:
+      'Giờ nghỉ thực tế. Hai giờ bằng nhau = làm xuyên trưa; bỏ trống = giữ nguyên giá trị đang có.',
+  })
+  @IsOptional()
+  @IsClockTime()
+  breakStart?: string;
+
+  @ApiPropertyOptional({ example: '13:00' })
+  @IsOptional()
+  @IsClockTime()
+  breakEnd?: string;
+
+  @ApiPropertyOptional({
     enum: AttendanceStatus,
     description:
       'Đặt trạng thái thủ công (ví dụ `wfh`). Bỏ trống thì trạng thái được tính lại từ giờ vào/ra.',

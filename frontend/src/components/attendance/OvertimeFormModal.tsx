@@ -2,12 +2,18 @@ import { useEffect, useState } from 'react';
 import { Alert, App, DatePicker, Form, Input, Modal, TimePicker } from 'antd';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { EmployeeSelect } from '@/components/employees/EmployeeSelect';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { useOvertimeMutations } from '@/hooks/useAttendances';
 import styles from './OvertimeFormModal.module.css';
 
 /**
- * Form đăng ký làm thêm giờ (PLAN 4.2 — "chọn ngày, giờ, lý do").
+ * Form GHI NHẬN giờ làm thêm cho một nhân viên (PLAN 4.2).
+ *
+ * KHÔNG PHẢI FORM TỰ ĐĂNG KÝ. Nhân viên không đăng nhập hệ thống này; thoả
+ * thuận làm thêm giờ diễn ra bên ngoài (Điều 107 BLLĐ 2019 đòi có sự đồng ý của
+ * NLĐ), và quản lý/nhân sự ghi lại vào đây. Ô đầu tiên vì thế là CHỌN NHÂN
+ * VIÊN, và `reason` là chỗ duy nhất ghi lại thoả thuận đó.
  *
  * BA THỨ NGƯỜI DÙNG *KHÔNG* NHẬP: số giờ, loại ngày, hệ số. Cả ba đều do server
  * suy ra từ ngày + khung giờ. Cho nhập là cho khai 8 giờ cho một ca 2 tiếng,
@@ -27,6 +33,7 @@ export interface OvertimeFormModalProps {
 }
 
 interface FormValues {
+  employeeId: number;
   workDate: Dayjs;
   startTime: Dayjs;
   endTime: Dayjs;
@@ -60,6 +67,7 @@ export function OvertimeFormModal({ open, onClose }: OvertimeFormModalProps) {
       setError(null);
       try {
         await createOvertime({
+          employeeId: values.employeeId,
           workDate: values.workDate.format('YYYY-MM-DD'),
           startTime: values.startTime.format(TIME_FORMAT),
           endTime: values.endTime.format(TIME_FORMAT),
@@ -89,6 +97,17 @@ export function OvertimeFormModal({ open, onClose }: OvertimeFormModalProps) {
       )}
 
       <Form form={form} layout="vertical" onFinish={handleSubmit} disabled={isCreating}>
+        <Form.Item
+          name="employeeId"
+          label={t('attendance.overtime.fields.employee')}
+          rules={[{ required: true, message: t('attendance.overtime.errors.employee') }]}
+        >
+          <EmployeeSelect
+            enabled={open}
+            placeholder={t('attendance.overtime.fields.employeePlaceholder')}
+          />
+        </Form.Item>
+
         <Form.Item
           name="workDate"
           label={t('attendance.overtime.fields.workDate')}

@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { PaginatedResponseDto } from '@/common/dto/pagination-response.dto';
 import { AuthenticatedUser } from '@/common/types/authenticated-user';
@@ -40,14 +41,11 @@ import { Attendance, AttendanceStatus } from './entities/attendance.entity';
  * ở đây không có endpoint nào "của tôi". Cổng tra cứu cá nhân là một ứng dụng
  * riêng sẽ xây sau.
  *
- * HAI NGUYÊN TẮC CÒN LẠI:
+ * `attendances.overtime_hours` KHÔNG PHẢI CĂN CỨ TRẢ TIỀN. Nó là số giờ suy ra
+ * từ giờ vào/ra. Tiền làm thêm trả theo đơn đã duyệt ở `OvertimeService`.
  *
- * - MỌI DÒNG ĐỀU PHẢI GHI NGUỒN. `note` bắt buộc ở cả tạo tay lẫn sửa: một
- *   dòng không đến từ máy chấm công thì phải tự nói được nó đến từ đâu, nếu
- *   không tới kỳ đối chiếu lương sẽ không ai bảo vệ được con số đó.
- *
- * - `attendances.overtime_hours` KHÔNG PHẢI CĂN CỨ TRẢ TIỀN. Nó là số giờ suy
- *   ra từ giờ vào/ra. Tiền làm thêm trả theo đơn đã duyệt ở `OvertimeService`.
+ * Riêng `PATCH` vẫn BẮT BUỘC ghi lý do: sửa một con số đã có khác với nhập một
+ * con số chưa có — bản ghi sau khi sửa phải nói được vì sao nó khác dữ liệu gốc.
  */
 @Injectable()
 export class AttendancesService {
@@ -61,7 +59,7 @@ export class AttendancesService {
   // --------------------------------------------------------- nhập tay ----
 
   /**
-   * `POST /attendances` — nhập tay MỘT ngày công.
+   * `POST /attendances` — nhập MỘT ngày công.
    *
    * Dành cho những ca lẻ mà file từ nền tảng ngoài không có: quên chấm, đi công
    * tác, làm tại nhà. Đường chính vẫn là nạp Excel.
@@ -100,12 +98,29 @@ export class AttendancesService {
       });
     }
 
+    /*
+     * Không có giờ vào thì PHẢI nói rõ ngày đó là gì. Thiếu cả hai, bản ghi rơi
+     * về mặc định `present` của cột — tức là một dòng khẳng định người ta có
+     * mặt mà không có một dữ kiện nào chống lưng. Với dữ liệu dùng để trả
+     * lương, đó là thứ tệ hơn cả việc thiếu dòng.
+     */
+    if (!dto.checkIn && !dto.status) {
+      throw new UnprocessableEntityException({
+        code: 'ATTENDANCE_STATUS_REQUIRED',
+        message:
+          'A record without a check-in time must state its status (leave, holiday, wfh, absent...)',
+      });
+    }
+
     const record = newAttendance();
     record.employeeId = dto.employeeId;
     record.workDate = dto.workDate;
 
     if (dto.checkIn && dto.checkOut) {
-      this.applyTimes(record, dto.checkIn, dto.checkOut);
+      this.applyTimes(record, dto.checkIn, dto.checkOut, {
+        start: dto.breakStart ?? null,
+        end: dto.breakEnd ?? null,
+      });
     } else if (dto.checkIn) {
       // Chỉ có giờ vào: giờ công để `null`, KHÔNG phải 0 — hai thứ khác hẳn nhau.
       const arrival = calculateWorkHours({
@@ -128,7 +143,7 @@ export class AttendancesService {
       record.status = dto.status;
     }
 
-    record.note = dto.note.trim();
+    record.note = dto.note?.trim() || null;
 
     const saved = await this.attendancesRepository.create(record);
 
@@ -208,7 +223,10 @@ export class AttendancesService {
     }
 
     if (checkIn && checkOut) {
-      this.applyTimes(record, checkIn, checkOut);
+      this.applyTimes(record, checkIn, checkOut, {
+        start: dto.breakStart ?? record.breakStart,
+        end: dto.breakEnd ?? record.breakEnd,
+      });
     } else if (checkIn) {
       record.checkIn = normaliseTime(checkIn);
       record.isLate = this.isLateArrival(checkIn);
@@ -224,7 +242,7 @@ export class AttendancesService {
       record.status = dto.status;
     }
 
-    record.note = dto.note.trim();
+    record.note = dto.note?.trim() || null;
 
     return this.toResponse(await this.attendancesRepository.save(record));
   }
@@ -252,11 +270,27 @@ export class AttendancesService {
     record: Attendance,
     checkIn: string,
     checkOut: string,
+    breakTimes?: { start?: string | null; end?: string | null },
   ): void {
-    const computed = calculateWorkHours({ checkIn, checkOut });
+    /*
+     * Giờ nghỉ lấy từ tham số nếu có, KHÔNG thì đọc lại giá trị đang nằm trên
+     * bản ghi. Bỏ qua giá trị cũ sẽ khiến một lần sửa mỗi giờ ra âm thầm ném đi
+     * giờ nghỉ thật mà file import đã mang vào.
+     */
+    const breakStart = breakTimes?.start ?? record.breakStart ?? null;
+    const breakEnd = breakTimes?.end ?? record.breakEnd ?? null;
+
+    const computed = calculateWorkHours({
+      checkIn,
+      checkOut,
+      breakStart,
+      breakEnd,
+    });
 
     record.checkIn = normaliseTime(checkIn);
     record.checkOut = normaliseTime(checkOut);
+    record.breakStart = breakStart === null ? null : normaliseTime(breakStart);
+    record.breakEnd = breakEnd === null ? null : normaliseTime(breakEnd);
     record.workHours = computed.workHours.toFixed(2);
     record.overtimeHours = computed.overtimeHours.toFixed(2);
     record.isLate = computed.isLate;
@@ -444,6 +478,8 @@ export class AttendancesService {
       workDate: toDateOnlyString(record.workDate),
       checkIn: record.checkIn ? shortTime(record.checkIn) : null,
       checkOut: record.checkOut ? shortTime(record.checkOut) : null,
+      breakStart: record.breakStart ? shortTime(record.breakStart) : null,
+      breakEnd: record.breakEnd ? shortTime(record.breakEnd) : null,
       // Phải bắt CẢ `undefined`: bản ghi vừa dựng trong bộ nhớ chưa có giá trị
       // (TypeORM chỉ áp `default:` lúc INSERT), và `Number(undefined)` ra NaN —
       // tức là "giờ công = NaN" trên màn hình chấm công.
@@ -477,6 +513,8 @@ function newAttendance(): Attendance {
   const record = new Attendance();
 
   record.checkOut = null;
+  record.breakStart = null;
+  record.breakEnd = null;
   record.workHours = null;
   record.overtimeHours = '0.00';
   record.isLate = false;

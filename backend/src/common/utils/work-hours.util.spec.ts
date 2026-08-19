@@ -1,4 +1,6 @@
 import {
+  BREAK_END_TIME,
+  BREAK_START_TIME,
   EARLY_LEAVE_THRESHOLD_MINUTES,
   LATE_THRESHOLD_MINUTES,
   LUNCH_BREAK_MINUTES,
@@ -213,6 +215,84 @@ describe('work-hours.util', () => {
       });
     });
 
+    describe('giờ nghỉ thực tế từ nền tảng ngoài', () => {
+      /*
+       * Khoảng nghỉ rỗng thì không có gì để trừ. Không phải một quy ước riêng —
+       * chỉ là hệ quả của việc trừ đúng khoảng được ghi.
+       */
+      it('deducts nothing for an empty break range', () => {
+        const worked = calculateWorkHours({
+          checkIn: '08:00',
+          checkOut: '17:00',
+          breakStart: '12:00',
+          breakEnd: '12:00',
+        });
+
+        expect(worked.workHours).toBe(9);
+      });
+
+      it('deducts a real break that is shorter than the standard one', () => {
+        const result = calculateWorkHours({
+          checkIn: '08:00',
+          checkOut: '17:00',
+          breakStart: '12:00',
+          breakEnd: '12:30',
+        });
+
+        expect(result.workHours).toBe(8.5);
+      });
+
+      it('deducts a real break that is longer than the standard one', () => {
+        const result = calculateWorkHours({
+          checkIn: '08:00',
+          checkOut: '17:00',
+          breakStart: '11:30',
+          breakEnd: '13:00',
+        });
+
+        expect(result.workHours).toBe(7.5);
+      });
+
+      /* Nghỉ ngoài ca thì không có gì để trừ. */
+      it('ignores a break that falls outside the shift', () => {
+        expect(
+          calculateWorkHours({
+            checkIn: '08:00',
+            checkOut: '11:00',
+            breakStart: '12:00',
+            breakEnd: '13:00',
+          }).workHours,
+        ).toBe(3);
+      });
+
+      /*
+       * Một nửa khoảng thời gian không tính được ra số phút nào. Rơi về khung
+       * chuẩn thay vì đoán nốt nửa kia — đoán ở đây là bịa dữ liệu trả lương.
+       */
+      it('falls back to the standard window when only one end is known', () => {
+        expect(
+          calculateWorkHours({
+            checkIn: '08:00',
+            checkOut: '17:00',
+            breakStart: '12:00',
+            breakEnd: null,
+          }).workHours,
+        ).toBe(8);
+      });
+
+      /* Giờ nghỉ ngược là dữ liệu hỏng — không được trừ ÂM (thành cộng giờ). */
+      it('falls back to the standard window on a reversed break', () => {
+        expect(
+          calculateWorkHours({
+            checkIn: '08:00',
+            checkOut: '17:00',
+            breakStart: '13:00',
+            breakEnd: '12:00',
+          }).workHours,
+        ).toBe(8);
+      });
+    });
+
     it('rejects a check-out earlier than the check-in', () => {
       expect(() =>
         calculateWorkHours({ checkIn: '17:00', checkOut: '08:00' }),
@@ -231,6 +311,25 @@ describe('work-hours.util', () => {
    * lệch với khung giờ mà không ai biết. Bài test này buộc hai chỗ phải đi
    * cùng nhau: đổi khung giờ mà quên đổi số giờ chuẩn thì đỏ ngay tại đây.
    */
+  it('derives LUNCH_BREAK_MINUTES from the configured break window', () => {
+    expect(LUNCH_BREAK_MINUTES).toBe(
+      parseTimeToMinutes(BREAK_END_TIME) - parseTimeToMinutes(BREAK_START_TIME),
+    );
+  });
+
+  /*
+   * Khung nghỉ phải NẰM TRONG ca làm. Đặt giờ nghỉ ra ngoài ca thì không ngày
+   * nào bị trừ, và mọi người bỗng dưng thừa một giờ công mỗi ngày.
+   */
+  it('keeps the break window inside the working shift', () => {
+    expect(parseTimeToMinutes(BREAK_START_TIME)).toBeGreaterThanOrEqual(
+      parseTimeToMinutes(WORK_START_TIME),
+    );
+    expect(parseTimeToMinutes(BREAK_END_TIME)).toBeLessThanOrEqual(
+      parseTimeToMinutes(WORK_END_TIME),
+    );
+  });
+
   it('keeps STANDARD_WORK_HOURS_PER_DAY consistent with the configured shift', () => {
     const shiftMinutes =
       parseTimeToMinutes(WORK_END_TIME) - parseTimeToMinutes(WORK_START_TIME);

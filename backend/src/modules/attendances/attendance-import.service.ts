@@ -60,6 +60,8 @@ export class AttendanceImportService {
     workDate: ['ngay', 'ngay cong', 'work date', 'date'],
     checkIn: ['gio vao', 'check in', 'gio den'],
     checkOut: ['gio ra', 'check out', 'gio ve'],
+    breakStart: ['gio nghi tu', 'bat dau nghi', 'break start', 'gio nghi'],
+    breakEnd: ['gio nghi den', 'ket thuc nghi', 'break end', 'gio vao lam lai'],
     note: ['ghi chu', 'note'],
   };
 
@@ -210,6 +212,14 @@ export class AttendanceImportService {
         columns.checkOut === undefined
           ? null
           : row.getCell(columns.checkOut).value;
+      const rawBreakStart =
+        columns.breakStart === undefined
+          ? null
+          : row.getCell(columns.breakStart).value;
+      const rawBreakEnd =
+        columns.breakEnd === undefined
+          ? null
+          : row.getCell(columns.breakEnd).value;
       const note =
         columns.note === undefined
           ? null
@@ -304,8 +314,46 @@ export class AttendanceImportService {
         return;
       }
 
+      /*
+       * Giờ nghỉ chỉ được dùng khi CÓ ĐỦ CẢ HAI đầu. Một nửa khoảng thời gian
+       * không ra được số phút nào, và đoán nốt nửa kia là bịa dữ liệu trả
+       * lương — khi đó rơi về khung nghỉ chuẩn của công ty.
+       */
+      const breakStart = parseOptionalTime(rawBreakStart);
+      const breakEnd = parseOptionalTime(rawBreakEnd);
+
+      if (breakStart === INVALID || breakEnd === INVALID) {
+        push(
+          'INVALID_TIME',
+          `Giờ nghỉ "${cellToString(rawBreakStart)} - ${cellToString(rawBreakEnd)}" không hợp lệ`,
+        );
+        return;
+      }
+
+      const hasBothBreakEnds = breakStart !== null && breakEnd !== null;
+
+      if (
+        hasBothBreakEnds &&
+        parseTimeToMinutes(breakEnd) < parseTimeToMinutes(breakStart)
+      ) {
+        push(
+          'INVALID_TIME',
+          `Giờ kết thúc nghỉ "${breakEnd}" sớm hơn giờ bắt đầu nghỉ "${breakStart}"`,
+        );
+        return;
+      }
+
       seen.set(key, rowNumber);
-      rows.push({ rowNumber, employeeCode, workDate, checkIn, checkOut, note });
+      rows.push({
+        rowNumber,
+        employeeCode,
+        workDate,
+        checkIn,
+        checkOut,
+        breakStart: hasBothBreakEnds ? breakStart : null,
+        breakEnd: hasBothBreakEnds ? breakEnd : null,
+        note,
+      });
     });
 
     return { rows, errors, totalRows };
@@ -375,7 +423,13 @@ export class AttendanceImportService {
       const record = existing ?? emptyAttendance();
       record.employeeId = row.employeeId;
       record.workDate = row.workDate;
-      this.applyTimes(record, row.checkIn, row.checkOut);
+      this.applyTimes(
+        record,
+        row.checkIn,
+        row.checkOut,
+        row.breakStart,
+        row.breakEnd,
+      );
       record.note = row.note ?? record.note;
 
       await (existing
@@ -399,7 +453,12 @@ export class AttendanceImportService {
     record: Attendance,
     checkIn: string,
     checkOut: string | null,
+    breakStart: string | null = null,
+    breakEnd: string | null = null,
   ): void {
+    record.breakStart = breakStart === null ? null : normaliseTime(breakStart);
+    record.breakEnd = breakEnd === null ? null : normaliseTime(breakEnd);
+
     record.checkIn = normaliseTime(checkIn);
 
     if (!checkOut) {
@@ -420,7 +479,12 @@ export class AttendanceImportService {
       return;
     }
 
-    const computed = calculateWorkHours({ checkIn, checkOut });
+    const computed = calculateWorkHours({
+      checkIn,
+      checkOut,
+      breakStart,
+      breakEnd,
+    });
 
     record.checkOut = normaliseTime(checkOut);
     record.workHours = computed.workHours.toFixed(2);
@@ -443,6 +507,9 @@ interface ParsedRow {
   workDate: string;
   checkIn: string;
   checkOut: string | null;
+  /** Giờ nghỉ thực tế; `null` = file không có, dùng khung nghỉ chuẩn. */
+  breakStart: string | null;
+  breakEnd: string | null;
   note: string | null;
 }
 
@@ -455,6 +522,8 @@ function emptyAttendance(): Attendance {
   const record = new Attendance();
 
   record.checkOut = null;
+  record.breakStart = null;
+  record.breakEnd = null;
   record.workHours = null;
   record.overtimeHours = '0.00';
   record.isLate = false;
@@ -597,6 +666,27 @@ function parseTimeCell(value: CellValue): string | null {
   }
 
   return `${`${hours}`.padStart(2, '0')}:${`${minutes}`.padStart(2, '0')}`;
+}
+
+/**
+ * Sentinel phân biệt "ô trống" với "ô có nội dung nhưng không đọc được".
+ *
+ * Trả `null` cho cả hai sẽ khiến một giờ nghỉ gõ sai bị bỏ qua lặng lẽ và ngày
+ * đó âm thầm dùng khung nghỉ chuẩn — người nhập không bao giờ biết mình gõ sai.
+ */
+const INVALID = Symbol('invalid-time');
+
+/** Ô giờ tuỳ chọn → `HH:mm`, `null` nếu trống, `INVALID` nếu có nội dung sai. */
+function parseOptionalTime(value: CellValue): string | null | typeof INVALID {
+  if (
+    value === null ||
+    value === undefined ||
+    cellToString(value).trim() === ''
+  ) {
+    return null;
+  }
+
+  return parseTimeCell(value) ?? INVALID;
 }
 
 /** Bỏ dấu + hạ chữ thường để so khớp tiêu đề cột. */

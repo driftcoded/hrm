@@ -5,11 +5,13 @@ import {
   EditOutlined,
   ExportOutlined,
   ImportOutlined,
+  PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { AttendanceStatusTag } from '@/components/attendance/AttendanceStatusTag';
+import { AddAttendanceModal } from '@/components/attendance/AddAttendanceModal';
 import { AdjustAttendanceModal } from '@/components/attendance/AdjustAttendanceModal';
 import { ImportAttendanceModal } from '@/components/attendance/ImportAttendanceModal';
 import { DataTableCard } from '@/components/crud/DataTableCard';
@@ -33,15 +35,20 @@ import {
 import styles from './AttendanceTablePage.module.css';
 
 /**
- * Bảng chấm công toàn công ty (PLAN 4.2 — "filter phòng ban, tháng").
+ * Bảng chấm công toàn công ty — màn hình CHÍNH của module (PLAN 4.2).
+ *
+ * DỮ LIỆU VÀO BẰNG HAI ĐƯỜNG, cả hai đều nằm trên thanh công cụ của màn này:
+ * nạp file Excel xuất từ nền tảng chấm công bên ngoài (đường chính, cả tháng),
+ * và nhập tay từng dòng cho những ca lẻ file không có. Hệ thống KHÔNG có chức
+ * năng tự chấm công.
  *
  * THÁNG LUÔN CÓ GIÁ TRỊ, không có lựa chọn "tất cả". Bảng chấm công là tài
  * liệu của MỘT tháng: đọc cả lịch sử cùng lúc không trả lời được câu hỏi nào
- * mà HR thực sự có, và mở màn hình ra là quét cả bảng.
+ * mà nhân sự thực sự có, và mở màn hình ra là quét cả bảng.
  *
  * `manager` xem được màn này nhưng backend giới hạn trong phòng ban họ quản
- * (`resolveScope`), và họ KHÔNG có nút sửa hay nạp file — sửa bảng chấm công là
- * sửa căn cứ trả lương.
+ * (`resolveScope`), và họ KHÔNG có nút nhập, sửa hay nạp file — những thao tác
+ * đó tạo ra căn cứ trả lương, và đây là lớp kiểm soát duy nhất của việc đó.
  */
 export function AttendanceTablePage() {
   const { t } = useTranslation();
@@ -97,6 +104,7 @@ export function AttendanceTablePage() {
 
   const [adjusting, setAdjusting] = useState<AttendanceRecord | null>(null);
   const [isImportOpen, setImportOpen] = useState(false);
+  const [isAddOpen, setAddOpen] = useState(false);
 
   const rows = list.data?.items ?? [];
   const total = list.data?.meta.total ?? 0;
@@ -155,6 +163,23 @@ export function AttendanceTablePage() {
       dataIndex: 'checkOut',
       width: 96,
       render: (value: string | null) => <span className={styles.mono}>{value ?? '—'}</span>,
+    },
+    {
+      title: t('attendance.columns.break'),
+      key: 'break',
+      width: 110,
+      /*
+       * Không có giờ nghỉ trên bản ghi thì giờ công đã tính theo khung nghỉ
+       * chuẩn — nói ra để người đọc bảng không tưởng là ngày đó không nghỉ.
+       */
+      render: (_: unknown, record) =>
+        record.breakStart && record.breakEnd ? (
+          <span className={styles.mono}>
+            {record.breakStart}–{record.breakEnd}
+          </span>
+        ) : (
+          <span className={styles.muted}>{t('attendance.columns.breakStandard')}</span>
+        ),
     },
     {
       title: t('attendance.columns.workHours'),
@@ -268,9 +293,20 @@ export function AttendanceTablePage() {
 
         <Space size="small">
           {canWrite && (
-            <Button icon={<ImportOutlined />} onClick={() => setImportOpen(true)}>
-              {t('attendance.import.open')}
-            </Button>
+            <>
+              {/* Nạp Excel đứng TRƯỚC và là nút chính: nó là đường đưa dữ liệu
+                  vào thường dùng, còn nhập tay chỉ cho những ca lẻ. */}
+              <Button
+                type="primary"
+                icon={<ImportOutlined />}
+                onClick={() => setImportOpen(true)}
+              >
+                {t('attendance.import.open')}
+              </Button>
+              <Button icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>
+                {t('attendance.add.open')}
+              </Button>
+            </>
           )}
           {canExport && (
             <Tooltip title={t('attendance.export.hint', { count: total })}>
@@ -296,7 +332,7 @@ export function AttendanceTablePage() {
         errorMessage={t('attendance.loadError')}
         hasFilters={hasFilters}
         total={total}
-        scrollX={1000}
+        scrollX={1120}
         pagination={{
           page: table.page,
           pageSize: table.pageSize,
@@ -305,6 +341,12 @@ export function AttendanceTablePage() {
         }}
         onSorterChange={table.setSorter}
         activeSort={{ key: table.sort, order: table.order }}
+      />
+
+      <AddAttendanceModal
+        open={isAddOpen}
+        onClose={() => setAddOpen(false)}
+        defaultDate={cursor}
       />
 
       <AdjustAttendanceModal

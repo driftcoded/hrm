@@ -30,6 +30,8 @@ export interface AdjustAttendanceModalProps {
 interface FormValues {
   checkIn?: dayjs.Dayjs | null;
   checkOut?: dayjs.Dayjs | null;
+  breakStart?: dayjs.Dayjs | null;
+  breakEnd?: dayjs.Dayjs | null;
   status?: AttendanceStatus;
   note: string;
 }
@@ -53,6 +55,8 @@ export function AdjustAttendanceModal({ record, onClose }: AdjustAttendanceModal
     form.setFieldsValue({
       checkIn: record.checkIn ? dayjs(record.checkIn, TIME_FORMAT) : null,
       checkOut: record.checkOut ? dayjs(record.checkOut, TIME_FORMAT) : null,
+      breakStart: record.breakStart ? dayjs(record.breakStart, TIME_FORMAT) : null,
+      breakEnd: record.breakEnd ? dayjs(record.breakEnd, TIME_FORMAT) : null,
       status: record.status,
       note: '',
     });
@@ -71,6 +75,8 @@ export function AdjustAttendanceModal({ record, onClose }: AdjustAttendanceModal
           payload: {
             checkIn: values.checkIn?.format(TIME_FORMAT),
             checkOut: values.checkOut?.format(TIME_FORMAT),
+            breakStart: values.breakStart?.format(TIME_FORMAT),
+            breakEnd: values.breakEnd?.format(TIME_FORMAT),
             status: values.status,
             note: values.note.trim(),
           },
@@ -112,6 +118,14 @@ export function AdjustAttendanceModal({ record, onClose }: AdjustAttendanceModal
 
         <Form.Item name="checkOut" label={t('attendance.fields.checkOut')}>
           <TimePicker format={TIME_FORMAT} minuteStep={1} style={{ width: '100%' }} />
+        </Form.Item>
+
+        <Form.Item name="breakStart" label={t('attendance.fields.breakStart')}>
+          <TimePicker format={TIME_FORMAT} minuteStep={5} style={{ width: '100%' }} />
+        </Form.Item>
+
+        <Form.Item name="breakEnd" label={t('attendance.fields.breakEnd')}>
+          <TimePicker format={TIME_FORMAT} minuteStep={5} style={{ width: '100%' }} />
         </Form.Item>
 
         <Form.Item

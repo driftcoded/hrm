@@ -55,11 +55,6 @@ const AttendanceLayout = lazy(() =>
     default: module.AttendanceLayout,
   })),
 );
-const MyAttendancePage = lazy(() =>
-  import('@/pages/attendance/MyAttendancePage').then((module) => ({
-    default: module.MyAttendancePage,
-  })),
-);
 const AttendanceTablePage = lazy(() =>
   import('@/pages/attendance/AttendanceTablePage').then((module) => ({
     default: module.AttendanceTablePage,
@@ -164,9 +159,17 @@ const router = createBrowserRouter([
             path: 'attendance',
             element: <AttendanceLayout />,
             children: [
-              { index: true, element: <MyAttendancePage /> },
+              /*
+                 Bảng chấm công là màn hình MẶC ĐỊNH của module: hệ thống này
+                 không có chấm công cá nhân, ai vào cũng là để xem/nhập dữ liệu
+                 của người khác.
+
+                 `/attendance/table` giữ lại như một redirect: nó từng là địa
+                 chỉ của bảng này trong bản trước, và bookmark thì không tự sửa.
+              */
+              { index: true, element: <AttendanceTablePage /> },
               { path: 'overtime', element: <OvertimePage /> },
-              { path: 'table', element: <AttendanceTablePage /> },
+              { path: 'table', element: <Navigate to="/attendance" replace /> },
             ],
           },
           {

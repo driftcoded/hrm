@@ -31,6 +31,12 @@ export interface AttendanceRecord {
   /** `HH:mm`, `null` khi chưa chấm vào. */
   checkIn: string | null;
   checkOut: string | null;
+  /**
+   * Giờ nghỉ thực tế của ngày công. `null` khi bản ghi không có — khi đó giờ
+   * công đã được tính theo khung nghỉ chuẩn của công ty.
+   */
+  breakStart: string | null;
+  breakEnd: string | null;
   /** `null` khi chưa chấm ra — KHÔNG phải 0. */
   workHours: number | null;
   /**
@@ -50,27 +56,6 @@ export interface AttendanceRecord {
   updatedAt: string;
 }
 
-export interface AttendanceSummary {
-  workingDays: number;
-  presentDays: number;
-  absentDays: number;
-  lateDays: number;
-  earlyLeaveDays: number;
-  leaveDays: number;
-  totalWorkHours: number;
-  /** Giờ đã ở lại làm thực tế. */
-  overtimeHours: number;
-  /** Giờ làm thêm ĐÃ DUYỆT — con số được trả tiền. */
-  approvedOvertimeHours: number;
-}
-
-export interface MyAttendance {
-  month: number;
-  year: number;
-  summary: AttendanceSummary;
-  records: AttendanceRecord[];
-}
-
 export interface AttendanceFilters {
   page?: number;
   limit?: number;
@@ -83,9 +68,30 @@ export interface AttendanceFilters {
   status?: AttendanceStatus;
 }
 
+/**
+ * Nhập tay MỘT ngày công.
+ *
+ * Hệ thống không có chức năng tự chấm công — dữ liệu đến từ nền tảng ngoài,
+ * vào bằng Excel hoặc gõ tay qua form này cho những ca lẻ file không có.
+ */
+export interface CreateAttendancePayload {
+  employeeId: number;
+  workDate: string;
+  /** Tuỳ chọn: ngày nghỉ phép/ngày lễ vẫn là một dòng, chỉ là không có giờ vào. */
+  checkIn?: string;
+  checkOut?: string;
+  /** Bỏ trống thì trừ theo khung nghỉ chuẩn của công ty. */
+  breakStart?: string;
+  breakEnd?: string;
+  status?: AttendanceStatus;
+  note?: string;
+}
+
 export interface UpdateAttendancePayload {
   checkIn?: string;
   checkOut?: string;
+  breakStart?: string;
+  breakEnd?: string;
   status?: AttendanceStatus;
   /** BẮT BUỘC — bản ghi phải tự nói được vì sao nó khác thứ máy đã ghi. */
   note: string;
@@ -146,6 +152,9 @@ export interface OvertimeRequest {
   rate: number;
   nightRateSurcharge: number;
   reason: string;
+  /** Người GHI NHẬN đơn (quản lý/nhân sự nhập hộ). `null` với đơn cũ. */
+  recordedBy: number | null;
+  recorderName: string | null;
   status: OvertimeStatus;
   approvedBy: number | null;
   approverName: string | null;
@@ -168,6 +177,8 @@ export interface OvertimeFilters {
 }
 
 export interface CreateOvertimePayload {
+  /** Nhân viên ĐƯỢC hưởng giờ làm thêm — không phải người đang đăng nhập. */
+  employeeId: number;
   workDate: string;
   startTime: string;
   endTime: string;

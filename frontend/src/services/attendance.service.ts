@@ -4,8 +4,8 @@ import type {
   AttendanceFilters,
   AttendanceImportResult,
   AttendanceRecord,
+  CreateAttendancePayload,
   CreateOvertimePayload,
-  MyAttendance,
   OvertimeFilters,
   OvertimeRequest,
   UpdateAttendancePayload,
@@ -17,10 +17,14 @@ import { withJsonErrorBody } from './blobError';
  * Mọi call của module Chấm công — nơi DUY NHẤT gọi `/attendances` và
  * `/overtime-requests` (frontend/CLAUDE.md folder rule).
  *
- * Hai nhóm endpoint nằm chung một file vì chúng là một màn hình nghiệp vụ:
- * đơn làm thêm giờ được đọc ngay trên bảng công tháng, và tách ra hai file chỉ
- * làm rải cùng bốn dòng axios sang chỗ khác. Bản xuất Excel thì KHÔNG ở đây —
- * nó thuộc `/reports`, xem `report.service.ts`.
+ * Hai nhóm endpoint nằm chung một file vì chúng là một màn hình nghiệp vụ, và
+ * tách ra hai file chỉ làm rải cùng bốn dòng axios sang chỗ khác. Bản xuất
+ * Excel thì KHÔNG ở đây — nó thuộc `/reports`, xem `report.service.ts`.
+ *
+ * KHÔNG CÓ CHẤM CÔNG TỰ ĐỘNG. Việc chấm công diễn ra trên nền tảng ngoài; dữ
+ * liệu vào hệ thống bằng `importAttendances` (Excel, đường chính) hoặc
+ * `createAttendance` (gõ tay từng dòng). Nhân viên thường không đăng nhập hệ
+ * thống này nên không có endpoint nào "của tôi".
  */
 
 function toQuery(filters?: object): Record<string, string> | undefined {
@@ -49,28 +53,20 @@ async function get<T>(url: string, filters?: object): Promise<T> {
 
 // ------------------------------------------------------------ chấm công ----
 
-/** Giờ do SERVER đọc — không có tham số thời gian, theo thiết kế của backend. */
-export async function checkIn(note?: string): Promise<AttendanceRecord> {
+/**
+ * Nhập tay một ngày công.
+ *
+ * Không có `checkIn`/`checkOut` tự chấm công: hệ thống không làm việc đó — xem
+ * ghi chú đầu file.
+ */
+export async function createAttendance(
+  payload: CreateAttendancePayload,
+): Promise<AttendanceRecord> {
   const { data } = await apiClient.post<ApiSuccessResponse<AttendanceRecord>>(
-    '/attendances/check-in',
-    { note },
+    '/attendances',
+    payload,
   );
   return data.data;
-}
-
-export async function checkOut(note?: string): Promise<AttendanceRecord> {
-  const { data } = await apiClient.post<ApiSuccessResponse<AttendanceRecord>>(
-    '/attendances/check-out',
-    { note },
-  );
-  return data.data;
-}
-
-export function getMyAttendance(query: {
-  month?: number;
-  year?: number;
-}): Promise<MyAttendance> {
-  return get<MyAttendance>('/attendances/me', query);
 }
 
 export function listAttendances(

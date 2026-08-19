@@ -1,4 +1,6 @@
 import {
+  BREAK_END_TIME,
+  BREAK_START_TIME,
   EARLY_LEAVE_THRESHOLD_MINUTES,
   LATE_THRESHOLD_MINUTES,
   LUNCH_BREAK_MINUTES,
@@ -58,6 +60,18 @@ export interface WorkHoursInput {
   checkIn: string;
   /** Giờ chấm ra, `HH:mm[:ss]`. */
   checkOut: string;
+  /**
+   * Giờ nghỉ THỰC TẾ nếu nền tảng chấm công ngoài có ghi lại.
+   *
+   * Có thì dùng, không có thì rơi về khung nghỉ chuẩn của công ty. Đây là lý do
+   * nó tuỳ chọn chứ không bắt buộc: phần lớn máy chấm công chỉ ghi vào/ra, và
+   * bắt buộc trường này sẽ khiến mọi bản ghi bình thường phải bịa ra giờ nghỉ.
+   *
+   * Chỉ nhận khi CÓ ĐỦ CẢ HAI đầu. Một nửa khoảng thời gian không tính được ra
+   * số phút nào, và đoán nốt nửa kia là bịa dữ liệu trả lương.
+   */
+  breakStart?: string | null;
+  breakEnd?: string | null;
 }
 
 export interface WorkHoursResult {
@@ -102,7 +116,13 @@ export function calculateWorkHours(input: WorkHoursInput): WorkHoursResult {
   const presentMinutes = checkOutMinutes - checkInMinutes;
   const workedMinutes = Math.max(
     0,
-    presentMinutes - lunchBreakDeduction(checkInMinutes, checkOutMinutes),
+    presentMinutes -
+      breakDeduction(
+        checkInMinutes,
+        checkOutMinutes,
+        input.breakStart,
+        input.breakEnd,
+      ),
   );
 
   const lateMinutes = Math.max(0, checkInMinutes - startMinutes);
@@ -121,30 +141,55 @@ export function calculateWorkHours(input: WorkHoursInput): WorkHoursResult {
 }
 
 /**
- * Số phút nghỉ trưa phải trừ khỏi một ca làm.
+ * Số phút nghỉ phải trừ khỏi một ca làm.
  *
- * Chỉ trừ phần nghỉ trưa NẰM TRONG ca. Giờ nghỉ được đặt ngay trước giờ tan ca
- * chuẩn — với khung 08:00–17:00 và 60 phút nghỉ thì đó là 12:00–13:00, tức
- * đúng giờ nghỉ trưa thường thấy ở công ty Việt Nam, và tự dịch theo nếu ai đó
- * đổi khung giờ trong `attendance.constant.ts`.
+ * HAI NGUỒN, ưu tiên rõ ràng:
+ *   1. Giờ nghỉ THỰC TẾ do bản ghi mang theo (từ nền tảng chấm công ngoài).
+ *   2. Khung nghỉ CHUẨN của công ty (`BREAK_START_TIME`–`BREAK_END_TIME`).
+ *
+ * Cả hai đều chỉ trừ phần NẰM TRONG ca. Trừ vô điều kiện sẽ biến ca sáng
+ * 08:00–11:00 thành 2 giờ công thay vì 3, và ca 30 phút thành giờ công ÂM.
+ *
+ * Khoảng nghỉ do bản ghi mang theo được trừ ĐÚNG như nó ghi, kể cả khi rỗng.
  */
-function lunchBreakDeduction(
+function breakDeduction(
   checkInMinutes: number,
   checkOutMinutes: number,
+  breakStart?: string | null,
+  breakEnd?: string | null,
 ): number {
+  if (breakStart && breakEnd) {
+    const start = parseTimeToMinutes(breakStart);
+    const end = parseTimeToMinutes(breakEnd);
+
+    /*
+     * `>=` chứ không phải `>`: một khoảng nghỉ rỗng vẫn là dữ liệu hợp lệ, chỉ
+     * là không có gì để trừ. Chỉ giờ nghỉ NGƯỢC (kết thúc trước khi bắt đầu)
+     * mới là dữ liệu hỏng — trừ nó ra số âm, tức là CỘNG thêm giờ công.
+     */
+    if (end >= start) {
+      return overlapMinutes(checkInMinutes, checkOutMinutes, start, end);
+    }
+  }
+
   if (LUNCH_BREAK_MINUTES <= 0) {
     return 0;
   }
 
-  const startMinutes = parseTimeToMinutes(WORK_START_TIME);
-  const endMinutes = parseTimeToMinutes(WORK_END_TIME);
-  const shiftMinutes = endMinutes - startMinutes;
-  const middleOffset = Math.floor((shiftMinutes - LUNCH_BREAK_MINUTES) / 2);
-  const breakStart = startMinutes + middleOffset;
-  const breakEnd = breakStart + LUNCH_BREAK_MINUTES;
+  return overlapMinutes(
+    checkInMinutes,
+    checkOutMinutes,
+    parseTimeToMinutes(BREAK_START_TIME),
+    parseTimeToMinutes(BREAK_END_TIME),
+  );
+}
 
-  const overlapStart = Math.max(checkInMinutes, breakStart);
-  const overlapEnd = Math.min(checkOutMinutes, breakEnd);
-
-  return Math.max(0, overlapEnd - overlapStart);
+/** Số phút giao nhau của hai khoảng thời gian; 0 nếu rời nhau. */
+function overlapMinutes(
+  aStart: number,
+  aEnd: number,
+  bStart: number,
+  bEnd: number,
+): number {
+  return Math.max(0, Math.min(aEnd, bEnd) - Math.max(aStart, bStart));
 }

@@ -177,6 +177,9 @@ export class AttendanceExportService {
       toExcelDate(record.workDate),
       record.checkIn ?? '',
       record.checkOut ?? '',
+      // Trống = không rõ giờ nghỉ, giờ công tính theo khung nghỉ chuẩn.
+      record.breakStart ?? '',
+      record.breakEnd ?? '',
       record.workHours,
       record.overtimeHours,
       record.lateMinutes,
@@ -273,6 +276,8 @@ const DETAIL_COLUMNS: ExcelColumnSpec[] = [
   { header: 'Ngày', width: 13, numberFormat: 'dd/mm/yyyy' },
   { header: 'Giờ vào', width: 10 },
   { header: 'Giờ ra', width: 10 },
+  { header: 'Nghỉ từ', width: 10 },
+  { header: 'Nghỉ đến', width: 10 },
   { header: 'Giờ công', width: 11, numberFormat: HOURS_NUMBER_FORMAT },
   {
     header: 'Giờ vượt ca (thực tế)',

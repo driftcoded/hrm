@@ -20,8 +20,32 @@ export const WORK_START_TIME = '08:00';
 /** Giờ tan ca chuẩn — `HH:mm` (business-rules §12.1). */
 export const WORK_END_TIME = '17:00';
 
-/** Nghỉ trưa, KHÔNG tính vào giờ công (business-rules §12.2). */
-export const LUNCH_BREAK_MINUTES = 60;
+/**
+ * Khung giờ nghỉ trưa CHUẨN của công ty — `HH:mm`.
+ *
+ * Trước đây chỉ có độ dài (60 phút) và khung giờ được SUY RA bằng cách đặt nó
+ * vào giữa ca. Cách đó tình cờ ra đúng 12:00–13:00 với khung 08:00–17:00, nhưng
+ * nó là một phép tính chứ không phải một quyết định: đổi giờ tan ca sang 18:00
+ * thì giờ nghỉ tự trôi sang 12:30 mà không ai chọn điều đó.
+ *
+ * Đây là khung MẶC ĐỊNH, dùng khi bản ghi chấm công không mang theo giờ nghỉ
+ * thực tế. Khi nền tảng chấm công ngoài có ghi giờ nghỉ thật, dữ liệu đó thắng
+ * — xem `attendances.break_start` / `break_end`.
+ */
+export const BREAK_START_TIME = '12:00';
+export const BREAK_END_TIME = '13:00';
+
+/**
+ * Độ dài nghỉ trưa chuẩn, tính từ chính khung giờ trên (business-rules §12.2).
+ *
+ * Suy ra chứ không viết cứng: hai con số nói cùng một điều thì sớm muộn cũng
+ * lệch nhau, và bên lệch sẽ là bên không ai nhớ để sửa.
+ */
+export const LUNCH_BREAK_MINUTES =
+  Number(BREAK_END_TIME.slice(0, 2)) * 60 +
+  Number(BREAK_END_TIME.slice(3, 5)) -
+  (Number(BREAK_START_TIME.slice(0, 2)) * 60 +
+    Number(BREAK_START_TIME.slice(3, 5)));
 
 /**
  * Vào sau giờ chuẩn quá ngần này phút mới tính đi muộn (business-rules §12.1).

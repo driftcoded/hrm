@@ -11,7 +11,10 @@ import { DataTableCard } from '@/components/crud/DataTableCard';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { useAuthStore } from '@/store/authStore';
 import { useOvertimeMutations, useOvertimeRequests } from '@/hooks/useAttendances';
-import { useCanReadAllAttendance } from '@/hooks/usePermissions';
+import {
+  useCanApproveOvertime,
+  useCanRecordOvertime,
+} from '@/hooks/usePermissions';
 import { useTableQuery } from '@/hooks/useTableQuery';
 import {
   OVERTIME_STATUSES,
@@ -21,26 +24,33 @@ import {
 import styles from './OvertimePage.module.css';
 
 /**
- * `/attendance/overtime` — đăng ký và duyệt làm thêm giờ (PLAN 4.2).
+ * `/attendance/overtime` — ghi nhận và duyệt giờ làm thêm (PLAN 4.2).
  *
- * MỘT MÀN HÌNH, HAI VAI TRÒ, KHÔNG PHẢI HAI TRANG. Nhân viên thấy đơn của
- * mình; người duyệt thấy thêm đơn của phòng mình và có nút Duyệt/Từ chối trên
- * chính những dòng đó. Tách thành hai trang sẽ buộc trưởng phòng — vốn cũng là
- * người đăng ký làm thêm — phải nhớ hai địa chỉ cho cùng một loại giấy tờ.
+ * KHÔNG PHẢI MÀN TỰ ĐĂNG KÝ. Nhân viên không đăng nhập hệ thống này; thoả
+ * thuận làm thêm giờ diễn ra bên ngoài, còn ở đây là:
  *
- * Phạm vi dữ liệu do BACKEND quyết định (`resolveScope`): nhân viên thường gửi
- * `?employeeId=` của người khác cũng chỉ nhận về đơn của chính mình.
+ *   - QUẢN LÝ ghi nhận cho nhân viên phòng mình (nhân sự ghi cho bất kỳ ai)
+ *   - KẾ TOÁN / NHÂN SỰ duyệt trước khi tính lương
  *
- * NÚT DUYỆT KHÔNG HIỆN TRÊN ĐƠN CỦA CHÍNH MÌNH. Backend chặn bằng
- * `CANNOT_APPROVE_OWN_OVERTIME`; hiện nút rồi báo lỗi là mời người ta bấm vào
- * một thứ chắc chắn hỏng.
+ * MỘT MÀN HÌNH, HAI VAI TRÒ, KHÔNG PHẢI HAI TRANG. Cùng một danh sách, nút
+ * Duyệt/Từ chối chỉ hiện với người có quyền duyệt. Tách thành hai trang sẽ buộc
+ * nhân sự — vốn vừa ghi nhận vừa duyệt — phải nhớ hai địa chỉ cho cùng một loại
+ * giấy tờ.
+ *
+ * Phạm vi dữ liệu do BACKEND quyết định (`resolveScope`): trưởng phòng chỉ thấy
+ * đơn của phòng mình dù gửi `?employeeId=` của ai.
+ *
+ * CỘT "NGƯỜI GHI" LUÔN HIỆN. Backend chặn người vừa ghi vừa duyệt chính đơn đó
+ * (`CANNOT_APPROVE_OWN_RECORD`); thấy tên người ghi ngay trên dòng thì người
+ * duyệt biết trước vì sao nút của mình sẽ không dùng được.
  */
 export function OvertimePage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const resolveError = useApiErrorMessage();
 
-  const canReview = useCanReadAllAttendance();
+  const canApprove = useCanApproveOvertime();
+  const canRecord = useCanRecordOvertime();
   const myEmployeeId = useAuthStore((state) => state.user?.employee?.id ?? null);
 
   const table = useTableQuery({ sort: 'workDate', order: 'desc' });
@@ -155,6 +165,14 @@ export function OvertimePage() {
       ),
     },
     {
+      title: t('attendance.overtime.columns.recordedBy'),
+      dataIndex: 'recorderName',
+      width: 150,
+      // Đơn cũ (trước khi có cột `recorded_by`) không biết ai nhập — hiện gạch
+      // ngang chứ không đoán.
+      render: (value: string | null) => value ?? '—',
+    },
+    {
       title: t('attendance.overtime.columns.status'),
       dataIndex: 'status',
       width: 120,
@@ -172,54 +190,52 @@ export function OvertimePage() {
     {
       title: '',
       key: 'actions',
-      width: 140,
+      width: 170,
       render: (_: unknown, record) => {
         if (record.status !== 'pending') {
           return null;
         }
 
-        const isMine = myEmployeeId !== null && record.employeeId === myEmployeeId;
-
-        // Đơn của chính mình: chỉ được tự huỷ, không được tự duyệt.
-        if (isMine) {
-          return (
-            <Popconfirm
-              title={t('attendance.overtime.cancelConfirm')}
-              okText={t('common.confirm')}
-              cancelText={t('common.cancel')}
-              onConfirm={() => runCancel(record)}
-            >
-              <Button size="small" type="text" danger loading={mutations.isCancelling}>
-                {t('attendance.overtime.cancel')}
-              </Button>
-            </Popconfirm>
-          );
-        }
-
-        if (!canReview) {
-          return null;
-        }
+        // Người GHI rút lại đơn mình nhập; nhân sự rút được đơn của người khác.
+        const isMyRecord =
+          myEmployeeId !== null && record.recordedBy === myEmployeeId;
 
         return (
           <Space size={4}>
-            <Button
-              size="small"
-              type="text"
-              icon={<CheckOutlined />}
-              loading={mutations.isApproving}
-              onClick={() => runApprove(record)}
-            >
-              {t('attendance.overtime.approve')}
-            </Button>
-            <Button
-              size="small"
-              type="text"
-              danger
-              icon={<CloseOutlined />}
-              onClick={() => setRejecting(record)}
-            >
-              {t('attendance.overtime.reject')}
-            </Button>
+            {canApprove && (
+              <>
+                <Button
+                  size="small"
+                  type="text"
+                  icon={<CheckOutlined />}
+                  loading={mutations.isApproving}
+                  onClick={() => runApprove(record)}
+                >
+                  {t('attendance.overtime.approve')}
+                </Button>
+                <Button
+                  size="small"
+                  type="text"
+                  danger
+                  icon={<CloseOutlined />}
+                  onClick={() => setRejecting(record)}
+                >
+                  {t('attendance.overtime.reject')}
+                </Button>
+              </>
+            )}
+            {!canApprove && isMyRecord && (
+              <Popconfirm
+                title={t('attendance.overtime.cancelConfirm')}
+                okText={t('common.confirm')}
+                cancelText={t('common.cancel')}
+                onConfirm={() => runCancel(record)}
+              >
+                <Button size="small" type="text" danger loading={mutations.isCancelling}>
+                  {t('attendance.overtime.cancel')}
+                </Button>
+              </Popconfirm>
+            )}
           </Space>
         );
       },
@@ -241,7 +257,7 @@ export function OvertimePage() {
           }))}
         />
 
-        {canReview && (
+        {canApprove && (
           <Button
             type="link"
             onClick={() => table.setFilter('status', 'pending')}
@@ -253,9 +269,11 @@ export function OvertimePage() {
 
         <span className={styles.spacer} />
 
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setFormOpen(true)}>
-          {t('attendance.overtime.create')}
-        </Button>
+        {canRecord && (
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setFormOpen(true)}>
+            {t('attendance.overtime.create')}
+          </Button>
+        )}
       </div>
 
       <DataTableCard<OvertimeRequest>
@@ -268,7 +286,7 @@ export function OvertimePage() {
         errorMessage={t('attendance.overtime.loadError')}
         hasFilters={status !== undefined}
         total={total}
-        scrollX={1000}
+        scrollX={1150}
         pagination={{
           page: table.page,
           pageSize: table.pageSize,

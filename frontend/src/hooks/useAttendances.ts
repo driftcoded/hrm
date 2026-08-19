@@ -2,11 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   approveOvertimeRequest,
   cancelOvertimeRequest,
-  checkIn,
-  checkOut,
+  createAttendance,
   createOvertimeRequest,
   downloadImportTemplate,
-  getMyAttendance,
   importAttendances,
   listAttendances,
   listOvertimeRequests,
@@ -16,6 +14,7 @@ import {
 import { exportAttendances } from '@/services/report.service';
 import type {
   AttendanceFilters,
+  CreateAttendancePayload,
   CreateOvertimePayload,
   OvertimeFilters,
   UpdateAttendancePayload,
@@ -25,23 +24,15 @@ import { saveBlob } from '@/utils/download';
 /**
  * Query key của module Chấm công.
  *
- * `root` để mọi thay đổi (chấm công, HR sửa, nạp file) làm mới TẤT CẢ màn hình
- * chấm công cùng lúc: bảng công cá nhân và bảng công toàn công ty đọc cùng một
- * dữ liệu, để một cái cũ hơn cái kia là để người dùng thấy hai sự thật.
+ * `root` để mọi thay đổi (nhập tay, sửa, nạp file) làm mới TẤT CẢ màn hình của
+ * module cùng lúc: bảng chấm công và danh sách giờ làm thêm đọc chồng lên cùng
+ * một tháng dữ liệu, để một cái cũ hơn cái kia là để người dùng thấy hai sự thật.
  */
 export const ATTENDANCE_KEYS = {
   root: ['attendances'] as const,
   list: (filters?: AttendanceFilters) => ['attendances', 'list', filters] as const,
-  mine: (month?: number, year?: number) => ['attendances', 'me', month, year] as const,
   overtime: (filters?: OvertimeFilters) => ['attendances', 'overtime', filters] as const,
 };
-
-export function useMyAttendance(month?: number, year?: number) {
-  return useQuery({
-    queryKey: ATTENDANCE_KEYS.mine(month, year),
-    queryFn: () => getMyAttendance({ month, year }),
-  });
-}
 
 export function useAttendances(filters?: AttendanceFilters) {
   return useQuery({
@@ -58,34 +49,16 @@ export function useOvertimeRequests(filters?: OvertimeFilters, enabled = true) {
   });
 }
 
-/** Chấm vào / chấm ra cho chính mình. */
-export function useAttendanceClock() {
-  const queryClient = useQueryClient();
-  const invalidate = () => {
-    void queryClient.invalidateQueries({ queryKey: ATTENDANCE_KEYS.root });
-  };
-
-  const inMutation = useMutation({
-    mutationFn: (note?: string) => checkIn(note),
-    onSuccess: invalidate,
-  });
-
-  const outMutation = useMutation({
-    mutationFn: (note?: string) => checkOut(note),
-    onSuccess: invalidate,
-  });
-
-  return {
-    checkIn: inMutation.mutateAsync,
-    checkOut: outMutation.mutateAsync,
-    isClockingIn: inMutation.isPending,
-    isClockingOut: outMutation.isPending,
-  };
-}
-
-/** HR điều chỉnh một ngày công. */
+/** Nhân sự nhập tay / điều chỉnh một ngày công. */
 export function useAttendanceMutations() {
   const queryClient = useQueryClient();
+
+  const create = useMutation({
+    mutationFn: (payload: CreateAttendancePayload) => createAttendance(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ATTENDANCE_KEYS.root });
+    },
+  });
 
   const update = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: UpdateAttendancePayload }) =>
@@ -95,7 +68,12 @@ export function useAttendanceMutations() {
     },
   });
 
-  return { updateAttendance: update.mutateAsync, isSaving: update.isPending };
+  return {
+    createAttendance: create.mutateAsync,
+    updateAttendance: update.mutateAsync,
+    isCreating: create.isPending,
+    isSaving: update.isPending,
+  };
 }
 
 /**

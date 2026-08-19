@@ -827,43 +827,45 @@ Partial update. **Errors:** `404 CONTRACT_NOT_FOUND`, `409 DUPLICATE_CONTRACT_NU
 
 ## 7. Attendances – Chấm công
 
-> ⏳ **Toàn bộ §7 chưa hiện thực** (Giai đoạn 4). Bảng `attendances` đã có trong schema; chưa có module/route nào.
+> ⚠️ **KHÔNG có endpoint tự chấm công.** Nhân viên thường không đăng nhập hệ
+> thống này (`403 PORTAL_ACCESS_DENIED` ngay ở `POST /auth/login`). Việc chấm
+> công diễn ra trên nền tảng bên ngoài; dữ liệu vào hệ thống bằng **file Excel**
+> (`POST /attendances/bulk-import`, đường chính) hoặc **nhập tay từng dòng**
+> (`POST /attendances`, cho các ca lẻ).
+>
+> Các endpoint `POST /attendances/check-in`, `POST /attendances/check-out` và
+> `GET /attendances/me` của bản thiết kế trước đã bị **gỡ bỏ**.
 
-### POST `/attendances/check-in`
-> 🔒 Auth required (employee tự chấm)
+### POST `/attendances`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+Nhập tay MỘT ngày công — dùng cho ca lẻ mà file từ nền tảng ngoài không có:
+quên chấm, đi công tác, làm tại nhà, hoặc một ngày nghỉ phép.
 
 ```json
 {
-  "note": ""
+  "employeeId": 51,
+  "workDate": "2026-05-25",
+  "checkIn": "08:00",
+  "checkOut": "17:30",
+  "breakStart": "12:00",
+  "breakEnd": "13:00",
+  "status": "present",
+  "note": "Nhân viên quên chấm, trưởng phòng xác nhận"
 }
 ```
 
-**Response 201:**
-```json
-{
-  "data": {
-    "id": 1001,
-    "employeeId": 51,
-    "workDate": "2026-05-25",
-    "checkIn": "08:05",
-    "isLate": false,
-    "lateMinutes": 0
-  }
-}
-```
+| Trường | Bắt buộc | Ghi chú |
+|--------|:---:|---------|
+| `employeeId` | ✅ | Trong phạm vi của người gọi |
+| `workDate` | ✅ | `YYYY-MM-DD` |
+| `checkIn` / `checkOut` | ❌ | Ngày nghỉ phép/ngày lễ không có giờ nào |
+| `breakStart` / `breakEnd` | ❌ | Giờ nghỉ thực tế; trừ đúng khoảng này. Bỏ trống ⇒ trừ theo khung nghỉ chuẩn 12:00–13:00. Phải có đủ cả hai đầu |
+| `status` | ❌ | Bỏ trống ⇒ tính từ giờ vào/ra. Đặt tường minh cho `wfh`, `leave`, `holiday` |
+| `note` | ✅ | Dòng nhập tay không có bằng chứng từ máy chấm công nên phải nói được nguồn |
 
-**Errors:** `409 ALREADY_CHECKED_IN`
-
----
-
-### POST `/attendances/check-out`
-> 🔒 Auth required
-
-```json
-{ "note": "" }
-```
-
-**Response 200:** Trả về record đầy đủ bao gồm `workHours`, `overtimeHours`.
+**Errors:** `409 ATTENDANCE_ALREADY_EXISTS` (ngày đó đã có bản ghi — sửa bằng
+`PATCH` thay vì tạo mới), `409 INVALID_ATTENDANCE_TIMES`, `404 EMPLOYEE_NOT_FOUND`
 
 ---
 
@@ -878,52 +880,130 @@ Partial update. **Errors:** `404 CONTRACT_NOT_FOUND`, `409 DUPLICATE_CONTRACT_NU
 ?status=absent
 ```
 
----
-
-### GET `/attendances/me`
-> 🔒 Auth required (employee)
-
-**Query:** `?month=5&year=2026`
-
-**Response:**
-```json
-{
-  "data": {
-    "summary": {
-      "workingDays": 22,
-      "presentDays": 20,
-      "absentDays": 1,
-      "lateDays": 1,
-      "overtimeHours": 4.5
-    },
-    "records": [ ... ]
-  }
-}
-```
+`month` một mình bị **bỏ qua** (tháng 5 của năm nào?). `manager` chỉ nhận được
+phòng ban mình quản.
 
 ---
 
 ### PATCH `/attendances/:id`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
-Điều chỉnh chấm công (khi máy lỗi, quên chấm...).
+Điều chỉnh chấm công (máy lỗi, quên chấm...). `manager` **không** sửa được dù
+đọc được phòng mình.
 
 ```json
 {
   "checkIn": "08:00",
   "checkOut": "17:30",
+  "breakStart": "12:00",
+  "breakEnd": "12:30",
   "note": "Điều chỉnh do máy chấm công lỗi"
 }
 ```
+
+`note` là **bắt buộc**: bản ghi sau khi sửa phải tự nói được vì sao nó khác thứ
+máy đã ghi. Sửa giờ thì giờ công, đi muộn, về sớm được **tính lại**.
 
 ---
 
 ### POST `/attendances/bulk-import`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
-Import chấm công từ file Excel.
+Nhập chấm công từ file Excel xuất từ nền tảng ngoài.
 
 **Content-Type:** `multipart/form-data`, field: `file` (.xlsx)
+**Query:** `?dryRun=true` — chỉ kiểm tra, KHÔNG ghi gì.
+
+**Cột file** (tiêu đề khớp không phân biệt hoa thường và dấu):
+
+| Cột | Bắt buộc | Bí danh chấp nhận |
+|-----|:---:|-------------------|
+| Mã NV | ✅ | `ma nhan vien`, `employee code` |
+| Ngày | ✅ | `ngay cong`, `date` |
+| Giờ vào | ✅ | `check in`, `gio den` |
+| Giờ ra | ❌ | `check out`, `gio ve` |
+| Giờ nghỉ từ | ❌ | `bat dau nghi`, `break start` |
+| Giờ nghỉ đến | ❌ | `ket thuc nghi`, `break end` |
+| Ghi chú | ❌ | `note` |
+
+> **TẤT CẢ HOẶC KHÔNG GÌ CẢ.** Chỉ cần một dòng sai là KHÔNG dòng nào được ghi,
+> và toàn bộ lỗi được trả về kèm **số dòng trong file Excel**. Nhập một phần sẽ
+> để lại một tháng công nửa vời mà không ai biết thiếu ngày nào — và bảng công
+> thiếu ngày trông y hệt bảng công đủ.
+
+**Response 201:**
+```json
+{
+  "data": {
+    "dryRun": false,
+    "totalRows": 120,
+    "created": 98,
+    "updated": 22,
+    "errors": []
+  }
+}
+```
+
+`updated` = số ngày công **bị ghi đè**. Luôn được trả về (kể cả khi `dryRun`) để
+không ai vô tình thay đổi dữ liệu đã chốt mà không biết.
+
+**Errors:** `400 IMPORT_FILE_REQUIRED`, `400 IMPORT_INVALID_FILE_TYPE` (kiểm
+magic bytes, không tin phần mở rộng), `400 IMPORT_MISSING_COLUMNS`,
+`400 IMPORT_TOO_MANY_ROWS`
+
+---
+
+### GET `/attendances/import-template`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+File .xlsx mẫu, có sẵn các dòng ví dụ cho định dạng mong đợi.
+
+---
+
+## 7b. Overtime – Làm thêm giờ
+
+> Nhân viên không tự đăng ký. **Quản lý ghi nhận** cho phòng mình (nhân sự ghi
+> cho bất kỳ ai), **kế toán/nhân sự duyệt**. Xem business-rules.md §7.3.
+
+### POST `/overtime-requests`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager`
+
+```json
+{
+  "employeeId": 51,
+  "workDate": "2026-05-25",
+  "startTime": "18:00",
+  "endTime": "21:00",
+  "reason": "Xử lý sự cố hệ thống thanh toán"
+}
+```
+
+Số giờ, loại ngày và hệ số Điều 98 đều **suy ra từ server**, client không gửi.
+`endTime` <= `startTime` nghĩa là ca vắt sang ngày hôm sau. Người ghi được lưu
+vào `recorded_by` lấy **từ token**, không lấy từ body.
+
+**Errors:** `409 OVERLAPPING_OVERTIME`, `422 OVERTIME_DAILY_LIMIT_EXCEEDED`,
+`422 OVERTIME_MONTHLY_LIMIT_EXCEEDED`, `422 OVERTIME_YEARLY_LIMIT_EXCEEDED`
+
+---
+
+### GET `/overtime-requests`
+> 🔒 Auth required. Trang duyệt dùng `?status=pending`.
+
+### PATCH `/overtime-requests/:id/approve`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+`manager` **không duyệt được** (họ là người ghi nhận). Người đã ghi một đơn cũng
+không duyệt được chính đơn đó.
+
+**Errors:** `403 FORBIDDEN`, `403 CANNOT_APPROVE_OWN_RECORD`,
+`409 OVERTIME_NOT_PENDING`, `422` vượt trần Điều 107
+
+### PATCH `/overtime-requests/:id/reject`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff` — `reason` bắt buộc.
+
+### PATCH `/overtime-requests/:id/cancel`
+> 🔒 Người GHI NHẬN đơn, hoặc nhân sự. Chỉ đơn còn `pending`.
 
 ---
 
@@ -1875,6 +1955,7 @@ Không nằm trong §20 gốc nhưng đã hiện thực, nên ghi lại ở đâ
 
 ```
 AUTH
+  PORTAL_ACCESS_DENIED       Vai trò không được đăng nhập hệ thống quản trị
   INVALID_CREDENTIALS        401 Sai tên đăng nhập hoặc mật khẩu
   TOKEN_EXPIRED              401 Access token hết hạn
   TOKEN_INVALID              401 Token không hợp lệ / thiếu cookie refresh /
@@ -1970,9 +2051,23 @@ INFRA
 --- Từ đây trở xuống là các mã của giai đoạn SAU, chưa tồn tại trong code ---
 
 ATTENDANCE
-  ALREADY_CHECKED_IN         Đã chấm công vào hôm nay
-  NOT_CHECKED_IN             Chưa chấm công vào
-  ALREADY_CHECKED_OUT        Đã chấm công ra
+  ATTENDANCE_NOT_FOUND
+  ATTENDANCE_ALREADY_EXISTS  Ngày đó đã có bản ghi, hãy sửa thay vì tạo mới
+  INVALID_ATTENDANCE_TIMES   Giờ ra sớm hơn giờ vào
+  IMPORT_FILE_REQUIRED       Thiếu file .xlsx
+  IMPORT_INVALID_FILE_TYPE   Không phải file .xlsx hợp lệ (kiểm magic bytes)
+  IMPORT_MISSING_COLUMNS     File thiếu cột bắt buộc
+  IMPORT_TOO_MANY_ROWS       File vượt trần số dòng
+  IMPORT_EMPTY_FILE          File không có sheet nào
+
+OVERTIME
+  OVERTIME_NOT_FOUND
+  OVERTIME_NOT_PENDING       Đơn không còn ở trạng thái chờ duyệt
+  OVERLAPPING_OVERTIME       Trùng giờ với đơn còn hiệu lực
+  CANNOT_APPROVE_OWN_RECORD  Người ghi nhận không được tự duyệt
+  OVERTIME_DAILY_LIMIT_EXCEEDED    Vượt trần 12 giờ/ngày (Điều 107)
+  OVERTIME_MONTHLY_LIMIT_EXCEEDED  Vượt trần 40 giờ/tháng
+  OVERTIME_YEARLY_LIMIT_EXCEEDED   Vượt trần 200 giờ/năm
 
 LEAVE
   LEAVE_NOT_FOUND

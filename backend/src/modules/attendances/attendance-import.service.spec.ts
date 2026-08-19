@@ -30,6 +30,17 @@ async function makeWorkbookFile(
 
 const HEADERS = ['Mã NV', 'Ngày', 'Giờ vào', 'Giờ ra', 'Ghi chú'];
 
+/** Bộ tiêu đề có thêm hai cột giờ nghỉ. */
+const HEADERS_WITH_BREAK = [
+  'Mã NV',
+  'Ngày',
+  'Giờ vào',
+  'Giờ ra',
+  'Giờ nghỉ từ',
+  'Giờ nghỉ đến',
+  'Ghi chú',
+];
+
 async function captureError(
   run: () => Promise<unknown>,
 ): Promise<{ status: number; code: string }> {
@@ -189,6 +200,96 @@ describe('AttendanceImportService', () => {
 
       expect(result.totalRows).toBe(1);
       expect(result.errors).toEqual([]);
+    });
+  });
+
+  describe('giờ nghỉ', () => {
+    /*
+     * Không có cột nghỉ thì hệ thống dùng khung nghỉ chuẩn 12:00–13:00. Đây là
+     * hành vi cũ và phải giữ nguyên: phần lớn máy chấm công chỉ ghi vào/ra.
+     */
+    it('falls back to the standard break when the file has no break columns', async () => {
+      const file = await makeWorkbookFile(HEADERS, [
+        ['NV0001', '2026-05-04', '08:00', '17:00', ''],
+      ]);
+
+      await service.importFromFile(file, { dryRun: false });
+
+      expect(attendances.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          breakStart: null,
+          breakEnd: null,
+          workHours: '8.00',
+        }),
+      );
+    });
+
+    it('deducts the real break when the file provides one', async () => {
+      const file = await makeWorkbookFile(HEADERS_WITH_BREAK, [
+        ['NV0001', '2026-05-04', '08:00', '17:00', '12:00', '12:30', ''],
+      ]);
+
+      await service.importFromFile(file, { dryRun: false });
+
+      expect(attendances.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          breakStart: '12:00:00',
+          breakEnd: '12:30:00',
+          workHours: '8.50',
+        }),
+      );
+    });
+
+    /* Khoảng nghỉ rỗng thì không có gì để trừ — file nói nghỉ 0 phút. */
+    it('deducts nothing when the file gives an empty break range', async () => {
+      const file = await makeWorkbookFile(HEADERS_WITH_BREAK, [
+        ['NV0001', '2026-05-04', '08:00', '17:00', '12:00', '12:00', ''],
+      ]);
+
+      await service.importFromFile(file, { dryRun: false });
+
+      expect(attendances.create).toHaveBeenCalledWith(
+        expect.objectContaining({ workHours: '9.00' }),
+      );
+    });
+
+    /* Một nửa khoảng thời gian không ra được số phút nào → dùng khung chuẩn. */
+    it('ignores a break with only one end filled in', async () => {
+      const file = await makeWorkbookFile(HEADERS_WITH_BREAK, [
+        ['NV0001', '2026-05-04', '08:00', '17:00', '12:00', '', ''],
+      ]);
+
+      const result = await service.importFromFile(file, { dryRun: false });
+
+      expect(result.errors).toEqual([]);
+      expect(attendances.create).toHaveBeenCalledWith(
+        expect.objectContaining({ breakStart: null, workHours: '8.00' }),
+      );
+    });
+
+    it('rejects a reversed break instead of adding hours', async () => {
+      const file = await makeWorkbookFile(HEADERS_WITH_BREAK, [
+        ['NV0001', '2026-05-04', '08:00', '17:00', '13:00', '12:00', ''],
+      ]);
+
+      const result = await service.importFromFile(file, { dryRun: false });
+
+      expect(result.errors[0].code).toBe('INVALID_TIME');
+      expect(attendances.create).not.toHaveBeenCalled();
+    });
+
+    /*
+     * Giờ nghỉ gõ sai phải BÁO LỖI, không được im lặng rơi về khung chuẩn —
+     * người nhập sẽ không bao giờ biết mình gõ sai.
+     */
+    it('reports a malformed break rather than silently ignoring it', async () => {
+      const file = await makeWorkbookFile(HEADERS_WITH_BREAK, [
+        ['NV0001', '2026-05-04', '08:00', '17:00', '99:99', '13:00', ''],
+      ]);
+
+      const result = await service.importFromFile(file, { dryRun: false });
+
+      expect(result.errors[0].code).toBe('INVALID_TIME');
     });
   });
 

@@ -77,3 +77,32 @@ export const ATTENDANCE_WRITE_ROLES: readonly UserRole[] = [
 
 /** Vai trò xuất bảng chấm công — mirrors `AttendanceExportService.EXPORT_ROLES`. */
 export const ATTENDANCE_EXPORT_ROLES: readonly UserRole[] = ATTENDANCE_READ_ALL_ROLES;
+
+/**
+ * Vai trò được GHI NHẬN giờ làm thêm cho nhân viên — mirrors backend
+ * `OVERTIME_RECORD_ROLES`.
+ *
+ * Nhân viên không đăng nhập hệ thống này nên không ai tự đăng ký: quản lý ghi
+ * cho phòng mình, nhân sự ghi cho bất kỳ ai.
+ */
+export const OVERTIME_RECORD_ROLES: readonly UserRole[] = [
+  'admin',
+  'hr_manager',
+  'hr_staff',
+  'manager',
+];
+
+/**
+ * Vai trò được DUYỆT giờ làm thêm — kế toán/nhân sự, mirrors backend
+ * `OVERTIME_APPROVE_ROLES`.
+ *
+ * `manager` ghi nhận nhưng KHÔNG duyệt: giờ làm thêm là tiền ra khỏi công ty và
+ * bước duyệt là lớp kiểm soát duy nhất trước bảng lương. Backend còn chặn thêm
+ * người vừa ghi vừa duyệt chính đơn đó — giao diện không đoán được điều này nên
+ * vẫn hiện nút, và lỗi trả về được dịch thành câu rõ ràng.
+ */
+export const OVERTIME_APPROVE_ROLES: readonly UserRole[] = [
+  'admin',
+  'hr_manager',
+  'hr_staff',
+];

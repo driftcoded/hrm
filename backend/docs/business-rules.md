@@ -362,23 +362,60 @@ Thông thường dao động **22 – 23 ngày/tháng**.
 
 ## 12. Quy tắc chấm công
 
+> ⚠️ **Hệ thống này KHÔNG có chức năng chấm công.** Nhân viên không đăng nhập
+> (xem §12.0); việc chấm công diễn ra trên nền tảng bên ngoài. Dữ liệu vào hệ
+> thống bằng file Excel hoặc nhập tay, và các quy tắc dưới đây dùng để TÍNH TOÁN
+> trên dữ liệu đã có, không phải để ghi nhận giờ.
+
+### 12.0. Ai dùng phân hệ chấm công
+
+| Vai trò | Xem bảng công | Nhập / sửa / nạp file | Ghi nhận OT | Duyệt OT |
+|---------|:---:|:---:|:---:|:---:|
+| `admin`, `hr_manager`, `hr_staff` | Toàn công ty | ✅ | ✅ | ✅ |
+| `manager` | Phòng mình quản | ❌ | ✅ (phòng mình) | ❌ |
+| `employee` | — | — | — | — |
+
+`employee` **không đăng nhập được** hệ thống này (`PORTAL_LOGIN_ROLES`); họ tra
+cứu thông tin qua một cổng riêng sẽ xây sau.
+
 ### 12.1. Khung giờ làm việc mặc định
 
 | Thông số | Giá trị mặc định |
 |----------|-----------------|
 | Giờ bắt đầu | 08:00 |
 | Giờ kết thúc | 17:00 |
-| Giờ nghỉ trưa | 60 phút (không tính vào giờ làm) |
+| Giờ nghỉ trưa **chuẩn** | 12:00 – 13:00 (60 phút, không tính vào giờ làm) |
 | Ngưỡng đi muộn | > 15 phút so với giờ bắt đầu |
 | Ngưỡng về sớm | > 15 phút trước giờ kết thúc |
 
+Khung nghỉ trưa là **khoảng giờ tường minh**, không phải chỉ một độ dài: dùng độ
+dài rồi tự đặt vào giữa ca sẽ khiến giờ nghỉ trôi theo mỗi lần đổi giờ tan ca.
+Cấu hình ở `backend/src/common/constants/attendance.constant.ts`.
+
 ### 12.2. Cách tính giờ làm thực tế
 
-> Giờ làm = (Giờ ra − Giờ vào) − 60 phút nghỉ trưa
+> Giờ làm = (Giờ ra − Giờ vào) − **phần giờ nghỉ NẰM TRONG ca**
+
+Giờ nghỉ lấy theo thứ tự ưu tiên:
+
+1. **Giờ nghỉ thực tế** của bản ghi (`attendances.break_start` / `break_end`),
+   nếu nền tảng chấm công ngoài có ghi lại.
+2. **Khung nghỉ chuẩn** 12:00–13:00 khi bản ghi không có (giá trị `NULL`).
+
+Chỉ trừ phần giao nhau với ca làm, nên ca sáng 08:00–11:00 vẫn là 3 giờ công chứ
+không phải 2.
+
+Nhập thiếu một trong hai đầu ⇒ không đủ để tính ra số phút nào, rơi về khung
+chuẩn. Giờ nghỉ **ngược** (kết thúc trước khi bắt đầu) là dữ liệu hỏng: file
+import báo lỗi dòng đó thay vì trừ số âm — trừ số âm nghĩa là CỘNG thêm giờ công.
 
 ### 12.3. Xác định làm thêm giờ
 
 Giờ làm thêm = thời gian làm việc vượt quá 8 giờ/ngày (sau giờ tan ca chính thức).
+
+> ⚠️ Con số này (`attendances.overtime_hours`) là **số giờ đã ở lại làm**, KHÔNG
+> phải căn cứ trả tiền. Điều 107 BLLĐ 2019 đòi làm thêm giờ phải được NLĐ đồng ý,
+> nên tiền chỉ trả theo **đơn đã duyệt** ở bảng `overtime_requests`. Xem §7.
 
 ### 12.4. Các trạng thái chấm công
 

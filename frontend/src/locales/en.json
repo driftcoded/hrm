@@ -241,15 +241,11 @@
       "FAVICON_REQUIRED": "No image was selected.",
       "MAIL_SETTINGS_INCOMPLETE": "Please fill in the host, port and from email before sending a test.",
       "MAIL_TEST_FAILED": "The test email failed to send. Double-check the host, port, username and password.",
-      "ALREADY_CHECKED_IN": "You have already clocked in today.",
-      "NOT_CHECKED_IN": "You have not clocked in today.",
-      "ALREADY_CHECKED_OUT": "You have already clocked out today.",
       "ATTENDANCE_NOT_FOUND": "Attendance record not found.",
       "INVALID_ATTENDANCE_TIMES": "Check-out cannot be earlier than check-in.",
       "OVERTIME_NOT_FOUND": "Overtime request not found.",
       "OVERTIME_NOT_PENDING": "This request is no longer pending.",
       "OVERLAPPING_OVERTIME": "This time range overlaps another of your overtime requests.",
-      "CANNOT_APPROVE_OWN_OVERTIME": "You cannot approve your own request.",
       "OVERTIME_DAILY_LIMIT_EXCEEDED": "Over the 12-hour daily cap (Article 107, Labour Code 2019).",
       "OVERTIME_MONTHLY_LIMIT_EXCEEDED": "Over the 40-hour monthly overtime cap (Article 107, Labour Code 2019).",
       "OVERTIME_YEARLY_LIMIT_EXCEEDED": "Over the 200-hour yearly overtime cap (Article 107, Labour Code 2019).",
@@ -257,7 +253,11 @@
       "IMPORT_INVALID_FILE_TYPE": "That file is not a valid .xlsx workbook.",
       "IMPORT_MISSING_COLUMNS": "The file is missing required columns. Download the template to compare headers.",
       "IMPORT_TOO_MANY_ROWS": "The file has too many rows. Split it by month or department.",
-      "IMPORT_EMPTY_FILE": "The workbook has no worksheet."
+      "IMPORT_EMPTY_FILE": "The workbook has no worksheet.",
+      "PORTAL_ACCESS_DENIED": "This account cannot use the admin system. Employees look up their own details through a separate portal.",
+      "ATTENDANCE_ALREADY_EXISTS": "This day already has attendance data. Edit the existing record instead of adding a new one.",
+      "CANNOT_APPROVE_OWN_RECORD": "You recorded this entry, so you cannot approve it yourself.",
+      "ATTENDANCE_STATUS_REQUIRED": "A day with no check-in time needs a status (leave, holiday, work from home, absent)."
     }
   },
   "layout": {
@@ -999,24 +999,20 @@
       "title": "Employee profile",
       "code": "Employee code",
       "printedAt": "Printed {{at}}"
+    },
+    "picker": {
+      "searching": "Searching…",
+      "empty": "No employee found",
+      "error": "Could not load the employee list"
     }
   },
   "attendance": {
     "title": "Attendance",
-    "subtitle": "Daily clock-in, the monthly timesheet and overtime requests.",
+    "subtitle": "The monthly timesheet from the external clocking platform, plus overtime records.",
     "loadError": "Could not load attendance data.",
     "tabs": {
-      "mine": "Mine",
       "overtime": "Overtime",
       "table": "Timesheet"
-    },
-    "clock": {
-      "today": "Today",
-      "in": "Clock in",
-      "out": "Clock out",
-      "notYet": "Not yet",
-      "inSuccess": "Clocked in.",
-      "outSuccess": "Clocked out."
     },
     "status": {
       "present": "Present",
@@ -1032,7 +1028,9 @@
       "checkOut": "Check-out",
       "status": "Status",
       "note": "Note",
-      "reason": "Reason for the adjustment"
+      "reason": "Reason for the adjustment",
+      "breakStart": "Break from",
+      "breakEnd": "Break until"
     },
     "columns": {
       "employee": "Employee",
@@ -1043,49 +1041,9 @@
       "overtimeHours": "Hours past shift",
       "status": "Status",
       "lateMinutes": "Late (min)",
-      "earlyLeaveMinutes": "Left early (min)"
-    },
-    "summary": {
-      "presentDays": "Days worked",
-      "presentDaysCaption": "Days recorded out of the month's working days",
-      "totalWorkHours": "Total hours",
-      "totalWorkHoursCaption": "Excludes the 60-minute lunch break each day",
-      "lateDays": "Late days",
-      "lateDaysCaption": "Arrived more than 15 minutes after 08:00",
-      "absentDays": "Absent days",
-      "absentDaysCaption": "Working days already passed with no record",
-      "overtimeSection": "Overtime",
-      "overtimeHours": "Hours actually worked",
-      "approvedOvertimeHours": "Approved hours",
-      "overtimeNote": "Only APPROVED hours are paid as overtime. Hours actually worked are the factual figure, kept for reconciliation."
-    },
-    "calendar": {
-      "title": "Attendance calendar",
-      "weekdays": [
-        "Mon",
-        "Tue",
-        "Wed",
-        "Thu",
-        "Fri",
-        "Sat",
-        "Sun"
-      ],
-      "pickDay": "Day detail",
-      "pickDayHint": "Pick a day on the calendar to see its detail.",
-      "noRecord": "No attendance recorded",
-      "overtimeMark": "{{hours}} approved overtime hours",
-      "kind": {
-        "present": "Present",
-        "late": "Late",
-        "earlyLeave": "Left early",
-        "absent": "Absent",
-        "leave": "On leave",
-        "holiday": "Public holiday",
-        "wfh": "Working from home",
-        "weekend": "Weekend",
-        "future": "Not yet",
-        "empty": ""
-      }
+      "earlyLeaveMinutes": "Left early (min)",
+      "break": "Break",
+      "breakStandard": "Standard"
     },
     "filters": {
       "department": "Department",
@@ -1112,7 +1070,7 @@
     "import": {
       "open": "Import from Excel",
       "title": "Import a timesheet from Excel",
-      "columnsHint": "Required columns: Mã NV, Ngày, Giờ vào. Optional: Giờ ra, Ghi chú.",
+      "columnsHint": "Required columns: Mã NV, Ngày, Giờ vào. Optional: Giờ ra, Giờ nghỉ từ, Giờ nghỉ đến, Ghi chú.",
       "template": "Download template",
       "dropHint": "Drop an .xlsx file here, or click to choose one",
       "dropSubHint": "The file is checked first; nothing is written yet.",
@@ -1132,17 +1090,17 @@
       "success": "Imported: {{created}} new, {{updated}} overwritten."
     },
     "overtime": {
-      "create": "Request overtime",
-      "submit": "Submit",
-      "createSuccess": "Overtime request submitted.",
+      "create": "Record overtime",
+      "submit": "Save",
+      "createSuccess": "Overtime recorded.",
       "approve": "Approve",
       "approveSuccess": "Overtime request approved.",
       "reject": "Reject",
-      "rejectTitle": "Reject {{name}}'s request — {{date}}",
+      "rejectTitle": "Reject {{name}}'s overtime — {{date}}",
       "rejectSuccess": "Overtime request rejected.",
       "cancel": "Withdraw",
-      "cancelConfirm": "Withdraw this overtime request?",
-      "cancelSuccess": "Request withdrawn.",
+      "cancelConfirm": "Withdraw this entry?",
+      "cancelSuccess": "Entry withdrawn.",
       "loadError": "Could not load overtime requests.",
       "night": "Night",
       "nightHint": "{{hours}} hours between 22:00 and 06:00, with {{surcharge}}× added for those hours.",
@@ -1164,7 +1122,8 @@
         "span": "Hours",
         "totalHours": "Total",
         "rate": "Rate",
-        "status": "Status"
+        "status": "Status",
+        "recordedBy": "Recorded by"
       },
       "filters": {
         "status": "Status",
@@ -1176,9 +1135,11 @@
         "endTime": "To",
         "endTimeHint": "Earlier than the start time means the next day (night shift).",
         "reason": "Reason",
-        "reasonHint": "This is the record a labour inspection would read.",
+        "reasonHint": "This is the record a labour inspection would read, and the only place the agreement with the employee (Article 107) is written down.",
         "rejectReason": "Reason for rejection",
-        "rejectReasonHint": "The applicant needs to know what to fix before resubmitting."
+        "rejectReasonHint": "Whoever recorded it needs to know what to fix before entering it again.",
+        "employee": "Employee",
+        "employeePlaceholder": "Search by name or code"
       },
       "errors": {
         "workDate": "Please pick the date",
@@ -1186,8 +1147,19 @@
         "endTime": "Please pick the end time",
         "reason": "Please give a reason",
         "reasonTooShort": "Reason is too short",
-        "rejectReason": "Please give a reason for rejecting"
+        "rejectReason": "Please give a reason for rejecting",
+        "employee": "Please pick an employee"
       }
+    },
+    "add": {
+      "open": "Add a day",
+      "title": "Record a working day",
+      "employee": "Employee",
+      "employeePlaceholder": "Search by name or code",
+      "employeeRequired": "Please pick an employee",
+      "dateRequired": "Please pick a date",
+      "success": "Working day added.",
+      "statusRequired": "Pick a status when there is no check-in time"
     }
   }
 }

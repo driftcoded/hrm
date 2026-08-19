@@ -4,6 +4,8 @@ import {
   ATTENDANCE_READ_ALL_ROLES,
   ATTENDANCE_WRITE_ROLES,
   CONTRACT_WRITE_ROLES,
+  OVERTIME_APPROVE_ROLES,
+  OVERTIME_RECORD_ROLES,
   EMPLOYEE_EXPORT_ROLES,
   EMPLOYEE_DELETE_ROLES,
   EMPLOYEE_WRITE_ROLES,
@@ -115,4 +117,18 @@ export function useCanWriteAttendance(): boolean {
 /** May the user export the monthly timesheet to Excel? */
 export function useCanExportAttendance(): boolean {
   return useHasRole(ATTENDANCE_EXPORT_ROLES);
+}
+
+/** May the user record overtime for an employee? (`admin`, `hr_manager`, `hr_staff`, `manager`) */
+export function useCanRecordOvertime(): boolean {
+  return useHasRole(OVERTIME_RECORD_ROLES);
+}
+
+/**
+ * May the user approve or reject overtime? (`admin`, `hr_manager`, `hr_staff`)
+ *
+ * `manager` records but does not approve — see `OVERTIME_APPROVE_ROLES`.
+ */
+export function useCanApproveOvertime(): boolean {
+  return useHasRole(OVERTIME_APPROVE_ROLES);
 }

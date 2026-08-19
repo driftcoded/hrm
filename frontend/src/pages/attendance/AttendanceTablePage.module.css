@@ -62,3 +62,9 @@
     min-width: 150px;
   }
 }
+
+/* Giá trị suy ra / mặc định — nhạt hơn để phân biệt với dữ liệu thật. */
+.muted {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
