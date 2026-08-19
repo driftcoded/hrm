@@ -71,7 +71,7 @@ function makeRequest(overrides: Partial<LeaveRequest> = {}): LeaveRequest {
     createdAt: new Date('2026-04-20T02:00:00.000Z'),
     updatedAt: new Date('2026-04-20T02:00:00.000Z'),
     ...overrides,
-  } as LeaveRequest;
+  };
 }
 
 function makeBalance(overrides: Partial<LeaveBalance> = {}): LeaveBalance {
@@ -168,20 +168,22 @@ describe('LeaveRequestsService', () => {
      * biến bài test đơn vị thành bài test tích hợp cần MySQL.
      */
     const manager = {
-      findOne: jest.fn((entity: unknown, options: { where: Record<string, unknown> }) => {
-        if (entity === LeaveBalance) {
-          return Promise.resolve(balance);
-        }
-        if (entity === Attendance) {
-          const workDate = options.where.workDate as string;
-          return Promise.resolve(
-            existingAttendanceDates.has(workDate)
-              ? ({ id: 1, workDate } as Attendance)
-              : null,
-          );
-        }
-        return Promise.resolve(null);
-      }),
+      findOne: jest.fn(
+        (entity: unknown, options: { where: Record<string, unknown> }) => {
+          if (entity === LeaveBalance) {
+            return Promise.resolve(balance);
+          }
+          if (entity === Attendance) {
+            const workDate = options.where.workDate as string;
+            return Promise.resolve(
+              existingAttendanceDates.has(workDate)
+                ? ({ id: 1, workDate } as Attendance)
+                : null,
+            );
+          }
+          return Promise.resolve(null);
+        },
+      ),
       create: jest.fn((entity: unknown, data: unknown) => {
         if (entity === LeaveRequest) {
           createdRequest = data as Record<string, unknown>;

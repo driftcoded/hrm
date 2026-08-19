@@ -201,17 +201,79 @@ describe('work-hours.util', () => {
         ).toBe(0);
       });
 
-      /*
-       * Ai đó đọc lướt sẽ tưởng đây là số giờ được trả tiền làm thêm. Không
-       * phải: Điều 107 BLLĐ 2019 đòi làm thêm giờ phải có sự đồng ý của NLĐ,
-       * nên tiền chỉ trả theo đơn đã duyệt. Ở lại muộn một mình không tạo ra
-       * nghĩa vụ chi trả nào cho công ty.
-       */
-      it('counts unapproved extra hours too — this figure is evidence, not payroll', () => {
+      it('counts every extra hour — this figure IS the payroll basis', () => {
         expect(
           calculateWorkHours({ checkIn: '08:00', checkOut: '21:00' })
             .overtimeHours,
         ).toBe(4);
+      });
+
+      /*
+       * QUYẾT ĐỊNH CỦA CHỦ DỰ ÁN: "1 phút cũng phải tính tiền". Không có ngưỡng
+       * tối thiểu, không làm tròn xuống. Test này tồn tại để chặn việc ai đó
+       * "dọn cho gọn" các con số lẻ — 1 phút làm thêm mà ra 0 giờ là ăn bớt.
+       *
+       * 1 phút = 1/60 giờ = 0,0167 → 0,02 ở cột DECIMAL(4,2).
+       */
+      it('pays a single minute past the standard day, never rounds it to zero', () => {
+        const result = calculateWorkHours({
+          checkIn: '08:00',
+          checkOut: '17:01',
+        });
+
+        expect(result.overtimeHours).toBe(0.02);
+        expect(result.overtimeHours).toBeGreaterThan(0);
+      });
+    });
+
+    describe('ngày nghỉ tuần / ngày lễ (isRestDay)', () => {
+      /*
+       * Điều 98 khoản 1 điểm b/c trả 200%/300% cho CẢ CA làm vào ngày nghỉ, chứ
+       * không phải chỉ phần vượt 8 giờ. Ca 4 giờ ngày thường không có giờ làm
+       * thêm nào; đúng ca đó vào Chủ nhật thì cả 4 giờ đều là làm thêm.
+       */
+      it('counts the whole shift as overtime, not just the part past 8 hours', () => {
+        const weekday = calculateWorkHours({
+          checkIn: '08:00',
+          checkOut: '12:00',
+        });
+        const restDay = calculateWorkHours({
+          checkIn: '08:00',
+          checkOut: '12:00',
+          isRestDay: true,
+        });
+
+        expect(weekday.overtimeHours).toBe(0);
+        expect(restDay.overtimeHours).toBe(4);
+        expect(restDay.overtimeHours).toBe(restDay.workHours);
+      });
+
+      it('still counts the whole shift when it also runs past 8 hours', () => {
+        const result = calculateWorkHours({
+          checkIn: '08:00',
+          checkOut: '19:00',
+          isRestDay: true,
+        });
+
+        expect(result.workHours).toBe(10);
+        expect(result.overtimeHours).toBe(10);
+      });
+
+      /*
+       * Ngày nghỉ không có giờ bắt đầu nào để so, nên người vào lúc 10:00 làm bù
+       * ngày thứ Bảy không phải là người "đi muộn" 2 tiếng.
+       */
+      it('never flags lateness or early leave on a rest day', () => {
+        const result = calculateWorkHours({
+          checkIn: '10:00',
+          checkOut: '14:00',
+          isRestDay: true,
+        });
+
+        expect(result.isLate).toBe(false);
+        expect(result.lateMinutes).toBe(0);
+        expect(result.isEarlyLeave).toBe(false);
+        expect(result.earlyLeaveMinutes).toBe(0);
       });
     });
 

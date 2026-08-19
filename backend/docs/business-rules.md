@@ -302,6 +302,27 @@ Chỉ đếm **ngày làm việc** (Thứ 2 – Thứ 6), bỏ qua Thứ 7, Ch�
 Hỗ trợ nghỉ nửa ngày:
 - Buổi sáng hoặc buổi chiều = 0,5 ngày phép.
 
+### 8.2b. Quy trình ghi nhận và duyệt
+
+Nhân viên **không đăng nhập** hệ thống này, nên không có ai tự nộp đơn:
+
+1. **Quản lý** ghi nhận đơn cho nhân viên phòng mình; **nhân sự** ghi cho bất kỳ
+   ai. Người ghi lưu ở `leave_requests.recorded_by`, lấy từ token đăng nhập.
+2. **Nhân sự** duyệt. `manager` ghi nhận nhưng KHÔNG duyệt, và người đã ghi một
+   đơn không duyệt được chính đơn đó (`CANNOT_APPROVE_OWN_RECORD`).
+
+Quỹ phép đổi theo trạng thái đơn, **trong cùng một transaction** với đơn:
+
+| Thao tác | `pending_days` | `used_days` |
+|----------|:--------------:|:-----------:|
+| Ghi nhận | + số ngày | – |
+| Duyệt | − số ngày | + số ngày |
+| Từ chối / Rút lại | − số ngày | – |
+
+Duyệt xong, những ngày nghỉ được ghi vào bảng chấm công với `status = leave` —
+đó là thứ khiến chúng không bị đếm là vắng mặt. Ngày **đã có** dữ liệu chấm công
+thì không ghi đè: vừa có giờ chấm vừa được duyệt nghỉ là mâu thuẫn cần người xem.
+
 ### 8.3. Quy tắc phép năm
 
 - Năm đầu tiên: được nghỉ phép theo tỉ lệ số tháng đã làm.
@@ -434,6 +455,15 @@ không cần vượt 8 giờ.
 `attendances.overtime_hours` là **căn cứ trả tiền duy nhất**, dẫn xuất từ chính
 bảng công. Không có bảng đơn từ nào song song.
 
+Cả hai quy tắc trên nằm trong `calculateWorkHours()` (`common/utils/work-hours.util.ts`),
+qua tham số `isRestDay`. Ai là ngày nghỉ do service quyết định: nó tra bảng
+`holidays` rồi gọi `resolveRateType()` — cùng đúng một hàm mà chỗ tính hệ số Điều 98
+dùng, để hai nơi không thể hiểu khác nhau về cùng một ngày. Đường nạp Excel cũng đi
+qua quy tắc này (tra ngày lễ một lần cho cả file, không phải mỗi dòng một truy vấn).
+
+Ngày nghỉ còn **không xét đi muộn / về sớm**: ngày đó không có giờ bắt đầu theo lịch
+nào để so, nên người vào lúc 08:30 làm bù thứ Bảy không phải là người đi muộn.
+
 > **Vì sao không có luồng "đăng ký – duyệt làm thêm giờ".** Bản trước của tài liệu
 > này viết rằng tiền chỉ trả theo đơn đã duyệt, viện dẫn Điều 107 BLLĐ 2019. Đó là
 > **diễn giải sai luật**: yêu cầu "phải được NLĐ đồng ý" ở Điều 107 giới hạn
@@ -453,9 +483,18 @@ bảng công. Không có bảng đơn từ nào song song.
 >
 > ⚠️ **Chưa hiện thực:** cảnh báo vượt giới hạn §7.2 hiện KHÔNG có ở đâu cả —
 > phần kiểm này trước đây nằm trong luồng duyệt đơn và mất theo luồng đó.
-> Cũng **chưa có ngưỡng tối thiểu / bước làm tròn** cho giờ làm thêm: suy trực
-> tiếp từ giờ chấm nên lệch vài phút quanh giờ tan ca cũng thành giờ được trả
-> tiền. Cả hai phải chốt trước khi Giai đoạn 6 tính lương thật.
+
+**KHÔNG có ngưỡng tối thiểu, KHÔNG làm tròn xuống.** Ở lại thêm 1 phút thì 1 phút
+đó được trả (1 phút = 0,02 giờ ở cột `DECIMAL(4,2)`). Đây là quyết định của chủ
+dự án và có test khoá lại trong `work-hours.util.spec.ts`.
+
+Hệ quả cần biết trước để không ai tưởng là lỗi dữ liệu: **rất nhiều ngày công mang
+0,02–0,49 giờ làm thêm** chỉ vì người ta bấm thẻ lúc 17:03 thay vì 17:00 — với dữ
+liệu demo là 991/2.141 ngày, trong đó chỉ 105 ngày ở lại từ 1 giờ trở lên. Con số
+lẻ đó **không phải rác**: giờ đã làm thì phải trả, nên đừng "dọn cho gọn" bằng cách
+bỏ nó đi. Nếu về sau công ty muốn quy tắc khác (ví dụ làm tròn theo bậc 15 phút),
+đó là thay đổi **chính sách trả lương** phải ghi vào tài liệu này trước, không phải
+một chỉnh sửa kỹ thuật.
 
 ### 12.4. Các trạng thái chấm công
 

@@ -2,6 +2,7 @@ import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Workbook } from 'exceljs';
 import { EmployeesRepository } from '@/modules/employees/employees.repository';
+import { HolidaysService } from '@/modules/system/holidays.service';
 import { UploadedFileLike } from '@/shared/storage/image-file.util';
 import { AttendanceImportService } from './attendance-import.service';
 import { AttendancesRepository } from './attendances.repository';
@@ -64,6 +65,15 @@ describe('AttendanceImportService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AttendanceImportService,
+        {
+          /*
+           * Không có ngày lễ nào: các test ở đây dùng ngày thường, nên mọi dòng
+           * đi theo nhánh "không phải ngày nghỉ". Phân loại ngày nghỉ có test
+           * riêng ở `work-hours.util.spec`.
+           */
+          provide: HolidaysService,
+          useValue: { findByYear: jest.fn().mockResolvedValue([]) },
+        },
         {
           provide: AttendancesRepository,
           useValue: {

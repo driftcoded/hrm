@@ -72,20 +72,34 @@ export interface WorkHoursInput {
    */
   breakStart?: string | null;
   breakEnd?: string | null;
+  /**
+   * Ngày đó là NGÀY NGHỈ của người lao động: nghỉ hằng tuần hoặc nghỉ lễ.
+   *
+   * Đổi hai thứ. Một, toàn bộ thời gian làm là làm thêm giờ — Điều 98 khoản 1
+   * điểm b/c trả 200%/300% cho *cả ca*, không phải chỉ phần vượt 8 giờ. Hai, đi
+   * muộn và về sớm không còn nghĩa gì: ngày nghỉ không có giờ bắt đầu nào để so,
+   * nên người vào lúc 08:30 làm bù ngày thứ Bảy không phải là người "đi muộn".
+   *
+   * Ai là ngày nghỉ thì người gọi quyết định (service tra bảng `holidays` và xem
+   * thứ), vì hàm này thuần và không đọc DB.
+   */
+  isRestDay?: boolean;
 }
 
 export interface WorkHoursResult {
   /** Giờ công thực tế, ĐÃ trừ nghỉ trưa. */
   workHours: number;
   /**
-   * Số giờ làm việc vượt quá một ngày công tiêu chuẩn.
+   * Số giờ làm thêm — **LÀ căn cứ trả tiền** (business-rules.md §12.3).
    *
-   * ⚠️ Đây là số giờ ĐÃ LÀM THỰC TẾ, KHÔNG PHẢI số giờ được trả tiền làm thêm.
-   * Điều 107 BLLĐ 2019 yêu cầu làm thêm giờ phải có sự đồng ý của NLĐ, nên
-   * tiền làm thêm chỉ trả theo đơn `overtime_requests` đã được duyệt. Con số ở
-   * đây là bằng chứng thực tế: dùng để đối chiếu với đơn, và để phát hiện vi
-   * phạm trần 12 giờ/ngày. Module lương (Giai đoạn 6) KHÔNG được lấy trực tiếp
-   * số này làm căn cứ chi trả.
+   * Ngày thường: phần vượt `STANDARD_WORK_HOURS_PER_DAY` giờ làm thực. Ngày nghỉ
+   * (`isRestDay`): TOÀN BỘ giờ làm, không cần vượt 8 giờ.
+   *
+   * KHÔNG có ngưỡng tối thiểu và KHÔNG làm tròn xuống: ở lại thêm 1 phút thì 1
+   * phút đó được trả. Điều đó là cố ý — giờ đã làm thì phải trả, nên đừng "dọn
+   * cho gọn" bằng cách bỏ các con số lẻ. Hệ quả bình thường và cần chấp nhận:
+   * rất nhiều ngày công mang 0,02–0,49 giờ làm thêm chỉ vì lệch vài phút quanh
+   * giờ tan ca. Đó KHÔNG phải dữ liệu hỏng.
    */
   overtimeHours: number;
   isLate: boolean;
@@ -125,13 +139,24 @@ export function calculateWorkHours(input: WorkHoursInput): WorkHoursResult {
       ),
   );
 
-  const lateMinutes = Math.max(0, checkInMinutes - startMinutes);
-  const earlyLeaveMinutes = Math.max(0, endMinutes - checkOutMinutes);
   const standardMinutes = STANDARD_WORK_HOURS_PER_DAY * 60;
+
+  /*
+   * Ngày nghỉ: cả ca là làm thêm giờ, và không có giờ chuẩn nào để so muộn/sớm.
+   * Xem `WorkHoursInput.isRestDay`.
+   */
+  const restDay = input.isRestDay === true;
+  const overtimeMinutes = restDay
+    ? workedMinutes
+    : Math.max(0, workedMinutes - standardMinutes);
+  const lateMinutes = restDay ? 0 : Math.max(0, checkInMinutes - startMinutes);
+  const earlyLeaveMinutes = restDay
+    ? 0
+    : Math.max(0, endMinutes - checkOutMinutes);
 
   return {
     workHours: minutesToHours(workedMinutes),
-    overtimeHours: minutesToHours(Math.max(0, workedMinutes - standardMinutes)),
+    overtimeHours: minutesToHours(overtimeMinutes),
     // "> 15 phút" (§12.1): đúng ngưỡng thì chưa tính là muộn.
     isLate: lateMinutes > LATE_THRESHOLD_MINUTES,
     lateMinutes,

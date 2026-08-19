@@ -962,163 +962,168 @@ File .xlsx mẫu, có sẵn các dòng ví dụ cho định dạng mong đợi.
 
 ## 8. Leaves – Nghỉ phép
 
-> **Trạng thái:** `/leave-types` (danh mục loại nghỉ) đã hiện thực đầy đủ CRUD. Phần đơn nghỉ (`/leaves`, `/leaves/balance`) **chưa hiện thực** — Giai đoạn 5.
+> ⚠️ **Nhân viên KHÔNG tự nộp đơn** — họ không đăng nhập hệ thống này.
+> **Quản lý ghi nhận** đơn cho nhân viên phòng mình (nhân sự ghi cho bất kỳ ai),
+> **nhân sự duyệt**. Người ghi lưu ở `recorded_by` lấy từ token, và người đã ghi
+> một đơn KHÔNG duyệt được chính đơn đó.
 
-### GET `/leave-types` | GET `/leave-types/:id`
-> 🔒 Auth required (mọi role đọc được)
+### GET `/leave-types`
+> 🔒 Auth required
 
-**Query:** `?isActive=true`, phân trang chuẩn §1.2.
-
-**Response (một phần tử):**
-```json
-{
-  "id": 1,
-  "code": "ANNUAL",
-  "name": "Nghỉ phép năm",
-  "daysPerYear": 12,
-  "isPaid": true,
-  "requireApproval": true,
-  "minDays": 0.5,
-  "maxConsecutive": null,
-  "advanceNoticeDays": 3,
-  "applicableGender": "all",
-  "description": "Điều 113 BLLĐ 2019",
-  "isActive": true,
-  "sortOrder": 1,
-  "isSystem": true
-}
-```
-
-`isSystem: true` = loại nghỉ **luật định** được seed từ BLLĐ 2019 (9 loại). Cờ này chỉ mang tính **thông tin** để UI gắn nhãn — nó **không** chặn sửa hay xoá; xem `DELETE` bên dưới.
+Danh mục loại nghỉ phép (Giai đoạn 2.2). Ghi ở `Cài đặt → Loại nghỉ phép`.
 
 ---
 
-### POST | PATCH `/leave-types` | `/leave-types/:id`
+### POST `/leave-balances/init`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
-```json
-{
-  "name": "Nghỉ phép năm",
-  "daysPerYear": 12,
-  "isPaid": true,
-  "requireApproval": true,
-  "minDays": 0.5,
-  "maxConsecutive": null,
-  "advanceNoticeDays": 3,
-  "applicableGender": "all",
-  "description": "Điều 113 BLLĐ 2019",
-  "isActive": true,
-  "sortOrder": 1
-}
-```
-
-> **Không gửi `code`** – server sinh `NP0001`, `NP0002`… và không cho sửa. 9 loại luật định giữ nguyên mã có nghĩa đã seed (`ANNUAL`, `SICK`, `MATERNITY`…) vì logic lương/ngày phép sau này khớp theo đúng các giá trị đó; chỉ loại do công ty tự thêm mới nhận mã sinh tự động. Hai kiểu mã cùng tồn tại là **có chủ đích**.
-
-**Errors:** `404 LEAVE_TYPE_NOT_FOUND`, `409 CODE_ALLOCATION_FAILED`.
-
----
-
-### DELETE `/leave-types/:id`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
-
-Bảng `leave_types` không có `deleted_at` → **xoá vật lý**.
-
-**Chốt chặn DUY NHẤT là `422 LEAVE_TYPE_IN_USE`**: loại nghỉ còn được đơn nghỉ hoặc số dư phép tham chiếu thì không xoá được (FK ở DB cũng là RESTRICT). Muốn "ẩn" khỏi UI thì `PATCH { "isActive": false }`.
-
-`isSystem` **cố ý không chặn gì**: pháp luật thay đổi — mức hưởng được nâng, loại nghỉ luật định bị bãi bỏ (đúng như BLLĐ 2019 đã bãi bỏ loại hợp đồng `seasonal`) — nên HR phải duy trì được các dòng này. Một loại luật định đang mang lịch sử vẫn không xoá được, nhưng vì `LEAVE_TYPE_IN_USE`, tức là vì đúng lý do.
-
----
-
-### GET `/leaves/balance`
-> ⏳ **Chưa hiện thực** (Giai đoạn 5) — từ đây tới hết §8.
-> 🔒 Auth required (employee xem balance của mình)
-
-**Query:** `?year=2026`
-
-**Response:**
-```json
-{
-  "data": [
-    {
-      "leaveType": { "id": 1, "name": "Nghỉ phép năm" },
-      "year": 2026,
-      "allocatedDays": 12,
-      "usedDays": 3,
-      "pendingDays": 1,
-      "carriedOver": 0,
-      "remainingDays": 8
-    }
-  ]
-}
-```
-
----
-
-### POST `/leaves`
-> 🔒 Auth required (employee tạo đơn)
+Cấp quỹ phép năm cho toàn bộ nhân viên đang làm việc (`probation`, `active`,
+`on_leave`).
 
 ```json
-{
-  "leaveTypeId": 1,
-  "startDate": "2026-06-02",
-  "endDate": "2026-06-04",
-  "startHalf": "full",
-  "endHalf": "full",
-  "reason": "Về quê thăm gia đình",
-  "attachmentUrl": null
-}
+{ "year": 2026, "dryRun": false, "carryOver": false }
 ```
+
+Số ngày theo **Điều 113 BLLĐ 2019**: 12 + ⌊thâm niên ÷ 5⌋, đếm theo mốc kỷ niệm
+ngày vào làm. Năm đầu tiên tính theo tỉ lệ tháng đã làm, **làm tròn xuống** 0,5
+ngày; vào làm sau ngày 15 thì tháng đó không tính.
+
+Chỉ cấp cho loại phép `ANNUAL`. **KHÔNG ghi đè** quỹ đã có — chạy lại chỉ tạo
+cho người còn thiếu.
 
 **Response 201:**
 ```json
 {
   "data": {
-    "id": 201,
-    "totalDays": 3,
-    "status": "pending",
-    ...
+    "dryRun": false,
+    "year": 2026,
+    "employeesConsidered": 66,
+    "created": 62,
+    "skipped": 4
   }
 }
 ```
 
-**Errors:** `400 INSUFFICIENT_LEAVE_BALANCE`, `400 OVERLAPPING_LEAVE`
+**Errors:** `422 ANNUAL_LEAVE_TYPE_MISSING` – chưa seed loại phép năm
 
 ---
 
-### GET `/leaves`
+### GET `/leave-balances`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager`
 
-**Query:** `?status=pending`, `?employeeId=51`, `?departmentId=2`
+**Query:** `?employeeId=`, `?departmentId=`, `?leaveTypeId=`, `?year=`
+
+Bỏ trống `year` thì lấy năm hiện tại — quỹ phép luôn thuộc về một năm cụ thể.
+`manager` chỉ nhận được phòng ban mình quản.
+
+`remainingDays` là cột **VIRTUAL** của DB: `allocated + carriedOver − used −
+pending`. Chỉ đọc.
 
 ---
 
-### GET `/leaves/me`
-> 🔒 Auth required
-
-Lịch sử đơn nghỉ của nhân viên.
-
----
-
-### PATCH `/leaves/:id/approve`
-> 🔒 Roles: `admin`, `hr_manager`, `manager`
+### PATCH `/leave-balances/:id`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
 ```json
-{ "note": "Đã duyệt" }
+{ "allocatedDays": 14, "carriedOver": 2, "reason": "Bổ sung theo thoả thuận" }
 ```
+
+Chỉ sửa được `allocatedDays` và `carriedOver`. `usedDays`/`pendingDays` là hệ
+quả của các đơn nghỉ — sai ở đâu thì sửa đơn ở đó. `reason` **bắt buộc**.
+
+**Errors:** `422 LEAVE_BALANCE_BELOW_COMMITTED` – hạ quỹ xuống dưới số đã dùng +
+đang chờ
 
 ---
 
-### PATCH `/leaves/:id/reject`
-> 🔒 Roles: `admin`, `hr_manager`, `manager`
+### POST `/leave-requests`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager`
 
 ```json
-{ "reason": "Phòng ban đang bận dự án, vui lòng dời sang tháng sau" }
+{
+  "employeeId": 51,
+  "leaveTypeId": 1,
+  "startDate": "2026-05-04",
+  "endDate": "2026-05-08",
+  "startHalf": "afternoon",
+  "endHalf": "full",
+  "reason": "Nghỉ phép năm về quê"
+}
 ```
+
+`totalDays` do **SERVER** tính, client không gửi: chỉ đếm ngày làm việc (bỏ
+T7/CN và ngày lễ), hỗ trợ nửa ngày ở hai đầu. Nghỉ thứ Sáu → thứ Hai là **2
+ngày**, không phải 4.
+
+Quỹ phép bị **giữ chỗ** (`pending_days`) ngay khi ghi nhận, trong cùng một
+transaction với đơn.
+
+**Errors:** `409 OVERLAPPING_LEAVE` · `422 INVALID_LEAVE_RANGE` ·
+`422 LEAVE_SPANS_TWO_YEARS` (quỹ là con số của một năm — tách thành hai đơn) ·
+`422 LEAVE_NO_WORKING_DAYS` · `422 LEAVE_BELOW_MINIMUM` ·
+`422 LEAVE_ABOVE_MAX_CONSECUTIVE` · `422 INSUFFICIENT_LEAVE_BALANCE`
 
 ---
 
-### DELETE `/leaves/:id`
-> 🔒 Auth required (chỉ NV tự huỷ đơn của mình, khi status=pending)
+### GET `/leave-requests`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager`
+
+**Query:** `?status=pending`, `?employeeId=`, `?departmentId=`, `?leaveTypeId=`,
+`?from=&to=`
+
+`from`/`to` lọc theo kỳ nghỉ **GIAO NHAU** với khoảng, không phải chỉ đơn bắt
+đầu trong khoảng — một kỳ nghỉ bắc qua đầu tháng vẫn phải hiện trong tháng đó.
+
+---
+
+### GET `/leave-requests/calendar`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager`
+
+**Query:** `?from=2026-05-01&to=2026-05-31` *(cả hai bắt buộc)*
+
+Ai đang nghỉ trong khoảng ngày. Chỉ trả đơn **đã duyệt** — một đơn còn chờ duyệt
+chưa cho phép ai nghỉ cả.
+
+---
+
+### PATCH `/leave-requests/:id/approve`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+`manager` ghi nhận nhưng **KHÔNG duyệt**. Người đã ghi một đơn cũng không duyệt
+được chính đơn đó.
+
+Chuyển `pending_days` sang `used_days`, và **ghi những ngày nghỉ vào bảng chấm
+công** với `status = leave` — đây là thứ khiến `absentDays` không tính người
+nghỉ phép là vắng mặt.
+
+**Response 200:**
+```json
+{
+  "data": {
+    "request": { "id": 33, "status": "approved" },
+    "attendanceDaysWritten": 4,
+    "attendanceConflicts": ["2026-05-06"]
+  }
+}
+```
+
+`attendanceConflicts` là những ngày **đã có** dữ liệu chấm công nên KHÔNG bị ghi
+đè: vừa có giờ chấm vừa được duyệt nghỉ phép trong cùng ngày là mâu thuẫn cần
+người xem, không phải thứ để phần mềm tự quyết.
+
+**Errors:** `403 FORBIDDEN` · `403 CANNOT_APPROVE_OWN_RECORD` ·
+`409 LEAVE_NOT_PENDING`
+
+---
+
+### PATCH `/leave-requests/:id/reject`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff` — `reason` bắt buộc.
+
+Trả lại chỗ đã giữ trên quỹ phép.
+
+### PATCH `/leave-requests/:id/cancel`
+> 🔒 Người GHI NHẬN đơn, hoặc nhân sự. Chỉ đơn còn `pending` — đơn đã duyệt đã
+> ghi vào bảng chấm công nên phải do người duyệt từ chối.
 
 ---
 
@@ -2015,10 +2020,19 @@ ATTENDANCE
 
 LEAVE
   LEAVE_NOT_FOUND
-  INSUFFICIENT_LEAVE_BALANCE Không đủ ngày phép
-  OVERLAPPING_LEAVE          Trùng với đơn nghỉ khác đã được duyệt
-  CANNOT_CANCEL_APPROVED     Không thể huỷ đơn đã duyệt
-  LEAVE_IN_PAST              Không thể tạo đơn nghỉ ngày đã qua
+  LEAVE_TYPE_NOT_FOUND
+  LEAVE_NOT_PENDING          Đơn không còn ở trạng thái chờ duyệt
+  INSUFFICIENT_LEAVE_BALANCE Không đủ ngày phép còn lại
+  OVERLAPPING_LEAVE          Trùng ngày với đơn còn hiệu lực
+  INVALID_LEAVE_RANGE        Ngày kết thúc trước ngày bắt đầu
+  LEAVE_SPANS_TWO_YEARS      Kỳ nghỉ bắc qua giao thừa, phải tách hai đơn
+  LEAVE_NO_WORKING_DAYS      Kỳ nghỉ không có ngày làm việc nào
+  LEAVE_BELOW_MINIMUM        Ít hơn số ngày tối thiểu của loại phép
+  LEAVE_ABOVE_MAX_CONSECUTIVE Vượt số ngày liên tiếp tối đa của loại phép
+  CANNOT_APPROVE_OWN_RECORD  Người ghi nhận không được tự duyệt
+  ANNUAL_LEAVE_TYPE_MISSING  Chưa seed loại phép năm
+  LEAVE_BALANCE_NOT_FOUND
+  LEAVE_BALANCE_BELOW_COMMITTED  Hạ quỹ xuống dưới số đã dùng + đang chờ
   CANNOT_APPROVE_OWN_RECORD  Người ghi nhận đơn không được tự duyệt
 
 SALARY

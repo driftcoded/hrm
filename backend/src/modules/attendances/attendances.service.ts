@@ -10,6 +10,10 @@ import { AuthenticatedUser } from '@/common/types/authenticated-user';
 import { toDateOnlyString, toIsoString } from '@/common/utils/date.util';
 import { resolvePagination } from '@/common/utils/pagination.util';
 import {
+  OvertimeRateType,
+  resolveRateType,
+} from '@/common/utils/overtime.util';
+import {
   calculateWorkHours,
   formatMinutesToTime,
   parseTimeToMinutes,
@@ -116,8 +120,10 @@ export class AttendancesService {
     record.employeeId = dto.employeeId;
     record.workDate = dto.workDate;
 
+    const restDay = await this.isRestDay(dto.workDate);
+
     if (dto.checkIn && dto.checkOut) {
-      this.applyTimes(record, dto.checkIn, dto.checkOut, {
+      this.applyTimes(record, dto.checkIn, dto.checkOut, restDay, {
         start: dto.breakStart ?? null,
         end: dto.breakEnd ?? null,
       });
@@ -126,6 +132,7 @@ export class AttendancesService {
       const arrival = calculateWorkHours({
         checkIn: dto.checkIn,
         checkOut: dto.checkIn,
+        isRestDay: restDay,
       });
       record.checkIn = normaliseTime(dto.checkIn);
       record.isLate = arrival.isLate;
@@ -222,15 +229,17 @@ export class AttendancesService {
       });
     }
 
+    const restDay = await this.isRestDay(record.workDate);
+
     if (checkIn && checkOut) {
-      this.applyTimes(record, checkIn, checkOut, {
+      this.applyTimes(record, checkIn, checkOut, restDay, {
         start: dto.breakStart ?? record.breakStart,
         end: dto.breakEnd ?? record.breakEnd,
       });
     } else if (checkIn) {
       record.checkIn = normaliseTime(checkIn);
-      record.isLate = this.isLateArrival(checkIn);
-      record.lateMinutes = this.minutesLate(checkIn);
+      record.isLate = this.isLateArrival(checkIn, restDay);
+      record.lateMinutes = this.minutesLate(checkIn, restDay);
       record.status = record.isLate
         ? AttendanceStatus.LATE
         : AttendanceStatus.PRESENT;
@@ -270,6 +279,7 @@ export class AttendancesService {
     record: Attendance,
     checkIn: string,
     checkOut: string,
+    isRestDay: boolean,
     breakTimes?: { start?: string | null; end?: string | null },
   ): void {
     /*
@@ -285,6 +295,7 @@ export class AttendancesService {
       checkOut,
       breakStart,
       breakEnd,
+      isRestDay,
     });
 
     record.checkIn = normaliseTime(checkIn);
@@ -320,12 +331,35 @@ export class AttendancesService {
       : AttendanceStatus.PRESENT;
   }
 
-  private isLateArrival(time: string): boolean {
-    return calculateWorkHours({ checkIn: time, checkOut: time }).isLate;
+  private isLateArrival(time: string, isRestDay: boolean): boolean {
+    return calculateWorkHours({ checkIn: time, checkOut: time, isRestDay })
+      .isLate;
   }
 
-  private minutesLate(time: string): number {
-    return calculateWorkHours({ checkIn: time, checkOut: time }).lateMinutes;
+  private minutesLate(time: string, isRestDay: boolean): number {
+    return calculateWorkHours({ checkIn: time, checkOut: time, isRestDay })
+      .lateMinutes;
+  }
+
+  /**
+   * Ngày đó có phải ngày nghỉ (nghỉ hằng tuần hoặc nghỉ lễ) không.
+   *
+   * Quyết định hai thứ trong `calculateWorkHours`: toàn bộ ca có phải làm thêm
+   * giờ, và có xét đi muộn/về sớm hay không. Xem `WorkHoursInput.isRestDay`.
+   *
+   * Dùng LẠI `resolveRateType()` của `overtime.util` thay vì tự xem thứ, để chỉ
+   * có MỘT định nghĩa "ngày nghỉ" trong hệ thống: nơi tính hệ số Điều 98 và nơi
+   * quyết định số giờ làm thêm không được phép hiểu khác nhau về cùng một ngày.
+   */
+  private async isRestDay(workDate: string): Promise<boolean> {
+    const holidays = await this.holidaysService.findByYear(
+      Number(workDate.slice(0, 4)),
+    );
+    const isHoliday = holidays.some(
+      (holiday) => holiday.holidayDate === workDate,
+    );
+
+    return resolveRateType(workDate, isHoliday) !== OvertimeRateType.WEEKDAY;
   }
 
   /** `month`/`year` → khoảng ngày `YYYY-MM-DD` của cả tháng. */

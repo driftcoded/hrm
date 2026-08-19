@@ -3,11 +3,16 @@ import { CellValue, Row, Workbook } from 'exceljs';
 import { UploadedFileLike } from '@/shared/storage/image-file.util';
 import { toDateOnlyString } from '@/common/utils/date.util';
 import {
+  OvertimeRateType,
+  resolveRateType,
+} from '@/common/utils/overtime.util';
+import {
   calculateWorkHours,
   formatMinutesToTime,
   parseTimeToMinutes,
 } from '@/common/utils/work-hours.util';
 import { EmployeesRepository } from '@/modules/employees/employees.repository';
+import { HolidaysService } from '@/modules/system/holidays.service';
 import { AttendancesRepository } from './attendances.repository';
 import {
   AttendanceImportErrorDto,
@@ -43,6 +48,7 @@ export class AttendanceImportService {
   constructor(
     private readonly attendancesRepository: AttendancesRepository,
     private readonly employeesRepository: EmployeesRepository,
+    private readonly holidaysService: HolidaysService,
   ) {}
 
   /** Giới hạn số dòng — file lớn hơn gần như luôn là file sai, không phải một tháng công. */
@@ -403,6 +409,7 @@ export class AttendanceImportService {
   ): Promise<AttendanceImportResultDto> {
     let created = 0;
     let updated = 0;
+    const restDays = await this.resolveRestDays(rows);
 
     for (const row of rows) {
       const existing = await this.attendancesRepository.findByEmployeeAndDate(
@@ -427,6 +434,7 @@ export class AttendanceImportService {
         record,
         row.checkIn,
         row.checkOut,
+        restDays.has(row.workDate),
         row.breakStart,
         row.breakEnd,
       );
@@ -449,10 +457,42 @@ export class AttendanceImportService {
    * thì ngày công nhập từ file và ngày công tự chấm sẽ ra hai kết quả khác nhau
    * cho cùng một cặp giờ vào/ra.
    */
+  /**
+   * Tập các ngày trong file là ngày nghỉ (nghỉ hằng tuần hoặc nghỉ lễ).
+   *
+   * Tra bảng `holidays` MỘT LẦN cho mỗi năm xuất hiện trong file, không tra theo
+   * từng dòng: một file 20.000 dòng sẽ thành 20.000 truy vấn cho cùng vài chục
+   * ngày lễ. Dùng lại `resolveRateType()` để định nghĩa "ngày nghỉ" ở đây và ở
+   * `AttendancesService` là một.
+   */
+  private async resolveRestDays(rows: ResolvedRow[]): Promise<Set<string>> {
+    const years = new Set(rows.map((row) => Number(row.workDate.slice(0, 4))));
+    const holidayDates = new Set<string>();
+
+    for (const year of years) {
+      const holidays = await this.holidaysService.findByYear(year);
+      holidays.forEach((holiday) => holidayDates.add(holiday.holidayDate));
+    }
+
+    const restDays = new Set<string>();
+
+    for (const row of rows) {
+      if (
+        resolveRateType(row.workDate, holidayDates.has(row.workDate)) !==
+        OvertimeRateType.WEEKDAY
+      ) {
+        restDays.add(row.workDate);
+      }
+    }
+
+    return restDays;
+  }
+
   private applyTimes(
     record: Attendance,
     checkIn: string,
     checkOut: string | null,
+    isRestDay: boolean,
     breakStart: string | null = null,
     breakEnd: string | null = null,
   ): void {
@@ -470,7 +510,11 @@ export class AttendanceImportService {
       record.isEarlyLeave = false;
       record.earlyLeaveMinutes = 0;
 
-      const arrival = calculateWorkHours({ checkIn, checkOut: checkIn });
+      const arrival = calculateWorkHours({
+        checkIn,
+        checkOut: checkIn,
+        isRestDay,
+      });
       record.isLate = arrival.isLate;
       record.lateMinutes = arrival.lateMinutes;
       record.status = arrival.isLate
@@ -484,6 +528,7 @@ export class AttendanceImportService {
       checkOut,
       breakStart,
       breakEnd,
+      isRestDay,
     });
 
     record.checkOut = normaliseTime(checkOut);

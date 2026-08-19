@@ -14,7 +14,7 @@
 | 2 | Master Data | 18 / 18 | ✅ Hoàn thành (đã nghiệm thu) |
 | 3 | Nhân viên | 29 / 29 | ✅ Hoàn thành |
 | 4 | Chấm công | 22 / 22 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
-| 5 | Phép | 0 / 12 | ⬜ Chưa bắt đầu |
+| 5 | Phép | 17 / 25 | 🟡 5.1 backend xong; 5.2 frontend chưa |
 | 6 | Lương | 0 / 13 | ⬜ Chưa bắt đầu |
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
@@ -277,7 +277,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] API export Excel báo cáo chấm công tháng
 - [x] Chặn vai trò `employee` đăng nhập ở tầng auth (`PORTAL_LOGIN_ROLES`)
 
-**Tests (4.1):** *(494 unit test / 27 suite toàn backend)*
+**Tests (4.1):** *(498 unit test / 27 suite toàn backend)*
 - [x] Vào 8h, ra 17h30 → 8.5 giờ công *(`work-hours.util.spec` + `attendances.service.spec`)*
 - [x] Nhập trùng ngày → 409, KHÔNG ghi đè *(sửa bằng `PATCH` thay vì tạo mới)*
 - [x] Không giờ vào + không trạng thái → 422, không âm thầm ghi thành "đi làm"
@@ -285,6 +285,8 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Giờ nghỉ thực tế: nghỉ 30 phút → 8.5 giờ; nghỉ 90 phút → 7.5 giờ; không có giờ nghỉ → trừ theo khung chuẩn
 - [x] Giờ làm thêm suy từ bảng công: ngày thường lấy phần vượt 8 giờ; ngày nghỉ tuần/ngày lễ lấy toàn bộ *(`overtime.util.spec`, 16 test)*
 - [x] Hệ số Điều 98 + ca đêm: làm thêm ban đêm ngày thường = **2,0×** (1,5 + 0,3 + 0,2), ngày lễ ban đêm = 3,5×; ngày lễ thắng ngày nghỉ tuần
+- [x] Ngày nghỉ tuần/ngày lễ: ca 4 giờ ngày thường = 0 giờ làm thêm, đúng ca đó Chủ nhật = 4 giờ làm thêm; không cờ đi muộn/về sớm
+- [x] **1 phút vượt ngày công vẫn được trả** (17:01 → 0,02 giờ, không phải 0) — test này chặn việc thêm ngưỡng làm tròn về sau
 - [x] Vai trò `employee` đăng nhập → 403 `PORTAL_ACCESS_DENIED`, không phát token
 - [x] Import: file 3 lỗi → không dòng nào được ghi, trả về đủ 3 lỗi kèm số dòng Excel
 - [x] Export Excel có đủ cột, đúng dữ liệu
@@ -331,6 +333,17 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 > Hệ số Điều 98 (1,5× ngày thường / 2× ngày nghỉ tuần / 3× ngày lễ) cộng phụ trội
 > ca đêm 22h–6h (+0,3×, và **+0,2× nữa** nếu giờ đó vừa là làm thêm vừa là ban
 > đêm) do `common/utils/overtime.util.ts` tính — xem business-rules.md §7.1.
+>
+> **1 phút cũng được trả** — không ngưỡng tối thiểu, không làm tròn xuống (1 phút =
+> 0,02 giờ ở `DECIMAL(4,2)`), có test khoá lại. Hệ quả bình thường: 991/2.141 ngày
+> công demo mang 0,02–0,49 giờ làm thêm vì lệch vài phút quanh giờ tan ca, chỉ 105
+> ngày là ở lại từ 1 giờ trở lên. Đổi quy tắc này là đổi **chính sách trả lương**,
+> phải sửa business-rules.md trước.
+>
+> Quyết định "ngày nào là ngày nghỉ" nằm ở `resolveRateType()` — dùng chung với chỗ
+> tính hệ số, nên hai nơi không thể hiểu khác nhau về cùng một ngày. Cả API nhập
+> tay lẫn đường nạp Excel đều đi qua quy tắc này. Ngày nghỉ cũng **không xét đi
+> muộn/về sớm**: không có giờ bắt đầu theo lịch nào để so.
 >
 > **Vì sao bỏ bước duyệt.** Bản đầu lập luận rằng Điều 107 đòi làm thêm giờ phải
 > được NLĐ đồng ý, nên chỉ giờ *đã duyệt* mới được trả. Đó là đọc sai luật: yêu
@@ -389,57 +402,118 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 >   gỡ luôn chỗ kiểm. Bản thân việc suy giờ làm thêm từ bảng công không vi phạm
 >   gì — trần là giới hạn huy động của công ty, không phải điều kiện trả tiền —
 >   nhưng hệ thống nên **cảnh báo** khi cộng dồn vượt trần. Chưa làm.
-> - **Chưa có ngưỡng/quy tắc làm tròn giờ làm thêm.** Suy trực tiếp từ giờ vào/ra
->   nên lệch vài phút quanh giờ tan ca cũng thành giờ làm thêm được trả tiền: với
->   dữ liệu demo, 876/2.141 ngày công mang 0,01–0,49 giờ làm thêm, còn số ngày ở
->   lại thật sự (≥ 1 giờ) chỉ là 98. Cần chốt ngưỡng tối thiểu và bước làm tròn
->   (15 hay 30 phút) trước khi Giai đoạn 6 tính tiền.
 
 > ### Dữ liệu demo để kiểm thử phân hệ
 >
 > `npm run seed:attendance` sinh **2.141 ngày công** cho 60/68 nhân viên demo
 > trong khoảng 01/07/2026–19/08/2026 (36 ngày làm việc): 81,7% đi làm, 7,9% đi
-> muộn, 4,2% nghỉ phép, cùng vài ca cuối tuần/ngày lễ và 3 ngày quên chấm ra
-> (`work_hours` = `NULL`, không phải 0). Chạy lại không nhân đôi dữ liệu; thêm
-> `-- --reset` để xoá và sinh lại (PRNG có seed nên kết quả y hệt).
+> muộn, 4,2% nghỉ phép, cùng 3 ca thứ Bảy + 4 ca ngày lễ (toàn bộ ca là giờ làm
+> thêm, không cờ đi muộn) và 3 ngày quên chấm ra (`work_hours` = `NULL`, không
+> phải 0). Chạy lại không nhân đôi dữ liệu; thêm `-- --reset` để xoá và sinh lại
+> (PRNG có seed nên kết quả y hệt).
 >
-> Cả 6 cột dẫn xuất đều sinh từ đúng một hàm `calculateWorkHours()`, và đã đối
-> chiếu lại toàn bộ 2.034 dòng có giờ ra: **0 sai lệch**. 12 ngày công cũ của
-> `NV0001`–`NV0006` (fixture kiểm thử giờ nghỉ) không bị chạm tới.
+> Cả 6 cột dẫn xuất đều sinh từ đúng một hàm `calculateWorkHours()` mà API dùng —
+> gồm cả tham số `isRestDay` — nên dữ liệu demo không thể lệch khỏi cách hệ thống
+> tính. 12 ngày công cũ của `NV0001`–`NV0006` (fixture kiểm thử giờ nghỉ) không bị
+> chạm tới.
 
 ---
 
 ## Giai đoạn 5 — Phép
 
+> ⚠️ **Phạm vi đã sửa lại theo thực tế vận hành**, giống Giai đoạn 4: nhân viên
+> **không có tài khoản** ở hệ thống này, nên không có chuyện "nộp đơn của tôi".
+> Đơn nghỉ do **quản lý ghi nhận** cho nhân viên phòng mình (nhân sự ghi cho bất
+> kỳ ai), **nhân sự duyệt**.
+
 ### 5.1 Backend Leave
-- [ ] `LeaveBalancesModule`: khởi tạo số ngày phép đầu năm cho toàn bộ NV
-- [ ] Cột VIRTUAL `remaining_days` = `allocated + carried_over - used - pending`
-- [ ] `LeaveRequestsModule`: nộp đơn, duyệt, từ chối, hủy
-- [ ] Auto cập nhật `pending_days` khi nộp, `used_days` khi duyệt xong
-- [ ] Kiểm tra: không cho phép trùng ngày, không quá số ngày còn lại
-- [ ] API calendar: danh sách NV nghỉ phép trong khoảng ngày
-- [ ] `GET /leave-balances/admin` — HR xem tất cả NV, init/adjust balance
+- [x] `LeaveBalancesModule`: cấp quỹ phép năm cho toàn bộ NV đang làm việc
+- [x] Cột VIRTUAL `remaining_days` = `allocated + carried_over − used − pending` *(đã có sẵn từ InitSchema)*
+- [x] `LeaveRequestsModule`: ghi nhận, duyệt, từ chối, rút lại
+- [x] Tự cập nhật `pending_days` khi ghi nhận, `used_days` khi duyệt — **trong cùng một transaction** với đơn
+- [x] Kiểm tra: không trùng ngày, không quá số ngày còn lại
+- [x] API lịch: ai đang nghỉ trong khoảng ngày (`GET /leave-requests/calendar`)
+- [x] `GET /leave-balances` + `PATCH /leave-balances/:id` — nhân sự xem và điều chỉnh
 
-**Tests (5.1):**
-- [ ] Nộp đơn 3 ngày: `pending_days` tăng 3
-- [ ] Duyệt đơn: `pending_days` giảm 3, `used_days` tăng 3
-- [ ] Từ chối: `pending_days` giảm 3, số ngày hoàn lại
-- [ ] Nộp đơn vượt quá số ngày còn lại → 400
-- [ ] Nộp đơn trùng ngày đang có đơn khác → 400
-- [ ] `remaining_days` tính đúng sau mỗi thao tác
+**Tests (5.1):** *(64 unit test: 35 `leave.util.spec` + 29 `leave-requests.service.spec`)*
+- [x] Ghi nhận đơn 3 ngày: `pending_days` tăng 3
+- [x] Duyệt: `pending_days` giảm 3, `used_days` tăng 3
+- [x] Từ chối: `pending_days` giảm 3, số ngày được hoàn lại
+- [x] Ghi nhận vượt quá số ngày còn lại → 422 `INSUFFICIENT_LEAVE_BALANCE`
+- [x] Trùng ngày với đơn còn hiệu lực → 409 `OVERLAPPING_LEAVE`
+- [x] `remaining_days` đúng sau mỗi thao tác
+- [x] Nghỉ T6 → T2 = **2 ngày phép, không phải 4** (bỏ cuối tuần)
+- [x] Nghỉ nửa ngày ở hai đầu; một ngày mà cả hai đầu nửa ngày vẫn là 0,5
+- [x] Người ghi ≠ người duyệt (`CANNOT_APPROVE_OWN_RECORD`); `manager` không duyệt
+- [x] Duyệt xong ghi ngày nghỉ vào bảng chấm công với `status = leave`
 
-### 5.2 Frontend Leave
-- [ ] Trang `/leave/balance`: số ngày theo loại phép (dạng card)
-- [ ] Trang `/leave/requests`: danh sách đơn của tôi, filter trạng thái
-- [ ] Form tạo đơn phép: chọn loại phép, ngày bắt đầu/kết thúc, lý do, attach file
-- [ ] Trang duyệt phép (Manager): danh sách đơn chờ duyệt
-- [ ] Calendar phép: xem ai đang nghỉ
+### 5.2 Frontend Leave *(chưa bắt đầu)*
+- [ ] Trang `/leave` — danh sách đơn, lọc trạng thái / phòng ban / khoảng ngày
+- [ ] Form ghi nhận đơn cho nhân viên (chọn NV, loại phép, khoảng ngày, nửa ngày, lý do)
+- [ ] Trang duyệt: lọc `?status=pending`, nút Duyệt / Từ chối
+- [ ] Trang `/leave/balances` — quỹ phép theo năm, nút cấp quỹ đầu năm (có bước chạy thử)
+- [ ] Lịch phép: ai đang nghỉ trong tháng
 
 **Tests (5.2):**
-- [ ] Tạo đơn: DatePicker không cho chọn ngày cuối tuần (nếu công ty không tính)
-- [ ] Số ngày còn lại cập nhật ngay sau khi nộp đơn
-- [ ] Manager duyệt → trạng thái đổi sang `approved`
-- [ ] Nhân viên nhận thông báo khi đơn được duyệt/từ chối
+- [ ] Ghi nhận đơn → số ngày phép còn lại cập nhật ngay
+- [ ] Nhân sự duyệt → trạng thái đổi sang `approved`; `manager` không thấy nút duyệt
+- [ ] Cấp quỹ đầu năm: bước chạy thử báo đúng số sẽ tạo / bỏ qua
+
+---
+
+> ### Quỹ phép cấp thế nào
+>
+> Số ngày theo **Điều 113 BLLĐ 2019**: 12 ngày, cộng 1 ngày cho mỗi 5 năm thâm
+> niên **tròn**, đếm theo mốc kỷ niệm ngày vào làm chứ không chia số ngày cho
+> 365 — lệch một ngày ở đó là chênh nguyên một ngày phép.
+>
+> Năm đầu tiên tính theo tỉ lệ tháng đã làm và **làm tròn XUỐNG** 0,5 ngày: hệ
+> thống chỉ tiêu được nửa ngày nên 10,83 là con số không dùng được, và cấp dư
+> phép rồi đòi lại là việc không ai làm được. Vào làm sau ngày 15 thì tháng đó
+> không tính.
+>
+> **Chỉ `ANNUAL` được cấp tự động.** Ốm đau, thai sản, cưới hỏi, tang chế phát
+> sinh theo sự việc với số ngày do luật quy định cho từng lần; cấp sẵn một quỹ
+> đầu năm cho chúng là bịa ra một con số không có căn cứ. Loại phép không có quỹ
+> thì đơn vẫn ghi được, chỉ là không trừ gì.
+>
+> **Không ghi đè quỹ đã có.** Chạy lại chỉ tạo cho người còn thiếu — ghi đè sẽ
+> xoá phần `carried_over` và làm quỹ lệch khỏi những đơn đã duyệt.
+>
+> **Điều chỉnh tay chỉ sửa được `allocated` / `carried_over`**, bắt buộc ghi lý
+> do, và không hạ được xuống dưới số đã dùng + đang chờ. `used`/`pending` là hệ
+> quả của các đơn — sai ở đâu thì sửa đơn ở đó.
+
+> ### Những chỗ cố ý làm chặt hơn tài liệu
+>
+> - **Số ngày phép do SERVER tính**, client không gửi `totalDays`. Chỉ đếm ngày
+>   làm việc: nghỉ thứ Sáu → thứ Hai là 2 ngày, không phải 4. Tính cả cuối tuần
+>   là lấy mất của nhân viên những ngày họ vốn được nghỉ.
+> - **Quỹ phép đổi trong CÙNG transaction với đơn**, và dòng quỹ khoá
+>   `FOR UPDATE`. Ghi một bên mà không ghi bên kia sẽ để lại quỹ nói khác danh
+>   sách đơn; hai lần duyệt đồng thời không khoá sẽ mất một lần trừ.
+> - **Đơn bắc qua giao thừa bị từ chối** (`LEAVE_SPANS_TWO_YEARS`). Quỹ là con số
+>   của một năm; chia ngầm theo một quy tắc người dùng không nhìn thấy thì sai cả
+>   hai năm. Tách thành hai đơn.
+> - **Kỳ nghỉ rơi trọn vào cuối tuần/ngày lễ bị từ chối** thay vì tạo một đơn trừ
+>   0 ngày.
+> - **Duyệt xong ghi ngày nghỉ vào bảng chấm công** (`status = leave`) — đây
+>   chính là thứ khiến `absentDays` không tính người nghỉ phép là vắng mặt.
+>   Ngày **đã có** dữ liệu chấm công thì KHÔNG ghi đè, trả về ở
+>   `attendanceConflicts`: vừa có giờ chấm vừa được duyệt nghỉ là mâu thuẫn cần
+>   người xem, không phải thứ để phần mềm tự quyết.
+> - **Rút lại chỉ được với đơn còn chờ.** Đơn đã duyệt đã ghi vào bảng chấm công;
+>   gỡ lặng lẽ thì bảng công còn dòng `leave` mà không còn đơn nào giải thích.
+
+> ### Chưa làm
+>
+> - `advance_notice_days` của loại phép chưa được kiểm: đơn thường được ghi nhận
+>   SAU khi sự việc xảy ra (nhân sự nhập lại), nên bắt buộc báo trước sẽ chặn
+>   đúng những trường hợp hợp lệ nhất.
+> - Đính kèm file cho đơn (`attachment_url` đã có cột, chưa có endpoint upload).
+> - Thanh toán phép chưa dùng khi nghỉ việc (business-rules §8.3) — thuộc Giai
+>   đoạn 6 vì cần đơn giá ngày công.
+> - e2e spec; đã kiểm chứng bằng tay qua API đang chạy cho toàn bộ luồng.
 
 ---
 

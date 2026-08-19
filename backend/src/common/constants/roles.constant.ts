@@ -74,34 +74,6 @@ export const PORTAL_LOGIN_ROLES: string[] = [
 ];
 
 /**
- * Vai trò được GHI NHẬN giờ làm thêm cho nhân viên.
- *
- * Nhân viên không đăng nhập hệ thống này nên không ai tự đăng ký: quản lý ghi
- * nhận cho phòng mình (`resolveScope` giới hạn phạm vi), nhân sự ghi cho bất kỳ
- * ai.
- */
-export const OVERTIME_RECORD_ROLES: string[] = [
-  ROLE_ADMIN,
-  ROLE_HR_MANAGER,
-  ROLE_HR_STAFF,
-  ROLE_MANAGER,
-];
-
-/**
- * Vai trò được DUYỆT giờ làm thêm — kế toán / nhân sự.
- *
- * Hẹp hơn `OVERTIME_RECORD_ROLES`: `manager` ghi nhận nhưng KHÔNG duyệt. Giờ
- * làm thêm là tiền ra khỏi công ty, và bước duyệt là lớp kiểm soát duy nhất
- * trước khi nó vào bảng lương. Ngoài danh sách này, service còn chặn người vừa
- * ghi vừa duyệt chính đơn đó.
- */
-export const OVERTIME_APPROVE_ROLES: string[] = [
-  ROLE_ADMIN,
-  ROLE_HR_MANAGER,
-  ROLE_HR_STAFF,
-];
-
-/**
  * Vai trò được GHI NHẬN đơn nghỉ phép cho nhân viên.
  *
  * Nhân viên không đăng nhập hệ thống này nên không ai tự nộp đơn: quản lý ghi

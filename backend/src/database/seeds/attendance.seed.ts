@@ -360,7 +360,20 @@ function timeAt(minutes: number): string {
  * is not possible for a row here to claim a number the application would
  * compute differently.
  */
-function toAttendanceRow(planned: PlannedRow): DeepPartial<Attendance> {
+function toAttendanceRow(
+  planned: PlannedRow,
+  holidaySet: Set<string>,
+): DeepPartial<Attendance> {
+  /*
+   * A weekly rest day or a public holiday makes the WHOLE shift overtime and
+   * suspends lateness — Article 98(1)(b)(c) pays the premium for the whole
+   * shift, and a rest day has no scheduled start to be late against. Passed to
+   * `calculateWorkHours` rather than decided here, so the seeded rows come out
+   * of the same rule the API applies.
+   */
+  const isRestDay =
+    isWeekend(planned.workDate) || holidaySet.has(planned.workDate);
+
   const row: DeepPartial<Attendance> = {
     employeeId: planned.employeeId,
     workDate: planned.workDate,
@@ -398,6 +411,7 @@ function toAttendanceRow(planned: PlannedRow): DeepPartial<Attendance> {
     const arrival = calculateWorkHours({
       checkIn: planned.checkIn,
       checkOut: planned.checkIn,
+      isRestDay,
     });
 
     row.checkIn = normaliseTime(planned.checkIn);
@@ -413,6 +427,7 @@ function toAttendanceRow(planned: PlannedRow): DeepPartial<Attendance> {
   const computed = calculateWorkHours({
     checkIn: planned.checkIn,
     checkOut: planned.checkOut,
+    isRestDay,
   });
 
   row.checkIn = normaliseTime(planned.checkIn);
@@ -903,7 +918,7 @@ export async function seedAttendance(dataSource: DataSource): Promise<void> {
 
   // ---- insert -----------------------------------------------------------
 
-  const rows = planned.map(toAttendanceRow);
+  const rows = planned.map((row) => toAttendanceRow(row, holidaySet));
   const repository = dataSource.getRepository(Attendance);
   const chunkSize = 200;
 
