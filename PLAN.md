@@ -273,18 +273,18 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 ### 4.1 Backend Attendance
 - [x] `AttendanceModule`: nhận dữ liệu từ ngoài (Excel + nhập tay), tính giờ công thực tế
 - [x] `POST /attendances/bulk-import` — nạp file Excel, kiểu "tất cả hoặc không gì cả", có bước chạy thử
-- [x] `OvertimeModule`: quản lý ghi nhận + kế toán/nhân sự duyệt
+- [x] Giờ làm thêm suy ra từ chính bảng công (vượt 8 giờ/ngày, hoặc toàn bộ nếu là ngày nghỉ tuần/ngày lễ) kèm phân loại hệ số Điều 98 — **không có bảng đơn đăng ký/duyệt**
 - [x] API export Excel báo cáo chấm công tháng
 - [x] Chặn vai trò `employee` đăng nhập ở tầng auth (`PORTAL_LOGIN_ROLES`)
 
-**Tests (4.1):** *(459 unit test toàn backend)*
+**Tests (4.1):** *(494 unit test / 27 suite toàn backend)*
 - [x] Vào 8h, ra 17h30 → 8.5 giờ công *(`work-hours.util.spec` + `attendances.service.spec`)*
 - [x] Nhập trùng ngày → 409, KHÔNG ghi đè *(sửa bằng `PATCH` thay vì tạo mới)*
 - [x] Không giờ vào + không trạng thái → 422, không âm thầm ghi thành "đi làm"
 - [x] Chưa có giờ ra → `check_out` null, giờ công = null *(không phải 0)*
 - [x] Giờ nghỉ thực tế: nghỉ 30 phút → 8.5 giờ; nghỉ 90 phút → 7.5 giờ; không có giờ nghỉ → trừ theo khung chuẩn
-- [x] OT: quản lý ghi nhận → nhân sự duyệt → `approved`
-- [x] Người ghi ≠ người duyệt *(`CANNOT_APPROVE_OWN_RECORD`)*
+- [x] Giờ làm thêm suy từ bảng công: ngày thường lấy phần vượt 8 giờ; ngày nghỉ tuần/ngày lễ lấy toàn bộ *(`overtime.util.spec`, 16 test)*
+- [x] Hệ số Điều 98 + ca đêm: làm thêm ban đêm ngày thường = **2,0×** (1,5 + 0,3 + 0,2), ngày lễ ban đêm = 3,5×; ngày lễ thắng ngày nghỉ tuần
 - [x] Vai trò `employee` đăng nhập → 403 `PORTAL_ACCESS_DENIED`, không phát token
 - [x] Import: file 3 lỗi → không dòng nào được ghi, trả về đủ 3 lỗi kèm số dòng Excel
 - [x] Export Excel có đủ cột, đúng dữ liệu
@@ -293,23 +293,21 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Bảng chấm công toàn công ty (màn hình chính): lọc phòng ban + tháng
 - [x] Màn hình nạp file Excel: 2 bước (kiểm tra trước → ghi thật), báo rõ số dòng sẽ **ghi đè**
 - [x] Form nhập một ngày công (chọn nhân viên, giờ vào/ra, giờ nghỉ, trạng thái)
-- [x] Form ghi nhận làm thêm giờ **cho nhân viên** + trang duyệt
 - [x] Xuất Excel bảng công tháng
 
 **Tests (4.2):**
 - [x] Bảng: đổi tháng / phòng ban → cập nhật ngay, trạng thái nằm trên URL
 - [x] Nạp file: bước chạy thử báo đúng số tạo mới / ghi đè, file lỗi thì không ghi gì
-- [x] OT: ghi nhận → hiện trong danh sách chờ duyệt → nhân sự duyệt được, quản lý thì không
 
 ---
 
 > ### Ai dùng phân hệ này
 >
-> | Vai trò | Xem bảng công | Nhập / sửa / nạp file | Ghi nhận OT | Duyệt OT |
-> |---------|:---:|:---:|:---:|:---:|
-> | `admin`, `hr_manager`, `hr_staff` | Toàn công ty | ✅ | ✅ | ✅ |
-> | `manager` | Phòng mình quản | ❌ | ✅ (phòng mình) | ❌ |
-> | `employee` | *không đăng nhập được* | — | — | — |
+> | Vai trò | Xem bảng công | Nhập / sửa / nạp file |
+> |---------|:---:|:---:|
+> | `admin`, `hr_manager`, `hr_staff` | Toàn công ty | ✅ |
+> | `manager` | Phòng mình quản | ❌ |
+> | `employee` | *không đăng nhập được* | — |
 >
 > Nhân viên sẽ tra cứu thông tin của mình qua một **cổng riêng (MyPage)** xây sau.
 > Việc chặn đặt ở **bước đăng nhập**, không phải chỉ ẩn menu: một vai trò không
@@ -322,31 +320,25 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 > trước khi biết mật khẩu đúng hay sai sẽ biến form đăng nhập thành công cụ dò
 > xem một tài khoản mang vai trò gì.
 
-> ### Quyết định thiết kế quan trọng nhất — tách "giờ đã làm" khỏi "giờ được trả tiền"
+> ### Giờ làm thêm suy ra từ bảng công
 >
-> business-rules §12.3 định nghĩa làm thêm giờ = phần vượt quá 8 giờ/ngày, trong
-> khi PLAN lại yêu cầu có luồng ghi nhận + duyệt. Hiểu là một con số thì cứ ai ở
-> lại muộn là công ty tự phát sinh nghĩa vụ trả lương. Điều 107 BLLĐ 2019 đòi làm
-> thêm giờ phải **được NLĐ đồng ý**, nên ở lại muộn KHÔNG phải làm thêm giờ. Hệ
-> thống ghi cả hai, tách hẳn:
+> Không có đơn đăng ký, không có bước duyệt. `attendances.overtime_hours` tính từ
+> chính giờ vào/ra và **LÀ căn cứ trả tiền**:
 >
-> - `attendances.overtime_hours` = số giờ **vượt ngày công chuẩn**, suy từ giờ
->   vào/ra. Là bằng chứng để đối chiếu và để phát hiện vượt trần 12 giờ/ngày.
-> - `overtime_requests` = số giờ **công ty đồng ý trả**.
->   **Giai đoạn 6 tính lương đọc bảng này**, không đọc `attendances.overtime_hours`.
-
-> ### Quy trình làm thêm giờ
+> - ngày thường: phần vượt **8 giờ** làm việc thực (đã trừ giờ nghỉ);
+> - ngày nghỉ tuần / ngày lễ: **toàn bộ** thời gian làm.
 >
-> Thoả thuận diễn ra **ngoài hệ thống** (Điều 107 đòi có sự đồng ý của NLĐ);
-> trường `reason` là chỗ duy nhất ghi lại việc đó. Sau đó:
+> Hệ số Điều 98 (1,5× ngày thường / 2× ngày nghỉ tuần / 3× ngày lễ) cộng phụ trội
+> ca đêm 22h–6h (+0,3×, và **+0,2× nữa** nếu giờ đó vừa là làm thêm vừa là ban
+> đêm) do `common/utils/overtime.util.ts` tính — xem business-rules.md §7.1.
 >
-> 1. **Quản lý** ghi nhận cho nhân viên phòng mình (nhân sự ghi cho bất kỳ ai).
->    Người ghi lưu ở `overtime_requests.recorded_by`, lấy **từ token**.
-> 2. **Kế toán / nhân sự** duyệt trước khi tính lương.
->
-> **Người ghi ≠ người duyệt.** Bước duyệt là lớp kiểm soát duy nhất trước khi
-> tiền làm thêm vào bảng lương; để một người vừa nhập vừa duyệt thì lớp đó chỉ
-> còn là một cái nút.
+> **Vì sao bỏ bước duyệt.** Bản đầu lập luận rằng Điều 107 đòi làm thêm giờ phải
+> được NLĐ đồng ý, nên chỉ giờ *đã duyệt* mới được trả. Đó là đọc sai luật: yêu
+> cầu đồng ý giới hạn **quyền huy động** của công ty, nó không phải điều kiện để
+> được trả tiền cho công việc đã làm xong. Nhân viên đã làm thêm và công ty biết
+> thì công ty phải trả; từ chối vì "thiếu đơn duyệt" là vi phạm chứ không phải
+> tuân thủ. Về kỹ thuật thì hai nguồn số cho cùng một đại lượng luôn lệch nhau,
+> và không ai biết bảng lương nên tin bên nào.
 
 > ### Giờ nghỉ
 >
@@ -368,11 +360,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 > - **Import kiểu "tất cả hoặc không gì cả".** Một tháng công nửa vời trông y hệt
 >   một tháng đầy đủ. Toàn bộ lỗi trả về một lượt kèm số dòng Excel.
 > - **Số dòng bị ghi đè luôn được báo ra**, kể cả ở bước chạy thử.
-> - **`manager` đọc được phòng mình nhưng không nhập, không sửa, không duyệt.**
-> - **Ba trần Điều 107 kiểm lúc ghi nhận VÀ kiểm lại lúc duyệt** — hai đơn mỗi
->   đơn hợp lệ vẫn cộng thành vi phạm.
-> - **Hệ số Điều 98 chốt vào đơn lúc ghi nhận** — giống cách `salaries` lưu
->   snapshot tỷ lệ bảo hiểm.
+> - **`manager` đọc được phòng mình nhưng không nhập, không sửa, không nạp file.**
 > - **Kiểu file .xlsx xác định bằng magic bytes**, không tin phần mở rộng.
 
 > ### Đã gỡ khỏi bản đầu
@@ -383,6 +371,10 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 > - Màn hình lịch chấm công cá nhân ở frontend (`MyAttendancePage`,
 >   `AttendanceCalendar`). Còn trong lịch sử git nếu MyPage cần dùng lại.
 > - Hàm `vietnamDateTime()` — sinh ra cho đồng hồ chấm công, gỡ cùng nó.
+> - **Toàn bộ luồng đơn làm thêm giờ** — `OvertimeModule`, bảng
+>   `overtime_requests` (migration `DropOvertimeRequests1787250000000`),
+>   `/overtime-requests/*`, trang `OvertimePage` và tab "Làm thêm giờ". Lý do và
+>   phần thay thế: xem khối "Giờ làm thêm suy ra từ bảng công" ở trên.
 
 > ### Chưa làm
 >
@@ -392,6 +384,28 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 >   con số không lệch nhau.
 > - **e2e spec của module chưa viết.** Đã kiểm chứng bằng tay qua API đang chạy
 >   cho toàn bộ các luồng ở trên.
+> - **Ba trần Điều 107 (12h/ngày, 40h/tháng, 200–300h/năm) hiện KHÔNG được kiểm ở
+>   đâu cả.** Chúng từng kiểm lúc ghi nhận/duyệt đơn làm thêm; gỡ luồng đơn thì
+>   gỡ luôn chỗ kiểm. Bản thân việc suy giờ làm thêm từ bảng công không vi phạm
+>   gì — trần là giới hạn huy động của công ty, không phải điều kiện trả tiền —
+>   nhưng hệ thống nên **cảnh báo** khi cộng dồn vượt trần. Chưa làm.
+> - **Chưa có ngưỡng/quy tắc làm tròn giờ làm thêm.** Suy trực tiếp từ giờ vào/ra
+>   nên lệch vài phút quanh giờ tan ca cũng thành giờ làm thêm được trả tiền: với
+>   dữ liệu demo, 876/2.141 ngày công mang 0,01–0,49 giờ làm thêm, còn số ngày ở
+>   lại thật sự (≥ 1 giờ) chỉ là 98. Cần chốt ngưỡng tối thiểu và bước làm tròn
+>   (15 hay 30 phút) trước khi Giai đoạn 6 tính tiền.
+
+> ### Dữ liệu demo để kiểm thử phân hệ
+>
+> `npm run seed:attendance` sinh **2.141 ngày công** cho 60/68 nhân viên demo
+> trong khoảng 01/07/2026–19/08/2026 (36 ngày làm việc): 81,7% đi làm, 7,9% đi
+> muộn, 4,2% nghỉ phép, cùng vài ca cuối tuần/ngày lễ và 3 ngày quên chấm ra
+> (`work_hours` = `NULL`, không phải 0). Chạy lại không nhân đôi dữ liệu; thêm
+> `-- --reset` để xoá và sinh lại (PRNG có seed nên kết quả y hệt).
+>
+> Cả 6 cột dẫn xuất đều sinh từ đúng một hàm `calculateWorkHours()`, và đã đối
+> chiếu lại toàn bộ 2.034 dòng có giờ ra: **0 sai lệch**. 12 ngày công cũ của
+> `NV0001`–`NV0006` (fixture kiểm thử giờ nghỉ) không bị chạm tới.
 
 ---
 
@@ -439,7 +453,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [ ] Logic BHXH 8%, BHYT 1.5%, BHTN 1% (tổng 10.5% NLĐ)
 - [ ] Logic thuế TNCN lũy tiến 7 bậc + giảm trừ bản thân 11tr + phụ thuộc 4.4tr
 - [ ] Tính hệ số công = ngày công thực tế / ngày công chuẩn tháng
-- [ ] Tích hợp dữ liệu chấm công + phép + OT vào bảng lương
+- [ ] Tích hợp dữ liệu chấm công (gồm giờ làm thêm suy ra từ đó) + phép vào bảng lương
 - [ ] Lock bảng lương: đã lock thì không tính lại
 - [ ] `SalaryAdvancesModule`: tạm ứng lương
 
