@@ -9,7 +9,13 @@
       "PowerShell(Get-ChildItem *)",
       "PowerShell(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\nvq18\\\\Desktop\\\\hrm-projects\\\\hrm-backend\\\\docs\\\\convert-to-html.ps1\")",
       "Skill(update-config)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git status *)",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\nvq18\\\\Desktop\\\\hrm-projects\\\\backend\\\\docs\\\\convert-to-html.ps1\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *2)",
+      "Bash(powershell -NoProfile -Command \"Get-CimInstance Win32_Process -Filter \\\\\"Name='node.exe'\\\\\" | Select-Object ProcessId,@{n='cmd';e={\\\\$_.CommandLine.Substring\\(0,[Math]::Min\\(80,\\\\$_.CommandLine.Length\\)\\)}} | Format-List\" 2>/dev/null | head -40)"
     ]
   }
 }
