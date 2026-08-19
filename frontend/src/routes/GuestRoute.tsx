@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router';
 import { FullPageLoader } from '@/components/common/FullPageLoader';
 import { useSessionRestore } from '@/hooks/useAuth';
+import { SESSION_EXPIRED_PARAM } from '@/lib/axios';
 import { sanitizeRedirectPath } from '@/utils/validators';
 
 /**
@@ -28,7 +29,12 @@ import { sanitizeRedirectPath } from '@/utils/validators';
 export function GuestRoute() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { isRestoring, isAuthenticated } = useSessionRestore();
+
+  // Arriving here because a refresh just failed means the session is already
+  // known to be unusable. Retrying it would either fail again for nothing, or —
+  // worse — succeed and throw the user back at the page that just rejected them.
+  const afterFailedRefresh = searchParams.get(SESSION_EXPIRED_PARAM) === '1';
+  const { isRestoring, isAuthenticated } = useSessionRestore(!afterFailedRefresh);
 
   if (isRestoring) {
     return <FullPageLoader />;

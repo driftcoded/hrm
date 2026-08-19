@@ -17,6 +17,7 @@ import type {
   EmployeeSearchFilters,
   Dependent,
   EmployeeStats,
+  EmployeeSummary,
   FamilyMember,
   FamilyMemberPayload,
   RestoreResult,
@@ -105,6 +106,17 @@ export function getMyEmployee(): Promise<EmployeeDetail> {
  */
 export function getEmployeeStats(): Promise<EmployeeStats> {
   return get<EmployeeStats>('/employees/stats');
+}
+
+/**
+ * Hợp đồng đang hiệu lực + số người phụ thuộc, gom sẵn cho phiếu lương.
+ *
+ * Màn chi tiết dùng nó cho các ô lương/loại hợp đồng ở thẻ đầu trang: lấy từ
+ * đây thay vì tự lọc danh sách hợp đồng, vì "đang hiệu lực" là quy tắc nghiệp
+ * vụ và nó thuộc về server.
+ */
+export function getEmployeeSummary(id: number): Promise<EmployeeSummary> {
+  return get<EmployeeSummary>(`/employees/${id}/summary`);
 }
 
 export function createEmployee(payload: CreateEmployeePayload): Promise<EmployeeDetail> {

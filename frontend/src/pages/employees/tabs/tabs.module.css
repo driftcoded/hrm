@@ -46,3 +46,122 @@
   color: var(--hrm-color-text-tertiary);
   font-size: var(--hrm-font-size-caption);
 }
+
+/*
+ * Tab "Thông tin cá nhân" là màn tổng quan: cột trái là các khối A/B/C, cột
+ * phải là những thẻ tóm tắt. Dưới 1200px cột phải xuống dưới thay vì bóp bảng
+ * hai cột thành một cột chữ dính nhau.
+ */
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--hrm-grid-gap);
+  align-items: start;
+}
+
+.overviewMain,
+.overviewSide {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+/* Tiêu đề khối kiểu "A. Thông tin cá nhân". */
+.blockTitle {
+  margin: 0 0 var(--hrm-space-4);
+  font-size: var(--hrm-font-size-h3);
+  font-weight: 600;
+  color: var(--hrm-color-heading);
+}
+
+.blockLetter {
+  display: inline-block;
+  margin-inline-end: var(--hrm-space-2);
+  color: var(--hrm-color-primary);
+}
+
+/* Danh sách nhãn/giá trị 2 cột, gọn hơn Descriptions có viền. */
+.pairs {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--hrm-space-3) var(--hrm-space-5);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(110px, 40%) minmax(0, 1fr);
+  gap: var(--hrm-space-3);
+  align-items: baseline;
+}
+
+.pairLabel {
+  margin: 0;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.pairValue {
+  margin: 0;
+  color: var(--hrm-color-text);
+  overflow-wrap: anywhere;
+}
+
+.noteList {
+  margin: 0;
+  padding-inline-start: var(--hrm-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-2);
+  color: var(--hrm-color-text-secondary);
+}
+
+/* Thẻ tóm tắt ở cột phải: hàng icon + nhãn + giá trị. */
+.summaryRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+}
+
+.summaryRow + .summaryRow {
+  margin-top: var(--hrm-space-4);
+}
+
+.summaryIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--hrm-radius-md);
+  background: var(--hrm-color-primary-softer);
+  color: var(--hrm-color-primary);
+}
+
+.summaryLabel {
+  flex: 1;
+  min-width: 0;
+  color: var(--hrm-color-text-secondary);
+  font-size: var(--hrm-font-size-base);
+}
+
+.summaryValue {
+  flex: none;
+  font-weight: 600;
+  color: var(--hrm-color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pendingCard {
+  margin: 0;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+@media (max-width: 1199px) {
+  .overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

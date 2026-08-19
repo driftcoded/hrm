@@ -1,19 +1,24 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
-import { Alert, App, Button, Card, Descriptions, Skeleton, Space, Tabs, Tag } from 'antd';
-import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Alert, App, Button, Card, Dropdown, Skeleton, Space, Tabs } from 'antd';
+import {
+  ArrowLeftOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  MoreOutlined,
+  PrinterOutlined,
+} from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { AvatarUploader } from '@/components/employees/AvatarUploader';
 import { DeleteEmployeeModal } from '@/components/employees/DeleteEmployeeModal';
-import { EmployeeStatusTag } from '@/components/employees/EmployeeStatusTag';
+import { EmployeeHeroCard } from '@/components/employees/EmployeeHeroCard';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
-import { useEmployee, useEmployeeMutations } from '@/hooks/useEmployees';
+import { useEmployee, useEmployeeMutations, useEmployeeSummary } from '@/hooks/useEmployees';
 import {
   useCanDeleteEmployees,
   useCanWriteContracts,
   useCanWriteEmployees,
 } from '@/hooks/usePermissions';
-import { formatDate } from '@/utils/format';
 import { ComingSoonTab } from './tabs/ComingSoonTab';
 import { ContractsTab } from './tabs/ContractsTab';
 import { FamilyTab } from './tabs/FamilyTab';
@@ -59,6 +64,7 @@ export function EmployeeDetailPage() {
     isValidId ? employeeId : undefined,
   );
   const mutations = useEmployeeMutations();
+  const { data: summary } = useEmployeeSummary(isValidId ? employeeId : undefined);
 
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -128,6 +134,7 @@ export function EmployeeDetailPage() {
         children: (
           <PersonalTab
             employee={employee}
+            summary={summary}
             canEdit={canWrite}
             isSaving={mutations.isSaving}
             onSave={handleSavePersonal}
@@ -171,7 +178,7 @@ export function EmployeeDetailPage() {
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canWrite, canWriteContracts, employee, mutations.isSaving, t]);
+  }, [canWrite, canWriteContracts, employee, mutations.isSaving, summary, t]);
 
   if (!isValidId) {
     return <Alert type="error" showIcon message={t('employees.detail.invalidId')} />;
@@ -207,76 +214,79 @@ export function EmployeeDetailPage() {
 
   return (
     <div className={styles.page}>
-      <Button
-        type="link"
-        icon={<ArrowLeftOutlined />}
-        className={styles.back}
-        onClick={() => void navigate('/employees')}
-      >
-        {t('employees.detail.backToList')}
-      </Button>
+      <div className={styles.topBar}>
+        <Button
+          type="link"
+          icon={<ArrowLeftOutlined />}
+          className={styles.back}
+          onClick={() => void navigate('/employees')}
+        >
+          {t('employees.detail.backToList')}
+        </Button>
 
-      <Card variant="borderless">
-        <div className={styles.header}>
+        <Space>
+          {canWrite && (
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => handleTabChange('personal')}
+            >
+              {t('employees.detail.edit')}
+            </Button>
+          )}
+          {/* In hồ sơ chưa có bản in riêng — dùng hộp thoại in của trình duyệt
+              thay vì để một nút không làm gì. */}
+          <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
+            {t('employees.detail.print')}
+          </Button>
+          {canDelete && !employee.deletedAt && (
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: 'delete',
+                    danger: true,
+                    icon: <DeleteOutlined />,
+                    label: t('common.delete'),
+                    onClick: () => {
+                      setDeleteError(null);
+                      setDeleteOpen(true);
+                    },
+                  },
+                ],
+              }}
+            >
+              <Button icon={<MoreOutlined />} aria-label={t('employees.actions.more')} />
+            </Dropdown>
+          )}
+        </Space>
+      </div>
+
+      {employee.deletedAt && (
+        <Alert type="warning" showIcon message={t('employees.detail.deletedNotice')} />
+      )}
+
+      <EmployeeHeroCard
+        employee={employee}
+        summary={summary}
+        avatarSlot={
           <AvatarUploader
             currentUrl={employee.avatarUrl}
             isUploading={mutations.isUploading}
             disabled={!canWrite}
+            size={72}
             onUpload={async (file) => {
               try {
                 await mutations.uploadAvatar(employee.id, file);
                 message.success(t('employees.avatar.uploaded'));
               } catch (uploadError) {
-                // No inline surface inside the uploader for this, so a toast is
-                // the only channel — and it is the only one used (§8).
                 message.error(resolveError(uploadError));
                 throw uploadError;
               }
             }}
           />
-
-          <div className={styles.identity}>
-            <div className={styles.nameRow}>
-              <h2 className={styles.name}>{employee.fullName}</h2>
-              <EmployeeStatusTag status={employee.status} />
-              {employee.deletedAt && (
-                <Tag color="default">{t('employees.status.deleted')}</Tag>
-              )}
-            </div>
-            <p className={styles.code}>{employee.employeeCode}</p>
-
-            <Descriptions column={{ xs: 1, sm: 2, xl: 4 }} size="small" className={styles.summary}>
-              <Descriptions.Item label={t('employees.columns.department')}>
-                {employee.department?.name ?? '—'}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('employees.columns.position')}>
-                {employee.position?.name ?? '—'}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('employees.columns.hireDate')}>
-                {formatDate(employee.hireDate)}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('employees.fields.directManager')}>
-                {employee.directManager?.name ?? '—'}
-              </Descriptions.Item>
-            </Descriptions>
-          </div>
-
-          {canDelete && !employee.deletedAt && (
-            <div className={styles.headerActions}>
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => {
-                  setDeleteError(null);
-                  setDeleteOpen(true);
-                }}
-              >
-                {t('common.delete')}
-              </Button>
-            </div>
-          )}
-        </div>
-      </Card>
+        }
+      />
 
       <Card variant="borderless">
         <Tabs items={tabItems} activeKey={activeTab} onChange={handleTabChange} />

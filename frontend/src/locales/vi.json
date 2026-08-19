@@ -731,7 +731,9 @@
       "twoTierHint": "Từ 01/07/2025 cả nước còn 2 cấp: tỉnh/thành và phường/xã",
       "legacyDistrict": "Quận/Huyện (hồ sơ cũ)",
       "addressDetailHint": "Nhập từ lớn đến nhỏ: thôn/tổ, sau đó toà nhà, số nhà, số phòng",
-      "addressDetailPlaceholder": "Thôn Đoài, Toà A2, số 15, phòng 302"
+      "addressDetailPlaceholder": "Thôn Đoài, Toà A2, số 15, phòng 302",
+      "fullName": "Họ và tên",
+      "officialStart": "Ngày chính thức"
     },
     "validation": {
       "required": "Trường này là bắt buộc",
@@ -802,7 +804,16 @@
       "sectionIdentity": "Giấy tờ & bảo hiểm",
       "sectionContact": "Liên lạc & địa chỉ",
       "sectionBank": "Tài khoản ngân hàng",
-      "sectionEducation": "Học vấn"
+      "sectionEducation": "Học vấn",
+      "print": "In hồ sơ",
+      "deletedNotice": "Hồ sơ này đã bị xóa mềm. Dữ liệu vẫn còn và có thể khôi phục từ danh sách.",
+      "sectionJob": "Thông tin công việc",
+      "sectionNotes": "Ghi chú nhân sự",
+      "noNotes": "Chưa có ghi chú nào cho nhân viên này.",
+      "sideContract": "Hợp đồng & phụ cấp",
+      "sideAttendance": "Tóm tắt chấm công",
+      "sidePayroll": "Lương & phụ cấp",
+      "dependentsCount": "Người phụ thuộc"
     },
     "tabs": {
       "personal": "Cá nhân",
@@ -888,6 +899,13 @@
       "parent": "Bố/Mẹ",
       "sibling": "Anh/Chị/Em",
       "other": "Khác"
+    },
+    "hero": {
+      "performance": "Hiệu suất tháng này",
+      "workingDays": "Ngày công tháng này",
+      "leaveLeft": "Nghỉ phép còn lại",
+      "noContract": "Chưa có hợp đồng hiệu lực",
+      "pendingPhase": "Số liệu này thuộc Giai đoạn {{phase}}, chưa có dữ liệu"
     }
   }
 }

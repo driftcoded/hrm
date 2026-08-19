@@ -731,7 +731,9 @@
       "twoTierHint": "Since 01/07/2025 Vietnam has two tiers: province and ward/commune",
       "legacyDistrict": "District (legacy record)",
       "addressDetailHint": "Largest to smallest: hamlet/group, then building, house and room number",
-      "addressDetailPlaceholder": "Doai hamlet, Block A2, no. 15, room 302"
+      "addressDetailPlaceholder": "Doai hamlet, Block A2, no. 15, room 302",
+      "fullName": "Full name",
+      "officialStart": "Official start date"
     },
     "validation": {
       "required": "This field is required",
@@ -802,7 +804,16 @@
       "sectionIdentity": "Documents & insurance",
       "sectionContact": "Contact & address",
       "sectionBank": "Bank account",
-      "sectionEducation": "Education"
+      "sectionEducation": "Education",
+      "print": "Print profile",
+      "deletedNotice": "This record is soft-deleted. The data is kept and can be restored from the list.",
+      "sectionJob": "Job details",
+      "sectionNotes": "HR notes",
+      "noNotes": "No notes recorded for this employee yet.",
+      "sideContract": "Contract & allowances",
+      "sideAttendance": "Attendance summary",
+      "sidePayroll": "Salary & allowances",
+      "dependentsCount": "Dependents"
     },
     "tabs": {
       "personal": "Personal",
@@ -888,6 +899,13 @@
       "parent": "Parent",
       "sibling": "Sibling",
       "other": "Other"
+    },
+    "hero": {
+      "performance": "Performance this month",
+      "workingDays": "Days worked this month",
+      "leaveLeft": "Leave remaining",
+      "noContract": "No active contract",
+      "pendingPhase": "This figure belongs to phase {{phase}} and has no data yet"
     }
   }
 }

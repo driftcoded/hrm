@@ -80,6 +80,19 @@ const NON_TOKEN_401_CODES = ['WRONG_CURRENT_PASSWORD', 'INVALID_CREDENTIALS'];
 /** Public routes where a hard redirect to /login would be pointless/annoying. */
 const PUBLIC_PATHS = ['/login', '/forgot-password', '/reset-password'];
 
+/**
+ * Marks a redirect caused by a refresh that FAILED, as opposed to a visit to
+ * /login for any other reason.
+ *
+ * It exists because the redirect below is a full page load, which wipes the
+ * in-memory `sessionChecked` flag — so the login screen's guard would try to
+ * restore the session all over again, and if the cookie still looks usable it
+ * would bounce the user straight back to the page that just failed, and round
+ * again. The flag stops that loop: a session we just failed to restore is not
+ * worth retrying on arrival.
+ */
+export const SESSION_EXPIRED_PARAM = 'sessionExpired';
+
 let isRefreshing = false;
 let pendingQueue: Array<{
   resolve: (token: string) => void;
@@ -112,7 +125,9 @@ function redirectToLogin() {
     return;
   }
   const target = `${pathname}${search}`;
-  window.location.replace(`/login?redirect=${encodeURIComponent(target)}`);
+  window.location.replace(
+    `/login?redirect=${encodeURIComponent(target)}&${SESSION_EXPIRED_PARAM}=1`,
+  );
 }
 
 apiClient.interceptors.response.use(

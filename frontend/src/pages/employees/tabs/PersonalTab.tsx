@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Button,
+  Card,
   Col,
   DatePicker,
-  Descriptions,
   Form,
   Input,
   Row,
@@ -12,7 +12,14 @@ import {
   Space,
   Tooltip,
 } from 'antd';
-import { EditOutlined, EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
+import {
+  DollarOutlined,
+  EditOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  FileTextOutlined,
+  TeamOutlined,
+} from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
@@ -23,11 +30,12 @@ import {
   MARITAL_STATUSES,
   type EducationLevel,
   type EmployeeDetail,
+  type EmployeeSummary,
   type Gender,
   type MaritalStatus,
   type UpdateEmployeePayload,
 } from '@/types/employee.types';
-import { formatDate, formatPhone, maskCccd } from '@/utils/format';
+import { formatCurrency, formatDate, formatPhone, maskCccd } from '@/utils/format';
 import styles from './tabs.module.css';
 
 /**
@@ -48,6 +56,8 @@ import styles from './tabs.module.css';
 
 export interface PersonalTabProps {
   employee: EmployeeDetail;
+  /** Hợp đồng hiệu lực + số người phụ thuộc, cho thẻ tóm tắt ở cột phải. */
+  summary: EmployeeSummary | undefined;
   canEdit: boolean;
   isSaving: boolean;
   onSave: (payload: UpdateEmployeePayload) => Promise<unknown>;
@@ -95,7 +105,13 @@ const orNull = (value: string | undefined): string | null => {
   return trimmed ? trimmed : null;
 };
 
-export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTabProps) {
+export function PersonalTab({
+  employee,
+  summary,
+  canEdit,
+  isSaving,
+  onSave,
+}: PersonalTabProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<PersonalFormValues>();
   const resolveError = useApiErrorMessage();
@@ -117,6 +133,9 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
     () => provinces?.find((province) => province.code === employee.provinceCode)?.name,
     [employee.provinceCode, provinces],
   );
+  const education = employee.educationLevel
+    ? t(`employees.education.${employee.educationLevel}`)
+    : null;
   const wardName = useMemo(
     () => wards?.find((ward) => ward.code === employee.wardCode)?.name,
     [employee.wardCode, wards],
@@ -213,11 +232,21 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
   // ------------------------------------------------------------ read ---
 
   if (!isEditing) {
-    const item = (label: string, value: React.ReactNode) => ({
-      key: label,
-      label,
-      children: value ?? <span className={styles.muted}>—</span>,
-    });
+    const dash = <span className={styles.muted}>—</span>;
+
+    /** Một dòng nhãn/giá trị trong khối A/B. */
+    const pair = (label: string, value: React.ReactNode) => (
+      <div key={label} className={styles.pair}>
+        <dt className={styles.pairLabel}>{label}</dt>
+        <dd className={styles.pairValue}>{value ?? dash}</dd>
+      </div>
+    );
+
+    /** Ghi chú nhân sự là văn bản tự do; mỗi dòng thành một gạch đầu dòng. */
+    const noteLines = (employee.notes ?? '')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
 
     return (
       <div>
@@ -230,150 +259,226 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
           </div>
         )}
 
-        <p className={styles.sectionTitle}>{t('employees.detail.sectionPersonal')}</p>
-        <Descriptions bordered column={{ xs: 1, sm: 2, xl: 3 }} size="small">
-          {[
-            item(t('employees.fields.lastName'), employee.lastName),
-            item(t('employees.fields.firstName'), employee.firstName),
-            item(t('employees.fields.dateOfBirth'), formatDate(employee.dateOfBirth)),
-            item(t('employees.fields.gender'), t(`employees.gender.${employee.gender}`)),
-            item(
-              t('employees.fields.maritalStatus'),
-              t(`employees.maritalStatus.${employee.maritalStatus}`),
-            ),
-            item(t('employees.fields.nationality'), employee.nationality),
-            item(t('employees.fields.ethnicity'), employee.ethnicity),
-            item(t('employees.fields.religion'), employee.religion),
-            item(t('employees.fields.placeOfBirth'), employee.placeOfBirth),
-            item(t('employees.fields.hometown'), employee.hometown),
-          ].map((entry) => (
-            <Descriptions.Item key={entry.key} label={entry.label}>
-              {entry.children}
-            </Descriptions.Item>
-          ))}
-        </Descriptions>
+        <div className={styles.overview}>
+          <div className={styles.overviewMain}>
+            <Card variant="borderless">
+              <h3 className={styles.blockTitle}>
+                <span className={styles.blockLetter}>A.</span>
+                {t('employees.detail.sectionPersonal')}
+              </h3>
+              <dl className={styles.pairs}>
+                {pair(t('employees.fields.fullName'), employee.fullName)}
+                {pair(
+                  t('employees.fields.maritalStatus'),
+                  t(`employees.maritalStatus.${employee.maritalStatus}`),
+                )}
+                {pair(t('employees.fields.gender'), t(`employees.gender.${employee.gender}`))}
+                {pair(
+                  t('employees.fields.permanentAddress'),
+                  <>
+                    {employee.permanentAddress}
+                    {(wardName || provinceName) && (
+                      <span className={styles.muted}>
+                        {', '}
+                        {[wardName, provinceName].filter(Boolean).join(', ')}
+                      </span>
+                    )}
+                  </>,
+                )}
+                {pair(t('employees.fields.dateOfBirth'), formatDate(employee.dateOfBirth))}
+                {pair(t('employees.fields.personalEmail'), employee.personalEmail)}
+                {pair(
+                  t('employees.fields.cccdNumber'),
+                  <span className={styles.revealRow}>
+                    <span className={styles.mono}>
+                      {showCccd ? employee.cccdNumber : maskCccd(employee.cccdNumber)}
+                    </span>
+                    <Tooltip
+                      title={
+                        showCccd
+                          ? t('employees.detail.hideCccd')
+                          : t('employees.detail.showCccd')
+                      }
+                    >
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={showCccd ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                        onClick={() => setShowCccd((shown) => !shown)}
+                        aria-label={
+                          showCccd
+                            ? t('employees.detail.hideCccd')
+                            : t('employees.detail.showCccd')
+                        }
+                      />
+                    </Tooltip>
+                  </span>,
+                )}
+                {pair(
+                  t('employees.fields.phone'),
+                  <span className={styles.mono}>{formatPhone(employee.phone)}</span>,
+                )}
+                {pair(t('employees.fields.nationality'), employee.nationality)}
+                {pair(
+                  t('employees.fields.emergencyContact'),
+                  employee.emergencyContactName ? (
+                    <>
+                      {employee.emergencyContactName}
+                      {employee.emergencyContactRel ? ` (${employee.emergencyContactRel})` : ''}
+                      {employee.emergencyContactPhone
+                        ? ` – ${formatPhone(employee.emergencyContactPhone)}`
+                        : ''}
+                    </>
+                  ) : null,
+                )}
+                {pair(t('employees.fields.ethnicity'), employee.ethnicity)}
+                {pair(t('employees.fields.religion'), employee.religion)}
+                {pair(t('employees.fields.placeOfBirth'), employee.placeOfBirth)}
+                {pair(t('employees.fields.hometown'), employee.hometown)}
+                {pair(t('employees.fields.currentAddress'), employee.currentAddress)}
+                {employee.districtCode
+                  ? pair(
+                      t('employees.fields.legacyDistrict'),
+                      <span className={styles.mono}>{employee.districtCode}</span>,
+                    )
+                  : null}
+              </dl>
+            </Card>
 
-        <p className={styles.sectionTitle}>{t('employees.detail.sectionIdentity')}</p>
-        <Descriptions bordered column={{ xs: 1, sm: 2, xl: 3 }} size="small">
-          <Descriptions.Item label={t('employees.fields.cccdNumber')}>
-            <span className={styles.revealRow}>
-              <span className={styles.mono}>
-                {showCccd ? employee.cccdNumber : maskCccd(employee.cccdNumber)}
-              </span>
-              <Tooltip title={showCccd ? t('employees.detail.hideCccd') : t('employees.detail.showCccd')}>
-                <Button
-                  type="text"
-                  size="small"
-                  icon={showCccd ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-                  onClick={() => setShowCccd((shown) => !shown)}
-                  aria-label={
-                    showCccd ? t('employees.detail.hideCccd') : t('employees.detail.showCccd')
-                  }
-                />
-              </Tooltip>
-            </span>
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.cccdIssueDate')}>
-            {formatDate(employee.cccdIssueDate)}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.cccdIssuePlace')}>
-            {employee.cccdIssuePlace}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.taxCode')}>
-            {employee.taxCode ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.socialInsuranceNo')}>
-            {employee.socialInsuranceNo ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.healthInsuranceNo')}>
-            {employee.healthInsuranceNo ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-        </Descriptions>
+            <Card variant="borderless">
+              <h3 className={styles.blockTitle}>
+                <span className={styles.blockLetter}>B.</span>
+                {t('employees.detail.sectionJob')}
+              </h3>
+              <dl className={styles.pairs}>
+                {pair(
+                  t('employees.columns.code'),
+                  <span className={styles.mono}>{employee.employeeCode}</span>,
+                )}
+                {pair(t('employees.fields.directManager'), employee.directManager?.name)}
+                {pair(t('employees.columns.department'), employee.department?.name)}
+                {pair(t('employees.columns.position'), employee.position?.name)}
+                {pair(t('employees.fields.hireDate'), formatDate(employee.hireDate))}
+                {pair(
+                  t('employees.fields.probationEnd'),
+                  employee.probationEndDate ? formatDate(employee.probationEndDate) : null,
+                )}
+                {pair(
+                  t('employees.fields.officialStart'),
+                  employee.officialStartDate ? formatDate(employee.officialStartDate) : null,
+                )}
+                {pair(t('employees.columns.status'), t(`employees.status.${employee.status}`))}
+                {pair(t('employees.fields.educationLevel'), education)}
+                {pair(t('employees.fields.university'), employee.university)}
+                {pair(t('employees.fields.major'), employee.major)}
+                {pair(t('employees.fields.graduationYear'), employee.graduationYear)}
+                {pair(t('employees.fields.taxCode'), employee.taxCode)}
+                {pair(t('employees.fields.socialInsuranceNo'), employee.socialInsuranceNo)}
+                {pair(
+                  t('employees.fields.bankAccount'),
+                  employee.bankAccount ? (
+                    <span className={styles.mono}>
+                      {employee.bankAccount}
+                      {employee.bankName ? ` – ${employee.bankName}` : ''}
+                    </span>
+                  ) : null,
+                )}
+                {employee.terminationDate
+                  ? pair(
+                      t('employees.fields.terminationDate'),
+                      formatDate(employee.terminationDate),
+                    )
+                  : null}
+              </dl>
+            </Card>
 
-        <p className={styles.sectionTitle}>{t('employees.detail.sectionContact')}</p>
-        <Descriptions bordered column={{ xs: 1, sm: 2, xl: 3 }} size="small">
-          <Descriptions.Item label={t('employees.fields.phone')}>
-            <span className={styles.mono}>{formatPhone(employee.phone)}</span>
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.email')}>{employee.email}</Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.personalEmail')}>
-            {employee.personalEmail ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-          {/* Địa chỉ đọc từ LỚN xuống NHỎ — tỉnh → xã/phường → chi tiết —
-              cùng thứ tự với form nhập, để mắt không phải nhảy ngược. */}
-          <Descriptions.Item label={t('employees.fields.provinceCode')}>
-            {provinceName ?? employee.provinceCode}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.wardCode')}>
-            {wardName ?? employee.wardCode}
-          </Descriptions.Item>
-          {/* Chỉ hiện với hồ sơ tuyển TRƯỚC 01/07/2025 — hồ sơ mới không có
-              cấp huyện, in một dòng trống chỉ làm người đọc bối rối. */}
-          {employee.districtCode && (
-            <Descriptions.Item label={t('employees.fields.legacyDistrict')}>
-              <span className={styles.mono}>{employee.districtCode}</span>
-            </Descriptions.Item>
-          )}
-          <Descriptions.Item label={t('employees.fields.permanentAddress')} span={3}>
-            {employee.permanentAddress}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.currentAddress')} span={3}>
-            {employee.currentAddress ?? (
-              <span className={styles.muted}>{t('employees.fields.sameAsPermanent')}</span>
-            )}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.emergencyContact')} span={3}>
-            {employee.emergencyContactName ? (
-              <>
-                {employee.emergencyContactName}
-                {employee.emergencyContactRel ? ` (${employee.emergencyContactRel})` : ''}
-                {employee.emergencyContactPhone
-                  ? ` · ${formatPhone(employee.emergencyContactPhone)}`
-                  : ''}
-              </>
-            ) : (
-              <span className={styles.muted}>—</span>
-            )}
-          </Descriptions.Item>
-        </Descriptions>
+            <Card variant="borderless">
+              <h3 className={styles.blockTitle}>
+                <span className={styles.blockLetter}>C.</span>
+                {t('employees.detail.sectionNotes')}
+              </h3>
+              {noteLines.length > 0 ? (
+                <ul className={styles.noteList}>
+                  {noteLines.map((line, index) => (
+                    <li key={`${index}-${line.slice(0, 12)}`}>{line}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={styles.pendingCard}>{t('employees.detail.noNotes')}</p>
+              )}
+            </Card>
+          </div>
 
-        <p className={styles.sectionTitle}>{t('employees.detail.sectionBank')}</p>
-        <Descriptions bordered column={{ xs: 1, sm: 2, xl: 3 }} size="small">
-          <Descriptions.Item label={t('employees.fields.bankAccount')}>
-            <span className={styles.mono}>
-              {employee.bankAccount ?? <span className={styles.muted}>—</span>}
-            </span>
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.bankName')}>
-            {employee.bankName ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.bankBranch')}>
-            {employee.bankBranch ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-        </Descriptions>
+          <div className={styles.overviewSide}>
+            <Card variant="borderless" title={t('employees.detail.sideContract')}>
+              {summary?.activeContract ? (
+                <>
+                  <div className={styles.summaryRow}>
+                    <span className={styles.summaryIcon} aria-hidden="true">
+                      <FileTextOutlined />
+                    </span>
+                    <span className={styles.summaryLabel}>
+                      {t('employees.fields.contractNumber')}
+                    </span>
+                    <span className={styles.summaryValue}>
+                      {summary.activeContract.contractNumber}
+                    </span>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span className={styles.summaryIcon} aria-hidden="true">
+                      <DollarOutlined />
+                    </span>
+                    <span className={styles.summaryLabel}>
+                      {t('employees.fields.baseSalary')}
+                    </span>
+                    <span className={styles.summaryValue}>
+                      {formatCurrency(summary.activeContract.baseSalary)}
+                    </span>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span className={styles.summaryIcon} aria-hidden="true">
+                      <DollarOutlined />
+                    </span>
+                    <span className={styles.summaryLabel}>
+                      {t('employees.fields.positionAllowance')}
+                    </span>
+                    <span className={styles.summaryValue}>
+                      {formatCurrency(summary.activeContract.positionAllowance)}
+                    </span>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span className={styles.summaryIcon} aria-hidden="true">
+                      <TeamOutlined />
+                    </span>
+                    <span className={styles.summaryLabel}>
+                      {t('employees.detail.dependentsCount')}
+                    </span>
+                    <span className={styles.summaryValue}>{summary.activeDependents}</span>
+                  </div>
+                </>
+              ) : (
+                <p className={styles.pendingCard}>{t('employees.hero.noContract')}</p>
+              )}
+            </Card>
 
-        <p className={styles.sectionTitle}>{t('employees.detail.sectionEducation')}</p>
-        <Descriptions bordered column={{ xs: 1, sm: 2, xl: 3 }} size="small">
-          <Descriptions.Item label={t('employees.fields.educationLevel')}>
-            {employee.educationLevel ? (
-              t(`employees.education.${employee.educationLevel}`)
-            ) : (
-              <span className={styles.muted}>—</span>
-            )}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.major')}>
-            {employee.major ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.university')}>
-            {employee.university ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.graduationYear')}>
-            {employee.graduationYear ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.notes')} span={2}>
-            {employee.notes ?? <span className={styles.muted}>—</span>}
-          </Descriptions.Item>
-        </Descriptions>
+            {/*
+              Hai thẻ dưới cố ý CHƯA có số liệu. Chấm công thuộc Giai đoạn 4 và
+              bảng lương thuộc Giai đoạn 6 — in một con số bịa ở đây thì HR sẽ
+              tin và dùng nó, nên chỗ này nói thẳng là chưa có.
+            */}
+            <Card variant="borderless" title={t('employees.detail.sideAttendance')}>
+              <p className={styles.pendingCard}>
+                {t('employees.tabs.comingSoonDetail', { phase: '4' })}
+              </p>
+            </Card>
+
+            <Card variant="borderless" title={t('employees.detail.sidePayroll')}>
+              <p className={styles.pendingCard}>
+                {t('employees.tabs.comingSoonDetail', { phase: '6' })}
+              </p>
+            </Card>
+          </div>
+        </div>
       </div>
     );
   }

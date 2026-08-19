@@ -306,6 +306,43 @@ export interface EmployeeStats {
   upcomingBirthdays: UpcomingBirthday[];
 }
 
+
+/** Hợp đồng đang hiệu lực, nhúng trong `GET /employees/:id/summary`. */
+export interface EmployeeSummaryContract {
+  id: number;
+  contractNumber: string;
+  contractType: ContractTypeValue;
+  startDate: string;
+  endDate: string | null;
+  baseSalary: number;
+  insuranceSalary: number;
+  positionAllowance: number;
+  otherAllowance: number;
+  workingHours: number;
+  workingDays: number;
+}
+
+/**
+ * `GET /employees/:id/summary` — dữ liệu tối thiểu để in phiếu lương, và là
+ * nguồn cho các ô lương/hợp đồng ở đầu màn chi tiết.
+ */
+export interface EmployeeSummary {
+  id: number;
+  employeeCode: string;
+  fullName: string;
+  status: EmployeeStatus;
+  department: EmployeeRef | null;
+  position: EmployeeRef | null;
+  hireDate: string;
+  taxCode: string | null;
+  socialInsuranceNo: string | null;
+  bankAccount: string | null;
+  bankName: string | null;
+  bankBranch: string | null;
+  activeDependents: number;
+  activeContract: EmployeeSummaryContract | null;
+}
+
 // ------------------------------------------------------------- contracts ---
 
 export interface ContractEmployeeRef {

@@ -12,6 +12,7 @@ import type {
   EmployeeFilters,
   EmployeeListItem,
   EmployeeStats,
+  EmployeeSummary,
   FamilyMember,
   FamilyMemberPayload,
   RoleOption,
@@ -31,6 +32,7 @@ import {
   deleteFamilyMember,
   getEmployee,
   getEmployeeStats,
+  getEmployeeSummary,
   listContracts,
   listDependents,
   listEmployees,
@@ -70,6 +72,7 @@ export const EMPLOYEE_KEYS = {
   list: (filters: EmployeeFilters) => ['employees', 'list', filters] as const,
   detail: (id: number) => ['employees', 'detail', id] as const,
   stats: ['employees', 'stats'] as const,
+  summary: (id: number) => ['employees', 'summary', id] as const,
   search: (term: string) => ['employees', 'search', term] as const,
   family: (employeeId: number) => ['employees', 'family', employeeId] as const,
   dependents: (employeeId: number) => ['employees', 'dependents', employeeId] as const,
@@ -141,6 +144,27 @@ export function useEmployee(id: number | undefined) {
     isError: query.isError,
     error: query.error,
     refetch: () => void query.refetch(),
+  };
+}
+
+/**
+ * Hợp đồng hiệu lực + số người phụ thuộc của một nhân viên.
+ *
+ * `isError` là kết quả bình thường chứ không phải ngoại lệ: các ô này là thông
+ * tin phụ ở đầu trang, hỏng thì màn hình chi tiết vẫn phải dùng được.
+ */
+export function useEmployeeSummary(id: number | undefined) {
+  const query = useQuery({
+    queryKey: EMPLOYEE_KEYS.summary(id ?? 0),
+    queryFn: () => getEmployeeSummary(id as number),
+    enabled: id !== undefined && Number.isInteger(id) && id > 0,
+    retry: false,
+  });
+
+  return {
+    data: query.data as EmployeeSummary | undefined,
+    isLoading: query.isLoading,
+    isError: query.isError,
   };
 }
 

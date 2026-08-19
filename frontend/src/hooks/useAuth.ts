@@ -31,11 +31,17 @@ export const AUTH_QUERY_KEYS = {
  * soon as the attempt settles (success, failure or logout), which flips
  * `enabled` off. TanStack Query additionally dedupes concurrent callers of the
  * same key, so parallel route guards can never fire two refreshes.
+ *
+ * @param allow pass `false` to suppress the attempt entirely. The login screen
+ *   uses it when it was reached *because* a refresh just failed: that arrives as
+ *   a full page load, which resets `sessionChecked`, so without this the guard
+ *   would retry the restore and — if the cookie still looked usable — bounce the
+ *   user back to the page that had just failed, over and over.
  */
-export function useSessionRestore() {
+export function useSessionRestore(allow = true) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const sessionChecked = useAuthStore((state) => state.sessionChecked);
-  const enabled = !isAuthenticated && !sessionChecked;
+  const enabled = allow && !isAuthenticated && !sessionChecked;
 
   const { isLoading, isError } = useQuery({
     queryKey: AUTH_QUERY_KEYS.session,

@@ -1,0 +1,223 @@
+/*
+ * Thẻ đầu trang chia hai: khối danh tính + thông tin tra cứu (trái, co giãn)
+ * và bốn ô chỉ số (phải, cố định). Dưới 1200px các ô chỉ số xuống dòng thành
+ * lưới 2x2 thay vì bóp khối bên trái xuống không đọc được.
+ */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--hrm-grid-gap);
+  align-items: stretch;
+}
+
+.main {
+  display: flex;
+  gap: var(--hrm-space-6);
+  flex-wrap: wrap;
+  padding: var(--hrm-card-padding);
+  background: var(--hrm-card-bg);
+  border: var(--hrm-card-border);
+  border-radius: var(--hrm-card-radius);
+}
+
+.identity {
+  display: flex;
+  gap: var(--hrm-space-4);
+  align-items: flex-start;
+  min-width: 240px;
+}
+
+.identityText {
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  flex-wrap: wrap;
+}
+
+.name {
+  margin: 0;
+  font-size: var(--hrm-font-size-h2);
+  font-weight: 600;
+  color: var(--hrm-color-heading);
+  line-height: var(--hrm-line-height-tight);
+}
+
+.code {
+  margin: var(--hrm-space-1) 0 var(--hrm-space-3);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+.position {
+  margin: 0;
+  color: var(--hrm-color-text);
+  font-weight: 500;
+}
+
+.department {
+  margin: var(--hrm-space-1) 0 0;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+/* --- lưới thông tin tra cứu --- */
+
+.metaGrid {
+  flex: 1;
+  min-width: 260px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--hrm-space-4) var(--hrm-space-5);
+  align-content: start;
+}
+
+.metaItem {
+  display: flex;
+  gap: var(--hrm-space-3);
+  min-width: 0;
+}
+
+.metaIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--hrm-radius-md);
+  background: var(--hrm-color-primary-softer);
+  color: var(--hrm-color-primary);
+}
+
+.metaBody {
+  min-width: 0;
+}
+
+.metaLabel {
+  margin: 0;
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+.metaValue {
+  margin: 2px 0 0;
+  color: var(--hrm-color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manager {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+}
+
+.link {
+  color: var(--hrm-color-primary);
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--hrm-color-text-tertiary);
+}
+
+/* --- ô chỉ số --- */
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--hrm-grid-gap);
+  min-width: 0;
+}
+
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  padding: var(--hrm-space-4);
+  background: var(--hrm-card-bg);
+  border: var(--hrm-card-border);
+  border-radius: var(--hrm-card-radius);
+  min-width: 0;
+}
+
+.kpiIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--hrm-radius-md);
+}
+
+.green {
+  background: var(--hrm-color-success-soft);
+  color: var(--hrm-color-success);
+}
+
+.blue {
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+}
+
+.purple {
+  background: var(--hrm-color-accent-soft);
+  color: var(--hrm-color-accent);
+}
+
+.orange {
+  background: var(--hrm-color-warning-soft);
+  color: #d48806;
+}
+
+.kpiBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.kpiLabel {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kpiValue {
+  font-size: var(--hrm-font-size-h3);
+  font-weight: 700;
+  color: var(--hrm-color-heading);
+  overflow-wrap: anywhere;
+}
+
+/* Ô chưa có dữ liệu: nhạt hơn hẳn để không đọc nhầm thành một con số thật. */
+.kpiPending {
+  font-size: var(--hrm-font-size-h3);
+  font-weight: 700;
+  color: var(--hrm-color-border);
+  cursor: help;
+}
+
+@media (max-width: 1199px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 575px) {
+  .kpiGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

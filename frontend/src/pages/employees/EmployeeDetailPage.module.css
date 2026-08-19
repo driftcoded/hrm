@@ -4,9 +4,23 @@
   gap: var(--hrm-grid-gap);
 }
 
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hrm-space-3);
+  flex-wrap: wrap;
+}
+
 .back {
-  align-self: flex-start;
   padding: 0;
+}
+
+/* Không in thanh điều hướng khi người dùng bấm "In hồ sơ". */
+@media print {
+  .topBar {
+    display: none;
+  }
 }
 
 .header {
