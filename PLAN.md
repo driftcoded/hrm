@@ -188,7 +188,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 > **Còn thiếu / phát hiện cho giai đoạn sau:**
 > - **Chọn trưởng phòng đang là ô nhập ID**, không phải dropdown — vì **chưa có endpoint `/employees`** (Giai đoạn 3). Sẽ thay bằng picker khi có.
 > - **Mã của bản ghi đã xoá mềm vẫn giữ unique index**: tạo lại phòng ban với mã cũ trả `DUPLICATE_DEPARTMENT_CODE` nhưng thông báo không nói rõ mã đang bị bản ghi đã xoá chiếm. Cần xử lý (cho phép tái dùng mã, hoặc nói rõ lý do).
-> - **Xuất Excel** (ui-conventions §5 có nhắc) chưa làm — không thuộc phạm vi 2.2.
+> - **Xuất Excel** (ui-conventions §5 có nhắc) chưa làm — không thuộc phạm vi 2.2. *(Đã làm ở Giai đoạn 3 cho riêng danh sách nhân viên: `GET /reports/employees/export`. Các màn danh mục khác vẫn chưa có.)*
 
 ---
 
@@ -245,7 +245,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 > **Cố ý KHÔNG làm giống mẫu thiết kế (và lý do):**
 > - **Không có dòng "+12 so với tháng trước"** trên các thẻ. Bảng `employees` chỉ lưu TRẠNG THÁI HIỆN TẠI, không có bảng lịch sử, nên không thể tính trung thực số "đang thử việc"/"đang nghỉ phép" của tháng trước. Mỗi thẻ ghi ý nghĩa con số của chính nó ("Hết hạn trong 30 ngày tới"); riêng "12 tuyển mới 30 ngày qua" là suy ra thật được từ `hire_date`. Muốn có delta đầy đủ phải đọc `work_history` (Giai đoạn 7+).
 > - **Badge "Sắp hết hợp đồng" không phải một trạng thái nhân viên.** `employees.status` chỉ có 6 giá trị; hợp đồng sắp hết hạn là chuyện của HỢP ĐỒNG và dòng bảng không mang ngày hết hạn. Con số đó nằm ở thẻ tổng quan riêng.
-> - **3 nút hàng loạt (Gửi email / Xuất Excel / Đổi phòng ban) để `disabled` kèm tooltip "sắp có"** — chưa có endpoint ở bất kỳ giai đoạn nào. Giữ đúng bố cục mẫu nhưng không có nút bấm vào không làm gì.
+> - **3 nút hàng loạt (Gửi email / Xuất mục đã chọn / Đổi phòng ban) để `disabled` kèm tooltip "sắp có"** — chưa có endpoint ở bất kỳ giai đoạn nào. Giữ đúng bố cục mẫu nhưng không có nút bấm vào không làm gì. *(Xuất Excel THEO BỘ LỌC thì đã có, nằm ở nút trên đầu trang — `GET /reports/employees/export`. Nút trong thanh hàng loạt là xuất các dòng ĐANG CHỌN, cần filter theo id mà endpoint chưa có, nên vẫn `disabled` và đã đổi nhãn cho khỏi trùng tên.)*
 > - **Danh mục hành chính — đã làm xong, và phát hiện schema lỗi thời.** Việt Nam **bỏ hẳn cấp huyện từ 01/07/2025** (Luật 72/2025/QH15), còn **2 cấp**: 34 tỉnh/thành → 3.321 phường/xã/đặc khu. Form đang bắt HR nhập mã cho một cấp không còn tồn tại — tệ hơn thiếu dữ liệu, vì đó là dữ liệu sai. Đã xử lý:
 >   - `employees.district_code` → **NULLABLE + deprecated** (migration `MakeDistrictCodeNullable`). KHÔNG xoá cột: hồ sơ tuyển trước 01/07/2025 có mã huyện thật, đó là lịch sử cần giữ.
 >   - Danh mục sinh từ **file chính thống của cơ quan thuế** do chủ dự án cung cấp (`Danh-sach-Phuong-xa-moi-2025.xlsx`) qua `scripts/build-vn-admin-data.ts` → `vn-provinces.json` (34) + `vn-wards.json` (3.321 = 687 phường + 2.621 xã + 13 đặc khu). App KHÔNG gọi API ngoài lúc chạy.
