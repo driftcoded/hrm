@@ -1,7 +1,7 @@
 # HRM Project — Kế hoạch xây dựng
 
 **Cập nhật lần cuối:** 19/08/2026  
-**Trạng thái tổng thể:** 🟢 Giai đoạn 0, 1, 2 hoàn thành và đã nghiệm thu — sẵn sàng vào Giai đoạn 3
+**Trạng thái tổng thể:** 🟢 Giai đoạn 0, 1, 2, 3 hoàn thành — sẵn sàng vào Giai đoạn 4 (Chấm công)
 
 ---
 
@@ -12,19 +12,20 @@
 | 0 | Khởi tạo project | 28 / 28 | ✅ Hoàn thành |
 | 1 | Auth & User | 43 / 43 | ✅ Hoàn thành (đã nghiệm thu) |
 | 2 | Master Data | 18 / 18 | ✅ Hoàn thành (đã nghiệm thu) |
-| 3 | Nhân viên | 0 / 16 | ⬜ Chưa bắt đầu |
+| 3 | Nhân viên | 29 / 29 | ✅ Hoàn thành |
 | 4 | Chấm công | 0 / 10 | ⬜ Chưa bắt đầu |
 | 5 | Phép | 0 / 12 | ⬜ Chưa bắt đầu |
 | 6 | Lương | 0 / 13 | ⬜ Chưa bắt đầu |
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 89 / 128 tasks hoàn thành *(xem lưu ý đếm bên dưới — tổng 128 gốc không khớp số checkbox thực tế)*
+**Tổng:** 118 / 128 tasks hoàn thành *(xem lưu ý đếm bên dưới — tổng 128 gốc không khớp số checkbox thực tế)*
 
 > ⚠️ **Lưu ý đếm.** Con số trong bảng gốc không khớp số dòng checkbox thực tế:
 > - Giai đoạn 0: bảng ghi 14, thực tế 28 dòng (0.1 và 0.2 mỗi mục 14).
 > - Giai đoạn 1: bảng ghi 21, thực tế 43 dòng (1.1 = 13 task + 14 test, 1.2 = 8 task + 8 test).
 > - Giai đoạn 2: bảng ghi 11, thực tế 18 dòng (2.1 = 6 task + 3 test, 2.2 = 6 task + 3 test).
+> - Giai đoạn 3: bảng ghi 16, thực tế 29 dòng (3.1 = 8 task + 9 test, 3.2 = 7 task + 5 test).
 >
 > Đã sửa 2 dòng trên theo số thực tế. Cột "Tổng: /128" vì thế cũng sai theo — cần rà lại toàn bộ các giai đoạn còn lại rồi chốt lại một cách đếm duy nhất (đếm cả test hay chỉ đếm task).
 
@@ -194,41 +195,70 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 ## Giai đoạn 3 — Nhân viên
 
 ### 3.1 Backend Employees
-- [ ] `EmployeesModule`: tạo, đọc, cập nhật, soft delete
-- [ ] Filter: phòng ban, chức vụ, trạng thái, tìm kiếm tên/mã NV
-- [ ] Phân trang chuẩn (page, pageSize, total)
-- [ ] Upload avatar lên S3, lưu URL vào `employees.avatar_url`
-- [ ] `ContractsModule`: CRUD hợp đồng cho từng NV
-- [ ] `FamilyMembersModule`: CRUD thành viên gia đình
-- [ ] Restore nhân viên đã soft delete
-- [ ] `GET /employees/:id/summary` — tóm tắt thông tin NV cho phiếu lương
+- [x] `EmployeesModule`: tạo, đọc, cập nhật, soft delete — *`employee_code` (`NV0001`…) do SERVER sinh, có retry khi 2 request giành cùng một mã; `full_name` luôn ghép từ `last_name` + `first_name` nên hai cột không bao giờ lệch.*
+- [x] Filter: phòng ban, chức vụ, trạng thái, tìm kiếm tên/mã NV — *thêm `gender`, `hireFrom`/`hireTo`, `onlyDeleted`; cột `sort` whitelist bằng `@IsIn` nên không nội suy tự do vào SQL.*
+- [x] Phân trang chuẩn (page, pageSize, total) — *dùng `PaginatedResponseDto` chung; trần `limit` = 100 chặn ở CẢ DTO (`@Max`) lẫn `resolvePagination()`.*
+- [x] Upload avatar lên S3, lưu URL vào `employees.avatar_url` — *⚠️ mặc định chạy driver `local` (ghi ra `uploads/`, phục vụ tại `/api/v1/uploads/...`), KHÔNG phải S3 thật: dự án chưa có AWS credentials. `S3StorageDriver` đã viết đủ nhưng CHƯA TỪNG CHẠY — cùng tình trạng với `SesMailTransport` ở Giai đoạn 1. Bật production: `npm i @aws-sdk/client-s3` + `STORAGE_DRIVER=s3` + `S3_BUCKET`. Kiểu file xác định bằng **magic bytes**, không tin phần mở rộng.*
+- [x] `ContractsModule`: CRUD hợp đồng cho từng NV — *kèm quy tắc BLLĐ 2019: HĐ không xác định thời hạn không có `end_date`, HĐ xác định thời hạn ≤ 36 tháng và tối đa 2 lần (lần 3 → `CONTRACT_TYPE_LIMIT`), mỗi NV chỉ 1 HĐ `active`. `PATCH /contracts/:id/terminate` để chấm dứt; DELETE chỉ áp dụng cho bản `draft` vì bảng `contracts` KHÔNG có `deleted_at`.*
+- [x] `FamilyMembersModule`: CRUD thành viên gia đình — *route lồng `/employees/:employeeId/family-members`; bản ghi phải thuộc đúng nhân viên trên URL (chống IDOR).*
+- [x] Restore nhân viên đã soft delete — *`POST /employees/:id/restore`; tìm hồ sơ đã xoá qua `GET /employees?onlyDeleted=true`.*
+- [x] `GET /employees/:id/summary` — tóm tắt thông tin NV cho phiếu lương — *gồm phòng ban/chức vụ, MST, số BHXH, tài khoản ngân hàng, số người phụ thuộc đang hiệu lực và hợp đồng `active`; tiền trả về dạng `number` (api-spec §1.5).*
 
-**Tests (3.1):**
-- [ ] Tạo NV với đầy đủ field bắt buộc → thành công
-- [ ] CCCD không đúng 12 số → 400
-- [ ] SĐT sai định dạng → 400
-- [ ] Tạo NV thiếu email → 400
-- [ ] Tìm kiếm theo tên → kết quả đúng
-- [ ] Filter kết hợp phòng ban + trạng thái → đúng
-- [ ] Soft delete → không xuất hiện trong danh sách thường
-- [ ] Restore → xuất hiện lại
-- [ ] Upload avatar > 2MB → 400
+> **Ngoài phạm vi PLAN nhưng cần thiết:**
+> - **Đóng nợ phân quyền của Giai đoạn 1.** Ghi chú ở mục `assertOwnership()` (§1.1) nói role `manager` chưa đi qua được vì cần phạm vi phòng ban — nay đã làm: `EmployeesService.resolveScope()` cho admin/hr_manager/hr_staff thấy toàn bộ, `manager` thấy nhân viên phòng ban mình + phòng ban mình làm trưởng phòng, role còn lại chỉ thấy hồ sơ của chính mình (đúng ma trận `architecture.md` §7.3). Hợp đồng và thành viên gia đình DÙNG LẠI đúng hàm này, không định nghĩa bộ quy tắc thứ hai.
+> - **Kiểm tra trùng phải tính cả bản ghi đã xoá mềm.** Xoá mềm KHÔNG gỡ ràng buộc UNIQUE của MySQL, nên nếu chỉ dò trong bản ghi "sống" thì INSERT sẽ nổ `ER_DUP_ENTRY` → 500. Đã dò kèm `withDeleted()` và trả 409 với message chỉ rõ "restore hồ sơ cũ thay vì tạo mới".
+> - **`GET /employees/me`** (api-spec §3) + **`POST /employees/:id/restore`** + **`?onlyDeleted=true`** — không có trong PLAN nhưng thiếu thì tính năng restore không dùng được từ UI.
+> - **`DependentsModule`** (api-spec §11, `/employees/:id/dependents`) — PLAN không liệt kê ở giai đoạn nào, nhưng `GET /employees/:id/summary` đã trả `activeDependents` mà **không có đường nào tạo dependent**, nên con số đó vĩnh viễn bằng 0. Giai đoạn 6 cần nó để tính giảm trừ gia cảnh 6.2tr/người/tháng. Ràng buộc quan trọng nhất: **một người chỉ được khai cho MỘT người nộp thuế** (Điều 19 Luật Thuế TNCN) — trùng CCCD/MST với người phụ thuộc đang hiệu lực của bất kỳ nhân viên nào đều bị chặn, kể cả khi hai vợ chồng cùng làm ở công ty. Ngừng giảm trừ bắt buộc kèm lý do (`DEPENDENT_REASON_REQUIRED`) vì đó là thứ cơ quan thuế sẽ hỏi. Bản ghi `inactive` nhả lại suất cho người khác khai.
+> - **Validator định danh VN dùng chung** (`common/validators/vn-identity.validator.ts`): CCCD, MST, số BHXH/BHYT, SĐT, họ tên có dấu — map sang đúng `error.details[].code` của api-spec §21 (`INVALID_CCCD`, `INVALID_PHONE`…) để frontend lookup i18n bằng code.
+> - **Chức vụ phải thuộc đúng phòng ban được gán** → 422 `POSITION_DEPARTMENT_MISMATCH`. Không chặn thì sơ đồ tổ chức và bảng lương lệch nhau.
+>
+> **Lệch với tài liệu (cố ý, đã cân nhắc):**
+> - `database-schema.md` §4.1 ghi thử việc "tối đa 60 ngày". Điều 25 BLLĐ 2019 thực tế có **4 mức** (180 / 60 / 30 / 6 ngày) tuỳ vị trí, mà bảng `contracts` không lưu vị trí đó — chặn cứng ở 60 sẽ từ chối hợp đồng HỢP PHÁP của cấp quản lý. Đang chặn ở trần tuyệt đối **180 ngày**; ràng buộc theo từng vị trí thuộc quy trình duyệt của HR.
+> - api-spec §3 ghi DELETE `/employees/:id` cho `admin`, `hr_manager` → làm đúng vậy (`hr_staff` nhập liệu được nhưng KHÔNG xoá được).
+
+**Tests (3.1):** — *52 e2e (`test/employees.e2e-spec.ts`, đánh số `[1]`–`[52]`) + 71 unit mới (employees 35, contracts 27, avatar magic-bytes 9). Toàn repo: **245 unit + 117 e2e pass**. Bộ e2e chạy lại được nhiều lần: fixture dùng tiền tố `E3E` / email `@e3e.local`, dọn sạch cả DB lẫn file avatar trên đĩa ở `beforeAll` + `afterAll`, KHÔNG đụng dữ liệu seed.*
+- [x] Tạo NV với đầy đủ field bắt buộc → thành công *(e2e [1] — mã `NV####` do server sinh)*
+- [x] CCCD không đúng 12 số → 400 *(e2e [2] — `details[].code = INVALID_CCCD`)*
+- [x] SĐT sai định dạng → 400 *(e2e [3] — `details[].code = INVALID_PHONE`)*
+- [x] Tạo NV thiếu email → 400 *(e2e [4])*
+- [x] Tìm kiếm theo tên → kết quả đúng *(e2e [12], [13] — tìm cả theo mã NV)*
+- [x] Filter kết hợp phòng ban + trạng thái → đúng *(e2e [14])*
+- [x] Soft delete → không xuất hiện trong danh sách thường *(e2e [27] — kiểm chứng `deleted_at` trong DB, list rỗng, GET chi tiết 404)*
+- [x] Restore → xuất hiện lại *(e2e [29]; [28] danh sách thùng rác, [30] restore hồ sơ chưa xoá → 422)*
+- [x] Upload avatar > 2MB → 400 *(e2e [34] `AVATAR_TOO_LARGE`; [35] file không phải ảnh đổi tên `.jpg` → `AVATAR_INVALID_TYPE`)*
 
 ### 3.2 Frontend Employees
-- [ ] Trang `/employees`: DataTable + filter bar (phòng ban, trạng thái, search)
-- [ ] Wizard tạo NV 4 bước: cơ bản → công việc → lương → tài khoản
-- [ ] Trang chi tiết NV: 8 tabs (cá nhân, hợp đồng, lương, phép, chấm công, khen thưởng, đánh giá, gia đình)
-- [ ] Upload avatar với preview
-- [ ] CCCD hiển thị che giữa trong danh sách
-- [ ] SĐT hiển thị đúng định dạng `0901 234 567`
-- [ ] Confirm xóa NV + lý do
+- [x] Trang `/employees`: DataTable + filter bar (phòng ban, trạng thái, search) — *làm theo mẫu thiết kế chủ dự án gửi: header + nút chính, thanh lọc, 4 thẻ tổng quan, bảng có chọn dòng, panel phải (biểu đồ tròn nhân sự theo phòng ban + thống kê nhanh + sinh nhật sắp tới). Lọc thêm: chức vụ, giới tính, khoảng ngày vào làm, thùng rác.*
+- [x] Wizard tạo NV 4 bước: cơ bản → công việc → lương → tài khoản — *một `Form` duy nhất, các bước ẩn bằng CSS chứ KHÔNG unmount, nên quay lại bước trước không mất dữ liệu đã gõ.*
+- [x] Trang chi tiết NV: 8 tabs (cá nhân, hợp đồng, lương, phép, chấm công, khen thưởng, đánh giá, gia đình) — *3 tab có backend thật (cá nhân/hợp đồng/gia đình); 5 tab còn lại hiện `ComingSoonTab` ghi rõ thuộc Giai đoạn nào (4–7) thay vì ẩn đi. Tab "Gia đình" chứa **2 bảng tách bạch**: `family_members` (thông tin nhân sự, không ảnh hưởng thuế) và `dependents` (đăng ký giảm trừ gia cảnh, có hệ quả tiền bạc) — gộp làm một sẽ xoá mất đúng cái khác biệt mà Giai đoạn 6 cần.*
+- [x] Upload avatar với preview — *`beforeUpload` trả `false` nên AntD không tự gửi: ảnh được xem trước bằng object URL, chỉ upload khi bấm "Lưu ảnh"; object URL được revoke để không rò bộ nhớ.*
+- [x] CCCD hiển thị che giữa — *⚠️ LỆCH PLAN: che ở trang CHI TIẾT (kèm nút hiện/ẩn) chứ không phải ở danh sách, vì `GET /employees` CỐ Ý không trả `cccdNumber` — không gửi số CCCD ra màn hình duyệt còn an toàn hơn là gửi rồi che bằng JS. Có e2e [17] chốt việc list không chứa CCCD.*
+- [x] SĐT hiển thị đúng định dạng `0901 234 567` — *dùng `formatPhone()` có sẵn ở `utils/format.ts`.*
+- [x] Confirm xóa NV + lý do — *lý do được GHI THẬT: PATCH `terminationReason`/`terminationType`/`terminationDate` trước, xoá mềm sau. PATCH lỗi thì KHÔNG xoá, nên không bao giờ có hồ sơ bị xoá mà mất lý do.*
 
-**Tests (3.2):**
-- [ ] Wizard: không thể Next nếu form bước hiện tại chưa hợp lệ
-- [ ] Avatar upload: preview trước khi lưu
-- [ ] Bảng phân trang: URL cập nhật `?page=2&pageSize=20`
-- [ ] Filter combo hoạt động, không reset page
-- [ ] Tab chi tiết: click tab không reload lại tab khác
+> **Bổ sung backend cho 3.2** (không có trong PLAN nhưng màn hình không chạy được nếu thiếu):
+> - `GET /employees/stats` — gộp toàn bộ số liệu của 4 thẻ + panel phải vào MỘT request. Đếm ở client là sai (mỗi số là `COUNT` toàn bảng, list chỉ trả 1 trang ≤ 100 dòng) và tốn 6-7 request mỗi lần mở trang. Tính đúng trong phạm vi role gọi nó — manager chỉ thấy phòng ban mình, không rò tổng công ty qua đường khác.
+> - `baseSalary` thêm vào mỗi dòng `GET /employees` cho cột "Mức lương cơ bản" (lấy từ hợp đồng `active`, một truy vấn cho cả trang chứ không phải mỗi dòng một truy vấn).
+> - `POST /users` + `GET /roles` — bước 4 "tài khoản" của wizard trước đó KHÔNG có API nào để gọi (`UsersModule` chỉ có service/repository). Chỉ `admin` được gọi, đúng ma trận `architecture.md` §7.3.
+> - `GET /system/provinces` — 34 tỉnh/thành từ file tĩnh, cho ô địa chỉ.
+>
+> **Cố ý KHÔNG làm giống mẫu thiết kế (và lý do):**
+> - **Không có dòng "+12 so với tháng trước"** trên các thẻ. Bảng `employees` chỉ lưu TRẠNG THÁI HIỆN TẠI, không có bảng lịch sử, nên không thể tính trung thực số "đang thử việc"/"đang nghỉ phép" của tháng trước. Mỗi thẻ ghi ý nghĩa con số của chính nó ("Hết hạn trong 30 ngày tới"); riêng "12 tuyển mới 30 ngày qua" là suy ra thật được từ `hire_date`. Muốn có delta đầy đủ phải đọc `work_history` (Giai đoạn 7+).
+> - **Badge "Sắp hết hợp đồng" không phải một trạng thái nhân viên.** `employees.status` chỉ có 6 giá trị; hợp đồng sắp hết hạn là chuyện của HỢP ĐỒNG và dòng bảng không mang ngày hết hạn. Con số đó nằm ở thẻ tổng quan riêng.
+> - **3 nút hàng loạt (Gửi email / Xuất Excel / Đổi phòng ban) để `disabled` kèm tooltip "sắp có"** — chưa có endpoint ở bất kỳ giai đoạn nào. Giữ đúng bố cục mẫu nhưng không có nút bấm vào không làm gì.
+> - **Danh mục hành chính — đã làm xong, và phát hiện schema lỗi thời.** Việt Nam **bỏ hẳn cấp huyện từ 01/07/2025** (Luật 72/2025/QH15), còn **2 cấp**: 34 tỉnh/thành → 3.321 phường/xã/đặc khu. Form đang bắt HR nhập mã cho một cấp không còn tồn tại — tệ hơn thiếu dữ liệu, vì đó là dữ liệu sai. Đã xử lý:
+>   - `employees.district_code` → **NULLABLE + deprecated** (migration `MakeDistrictCodeNullable`). KHÔNG xoá cột: hồ sơ tuyển trước 01/07/2025 có mã huyện thật, đó là lịch sử cần giữ.
+>   - Danh mục sinh từ **file chính thống của cơ quan thuế** do chủ dự án cung cấp (`Danh-sach-Phuong-xa-moi-2025.xlsx`) qua `scripts/build-vn-admin-data.ts` → `vn-provinces.json` (34) + `vn-wards.json` (3.321 = 687 phường + 2.621 xã + 13 đặc khu). App KHÔNG gọi API ngoài lúc chạy.
+>   - **Chọn hệ mã của cơ quan thuế** (tỉnh BNV `01`–`34`, phường/xã TMS `10105001`) thay vì mã GSO: Giai đoạn 6 quyết toán thuế TNCN, dùng đúng mã cơ quan thuế dùng thì số liệu đi nộp không phải map thêm lần nữa. Mỗi phường/xã mang kèm `legacyDistrictCode`/`Name` để tra ngược hồ sơ cũ.
+>   - `GET /system/wards?provinceCode=` + form đổi thành Tỉnh → Phường/Xã (bỏ ô mã huyện).
+>   - **Đối chiếu chéo** với provinces.open-api.vn v2 (nguồn độc lập): 34/34 tỉnh khớp, 0 tỉnh lệch số lượng, **3.310/3.321 tên khớp tuyệt đối**; 11 tên còn lại chỉ khác dấu gạch/chính tả (`alba` ↔ `al ba`, `Lục Sỹ` ↔ `Lục Si`), không phải khác đơn vị hành chính.
+
+**Tests (3.2):** — *kiểm chứng bằng 27 assertion contract chạy THẬT qua Vite proxy (`http://localhost:5174/api/v1`, đúng đường trình duyệt đi): shape của `EmployeeListItem`/`EmployeeDetail`/`EmployeeStats`/`Province`/`RoleOption`, list không lộ CCCD, tổng lát biểu đồ khớp tổng nhân viên, sinh nhật sắp xếp đúng, và các `error.code` mà UI có sẵn chuỗi i18n. Cộng thêm 27 unit test backend mới (stats + baseSalary 8, người phụ thuộc 19) và 15 e2e mới (10 người phụ thuộc + 5 danh mục hành chính 2 cấp) — trong đó có test chứng minh `summary.activeDependents` đã được nối thật (trước đây luôn = 0). Frontend: `tsc --noEmit` sạch, `oxlint` sạch, `npm run build` thành công.*
+- [x] Wizard: không thể Next nếu form bước hiện tại chưa hợp lệ *(`handleNext` chỉ `validateFields(STEP_FIELDS[step])` — thiếu field bước 1 thì không sang được bước 2, còn field bắt buộc ở bước 3 không chặn bước 1)*
+- [x] Avatar upload: preview trước khi lưu *(`beforeUpload` → `false`, preview bằng object URL, chỉ gửi khi bấm "Lưu ảnh"; upload lỗi thì giữ nguyên preview để thử lại)*
+- [x] Bảng phân trang: URL cập nhật `?page=2&pageSize=20` *(dùng `useTableQuery` — toàn bộ page/pageSize/sort/filter nằm trên query string, F5 và link chia sẻ ra đúng trang đó)*
+- [x] Filter combo hoạt động, không reset page *(quy tắc của `useTableQuery`: chỉ về trang 1 khi GIÁ TRỊ filter thật sự đổi; áp lại cùng filter, sắp xếp hay phân trang không đẩy trang đi)*
+- [x] Tab chi tiết: click tab không reload lại tab khác *(AntD giữ pane đã render, và mỗi tab có query key riêng nên quay lại đọc cache; tab đang mở nằm trên URL `?tab=`)*
 
 ---
 
