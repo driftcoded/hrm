@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { AvatarUploader } from '@/components/employees/AvatarUploader';
 import { DeleteEmployeeModal } from '@/components/employees/DeleteEmployeeModal';
 import { EmployeeHeroCard } from '@/components/employees/EmployeeHeroCard';
+import { EmployeeSideRail } from '@/components/employees/EmployeeSideRail';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { useEmployee, useEmployeeMutations, useEmployeeSummary } from '@/hooks/useEmployees';
 import {
@@ -134,7 +135,6 @@ export function EmployeeDetailPage() {
         children: (
           <PersonalTab
             employee={employee}
-            summary={summary}
             canEdit={canWrite}
             isSaving={mutations.isSaving}
             onSave={handleSavePersonal}
@@ -178,7 +178,7 @@ export function EmployeeDetailPage() {
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canWrite, canWriteContracts, employee, mutations.isSaving, summary, t]);
+  }, [canWrite, canWriteContracts, employee, mutations.isSaving, t]);
 
   if (!isValidId) {
     return <Alert type="error" showIcon message={t('employees.detail.invalidId')} />;
@@ -266,31 +266,40 @@ export function EmployeeDetailPage() {
         <Alert type="warning" showIcon message={t('employees.detail.deletedNotice')} />
       )}
 
-      <EmployeeHeroCard
-        employee={employee}
-        summary={summary}
-        avatarSlot={
-          <AvatarUploader
-            currentUrl={employee.avatarUrl}
-            isUploading={mutations.isUploading}
-            disabled={!canWrite}
-            size={72}
-            onUpload={async (file) => {
-              try {
-                await mutations.uploadAvatar(employee.id, file);
-                message.success(t('employees.avatar.uploaded'));
-              } catch (uploadError) {
-                message.error(resolveError(uploadError));
-                throw uploadError;
-              }
-            }}
+      <div className={styles.columns}>
+        <div className={styles.mainColumn}>
+          <EmployeeHeroCard
+            employee={employee}
+            summary={summary}
+            avatarSlot={
+              <AvatarUploader
+                currentUrl={employee.avatarUrl}
+                isUploading={mutations.isUploading}
+                disabled={!canWrite}
+                size={72}
+                onUpload={async (file) => {
+                  try {
+                    await mutations.uploadAvatar(employee.id, file);
+                    message.success(t('employees.avatar.uploaded'));
+                  } catch (uploadError) {
+                    message.error(resolveError(uploadError));
+                    throw uploadError;
+                  }
+                }}
+              />
+            }
           />
-        }
-      />
 
-      <Card variant="borderless">
-        <Tabs items={tabItems} activeKey={activeTab} onChange={handleTabChange} />
-      </Card>
+          <Card variant="borderless">
+            <Tabs items={tabItems} activeKey={activeTab} onChange={handleTabChange} />
+          </Card>
+        </div>
+
+        {/* Cột phải 1/3: chỉ số + tóm tắt. Nằm NGOÀI tab vì đây là
+            thông tin về con người, không phải về tab đang mở. */}
+        <EmployeeSideRail summary={summary} />
+      </div>
+
 
       <DeleteEmployeeModal
         open={isDeleteOpen}

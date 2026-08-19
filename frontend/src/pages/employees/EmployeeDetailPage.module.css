@@ -23,6 +23,31 @@
   }
 }
 
+/*
+ * Trang chia hai cột: nội dung chính bên trái, cột phụ 1/3 bên phải.
+ * Dưới 1200px cột phải xuống dưới thay vì bóp bảng hai cột của tab thành một
+ * dải chữ hẹp.
+ */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--hrm-grid-gap);
+  align-items: start;
+}
+
+.mainColumn {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+@media (max-width: 1199px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .header {
   display: flex;
   align-items: flex-start;

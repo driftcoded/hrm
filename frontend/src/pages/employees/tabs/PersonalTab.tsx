@@ -13,12 +13,9 @@ import {
   Tooltip,
 } from 'antd';
 import {
-  DollarOutlined,
   EditOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
-  FileTextOutlined,
-  TeamOutlined,
 } from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -30,12 +27,11 @@ import {
   MARITAL_STATUSES,
   type EducationLevel,
   type EmployeeDetail,
-  type EmployeeSummary,
   type Gender,
   type MaritalStatus,
   type UpdateEmployeePayload,
 } from '@/types/employee.types';
-import { formatCurrency, formatDate, formatPhone, maskCccd } from '@/utils/format';
+import { formatDate, formatPhone, maskCccd } from '@/utils/format';
 import styles from './tabs.module.css';
 
 /**
@@ -56,8 +52,6 @@ import styles from './tabs.module.css';
 
 export interface PersonalTabProps {
   employee: EmployeeDetail;
-  /** Hợp đồng hiệu lực + số người phụ thuộc, cho thẻ tóm tắt ở cột phải. */
-  summary: EmployeeSummary | undefined;
   canEdit: boolean;
   isSaving: boolean;
   onSave: (payload: UpdateEmployeePayload) => Promise<unknown>;
@@ -105,13 +99,7 @@ const orNull = (value: string | undefined): string | null => {
   return trimmed ? trimmed : null;
 };
 
-export function PersonalTab({
-  employee,
-  summary,
-  canEdit,
-  isSaving,
-  onSave,
-}: PersonalTabProps) {
+export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTabProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<PersonalFormValues>();
   const resolveError = useApiErrorMessage();
@@ -259,10 +247,9 @@ export function PersonalTab({
           </div>
         )}
 
-        <div className={styles.overview}>
-          <div className={styles.overviewMain}>
-            <Card variant="borderless">
-              <h3 className={styles.blockTitle}>
+        <div className={styles.blocks}>
+          <Card variant="borderless">
+            <h3 className={styles.blockTitle}>
                 <span className={styles.blockLetter}>A.</span>
                 {t('employees.detail.sectionPersonal')}
               </h3>
@@ -343,10 +330,10 @@ export function PersonalTab({
                     )
                   : null}
               </dl>
-            </Card>
+          </Card>
 
-            <Card variant="borderless">
-              <h3 className={styles.blockTitle}>
+          <Card variant="borderless">
+            <h3 className={styles.blockTitle}>
                 <span className={styles.blockLetter}>B.</span>
                 {t('employees.detail.sectionJob')}
               </h3>
@@ -390,10 +377,10 @@ export function PersonalTab({
                     )
                   : null}
               </dl>
-            </Card>
+          </Card>
 
-            <Card variant="borderless">
-              <h3 className={styles.blockTitle}>
+          <Card variant="borderless">
+            <h3 className={styles.blockTitle}>
                 <span className={styles.blockLetter}>C.</span>
                 {t('employees.detail.sectionNotes')}
               </h3>
@@ -406,79 +393,9 @@ export function PersonalTab({
               ) : (
                 <p className={styles.pendingCard}>{t('employees.detail.noNotes')}</p>
               )}
-            </Card>
+          </Card>
           </div>
 
-          <div className={styles.overviewSide}>
-            <Card variant="borderless" title={t('employees.detail.sideContract')}>
-              {summary?.activeContract ? (
-                <>
-                  <div className={styles.summaryRow}>
-                    <span className={styles.summaryIcon} aria-hidden="true">
-                      <FileTextOutlined />
-                    </span>
-                    <span className={styles.summaryLabel}>
-                      {t('employees.fields.contractNumber')}
-                    </span>
-                    <span className={styles.summaryValue}>
-                      {summary.activeContract.contractNumber}
-                    </span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span className={styles.summaryIcon} aria-hidden="true">
-                      <DollarOutlined />
-                    </span>
-                    <span className={styles.summaryLabel}>
-                      {t('employees.fields.baseSalary')}
-                    </span>
-                    <span className={styles.summaryValue}>
-                      {formatCurrency(summary.activeContract.baseSalary)}
-                    </span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span className={styles.summaryIcon} aria-hidden="true">
-                      <DollarOutlined />
-                    </span>
-                    <span className={styles.summaryLabel}>
-                      {t('employees.fields.positionAllowance')}
-                    </span>
-                    <span className={styles.summaryValue}>
-                      {formatCurrency(summary.activeContract.positionAllowance)}
-                    </span>
-                  </div>
-                  <div className={styles.summaryRow}>
-                    <span className={styles.summaryIcon} aria-hidden="true">
-                      <TeamOutlined />
-                    </span>
-                    <span className={styles.summaryLabel}>
-                      {t('employees.detail.dependentsCount')}
-                    </span>
-                    <span className={styles.summaryValue}>{summary.activeDependents}</span>
-                  </div>
-                </>
-              ) : (
-                <p className={styles.pendingCard}>{t('employees.hero.noContract')}</p>
-              )}
-            </Card>
-
-            {/*
-              Hai thẻ dưới cố ý CHƯA có số liệu. Chấm công thuộc Giai đoạn 4 và
-              bảng lương thuộc Giai đoạn 6 — in một con số bịa ở đây thì HR sẽ
-              tin và dùng nó, nên chỗ này nói thẳng là chưa có.
-            */}
-            <Card variant="borderless" title={t('employees.detail.sideAttendance')}>
-              <p className={styles.pendingCard}>
-                {t('employees.tabs.comingSoonDetail', { phase: '4' })}
-              </p>
-            </Card>
-
-            <Card variant="borderless" title={t('employees.detail.sidePayroll')}>
-              <p className={styles.pendingCard}>
-                {t('employees.tabs.comingSoonDetail', { phase: '6' })}
-              </p>
-            </Card>
-          </div>
-        </div>
       </div>
     );
   }

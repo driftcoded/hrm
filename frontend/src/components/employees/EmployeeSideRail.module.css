@@ -1,0 +1,136 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+  min-width: 0;
+}
+
+/*
+ * 2x2 ở cột 1/3. Ở khổ hẹp hơn các ô xuống một cột thay vì bóp nhãn — nhãn bị
+ * cắt cụt là đúng lý do bốn ô này phải rời khỏi thẻ đầu trang.
+ */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--hrm-grid-gap);
+}
+
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  padding: var(--hrm-space-4);
+  background: var(--hrm-card-bg);
+  border: var(--hrm-card-border);
+  border-radius: var(--hrm-card-radius);
+  min-width: 0;
+}
+
+.kpiIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--hrm-radius-md);
+}
+
+.green {
+  background: var(--hrm-color-success-soft);
+  color: var(--hrm-color-success);
+}
+
+.blue {
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+}
+
+.purple {
+  background: var(--hrm-color-accent-soft);
+  color: var(--hrm-color-accent);
+}
+
+.orange {
+  background: var(--hrm-color-warning-soft);
+  color: #d48806;
+}
+
+.kpiBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Nhãn được xuống dòng chứ không cắt cụt: "Hiệu suất tháng này" phải đọc trọn. */
+.kpiLabel {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  line-height: var(--hrm-line-height-tight);
+}
+
+.kpiValue {
+  margin-top: var(--hrm-space-1);
+  font-size: var(--hrm-font-size-h3);
+  font-weight: 700;
+  color: var(--hrm-color-heading);
+  overflow-wrap: anywhere;
+}
+
+/* Ô chưa có dữ liệu: nhạt hẳn để không đọc nhầm thành một con số thật. */
+.kpiPending {
+  margin-top: var(--hrm-space-1);
+  font-size: var(--hrm-font-size-h3);
+  font-weight: 700;
+  color: var(--hrm-color-border);
+  cursor: help;
+}
+
+/* --- thẻ tóm tắt --- */
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+}
+
+.summaryRow + .summaryRow {
+  margin-top: var(--hrm-space-4);
+}
+
+.summaryIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--hrm-radius-md);
+  background: var(--hrm-color-primary-softer);
+  color: var(--hrm-color-primary);
+}
+
+.summaryLabel {
+  flex: 1;
+  min-width: 0;
+  color: var(--hrm-color-text-secondary);
+}
+
+.summaryValue {
+  flex: none;
+  font-weight: 600;
+  color: var(--hrm-color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pending {
+  margin: 0;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+@media (max-width: 767px) {
+  .kpiGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -47,24 +47,13 @@
   font-size: var(--hrm-font-size-caption);
 }
 
-/*
- * Tab "Thông tin cá nhân" là màn tổng quan: cột trái là các khối A/B/C, cột
- * phải là những thẻ tóm tắt. Dưới 1200px cột phải xuống dưới thay vì bóp bảng
- * hai cột thành một cột chữ dính nhau.
- */
-.overview {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: var(--hrm-grid-gap);
-  align-items: start;
-}
-
-.overviewMain,
-.overviewSide {
-  min-width: 0;
+/* Tab "Thông tin cá nhân": các khối A/B/C xếp dọc, một cột. Cột phụ đã lên
+   cấp trang (EmployeeSideRail) nên ở đây không còn lưới hai cột. */
+.blocks {
   display: flex;
   flex-direction: column;
   gap: var(--hrm-grid-gap);
+  min-width: 0;
 }
 
 /* Tiêu đề khối kiểu "A. Thông tin cá nhân". */
@@ -117,51 +106,8 @@
   color: var(--hrm-color-text-secondary);
 }
 
-/* Thẻ tóm tắt ở cột phải: hàng icon + nhãn + giá trị. */
-.summaryRow {
-  display: flex;
-  align-items: center;
-  gap: var(--hrm-space-3);
-}
-
-.summaryRow + .summaryRow {
-  margin-top: var(--hrm-space-4);
-}
-
-.summaryIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--hrm-radius-md);
-  background: var(--hrm-color-primary-softer);
-  color: var(--hrm-color-primary);
-}
-
-.summaryLabel {
-  flex: 1;
-  min-width: 0;
-  color: var(--hrm-color-text-secondary);
-  font-size: var(--hrm-font-size-base);
-}
-
-.summaryValue {
-  flex: none;
-  font-weight: 600;
-  color: var(--hrm-color-text);
-  font-variant-numeric: tabular-nums;
-}
-
 .pendingCard {
   margin: 0;
   color: var(--hrm-color-text-tertiary);
   font-size: var(--hrm-font-size-caption);
-}
-
-@media (max-width: 1199px) {
-  .overview {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
