@@ -680,8 +680,8 @@
       "phone": "Phone",
       "email": "Work email",
       "personalEmail": "Personal email",
-      "permanentAddress": "Permanent address",
-      "currentAddress": "Current address",
+      "permanentAddress": "Street address (permanent)",
+      "currentAddress": "Street address (current)",
       "currentAddressHint": "Leave empty if same as permanent address",
       "sameAsPermanent": "Same as permanent address",
       "provinceCode": "Province / city",
@@ -729,7 +729,9 @@
       "wardPlaceholder": "Select a ward or commune",
       "wardNeedsProvince": "Pick a province first",
       "twoTierHint": "Since 01/07/2025 Vietnam has two tiers: province and ward/commune",
-      "legacyDistrict": "District (legacy record)"
+      "legacyDistrict": "District (legacy record)",
+      "addressDetailHint": "Largest to smallest: hamlet/group, then building, house and room number",
+      "addressDetailPlaceholder": "Doai hamlet, Block A2, no. 15, room 302"
     },
     "validation": {
       "required": "This field is required",

@@ -680,8 +680,8 @@
       "phone": "Số điện thoại",
       "email": "Email công ty",
       "personalEmail": "Email cá nhân",
-      "permanentAddress": "Địa chỉ thường trú",
-      "currentAddress": "Chỗ ở hiện tại",
+      "permanentAddress": "Địa chỉ chi tiết (thường trú)",
+      "currentAddress": "Địa chỉ chi tiết (chỗ ở hiện tại)",
       "currentAddressHint": "Để trống nếu giống địa chỉ thường trú",
       "sameAsPermanent": "Giống địa chỉ thường trú",
       "provinceCode": "Tỉnh/Thành phố",
@@ -729,7 +729,9 @@
       "wardPlaceholder": "Chọn phường/xã/đặc khu",
       "wardNeedsProvince": "Chọn tỉnh/thành phố trước",
       "twoTierHint": "Từ 01/07/2025 cả nước còn 2 cấp: tỉnh/thành và phường/xã",
-      "legacyDistrict": "Quận/Huyện (hồ sơ cũ)"
+      "legacyDistrict": "Quận/Huyện (hồ sơ cũ)",
+      "addressDetailHint": "Nhập từ lớn đến nhỏ: thôn/tổ, sau đó toà nhà, số nhà, số phòng",
+      "addressDetailPlaceholder": "Thôn Đoài, Toà A2, số 15, phòng 302"
     },
     "validation": {
       "required": "Trường này là bắt buộc",

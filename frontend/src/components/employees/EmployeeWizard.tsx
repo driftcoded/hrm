@@ -524,25 +524,6 @@ export function EmployeeWizard({
               </Form.Item>
             </Col>
 
-            <Col xs={24}>
-              <Form.Item
-                name="permanentAddress"
-                label={t('employees.fields.permanentAddress')}
-                rules={[{ required: true, message: t('employees.validation.required') }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24}>
-              <Form.Item
-                name="currentAddress"
-                label={t('employees.fields.currentAddress')}
-                extra={t('employees.fields.currentAddressHint')}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-
             <Col xs={24} md={8}>
               <Form.Item
                 name="provinceCode"
@@ -599,6 +580,29 @@ export function EmployeeWizard({
                     }))}
                   />
                 )}
+              </Form.Item>
+            </Col>
+
+            {/* Địa chỉ đi từ ĐƠN VỊ HÀNH CHÍNH LỚN xuống chi tiết:
+                tỉnh → xã/phường → thôn/tổ → toà nhà, số nhà, số phòng.
+                Hai ô dưới là phần chi tiết, nên phải nằm SAU hai ô trên. */}
+            <Col xs={24}>
+              <Form.Item
+                name="permanentAddress"
+                label={t('employees.fields.permanentAddress')}
+                rules={[{ required: true, message: t('employees.validation.required') }]}
+                extra={t('employees.fields.addressDetailHint')}
+              >
+                <Input placeholder={t('employees.fields.addressDetailPlaceholder')} />
+              </Form.Item>
+            </Col>
+            <Col xs={24}>
+              <Form.Item
+                name="currentAddress"
+                label={t('employees.fields.currentAddress')}
+                extra={t('employees.fields.currentAddressHint')}
+              >
+                <Input placeholder={t('employees.fields.addressDetailPlaceholder')} />
               </Form.Item>
             </Col>
           </Row>

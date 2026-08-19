@@ -299,9 +299,8 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
           <Descriptions.Item label={t('employees.fields.personalEmail')}>
             {employee.personalEmail ?? <span className={styles.muted}>—</span>}
           </Descriptions.Item>
-          <Descriptions.Item label={t('employees.fields.permanentAddress')} span={2}>
-            {employee.permanentAddress}
-          </Descriptions.Item>
+          {/* Địa chỉ đọc từ LỚN xuống NHỎ — tỉnh → xã/phường → chi tiết —
+              cùng thứ tự với form nhập, để mắt không phải nhảy ngược. */}
           <Descriptions.Item label={t('employees.fields.provinceCode')}>
             {provinceName ?? employee.provinceCode}
           </Descriptions.Item>
@@ -315,6 +314,9 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
               <span className={styles.mono}>{employee.districtCode}</span>
             </Descriptions.Item>
           )}
+          <Descriptions.Item label={t('employees.fields.permanentAddress')} span={3}>
+            {employee.permanentAddress}
+          </Descriptions.Item>
           <Descriptions.Item label={t('employees.fields.currentAddress')} span={3}>
             {employee.currentAddress ?? (
               <span className={styles.muted}>{t('employees.fields.sameAsPermanent')}</span>
@@ -500,20 +502,6 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
             <Input />
           </Form.Item>
         </Col>
-        <Col xs={24}>
-          <Form.Item
-            name="permanentAddress"
-            label={t('employees.fields.permanentAddress')}
-            rules={[{ required: true, message: t('employees.validation.required') }]}
-          >
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col xs={24}>
-          <Form.Item name="currentAddress" label={t('employees.fields.currentAddress')}>
-            <Input />
-          </Form.Item>
-        </Col>
         <Col xs={24} md={8}>
           <Form.Item
             name="provinceCode"
@@ -549,6 +537,24 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
                 label: ward.name,
               }))}
             />
+          </Form.Item>
+        </Col>
+
+        {/* Chi tiết đứng SAU đơn vị hành chính: tỉnh → xã/phường → thôn/tổ →
+            toà nhà, số nhà, số phòng. */}
+        <Col xs={24}>
+          <Form.Item
+            name="permanentAddress"
+            label={t('employees.fields.permanentAddress')}
+            rules={[{ required: true, message: t('employees.validation.required') }]}
+            extra={t('employees.fields.addressDetailHint')}
+          >
+            <Input placeholder={t('employees.fields.addressDetailPlaceholder')} />
+          </Form.Item>
+        </Col>
+        <Col xs={24}>
+          <Form.Item name="currentAddress" label={t('employees.fields.currentAddress')}>
+            <Input placeholder={t('employees.fields.addressDetailPlaceholder')} />
           </Form.Item>
         </Col>
         <Col xs={24} md={8}>
