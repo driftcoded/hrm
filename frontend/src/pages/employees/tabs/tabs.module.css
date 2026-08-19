@@ -76,18 +76,12 @@
   padding-bottom: 0;
 }
 
-/* Tiêu đề khối kiểu "A. Thông tin cá nhân". */
+/* Tiêu đề khối. */
 .blockTitle {
   margin: 0 0 var(--hrm-space-4);
   font-size: var(--hrm-font-size-h3);
   font-weight: 600;
   color: var(--hrm-color-heading);
-}
-
-.blockLetter {
-  display: inline-block;
-  margin-inline-end: var(--hrm-space-2);
-  color: var(--hrm-color-primary);
 }
 
 /* Danh sách nhãn/giá trị 2 cột, gọn hơn Descriptions có viền. */

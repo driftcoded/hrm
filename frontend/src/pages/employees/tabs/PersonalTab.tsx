@@ -248,10 +248,7 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
 
         <div className={styles.blocks}>
           <section className={styles.block}>
-            <h3 className={styles.blockTitle}>
-                <span className={styles.blockLetter}>A.</span>
-                {t('employees.detail.sectionPersonal')}
-              </h3>
+            <h3 className={styles.blockTitle}>{t('employees.detail.sectionPersonal')}</h3>
               <dl className={styles.pairs}>
                 {pair(t('employees.fields.fullName'), employee.fullName)}
                 {pair(
@@ -332,10 +329,7 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
           </section>
 
           <section className={styles.block}>
-            <h3 className={styles.blockTitle}>
-                <span className={styles.blockLetter}>B.</span>
-                {t('employees.detail.sectionJob')}
-              </h3>
+            <h3 className={styles.blockTitle}>{t('employees.detail.sectionJob')}</h3>
               <dl className={styles.pairs}>
                 {pair(
                   t('employees.columns.code'),
@@ -379,10 +373,7 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
           </section>
 
           <section className={styles.block}>
-            <h3 className={styles.blockTitle}>
-                <span className={styles.blockLetter}>C.</span>
-                {t('employees.detail.sectionNotes')}
-              </h3>
+            <h3 className={styles.blockTitle}>{t('employees.detail.sectionNotes')}</h3>
               {noteLines.length > 0 ? (
                 <ul className={styles.noteList}>
                   {noteLines.map((line, index) => (
