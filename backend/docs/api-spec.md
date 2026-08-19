@@ -2,8 +2,11 @@
 
 > **Base URL:** `https://api.yourdomain.com/api/v1`  
 > **Format:** JSON, UTF-8  
-> **Auth:** Bearer JWT (Access Token)  
-> **Docs:** Swagger tại `/api/docs` (chỉ môi trường dev/staging)
+> **Auth:** Bearer JWT (Access Token) trong header; refresh token trong cookie HttpOnly (§2)  
+> **Docs:** Swagger tại `/api/docs`
+>
+> ⚠️ Swagger hiện được mount ở **mọi** môi trường (`main.ts` không kiểm tra `NODE_ENV`).
+> Ý định ban đầu là chỉ bật ở dev/staging — cần chặn lại trước khi lên production.
 
 ---
 
@@ -120,20 +123,90 @@ Authorization: Bearer <access_token>
 - Ví dụ: 25000000 (không phải "25,000,000" hay 25000000.00)
 ```
 
+### 1.6. Trạng thái triển khai (tính đến hết Giai đoạn 3)
+
+Tài liệu này mô tả **toàn bộ** API dự kiến của hệ thống. Phần dưới đây là danh sách route **đã tồn tại trong code** — mọi endpoint không có trong bảng này là kế hoạch của các giai đoạn sau, chưa gọi được:
+
+```
+GET  /health
+POST /auth/login  /auth/refresh  /auth/logout  /auth/change-password
+     /auth/forgot-password  /auth/reset-password
+GET  /auth/me
+
+GET    /employees          POST   /employees
+GET    /employees/me       GET    /employees/stats
+GET    /employees/:id      PATCH  /employees/:id      DELETE /employees/:id
+GET    /employees/:id/summary
+POST   /employees/:id/restore   POST /employees/:id/avatar
+GET/POST      /employees/:employeeId/family-members
+PATCH/DELETE  /employees/:employeeId/family-members/:memberId
+GET/POST      /employees/:employeeId/dependents
+PATCH/DELETE  /employees/:employeeId/dependents/:dependentId
+
+GET/POST      /contracts        GET/PATCH/DELETE /contracts/:id
+PATCH         /contracts/:id/terminate
+GET           /contract-types                (read-only, xem §6)
+
+GET/POST      /departments      GET /departments/tree
+GET/PATCH/DELETE /departments/:id
+GET/POST      /positions        GET/PATCH/DELETE /positions/:id
+GET/POST      /leave-types      GET/PATCH/DELETE /leave-types/:id
+GET/POST      /holidays         GET/PATCH/DELETE /holidays/:id
+
+GET  /system/provinces  /system/wards  /system/holidays  /system/leave-types
+GET  /reports/employees/export
+GET  /roles             POST /users
+```
+
+Các endpoint được mô tả trong tài liệu nhưng **chưa hiện thực**: toàn bộ §7 (Attendances), §9 (Salaries), §12 (Documents), §14–§18, `GET /employees/:id/work-history` (§3), `GET /users` · `PATCH /users/:id` · `PATCH /users/:id/reset-password` (§13), và mọi report ngoài `GET /reports/employees/export` (§19).
+
 ---
 
 ## 2. Authentication
 
+> **Refresh token KHÔNG BAO GIỜ nằm trong response body.** Nó chỉ được giao qua cookie HttpOnly.
+> Tài liệu này trước đây mô tả `refreshToken` trong body login và trong body `/auth/refresh`;
+> điều đó đã sai từ khi Giai đoạn 1 hiện thực hoá `RefreshCookieService` — JS đọc được token
+> nghĩa là một lỗ XSS đọc được luôn phiên đăng nhập 7 ngày, nên token được đưa ra khỏi tầm với
+> của JS hoàn toàn.
+
+### Cookie refresh token
+
+`POST /auth/login` và `POST /auth/refresh` đều trả header:
+
+```
+Set-Cookie: refresh_token=<opaque>; Path=/api/v1/auth/refresh; HttpOnly; SameSite=Strict
+```
+
+| Thuộc tính | Giá trị | Lý do |
+|-----------|---------|-------|
+| `HttpOnly` | luôn bật | JS không đọc được → XSS không lấy được refresh token |
+| `SameSite=Strict` | luôn bật | Chống CSRF |
+| `Path` | `/<API_PREFIX>/auth/refresh` (mặc định `/api/v1/auth/refresh`) | Refresh token CHỈ cần ở đúng endpoint đó. Với `Path=/` browser sẽ đính kèm token vào **mọi** request tới origin (kể cả tải ảnh) — mở rộng bề mặt bị lộ mà không được gì. Path được tính từ config `API_PREFIX`, không hardcode |
+| `Secure` | **chỉ ở production** | `Secure: true` trên `http://localhost` khiến browser **âm thầm bỏ cookie** (không báo lỗi) → dev sẽ không bao giờ refresh được. Vì vậy production = `true`, dev/test = `false` |
+| `Max-Age` | chỉ khi `rememberMe: true` | Xem `rememberMe` bên dưới |
+
+> **Client:** chỉ 2 request được phép gửi/nhận cookie này (`withCredentials`): `POST /auth/login` (nhận `Set-Cookie`) và `POST /auth/refresh` (gửi cookie + được rotate). Mọi endpoint khác — kể cả `/auth/logout` — chỉ dùng Bearer access token.
+
+---
+
 ### POST `/auth/login`
-Đăng nhập, nhận Access Token + Refresh Token.
+Đăng nhập bằng **username HOẶC email** (email không phân biệt hoa/thường), nhận Access Token trong body + Refresh Token trong cookie.
 
 **Request:**
 ```json
 {
   "username": "admin",
-  "password": "Abc@12345"
+  "password": "Abc@12345",
+  "rememberMe": false
 }
 ```
+
+| Field | Bắt buộc | Mô tả |
+|-------|:--------:|-------|
+| `username` | ✅ | Tên đăng nhập **hoặc** email |
+| `password` | ✅ | – |
+| `rememberMe` | ❌ (mặc định `false`) | CHỈ ảnh hưởng tuổi thọ **cookie**: `true` → cookie có `Max-Age` = tuổi thọ refresh token (7 ngày, còn sau khi đóng browser); `false` → session cookie (mất khi đóng browser). Bản ghi `refresh_tokens.expires_at` trong DB **luôn** là 7 ngày trong cả hai trường hợp |
 
 **Response 200:**
 ```json
@@ -141,7 +214,6 @@ Authorization: Bearer <access_token>
   "success": true,
   "data": {
     "accessToken": "eyJhbGci...",
-    "refreshToken": "eyJhbGci...",
     "expiresIn": 900,
     "user": {
       "id": 1,
@@ -158,28 +230,95 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Errors:** `401 INVALID_CREDENTIALS`, `423 ACCOUNT_LOCKED`
+Kèm header `Set-Cookie` như mô tả ở trên. `expiresIn` = số giây access token còn hiệu lực (mặc định 900 = 15 phút). `user.employee` = `null` nếu tài khoản chưa gắn hồ sơ nhân viên.
+
+**Errors:**
+
+| Status | Code | Khi nào |
+|:------:|------|---------|
+| 401 | `INVALID_CREDENTIALS` | Sai định danh hoặc mật khẩu (lần sai thứ 1–4) |
+| 429 | `ACCOUNT_LOCKED` | **Lần sai thứ 5** — chính lần này làm khoá tài khoản 15 phút |
+| 423 | `ACCOUNT_LOCKED` | Các lần thử **sau đó**, khi khoá còn hiệu lực |
+| 423 | `ACCOUNT_LOCKED` | `users.status = 'locked'` (khoá thủ công, không tự mở) |
+| 403 | `ACCOUNT_INACTIVE` | `users.status` khác `active` (ví dụ `inactive`) — chỉ kiểm tra **sau khi** mật khẩu đúng, để không tiết lộ trạng thái tài khoản cho người không biết mật khẩu |
+
+> **Thời gian còn lại của khoá nằm ở header `Retry-After` (số giây), KHÔNG nằm trong JSON body.**
+> `error.message` là văn bản tiếng Anh dành cho developer/log — UI **không được** hiển thị nó và
+> không được parse nó để lấy số phút.
+>
+> `Retry-After` có mặt ở **khoá tự động do đăng nhập sai** (cả 429 và 423). Trường hợp
+> `users.status = 'locked'` (khoá thủ công) cũng trả 423 `ACCOUNT_LOCKED` nhưng **không** có
+> `Retry-After` — khoá này không tự hết hạn, phải liên hệ HR/quản trị. UI phải xử lý được
+> cả hai: có header thì hiện số phút, không có thì hiện thông điệp chung.
+>
+> Ngưỡng khoá (`AUTH_MAX_FAILED_LOGIN_ATTEMPTS`, mặc định 5) và thời gian khoá
+> (`AUTH_LOCKOUT_MINUTES`, mặc định 15) đọc từ config.
 
 ---
 
 ### POST `/auth/refresh`
-Lấy Access Token mới bằng Refresh Token.
+Cấp Access Token mới từ cookie refresh token, kèm **rotation**.
 
-**Request:**
+**Request:** **KHÔNG có body.** Token đọc từ cookie HttpOnly; client chỉ cần gửi request kèm credentials.
+
+**Response 200:**
 ```json
-{ "refreshToken": "eyJhbGci..." }
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGci...",
+    "expiresIn": 900
+  }
+}
 ```
 
-**Response 200:** Trả về `accessToken` mới + `refreshToken` mới (rotation).
+Refresh token **mới** được set lại qua `Set-Cookie` (cùng thuộc tính như login). Token cũ bị revoke ngay.
+
+**Errors:** `401 TOKEN_INVALID` (thiếu cookie / token không tồn tại / token đã dùng lại), `401 REFRESH_TOKEN_EXPIRED`.
+
+> **Phát hiện dùng lại token:** gửi một refresh token đã bị revoke sẽ revoke **toàn bộ** session của user đó (dấu hiệu token bị đánh cắp) — xem architecture.md §7.4.
 
 ---
 
 ### POST `/auth/logout`
 > 🔒 Auth required
 
-Vô hiệu hóa Refresh Token hiện tại.
+Revoke refresh token trong DB + xoá cookie.
 
-**Request:** `{}` (token lấy từ header)
+**Request:** không có body.
+
+Session được xác định qua claim `sid` của **access token**, KHÔNG qua cookie: cookie refresh token có `Path` hẹp nên browser không gửi nó tới `/auth/logout`.
+
+**Response 200:** `{ "success": true, "data": { "ok": true }, "timestamp": "..." }`
+
+---
+
+### GET `/auth/me`
+> 🔒 Auth required
+
+Thông tin user đang đăng nhập. Trả về **đúng object `user`** của response login.
+
+**Response 200:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@company.com",
+    "role": "admin",
+    "employee": {
+      "id": 1,
+      "fullName": "Nguyễn Văn Admin",
+      "avatarUrl": null
+    }
+  }
+}
+```
+
+**Vì sao endpoint này tồn tại:** frontend giữ access token trong memory (không localStorage), nên sau F5 store rỗng. Luồng khôi phục phiên là `POST /auth/refresh` → `GET /auth/me`. Không có endpoint này thì mỗi lần tải lại trang người dùng phải đăng nhập lại.
+
+**Errors:** `401 TOKEN_INVALID` (user đã bị xoá), `401 TOKEN_EXPIRED`.
 
 ---
 
@@ -225,7 +364,9 @@ Gửi email chứa link đặt lại mật khẩu (link có hiệu lực 30 phú
 ## 3. Employees – Nhân viên
 
 ### GET `/employees`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+> 🔒 Auth required. `admin` · `hr_manager` · `hr_staff` xem toàn công ty; `manager` chỉ xem phòng ban mình quản lý; `employee` nhận `403 FORBIDDEN` và phải dùng `GET /employees/me`.
+>
+> Endpoint **không** khai báo `@Roles()`: phạm vi dữ liệu do service quyết định theo role, không phải chặn/không chặn.
 
 **Query params:**
 ```
@@ -236,6 +377,7 @@ Gửi email chứa link đặt lại mật khẩu (link có hiệu lực 30 phú
 ?gender=male
 ?hireFrom=2024-01-01
 ?hireTo=2024-12-31
+?onlyDeleted=true  Chỉ hồ sơ đã xoá mềm (để khôi phục)
 ```
 
 **Response 200:**
@@ -290,10 +432,9 @@ Gửi email chứa link đặt lại mật khẩu (link có hiệu lực 30 phú
   "socialInsuranceNo": "0123456789",
   "healthInsuranceNo": "DN4010000123456",
 
-  "permanentAddress": "Số 10, Ngõ 20, Phố Huế, Hai Bà Trưng, Hà Nội",
+  "permanentAddress": "Số 10, Ngõ 20, Phố Huế, Hà Nội",
   "provinceCode": "01",
-  "districtCode": "007",
-  "wardCode": "00193",
+  "wardCode": "10105001",
 
   "phone": "0912345678",
   "email": "binh.nguyen@company.com",
@@ -331,7 +472,15 @@ Gửi email chứa link đặt lại mật khẩu (link có hiệu lực 30 phú
 }
 ```
 
-**Errors:** `409 DUPLICATE_CCCD`, `409 DUPLICATE_EMAIL`, `409 DUPLICATE_TAX_CODE`, `400 VALIDATION_ERROR`
+> **Địa chỉ – chỉ còn 2 cấp.** Từ **01/07/2025** (Luật 72/2025/QH15) cấp huyện chấm dứt hoạt động:
+> cả nước còn **34 tỉnh/thành** và **3.321 phường/xã/đặc khu**, không có gì ở giữa.
+> - `provinceCode` (bắt buộc): mã tỉnh Bộ Nội Vụ, `01`–`34` — lấy từ `GET /system/provinces`.
+> - `wardCode` (bắt buộc): mã phường/xã/đặc khu theo danh mục **cơ quan thuế (TMS)**, ví dụ `10105001` — lấy từ `GET /system/wards?provinceCode=01`.
+> - `districtCode`: **ĐÃ LỖI THỜI**, nullable, tuỳ chọn. Giữ lại chỉ để nhập/đọc hồ sơ tạo trước 01/07/2025; hồ sơ mới bỏ trống. Không có endpoint danh mục quận/huyện.
+>
+> `employeeCode` do **server sinh** (`NV0001`, `NV0002`…), client không gửi.
+
+**Errors:** `409 DUPLICATE_CCCD`, `409 DUPLICATE_EMAIL`, `409 DUPLICATE_TAX_CODE`, `409 DUPLICATE_SI_NUMBER`, `409 DUPLICATE_HI_NUMBER`, `400 VALIDATION_ERROR`
 
 ---
 
@@ -352,7 +501,32 @@ Gửi email chứa link đặt lại mật khẩu (link có hiệu lực 30 phú
 ### DELETE `/employees/:id`
 > 🔒 Roles: `admin`, `hr_manager`
 
-Soft delete – set `deletedAt`, không xoá khỏi DB.
+Soft delete – set `deletedAt`, không xoá khỏi DB. Hợp đồng/chấm công/lương giữ nguyên để còn tra cứu lịch sử.
+
+---
+
+### POST `/employees/:id/restore`
+> 🔒 Roles: `admin`, `hr_manager`
+
+Khôi phục hồ sơ đã xoá mềm. Tìm hồ sơ đã xoá qua `GET /employees?onlyDeleted=true`.
+
+**Errors:** `404 EMPLOYEE_NOT_FOUND`, `422 EMPLOYEE_NOT_DELETED` (hồ sơ đang bình thường).
+
+---
+
+### GET `/employees/stats`
+> 🔒 Auth required (`employee` → `403 FORBIDDEN`)
+
+Gộp mọi con số của các thẻ tổng quan màn hình danh sách vào **một** request: tổng số, phân bổ theo trạng thái/giới tính/phòng ban, số hợp đồng sắp hết hạn, số người mới tuyển và số người sắp hết thử việc trong cửa sổ gần đây, sinh nhật.
+
+Tính trong **đúng phạm vi** của role gọi nó (manager chỉ thấy phòng ban mình). **Không** có số liệu "so với tháng trước": bảng `employees` chỉ lưu trạng thái hiện tại.
+
+---
+
+### GET `/employees/:id/summary`
+> 🔒 Auth required (cùng phạm vi với `GET /employees/:id`)
+
+Tóm tắt hồ sơ dùng cho phiếu lương: phòng ban/chức vụ, MST, số BHXH, tài khoản ngân hàng, số người phụ thuộc đang hiệu lực và hợp đồng đang `active`.
 
 ---
 
@@ -362,14 +536,22 @@ Soft delete – set `deletedAt`, không xoá khỏi DB.
 **Content-Type:** `multipart/form-data`  
 **Field:** `avatar` (file, max 2MB, JPEG/PNG/WEBP)
 
+Kiểu file được xác định bằng **magic bytes**, không tin phần mở rộng.
+
 **Response 200:**
 ```json
-{ "data": { "avatarUrl": "https://s3.amazonaws.com/..." } }
+{ "data": { "avatarUrl": "/api/v1/uploads/avatars/51/9f3c1b7a2d4e6f80.jpg" } }
 ```
+
+> `avatarUrl` phụ thuộc driver lưu trữ. Mặc định hiện tại là driver `local` → đường dẫn **tương đối** dưới `/<API_PREFIX>/uploads/…` (đặt dưới `API_PREFIX` để frontend lấy được ảnh qua đúng Vite proxy `/api` đã có sẵn). Driver `s3` (chưa được kích hoạt) sẽ trả URL tuyệt đối. Phần tên file là ngẫu nhiên: URL mới khác URL cũ nên browser/CDN không trả ảnh cũ từ cache, và người ngoài không đoán được đường dẫn ảnh của nhân viên khác. Xem architecture.md §9.
+
+**Errors:** `400 AVATAR_REQUIRED`, `400 AVATAR_TOO_LARGE`, `400 AVATAR_INVALID_TYPE` (cả ba là 400 chứ không phải VALIDATION_ERROR: lỗi nằm ở phần multipart nên không dựng được `details[].field`), `404 EMPLOYEE_NOT_FOUND`, `403 FORBIDDEN` (không phải ảnh của mình và không thuộc nhóm HR).
 
 ---
 
 ### GET `/employees/:id/work-history`
+> ⏳ **Chưa hiện thực** (bảng `work_history` đã có trong schema, chưa có module/route).
+
 Lịch sử công tác của nhân viên.
 
 **Response 200:**
@@ -400,10 +582,25 @@ Nhân viên xem hồ sơ cá nhân của chính mình.
 
 ## 4. Departments – Phòng ban
 
-### GET `/departments`
-> 🔒 Auth required
+> **Mã phòng ban do server sinh.** `departments.code` là `PB0001`, `PB0002`… — client **không** gửi
+> `code` khi tạo và **không** sửa được nó. Trước đây mã do người dùng tự nhập; đổi vì bắt người dùng
+> nghĩ ra một định danh duy nhất trước khi lưu được là một cái giá vô lý, và mã nhập tay thì trôi
+> dạt trong thực tế (`IT`, `it`, `CNTT`, `IT_DEPT` cùng chỉ một phòng). Mã **không bao giờ được
+> dùng lại**: số kế tiếp tính từ mã lớn nhất từng cấp, **kể cả bản ghi đã xoá mềm**.
+> `ValidationPipe` chạy với `whitelist: true` nên client nào vẫn gửi `code` sẽ bị **strip** chứ
+> không báo lỗi. Cùng quy tắc áp dụng cho `positions` (`CV0001`) và `leave_types` (`NP0001`);
+> `employees` đã dùng `NV0001` từ trước.
 
-**Query:** `?tree=true` để trả về dạng cây thay vì flat list.
+### GET `/departments`
+> 🔒 Auth required (mọi role đã đăng nhập đều đọc được)
+
+**Query:**
+```
+?tree=true      Trả về mảng lồng nhau (bỏ qua phân trang) thay vì flat list
+?parentId=1     Lọc theo phòng ban cha
+?isActive=true  Lọc theo trạng thái
+?sort=          code | name | sortOrder (mặc định) | createdAt
+```
 
 **Response (flat):**
 ```json
@@ -412,14 +609,20 @@ Nhân viên xem hồ sơ cá nhân của chính mình.
     "items": [
       {
         "id": 1,
-        "code": "HR",
+        "code": "PB0001",
         "name": "Phòng Nhân sự",
+        "description": null,
         "parentId": null,
         "manager": { "id": 5, "fullName": "Trần Thị Mai" },
         "employeeCount": 5,
-        "isActive": true
+        "positionCount": 4,
+        "sortOrder": 1,
+        "isActive": true,
+        "createdAt": "2026-08-19T02:00:00.000Z",
+        "updatedAt": "2026-08-19T02:00:00.000Z"
       }
-    ]
+    ],
+    "meta": { "total": 8, "page": 1, "limit": 20, "totalPages": 1 }
   }
 }
 ```
@@ -441,30 +644,51 @@ Nhân viên xem hồ sơ cá nhân của chính mình.
 
 ---
 
+### GET `/departments/tree`
+> 🔒 Auth required
+
+Alias của `GET /departments?tree=true`, trả thẳng mảng `DepartmentTreeNodeDto` lồng nhau (mỗi node là `DepartmentResponseDto` + `children[]`, sắp xếp theo `sortOrder` rồi `name`).
+
+---
+
 ### POST `/departments`
-> 🔒 Roles: `admin`, `hr_manager`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
 ```json
 {
-  "code": "FIN",
   "name": "Phòng Tài chính",
+  "description": "Quản lý thu chi, kế toán",
   "parentId": null,
   "managerId": 10,
-  "description": ""
+  "sortOrder": 0,
+  "isActive": true
 }
 ```
+
+> **Không gửi `code`** – server sinh `PB####` và trả về trong response.
+
+**Errors:** `404 DEPARTMENT_NOT_FOUND` / `422 PARENT_DEPARTMENT_NOT_FOUND`, `422 EMPLOYEE_NOT_FOUND` (managerId không tồn tại), `409 CODE_ALLOCATION_FAILED` (không cấp được mã duy nhất sau số lần thử tối đa).
 
 ---
 
 ### PATCH `/departments/:id` | DELETE `/departments/:id`
-> 🔒 Roles: `admin`, `hr_manager`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+PATCH nhận đúng các field của POST (đều tuỳ chọn); `parentId: null` / `managerId: null` để gỡ liên kết. **Không** sửa được `code`.
+
+**Errors (PATCH):** `422 DEPARTMENT_CYCLE` (đặt cha thành chính nó hoặc thành con cháu của nó).
+**Errors (DELETE):** `422 DEPARTMENT_HAS_EMPLOYEES`, `422 DEPARTMENT_HAS_CHILDREN`, `422 DEPARTMENT_HAS_POSITIONS`.
 
 ---
 
 ## 5. Positions – Chức vụ
 
+> `positions.code` do server sinh: `CV0001`, `CV0002`… — xem ghi chú ở §4.
+
 ### GET `/positions`
-**Query:** `?departmentId=2`
+> 🔒 Auth required
+
+**Query:** `?departmentId=2`, `?level=2`, `?isActive=true`, `?sort=` (`code` mặc định · `name` · `level` · `createdAt`), phân trang chuẩn §1.2.
 
 **Response:**
 ```json
@@ -473,29 +697,75 @@ Nhân viên xem hồ sơ cá nhân của chính mình.
     "items": [
       {
         "id": 3,
-        "code": "DEV_SENIOR",
+        "code": "CV0003",
         "name": "Developer Senior",
         "department": { "id": 2, "name": "Phòng Kỹ thuật" },
         "level": 2,
         "minSalary": 20000000,
         "maxSalary": 35000000
       }
-    ]
+    ],
+    "meta": { "total": 12, "page": 1, "limit": 20, "totalPages": 1 }
   }
 }
 ```
 
 ### POST | PATCH | DELETE `/positions` | `/positions/:id`
-> 🔒 Roles: `admin`, `hr_manager`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+```json
+{
+  "name": "Developer Senior",
+  "departmentId": 2,
+  "level": 2,
+  "minSalary": 20000000,
+  "maxSalary": 35000000,
+  "description": null,
+  "isActive": true
+}
+```
+
+`level`: 1 Staff · 2 Senior · 3 Lead · 4 Manager · 5 Director. **Không gửi `code`.**
+
+**Errors:** `404 POSITION_NOT_FOUND`, `422 DEPARTMENT_NOT_FOUND`, `422 INVALID_SALARY_RANGE` (`minSalary > maxSalary`), `422 POSITION_HAS_EMPLOYEES` (khi xoá), `409 CODE_ALLOCATION_FAILED`.
 
 ---
 
 ## 6. Contracts – Hợp đồng
 
-### GET `/contracts`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+### GET `/contract-types`
+> 🔒 Auth required — **read-only, không có POST/PATCH/DELETE**
 
-**Query:** `?employeeId=1`, `?status=active`, `?expiringDays=30` (hợp đồng sắp hết hạn)
+Trả về mảng phẳng 4 giá trị của enum `contracts.contract_type` kèm nhãn tiếng Việt và căn cứ pháp lý:
+
+```json
+{
+  "data": [
+    { "value": "probation",  "label": "Hợp đồng thử việc", "description": "Thoả thuận thử việc – Điều 24÷27 BLLĐ 2019 …" },
+    { "value": "fixed_term", "label": "Hợp đồng lao động xác định thời hạn", "description": "Điều 20.1.b BLLĐ 2019 – tối đa 36 tháng …" },
+    { "value": "indefinite", "label": "Hợp đồng lao động không xác định thời hạn", "description": "Điều 20.1.a BLLĐ 2019 …" },
+    { "value": "seasonal",   "label": "Hợp đồng theo mùa vụ / công việc nhất định", "description": "BLLĐ 2012 (Điều 22.1.c), đã bị BLLĐ 2019 bãi bỏ – chỉ đọc dữ liệu lịch sử" }
+  ]
+}
+```
+
+> **Vì sao không phải master data.** Không có bảng `contract_types` trong schema 26 bảng và **không có endpoint ghi**. Bốn loại này do **BLLĐ 2019** định nghĩa, và mỗi loại kéo theo hệ quả pháp lý khác nhau về **bảo hiểm xã hội**, **trần thời gian thử việc** và **thời hạn báo trước khi chấm dứt**. Nếu HR tự thêm được loại thứ 5 thì logic hợp đồng và tính lương sẽ không biết xử lý nó ra sao — nên đây là enum, không phải danh mục công ty tự cấu hình.
+>
+> Lưu ý pháp lý: Điều 20 BLLĐ 2019 chỉ công nhận **2** loại hợp đồng lao động (không xác định thời hạn / xác định thời hạn ≤ 36 tháng). `probation` là **thoả thuận thử việc** (Điều 24–27) và `seasonal` là loại của BLLĐ 2012 đã bị bãi bỏ; cả hai vẫn nằm trong enum để đọc được dữ liệu cũ.
+
+---
+
+### GET `/contracts`
+> 🔒 Auth required. Phạm vi theo hồ sơ: nhân viên chỉ thấy hợp đồng của chính mình, manager thấy phòng ban mình, nhóm HR thấy toàn công ty.
+
+**Query:** `?employeeId=1`, `?status=active`, `?contractType=fixed_term`, `?expiringDays=30` (hợp đồng có `end_date`, chưa quá hạn, hết hạn trong N ngày tới), phân trang chuẩn §1.2.
+
+---
+
+### GET `/contracts/:id`
+> 🔒 Auth required (cùng phạm vi với `GET /contracts`)
+
+**Errors:** `404 CONTRACT_NOT_FOUND`, `403 FORBIDDEN`.
 
 ---
 
@@ -519,6 +789,17 @@ Nhân viên xem hồ sơ cá nhân của chính mình.
 }
 ```
 
+Kiểm tra quy tắc BLLĐ 2019: HĐ không xác định thời hạn không có `endDate`; HĐ xác định thời hạn ≤ 36 tháng và tối đa 2 lần liên tiếp; thử việc ≤ 180 ngày.
+
+**Errors:** `409 DUPLICATE_CONTRACT_NUMBER`, `409 CONTRACT_ALREADY_ACTIVE`, `422 EMPLOYEE_NOT_FOUND`, `422 INVALID_CONTRACT_PERIOD`, `422 INVALID_SIGN_DATE`, `422 INVALID_CONTRACT_STATUS`, `422 CONTRACT_TYPE_LIMIT`.
+
+---
+
+### PATCH `/contracts/:id`
+> 🔒 Roles: `admin`, `hr_manager`
+
+Partial update. **Errors:** `404 CONTRACT_NOT_FOUND`, `409 DUPLICATE_CONTRACT_NUMBER`, `409 CONTRACT_ALREADY_ACTIVE`, `422 CONTRACT_ALREADY_TERMINATED`, `422 INVALID_CONTRACT_PERIOD`.
+
 ---
 
 ### PATCH `/contracts/:id/terminate`
@@ -531,9 +812,22 @@ Nhân viên xem hồ sơ cá nhân của chính mình.
 }
 ```
 
+**Errors:** `404 CONTRACT_NOT_FOUND`, `422 CONTRACT_ALREADY_TERMINATED`, `422 CONTRACT_NOT_SIGNED`, `422 INVALID_DATE_RANGE`.
+
+---
+
+### DELETE `/contracts/:id`
+> 🔒 Roles: `admin`, `hr_manager`
+
+**Chỉ xoá được hợp đồng `status = draft`.** Bảng `contracts` không có `deleted_at` nên đây là **xoá vật lý**; hợp đồng đã ký phải dùng `/terminate` để giữ lại lịch sử.
+
+**Errors:** `404 CONTRACT_NOT_FOUND`, `422 CONTRACT_NOT_DELETABLE` (hợp đồng đã ký).
+
 ---
 
 ## 7. Attendances – Chấm công
+
+> ⏳ **Toàn bộ §7 chưa hiện thực** (Giai đoạn 4). Bảng `attendances` đã có trong schema; chưa có module/route nào.
 
 ### POST `/attendances/check-in`
 > 🔒 Auth required (employee tự chấm)
@@ -635,28 +929,75 @@ Import chấm công từ file Excel.
 
 ## 8. Leaves – Nghỉ phép
 
-### GET `/leave-types`
-> 🔒 Auth required
+> **Trạng thái:** `/leave-types` (danh mục loại nghỉ) đã hiện thực đầy đủ CRUD. Phần đơn nghỉ (`/leaves`, `/leaves/balance`) **chưa hiện thực** — Giai đoạn 5.
 
-**Response:**
+### GET `/leave-types` | GET `/leave-types/:id`
+> 🔒 Auth required (mọi role đọc được)
+
+**Query:** `?isActive=true`, phân trang chuẩn §1.2.
+
+**Response (một phần tử):**
 ```json
 {
-  "data": [
-    {
-      "id": 1,
-      "code": "ANNUAL",
-      "name": "Nghỉ phép năm",
-      "daysPerYear": 12,
-      "isPaid": true,
-      "requireApproval": true
-    }
-  ]
+  "id": 1,
+  "code": "ANNUAL",
+  "name": "Nghỉ phép năm",
+  "daysPerYear": 12,
+  "isPaid": true,
+  "requireApproval": true,
+  "minDays": 0.5,
+  "maxConsecutive": null,
+  "advanceNoticeDays": 3,
+  "applicableGender": "all",
+  "description": "Điều 113 BLLĐ 2019",
+  "isActive": true,
+  "sortOrder": 1,
+  "isSystem": true
 }
 ```
+
+`isSystem: true` = loại nghỉ **luật định** được seed từ BLLĐ 2019 (9 loại). Cờ này chỉ mang tính **thông tin** để UI gắn nhãn — nó **không** chặn sửa hay xoá; xem `DELETE` bên dưới.
+
+---
+
+### POST | PATCH `/leave-types` | `/leave-types/:id`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+```json
+{
+  "name": "Nghỉ phép năm",
+  "daysPerYear": 12,
+  "isPaid": true,
+  "requireApproval": true,
+  "minDays": 0.5,
+  "maxConsecutive": null,
+  "advanceNoticeDays": 3,
+  "applicableGender": "all",
+  "description": "Điều 113 BLLĐ 2019",
+  "isActive": true,
+  "sortOrder": 1
+}
+```
+
+> **Không gửi `code`** – server sinh `NP0001`, `NP0002`… và không cho sửa. 9 loại luật định giữ nguyên mã có nghĩa đã seed (`ANNUAL`, `SICK`, `MATERNITY`…) vì logic lương/ngày phép sau này khớp theo đúng các giá trị đó; chỉ loại do công ty tự thêm mới nhận mã sinh tự động. Hai kiểu mã cùng tồn tại là **có chủ đích**.
+
+**Errors:** `404 LEAVE_TYPE_NOT_FOUND`, `409 CODE_ALLOCATION_FAILED`.
+
+---
+
+### DELETE `/leave-types/:id`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+Bảng `leave_types` không có `deleted_at` → **xoá vật lý**.
+
+**Chốt chặn DUY NHẤT là `422 LEAVE_TYPE_IN_USE`**: loại nghỉ còn được đơn nghỉ hoặc số dư phép tham chiếu thì không xoá được (FK ở DB cũng là RESTRICT). Muốn "ẩn" khỏi UI thì `PATCH { "isActive": false }`.
+
+`isSystem` **cố ý không chặn gì**: pháp luật thay đổi — mức hưởng được nâng, loại nghỉ luật định bị bãi bỏ (đúng như BLLĐ 2019 đã bãi bỏ loại hợp đồng `seasonal`) — nên HR phải duy trì được các dòng này. Một loại luật định đang mang lịch sử vẫn không xoá được, nhưng vì `LEAVE_TYPE_IN_USE`, tức là vì đúng lý do.
 
 ---
 
 ### GET `/leaves/balance`
+> ⏳ **Chưa hiện thực** (Giai đoạn 5) — từ đây tới hết §8.
 > 🔒 Auth required (employee xem balance của mình)
 
 **Query:** `?year=2026`
@@ -749,6 +1090,8 @@ Lịch sử đơn nghỉ của nhân viên.
 ---
 
 ## 9. Salaries – Lương
+
+> ⏳ **Toàn bộ §9 chưa hiện thực** (Giai đoạn 6).
 
 ### POST `/salaries/calculate`
 > 🔒 Roles: `admin`, `hr_manager`
@@ -919,12 +1262,17 @@ Xuất phiếu lương PDF.
 ### DELETE `/employees/:id/family-members/:memberId`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
+**Errors:** `404 FAMILY_MEMBER_NOT_FOUND`, `404 EMPLOYEE_NOT_FOUND`, `403 FORBIDDEN` (ngoài phạm vi của role).
+
 ---
 
 ## 11. Dependents – Người phụ thuộc
 
 ### GET `/employees/:id/dependents`
+> 🔒 Auth required — nhân viên xem được người phụ thuộc của **chính mình**; nhóm HR xem của bất kỳ ai.
+
 ### POST `/employees/:id/dependents`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
 ```json
 {
@@ -934,17 +1282,25 @@ Xuất phiếu lương PDF.
   "cccdNumber": null,
   "taxCode": null,
   "registrationDate": "2026-01-01",
+  "endDate": null,
   "documentUrl": "https://s3.../dependent-doc.pdf",
   "note": "Mẹ ruột, không có thu nhập"
 }
 ```
 
+`endDate` = ngày kết thúc đăng ký giảm trừ (`null` = còn hiệu lực).
+
 ### PATCH `/employees/:id/dependents/:depId`
 ### DELETE `/employees/:id/dependents/:depId`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+**Errors:** `404 DEPENDENT_NOT_FOUND`, `409 DEPENDENT_ALREADY_CLAIMED`, `422 DEPENDENT_REASON_REQUIRED`, `422 INVALID_DATE_RANGE`.
 
 ---
 
 ## 12. Documents – Tài liệu
+
+> ⏳ **Toàn bộ §12 chưa hiện thực.**
 
 ### GET `/employees/:id/documents`
 **Query:** `?type=cccd`
@@ -967,11 +1323,15 @@ expiryDate: (optional)
 
 ## 13. Users – Tài khoản
 
-### GET `/users`
-> 🔒 Roles: `admin`
+### GET `/roles`
+> 🔒 Auth required (mọi role đã đăng nhập)
+
+Danh sách vai trò đang hoạt động, dùng để đổ dropdown khi tạo tài khoản. Chỉ là tên vai trò, không phải dữ liệu nhạy cảm.
 
 ### POST `/users`
 > 🔒 Roles: `admin`
+
+Tạo tài khoản đăng nhập cho một nhân viên. Hồ sơ nhân viên (`employees`) và tài khoản (`users`) là **hai bản ghi tách rời**, nối qua `users.employee_id`; đây là bước "tài khoản" của wizard tạo nhân viên.
 
 ```json
 {
@@ -983,17 +1343,16 @@ expiryDate: (optional)
 }
 ```
 
-### PATCH `/users/:id`
-### PATCH `/users/:id/reset-password`
-> 🔒 Roles: `admin`
+**Errors:** `409 DUPLICATE_USERNAME`, `409 DUPLICATE_EMAIL`, `409 EMPLOYEE_ALREADY_HAS_ACCOUNT`, `422 ROLE_NOT_FOUND`, `403 FORBIDDEN` (chỉ admin).
 
-```json
-{ "newPassword": "NewTemp@2026" }
-```
+### GET `/users` · PATCH `/users/:id` · PATCH `/users/:id/reset-password`
+> ⏳ **Chưa hiện thực.** Phạm vi hẹp là **cố ý**: màn hình quản lý tài khoản chưa nằm trong giai đoạn nào của PLAN, thêm sớm là code không ai gọi.
 
 ---
 
 ## 14. Disciplines & Rewards – Khen thưởng & Kỷ luật
+
+> ⏳ **§14 đến §18 đều chưa hiện thực.** Các bảng đã có trong schema; chưa có module/route nào.
 
 ### GET `/employees/:id/disciplines-rewards`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff` | Employee xem của chính mình
@@ -1309,7 +1668,10 @@ Khởi tạo ngày phép năm mới cho toàn bộ nhân viên (chạy đầu n�
 
 ## 19. Reports – Báo cáo
 
+> **Trạng thái:** chỉ `GET /reports/employees/export` đã hiện thực. Các report còn lại của §19 chưa có. (Số liệu tổng quan nhân sự hiện lấy qua `GET /employees/stats` — xem §3.)
+
 ### GET `/reports/dashboard/stats`
+> ⏳ **Chưa hiện thực.** Màn hình danh sách nhân viên đang dùng `GET /employees/stats` (§3).
 > 🔒 Roles: `admin`, `hr_manager`
 
 **Response:**
@@ -1337,14 +1699,30 @@ Khởi tạo ngày phép năm mới cho toàn bộ nhân viên (chạy đầu n�
 ### GET `/reports/employees/export`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
-**Query:** Các filter tương tự GET `/employees`
+Xuất danh sách nhân viên ra Excel (`.xlsx`), 3 sheet theo đúng thứ tự: **`Danh sách`** · **`Thông tin BH`** · **`Thông tin lương`**.
 
-**Response:** `Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`  
-File Excel với các sheet: Danh sách, Thông tin BH, Thông tin lương.
+> `manager` **bị loại** khỏi endpoint này một cách có chủ đích, dù vẫn xem được danh sách phòng ban mình trên màn hình: xem một phòng trên màn hình khác với rút cả phòng ra một file mang đi.
+
+**Query:** dùng **chung** bộ filter của `GET /employees` (`search`, `departmentId`, `positionId`, `status`, `gender`, `hireFrom`, `hireTo`, `onlyDeleted`) — file xuất ra đúng bằng những dòng đang hiển thị trên màn hình. `page`/`limit` bị **bỏ qua** (bản xuất không phân trang). Phạm vi dữ liệu theo đúng phạm vi role của `GET /employees`.
+
+| Query thêm | Mặc định | Ý nghĩa |
+|-----------|----------|---------|
+| `includeSensitive` | `false` | `true` → xuất CCCD, số tài khoản và các cột tiền ở dạng **đầy đủ** (không che). Mặc định CCCD/số tài khoản bị che (`********9432`) và các cột tiền để trống, tiêu đề cột gắn hậu tố ` (ẩn)` |
+
+**Vì sao phải xin tường minh:** `includeSensitive=true` **chỉ dành cho `admin`/`hr_manager`** — `hr_staff` gửi cờ này nhận `403 SENSITIVE_EXPORT_FORBIDDEN` (nhập liệu được nhưng không được mang dữ liệu nhạy cảm của toàn công ty ra khỏi hệ thống). Mỗi lần xuất bản đầy đủ đều được ghi log mức `warn` kèm người yêu cầu.
+
+**Trần số dòng:** **10.000**. Vượt trần → `422 EXPORT_TOO_MANY_ROWS`, **KHÔNG cắt bớt im lặng**: người nhận file sẽ hành động trên nó như thể nó đầy đủ, nên thiếu dòng mà không báo là lỗi toàn vẹn dữ liệu chứ không phải bất tiện nhỏ.
+
+**Response:** `Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`, kèm `Content-Disposition` có cả `filename=` (ASCII, đã bỏ dấu) lẫn `filename*=UTF-8''…` (tên tiếng Việt) và `X-Content-Type-Options: nosniff`.
+
+> **CORS:** browser giấu mọi response header khỏi JS trừ một danh sách ngắn, và `Content-Disposition` không nằm trong đó — server khai báo `exposedHeaders: ['Content-Disposition']` để frontend đọc được tên file. Ở dev thì Vite proxy làm request thành same-origin nên không thấy vấn đề này.
+
+**Errors:** `403 FORBIDDEN` (role không được xuất), `403 SENSITIVE_EXPORT_FORBIDDEN`, `422 EXPORT_TOO_MANY_ROWS`.
 
 ---
 
 ### GET `/reports/salaries/export`
+> ⏳ **Chưa hiện thực.**
 > 🔒 Roles: `admin`, `hr_manager`
 
 **Query:** `?month=5&year=2026&departmentId=2`
@@ -1354,6 +1732,7 @@ File Excel với các sheet: Danh sách, Thông tin BH, Thông tin lương.
 ---
 
 ### GET `/reports/attendances/export`
+> ⏳ **Chưa hiện thực.**
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager`
 
 **Query:** `?month=5&year=2026&departmentId=2`
@@ -1361,6 +1740,7 @@ File Excel với các sheet: Danh sách, Thông tin BH, Thông tin lương.
 ---
 
 ### GET `/reports/leaves/summary`
+> ⏳ **Chưa hiện thực.**
 > 🔒 Roles: `admin`, `hr_manager`
 
 **Query:** `?year=2026`
@@ -1369,26 +1749,104 @@ File Excel với các sheet: Danh sách, Thông tin BH, Thông tin lương.
 
 ## 20. System – Dữ liệu hệ thống
 
+> 🔒 **Mọi endpoint `/system/*` đều yêu cầu đăng nhập.** Tài liệu này từng ghi `/system/leave-types` là public; thực tế guard mặc định vẫn áp dụng (PLAN 2.1).
+>
+> `/system/*` là các endpoint **chỉ đọc**, trả về **mảng phẳng** (không phân trang) để UI dùng thẳng. Phần CRUD ngày lễ ở cuối mục này nằm ở prefix riêng `/holidays` và có phân trang như bình thường.
+
+### Địa giới hành chính – chỉ còn 2 cấp
+
+Từ **01/07/2025**, **Luật 72/2025/QH15** chấm dứt hoạt động của **cấp huyện**. Cả nước còn **34 tỉnh/thành phố** và **3.321 phường/xã/đặc khu** (687 phường, 2.621 xã, 13 đặc khu) — **không có gì ở giữa**.
+
+Vì vậy API chỉ có **hai** endpoint danh mục: `/system/provinces` và `/system/wards`. **Không có `/system/districts`** — endpoint đó từng được mô tả ở đây và đã bị gỡ bỏ cùng cấp hành chính mà nó phục vụ.
+
+Dữ liệu đọc từ **file tĩnh** đi kèm app (`src/common/data/vn-provinces.json`, `vn-wards.json`, sinh bằng `scripts/build-vn-admin-data.ts` từ danh mục cơ quan thuế), **không phải từ DB** và **không gọi API ngoài lúc chạy**. Danh sách bất biến trong một lần chạy nên frontend cache thoải mái.
+
+---
+
 ### GET `/system/provinces`
-Danh sách 63 tỉnh/thành phố.
+34 tỉnh/thành phố sau sáp nhập 2025. Không có query param.
 
 ```json
 {
   "data": [
-    { "code": "01", "name": "Hà Nội", "type": "Thành phố Trung ương" },
-    { "code": "79", "name": "Thành phố Hồ Chí Minh", "type": "Thành phố Trung ương" }
+    { "code": "01", "name": "Thành phố Hà Nội", "type": "city", "tmsCode": "101" },
+    { "code": "34", "name": "Tỉnh Cà Mau", "type": "province", "tmsCode": "823" }
   ]
 }
 ```
 
-### GET `/system/districts/:provinceCode`
-### GET `/system/wards/:districtCode`
+`code` là mã tỉnh Bộ Nội Vụ (`01`–`34`); `type` ∈ `city` | `province`.
+
+> `tmsCode` (mã tỉnh của hệ thống thuế) có mặt trong response vì controller trả thẳng file JSON và app **không** bật `ClassSerializerInterceptor`, dù `ProvinceResponseDto` không khai báo field này. Client **không nên** phụ thuộc vào nó.
+
+---
+
+### GET `/system/wards`
+3.321 phường/xã/đặc khu.
+
+| Query | Bắt buộc | Mô tả |
+|-------|:--------:|-------|
+| `provinceCode` | ❌ | Lọc theo tỉnh (1–10 chữ số). **Nên luôn truyền** — bỏ trống trả về **toàn bộ 3.321** đơn vị |
+
+```json
+{
+  "data": [
+    {
+      "code": "10101003",
+      "name": "Phường Ba Đình",
+      "provinceCode": "01",
+      "type": "phuong",
+      "legacyDistrictCode": "10101",
+      "legacyDistrictName": "Quận Ba Đình"
+    }
+  ]
+}
+```
+
+- `code` là mã của **hệ thống thuế (TMS)**, không phải mã GSO. Chọn hệ mã này vì Giai đoạn 6 sẽ quyết toán thuế TNCN — dùng đúng mã cơ quan thuế dùng thì số liệu đi nộp không phải map thêm một lần nữa.
+- `type` ∈ `phuong` | `xa` | `dac_khu`.
+- `legacyDistrictCode` / `legacyDistrictName`: quận/huyện **cũ** mà đơn vị này tách ra. **Chỉ để đối chiếu hồ sơ cũ, KHÔNG dùng cho nhập liệu mới.**
+
+---
 
 ### GET `/system/holidays`
-**Query:** `?year=2026`
+> 🔒 Auth required
+
+**Query:** `?year=2026` (bỏ trống → năm hiện tại). Mảng phẳng, sắp xếp theo ngày. CRUD ngày lễ nằm ở `/holidays` — xem bên dưới.
 
 ### GET `/system/leave-types`
-Danh sách loại nghỉ phép (public, không cần auth).
+> 🔒 Auth required
+
+Loại nghỉ phép đang áp dụng — **chỉ** những loại `isActive = true`. CRUD nằm ở `/leave-types` (§8).
+
+---
+
+### Holidays – CRUD (`/holidays`)
+
+Không nằm trong §20 gốc nhưng đã hiện thực, nên ghi lại ở đây.
+
+| Method | Path | Quyền |
+|--------|------|-------|
+| GET | `/holidays` (phân trang; `?year=`, `?type=`, `?isPaid=`, `?sort=holidayDate\|name\|year`) | Auth required |
+| GET | `/holidays/:id` | Auth required |
+| POST | `/holidays` | `admin`, `hr_manager`, `hr_staff` |
+| PATCH | `/holidays/:id` | `admin`, `hr_manager`, `hr_staff` |
+| DELETE | `/holidays/:id` | `admin`, `hr_manager`, `hr_staff` |
+
+```json
+{
+  "name": "Tết Dương lịch",
+  "holidayDate": "2027-01-01",
+  "type": "national",
+  "isPaid": true,
+  "note": null
+}
+```
+
+> `year` **không nhận từ client** – luôn suy ra từ `holidayDate` để hai cột không bao giờ lệch nhau.
+> `holidays` **không có `code`** (và không có `deleted_at` → DELETE là xoá vật lý). Vì ngày lễ do người dùng nhập nên `409 DUPLICATE_HOLIDAY_DATE` vẫn là lỗi có thật, khác với các mã master data do server sinh.
+
+**Errors:** `404 HOLIDAY_NOT_FOUND`, `409 DUPLICATE_HOLIDAY_DATE`, `403 FORBIDDEN`.
 
 ---
 
@@ -1406,34 +1864,110 @@ Danh sách loại nghỉ phép (public, không cần auth).
 | 404 | Not Found |
 | 409 | Conflict – Trùng dữ liệu |
 | 422 | Unprocessable Entity – Vi phạm business rule |
-| 429 | Too Many Requests – Rate limit |
+| 423 | Locked – Tài khoản đang bị khoá |
+| 429 | Too Many Requests – Lần đăng nhập sai làm khoá tài khoản |
 | 500 | Internal Server Error |
+| 503 | Service Unavailable – Driver mail/storage không nạp được |
+
+> **Header `Retry-After`.** Với **khoá tự động do đăng nhập sai** (423 và 429), số giây phải chờ nằm ở header `Retry-After` (RFC 9110 §10.2.3), **không** nằm trong JSON body: envelope lỗi cố định theo §1.1, còn `error.message` là văn bản tiếng Anh dành cho developer nên UI không parse được. Đây là kênh **duy nhất** máy đọc được cho thông tin này. Khoá thủ công (`users.status = 'locked'`) cũng trả 423 nhưng **không** kèm header này — xem §2.
 
 ### Application Error Codes
 
 ```
 AUTH
-  INVALID_CREDENTIALS        Sai tên đăng nhập hoặc mật khẩu
-  TOKEN_EXPIRED              Access token hết hạn
-  TOKEN_INVALID              Token không hợp lệ
-  REFRESH_TOKEN_EXPIRED      Refresh token hết hạn, đăng nhập lại
-  ACCOUNT_LOCKED             Tài khoản bị khoá
-  WRONG_CURRENT_PASSWORD     Mật khẩu hiện tại không đúng
-  PASSWORD_MISMATCH          Mật khẩu xác nhận không khớp
+  INVALID_CREDENTIALS        401 Sai tên đăng nhập hoặc mật khẩu
+  TOKEN_EXPIRED              401 Access token hết hạn
+  TOKEN_INVALID              401 Token không hợp lệ / thiếu cookie refresh /
+                                 refresh token đã dùng lại (revoke toàn bộ session)
+  REFRESH_TOKEN_EXPIRED      401 Refresh token hết hạn, đăng nhập lại
+  ACCOUNT_LOCKED             429 lần sai thứ 5 (chính lần này gây khoá) /
+                             423 các lần thử sau trong thời gian khoá
+                                 → thời gian còn lại ở header Retry-After.
+                             423 users.status = 'locked' (khoá thủ công)
+                                 → KHÔNG có Retry-After, phải liên hệ HR/admin
+  ACCOUNT_INACTIVE           403 users.status khác 'active' (vd 'inactive');
+                                 chỉ kiểm tra SAU khi mật khẩu đúng
+  WRONG_CURRENT_PASSWORD     401 Mật khẩu hiện tại không đúng
+  PASSWORD_MISMATCH          400 Mật khẩu xác nhận không khớp
 
 EMPLOYEE
-  EMPLOYEE_NOT_FOUND         Không tìm thấy nhân viên
-  DUPLICATE_CCCD             CCCD đã tồn tại
-  DUPLICATE_EMAIL            Email đã tồn tại
-  DUPLICATE_TAX_CODE         Mã số thuế đã tồn tại
-  DUPLICATE_SI_NUMBER        Số sổ BHXH đã tồn tại
-  INVALID_CCCD_FORMAT        CCCD không đúng định dạng 12 số
-  INVALID_HIRE_DATE          Ngày vào làm không hợp lệ
+  EMPLOYEE_NOT_FOUND         404 Không tìm thấy nhân viên
+                             422 khi được dùng như tham chiếu (managerId,
+                                 employeeId của hợp đồng…)
+  EMPLOYEE_NOT_DELETED       422 Restore một hồ sơ đang bình thường
+  EMPLOYEE_SELF_MANAGER      422 Nhân viên không thể là quản lý trực tiếp của chính mình
+  EMPLOYEE_CODE_CONFLICT     409 Không cấp được mã NV#### duy nhất
+  DUPLICATE_CCCD             409 CCCD đã tồn tại
+  DUPLICATE_EMAIL            409 Email đã tồn tại
+  DUPLICATE_TAX_CODE         409 Mã số thuế đã tồn tại
+  DUPLICATE_SI_NUMBER        409 Số sổ BHXH đã tồn tại
+  DUPLICATE_HI_NUMBER        409 Số thẻ BHYT đã tồn tại
+  INVALID_HIRE_DATE          422 Ngày vào làm không hợp lệ
+  INVALID_DATE_OF_BIRTH      422 Ngày sinh không hợp lệ (tuổi lao động)
+  POSITION_DEPARTMENT_MISMATCH 422 Chức vụ không thuộc phòng ban đã chọn
+  AVATAR_REQUIRED            400 Thiếu file trong field multipart "avatar"
+  AVATAR_TOO_LARGE           400 Ảnh vượt quá 2MB
+  AVATAR_INVALID_TYPE        400 Không phải JPEG/PNG/WEBP (nhận diện bằng magic bytes)
+
+  Định dạng CCCD/MST/SĐT sai KHÔNG có mã riêng ở cấp response: chúng là
+  VALIDATION_ERROR (400) với details[].code = INVALID_CCCD / INVALID_TAX_CODE /
+  INVALID_SI_NUMBER / INVALID_HI_NUMBER / INVALID_PHONE / INVALID_NAME.
+
+MASTER DATA (departments / positions / leave_types / holidays)
+  CODE_ALLOCATION_FAILED     409 Không cấp được mã duy nhất (PB####/CV####/NP####)
+                                 sau số lần thử tối đa. Thay cho các mã
+                                 DUPLICATE_*_CODE cũ: `code` do server sinh nên
+                                 client không thể gây trùng nữa
+  DEPARTMENT_NOT_FOUND       404 (422 khi là tham chiếu từ position/employee)
+  PARENT_DEPARTMENT_NOT_FOUND 422 parentId không tồn tại
+  DEPARTMENT_CYCLE           422 Đặt cha thành chính nó hoặc thành con cháu của nó
+  DEPARTMENT_HAS_EMPLOYEES   422 Còn nhân viên → không xoá
+  DEPARTMENT_HAS_CHILDREN    422 Còn phòng ban con → không xoá
+  DEPARTMENT_HAS_POSITIONS   422 Còn chức vụ → không xoá
+  POSITION_NOT_FOUND         404
+  POSITION_HAS_EMPLOYEES     422 Còn nhân viên giữ chức vụ → không xoá
+  INVALID_SALARY_RANGE       422 minSalary > maxSalary
+  LEAVE_TYPE_NOT_FOUND       404
+  LEAVE_TYPE_IN_USE          422 Còn đơn nghỉ / số dư phép tham chiếu → không xoá.
+                                 Đây là chốt chặn DUY NHẤT; `isSystem` không chặn gì
+  HOLIDAY_NOT_FOUND          404
+  DUPLICATE_HOLIDAY_DATE     409 Ngày lễ đã tồn tại (holidays KHÔNG có `code`,
+                                 ngày do người dùng nhập nên lỗi này vẫn có thật)
 
 CONTRACT
-  CONTRACT_NOT_FOUND
-  CONTRACT_ALREADY_ACTIVE    Nhân viên đã có hợp đồng đang hiệu lực
-  CONTRACT_TYPE_LIMIT        Đã ký 2 lần HĐXĐTH, phải chuyển indefinite
+  CONTRACT_NOT_FOUND         404
+  CONTRACT_ALREADY_ACTIVE    409 Nhân viên đã có hợp đồng đang hiệu lực
+  DUPLICATE_CONTRACT_NUMBER  409 Số hợp đồng đã tồn tại
+  CONTRACT_TYPE_LIMIT        422 Đã ký 2 lần HĐXĐTH, phải chuyển indefinite
+  CONTRACT_ALREADY_TERMINATED 422 Hợp đồng đã chấm dứt
+  CONTRACT_NOT_SIGNED        422 Chỉ hợp đồng đã ký mới chấm dứt được
+  CONTRACT_NOT_DELETABLE     422 Chỉ xoá được hợp đồng status=draft
+  INVALID_CONTRACT_PERIOD    422 Thời hạn vi phạm BLLĐ 2019
+  INVALID_CONTRACT_STATUS    422 Trạng thái không hợp lệ cho thao tác
+  INVALID_SIGN_DATE          422 Ngày ký không hợp lệ
+  INVALID_DATE_RANGE         422 Khoảng ngày không hợp lệ
+
+FAMILY / DEPENDENT
+  FAMILY_MEMBER_NOT_FOUND    404
+  DEPENDENT_NOT_FOUND        404
+  DEPENDENT_ALREADY_CLAIMED  409 Người phụ thuộc đã được đăng ký giảm trừ
+  DEPENDENT_REASON_REQUIRED  422 Thiếu lý do phụ thuộc
+
+USER
+  DUPLICATE_USERNAME         409
+  EMPLOYEE_ALREADY_HAS_ACCOUNT 409 Nhân viên đã có tài khoản
+  ROLE_NOT_FOUND             422 roleId không tồn tại
+
+REPORT / EXPORT
+  SENSITIVE_EXPORT_FORBIDDEN 403 Role không được lấy bản không che
+                                 (chỉ admin/hr_manager)
+  EXPORT_TOO_MANY_ROWS       422 Filter khớp quá 10.000 dòng – KHÔNG cắt bớt im lặng
+
+INFRA
+  MAIL_TRANSPORT_UNAVAILABLE 503 Driver mail không nạp được (vd SES chưa cài SDK)
+  STORAGE_DRIVER_UNAVAILABLE 503 Driver lưu trữ không nạp được (vd S3 chưa cài SDK)
+
+--- Từ đây trở xuống là các mã của giai đoạn SAU, chưa tồn tại trong code ---
 
 ATTENDANCE
   ALREADY_CHECKED_IN         Đã chấm công vào hôm nay
@@ -1462,19 +1996,24 @@ PERFORMANCE
   REVIEW_NOT_FOUND
   REVIEW_ALREADY_SUBMITTED   Không thể sửa đánh giá đã submit
 
-AUTH
-  RESET_TOKEN_INVALID        Token đặt lại mật khẩu không hợp lệ
-  RESET_TOKEN_EXPIRED        Token đặt lại mật khẩu đã hết hạn (30 phút)
-
 LEAVE_BALANCE
   BALANCE_ALREADY_INITIALIZED  Đã khởi tạo ngày phép cho năm này
 
+--- Đã hiện thực ---
+
+AUTH (reset password)
+  RESET_TOKEN_INVALID    400 Token không hợp lệ / không tồn tại / đã dùng
+  RESET_TOKEN_EXPIRED    400 Token đúng nhưng đã quá hạn (30 phút)
+
 SYSTEM
-  VALIDATION_ERROR           Lỗi validate dữ liệu (kèm details[])
-  FORBIDDEN                  Không có quyền thực hiện thao tác
-  RATE_LIMIT_EXCEEDED        Quá nhiều request
-  INTERNAL_ERROR             Lỗi server nội bộ
+  VALIDATION_ERROR       400 Lỗi validate dữ liệu (kèm details[])
+  FORBIDDEN              403 Không có quyền thực hiện thao tác
+  RATE_LIMIT_EXCEEDED    429 Mã mặc định cho status 429 khi exception không tự
+                             khai code (lockout đăng nhập dùng ACCOUNT_LOCKED)
+  INTERNAL_ERROR         500 Lỗi server nội bộ – KHÔNG lộ stack trace ra production
 ```
+
+> Mã nào không nằm trong bảng trên và không do service tự khai sẽ được `HttpExceptionFilter` suy ra từ HTTP status: `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `PAYLOAD_TOO_LARGE`, `UNPROCESSABLE_ENTITY`, `RATE_LIMIT_EXCEEDED`, `SERVICE_UNAVAILABLE`, `INTERNAL_ERROR`, hoặc `HTTP_<status>` nếu không khớp gì cả.
 
 ### Validation Error Format
 
@@ -1508,4 +2047,4 @@ type ValidationDetail = { field: string; code: string; message: string }
 
 ---
 
-*Cập nhật: 13/08/2026 – Version 1.2 – Chuẩn hóa response format: bỏ `message` khỏi success, `details[]` chỉ có ở VALIDATION_ERROR, mỗi detail item gồm `field`+`code`+`message`*
+*Cập nhật: 19/08/2026 – Version 1.3 – Đồng bộ với code sau Giai đoạn 0–3: refresh token chỉ nằm trong cookie HttpOnly (bỏ khỏi body login và body /auth/refresh), thêm `GET /auth/me` và `rememberMe`, lockout 429/423 + header `Retry-After`, mã master data do server sinh (`PB`/`CV`/`NP`) thay cho `DUPLICATE_*_CODE` → `CODE_ALLOCATION_FAILED`, `GET /contract-types` read-only, địa giới 2 cấp 34 tỉnh/3.321 phường-xã (bỏ `/system/districts`), `GET /reports/employees/export`, thêm mục §1.6 trạng thái triển khai*

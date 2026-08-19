@@ -1,8 +1,8 @@
 # UI Conventions
 
-**Phiên bản:** 1.0  
-**Ngày cập nhật:** 19/06/2026  
-**Design System:** Ant Design v5 + Custom Token
+**Phiên bản:** 1.1  
+**Ngày cập nhật:** 19/08/2026  
+**Design System:** Ant Design **v6** + Custom Token (`src/styles/tokens.css`)
 
 ---
 
@@ -24,13 +24,18 @@ Các giá trị gốc của hệ thống. Không dùng giá trị hardcode trong
 
 ### Màu trạng thái nhân viên
 
-| Trạng thái | Màu | AntD Badge color |
-|------------|-----|-----------------|
-| Đang làm việc | Xanh lá | `success` |
-| Thử việc | Xanh dương | `processing` |
-| Nghỉ thai sản / phép dài | Vàng | `warning` |
-| Đã nghỉ việc | Đỏ | `error` |
-| Đã nghỉ hưu | Xám | `default` |
+Đúng **6** giá trị của `employees.status` — xem `components/employees/EmployeeStatusTag.tsx`:
+
+| `status` | Nhãn | Màu `Tag` của AntD |
+|----------|------|--------------------|
+| `probation` | Thử việc | `orange` |
+| `active` | Đang làm việc | `green` |
+| `on_leave` | Đang nghỉ | `blue` |
+| `suspended` | Tạm đình chỉ | `red` |
+| `resigned` | Đã nghỉ việc | `default` |
+| `terminated` | Đã chấm dứt | `default` |
+
+> Không có trạng thái `maternity_leave` hay `retired`. Màu luôn là **kênh thứ hai**, không bao giờ là kênh duy nhất: mỗi tag đều mang chữ của chính nó nên nghĩa vẫn còn với người mù màu và bản in đen trắng (§11).
 
 ### Typography
 
@@ -54,7 +59,7 @@ Theo bội số 8px: `4 / 8 / 12 / 16 / 24 / 32 / 48px`
 
 ## 2. Ant Design Theme Configuration
 
-Theme tùy chỉnh khai báo trong `main.tsx` qua `ConfigProvider`:
+Theme tùy chỉnh khai báo trong **`App.tsx`** qua `ConfigProvider` (kèm `locale={viVN}` từ `antd/locale/vi_VN`), và được phản chiếu thành CSS custom property trong `src/styles/tokens.css` cho các CSS module. `main.tsx` chỉ lo bootstrap: `antd/dist/reset.css`, `dayjs.locale('vi')`, khởi tạo i18n.
 
 | Thuộc tính | Giá trị |
 |-----------|---------|
@@ -293,3 +298,7 @@ Dùng `useBreakpoint()` hook của AntD để điều chỉnh layout theo màn h
 - Màu sắc không phải cách duy nhất để truyền tải thông tin — badge trạng thái có cả text
 - Focus ring không bị ẩn (không override `outline: none` toàn cục)
 - Keyboard navigation hoạt động với modal, dropdown, table row actions
+
+---
+
+*Cập nhật: 19/08/2026 – Version 1.1 – Sửa phiên bản Design System: Ant Design v6 (không phải v5); token tuỳ biến nằm ở src/styles/tokens.css; sửa bảng màu trạng thái nhân viên về đúng 6 giá trị của `employees.status`; ConfigProvider nằm ở App.tsx chứ không phải main.tsx*

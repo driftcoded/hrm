@@ -4,11 +4,13 @@
 - `npm run dev` – Vite dev server (http://localhost:5173)
 - `npm run build` – Build production
 - `npm run preview` – Preview production build
-- `npm run lint` – ESLint + Prettier check
+- `npm run lint` – oxlint
 
 ## Tech stack
-React 18, TypeScript, Vite, Ant Design v5, React Router v6,
-TanStack Query, Zustand, axios, dayjs (locale 'vi'), i18next.
+React 19, TypeScript 6, Vite 8, Ant Design v6, React Router v7 (Data Router:
+createBrowserRouter + RouterProvider, package `react-router`),
+TanStack Query v5, Zustand v5, axios v1, dayjs (locale 'vi'), i18next v26.
+Lint bằng oxlint (`npm run lint`), không phải ESLint.
 
 ## Folder rule (BẮT BUỘC)
 - `pages/` – chỉ chứa route-level component

@@ -143,7 +143,7 @@ Bảng trung gian many-to-many giữa `roles` và `permissions`. Không có cộ
 | Cột | Kiểu | Bắt buộc | Mô tả |
 |-----|------|:--------:|-------|
 | id | ID tự tăng | ✅ | Khóa chính |
-| code | text (20) | ✅ | Duy nhất. Ví dụ: `IT` · `HR` · `FIN` · `SALE` |
+| code | text (20) | ✅ | Duy nhất, **do server sinh**: `PB0001`, `PB0002`… API không nhận `code` khi tạo và không cho sửa. Số kế tiếp lấy từ mã lớn nhất từng cấp **kể cả dòng đã xoá mềm** → mã không bao giờ được dùng lại |
 | name | text (150) | ✅ | Tên đầy đủ: "Phòng Công nghệ thông tin" |
 | description | văn bản dài | ❌ | – |
 | parent_id | FK → departments | ❌ | `NULL` nếu là phòng ban gốc. Self-reference để tạo cây tổ chức |
@@ -161,7 +161,7 @@ Bảng trung gian many-to-many giữa `roles` và `permissions`. Không có cộ
 | Cột | Kiểu | Bắt buộc | Mô tả |
 |-----|------|:--------:|-------|
 | id | ID tự tăng | ✅ | Khóa chính |
-| code | text (20) | ✅ | Duy nhất. Ví dụ: `DEV_JUNIOR` · `PM_SENIOR` |
+| code | text (20) | ✅ | Duy nhất, **do server sinh**: `CV0001`, `CV0002`… (cùng quy tắc với `departments.code`) |
 | name | text (150) | ✅ | Tên chức vụ đầy đủ |
 | department_id | FK → departments | ✅ | Phòng ban sở hữu chức vụ này |
 | level | số nhỏ | ✅ | Cấp bậc: `1` Staff · `2` Senior · `3` Lead · `4` Manager · `5` Director |
@@ -424,7 +424,7 @@ Lưu thông tin gia đình cho hồ sơ nhân sự (không liên quan đến gi�
 | Cột | Kiểu | Bắt buộc | Mô tả |
 |-----|------|:--------:|-------|
 | id | ID tự tăng | ✅ | Khóa chính (TINYINT) |
-| code | text (20) | ✅ | Duy nhất. Ví dụ: `ANNUAL` · `SICK` · `MATERNITY` |
+| code | text (20) | ✅ | Duy nhất. Hai kiểu mã cùng tồn tại: 9 loại luật định giữ mã có nghĩa đã seed (`ANNUAL` · `SICK` · `MATERNITY`…), loại do công ty tự thêm nhận mã **server sinh** `NP0001`, `NP0002`… API không nhận `code` khi tạo và không cho sửa |
 | name | text (100) | ✅ | Tên hiển thị tiếng Việt |
 | days_per_year | số thập phân | ✅ | Số ngày/năm. `0` = không giới hạn hoặc tính theo case |
 | is_paid | boolean | ✅ | Có hưởng lương không. Mặc định `true` |
@@ -436,8 +436,17 @@ Lưu thông tin gia đình cho hồ sơ nhân sự (không liên quan đến gi�
 | description | văn bản dài | ❌ | Mô tả, căn cứ pháp lý |
 | is_active | boolean | ✅ | Mặc định `true` |
 | sort_order | số nhỏ | ✅ | Thứ tự hiển thị. Mặc định `0` |
+| is_system | boolean | ✅ | Mặc định `false`. Đánh dấu 9 loại **luật định** được seed từ BLLĐ 2019 & Luật BHXH. Thêm bằng migration `AddIsSystemToLeaveTypes` (nằm sau `sort_order`) |
 
-**Seed dữ liệu (căn cứ BLLĐ 2019 & Luật BHXH):**
+> **`is_system` chỉ mang tính thông tin.** Nó **không** chặn sửa và **không** chặn xoá — chỉ để UI gắn nhãn "loại nghỉ theo luật".
+>
+> Chốt chặn xoá **duy nhất** là `LEAVE_TYPE_IN_USE` (loại nghỉ còn được `leave_requests` / `leave_balances` tham chiếu; FK ở DB cũng là RESTRICT). Bảng không có `deleted_at` nên xoá là xoá vật lý; muốn ẩn khỏi UI thì đặt `is_active = false`.
+>
+> **Vì sao không khoá cứng:** pháp luật thay đổi — mức hưởng được nâng, và loại nghỉ luật định có thể bị bãi bỏ (đúng như BLLĐ 2019 đã bãi bỏ loại hợp đồng `seasonal`). Một dòng đã bị pháp luật bãi bỏ vẫn phải xoá được. Loại luật định nào đang mang lịch sử thì vẫn không xoá được, nhưng vì `LEAVE_TYPE_IN_USE` — tức là vì đúng lý do.
+>
+> ⚠️ Comment trong file migration `1787094467290-AddIsSystemToLeaveTypes.ts` mô tả `is_system` như một cờ **chặn** xoá/đổi tên. Mô tả đó đã lạc hậu so với `LeaveTypesService` hiện tại; hành vi thật là như mô tả ở trên.
+
+**Seed dữ liệu (căn cứ BLLĐ 2019 & Luật BHXH) – cả 9 dòng đều có `is_system = true`:**
 
 | code | Tên | Ngày/năm | Hưởng lương | Căn cứ |
 |------|-----|:--------:|:-----------:|--------|
@@ -835,4 +844,4 @@ Tạo bảng theo thứ tự sau để tránh lỗi Foreign Key constraint:
 
 ---
 
-*Cập nhật: 26/05/2026 – Version 1.2 – Bỏ SQL, viết lại dạng bảng mô tả*
+*Cập nhật: 19/08/2026 – Version 1.3 – Bổ sung cột `leave_types.is_system` (migration `AddIsSystemToLeaveTypes`) và làm rõ nó chỉ mang tính thông tin, chốt chặn xoá duy nhất là `LEAVE_TYPE_IN_USE`; ghi rõ `departments.code` / `positions.code` / `leave_types.code` do server sinh (`PB`/`CV`/`NP`)*
