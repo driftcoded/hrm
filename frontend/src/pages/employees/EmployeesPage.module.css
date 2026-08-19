@@ -10,23 +10,16 @@
  * Nó là dải điều khiển của bảng ngay bên dưới, không phải một panel nội dung
  * riêng — bọc card thì bảng trông như bị ngăn khỏi bộ lọc điều khiển chính nó.
  */
-.filterBar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--hrm-space-3);
-}
-
-.filterRow,
-.filterRowSecondary {
+/* Một hàng duy nhất, tự xuống dòng khi hẹp — không còn hàng lọc phụ. */
+.filterRow {
   display: flex;
   align-items: center;
   gap: var(--hrm-space-2);
   flex-wrap: wrap;
 }
 
-.filterRowSecondary {
-  padding-top: var(--hrm-space-3);
-  border-top: 1px solid var(--hrm-color-border-subtle);
+.filterRange {
+  min-width: 250px;
 }
 
 .searchBox {

@@ -20,7 +20,6 @@ import {
   ExportOutlined,
   EyeOutlined,
   FileProtectOutlined,
-  FilterOutlined,
   MailOutlined,
   MoreOutlined,
   PlusOutlined,
@@ -111,7 +110,6 @@ export function EmployeesPage() {
 
   const table = useTableQuery({ sort: 'employeeCode', order: 'asc' });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [isWizardOpen, setWizardOpen] = useState(false);
   const [deleting, setDeleting] = useState<EmployeeListItem | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -527,105 +525,100 @@ export function EmployeesPage() {
       </Row>
 
       {/* ------------------------------------------------- filter bar --- */}
-      <div className={styles.filterBar}>
-        <div className={styles.filterRow}>
-          <div className={styles.searchBox}>
-            <TableSearch
-              defaultValue={search}
-              placeholder={t('employees.filters.searchPlaceholder')}
-              onSearch={(value) => table.setFilter('search', value || undefined)}
-            />
-          </div>
-
-          <Select
-            allowClear
-            className={styles.filterSelect}
-            placeholder={t('employees.filters.status')}
-            value={status}
-            onChange={(value) => table.setFilter('status', value)}
-            options={EMPLOYEE_STATUSES.map((value) => ({
-              value,
-              label: t(`employees.status.${value}`),
-            }))}
+      <div className={styles.filterRow}>
+        <div className={styles.searchBox}>
+          <TableSearch
+            defaultValue={search}
+            placeholder={t('employees.filters.searchPlaceholder')}
+            onSearch={(value) => table.setFilter('search', value || undefined)}
           />
-
-          <Select
-            allowClear
-            showSearch
-            optionFilterProp="label"
-            className={styles.filterSelect}
-            placeholder={t('employees.filters.department')}
-            value={departmentId}
-            onChange={(value) => {
-              table.setFilter('departmentId', value);
-              // A position only exists inside a department; keeping the old one
-              // would filter to an impossible combination and show zero rows.
-              table.setFilter('positionId', undefined);
-            }}
-            options={departments.map(({ node, depth }) => ({
-              value: node.id,
-              label: `${'  '.repeat(depth)}${node.name}`,
-            }))}
-          />
-
-          <Select
-            allowClear
-            showSearch
-            optionFilterProp="label"
-            className={styles.filterSelect}
-            placeholder={t('employees.filters.position')}
-            value={positionId}
-            disabled={departmentId === undefined}
-            onChange={(value) => table.setFilter('positionId', value)}
-            options={positions.map((position) => ({
-              value: position.id,
-              label: position.name,
-            }))}
-          />
-
-          <Button
-            icon={<FilterOutlined />}
-            type={showMoreFilters ? 'primary' : 'default'}
-            ghost={showMoreFilters}
-            onClick={() => setShowMoreFilters((open) => !open)}
-          >
-            {t('employees.filters.more')}
-          </Button>
-
-          <Button type="link" icon={<ReloadOutlined />} onClick={resetFilters} disabled={!hasFilters}>
-            {t('employees.filters.reset')}
-          </Button>
         </div>
 
-        {showMoreFilters && (
-          <div className={styles.filterRowSecondary}>
-            <Select
-              allowClear
-              className={styles.filterSelect}
-              placeholder={t('employees.filters.gender')}
-              value={gender}
-              onChange={(value) => table.setFilter('gender', value)}
-              options={GENDERS.map((value) => ({
-                value,
-                label: t(`employees.gender.${value}`),
-              }))}
-            />
-            <DatePicker.RangePicker
-              format="DD/MM/YYYY"
-              placeholder={[t('employees.filters.hireFrom'), t('employees.filters.hireTo')]}
-              value={hireFrom && hireTo ? [dayjs(hireFrom), dayjs(hireTo)] : null}
-              onChange={(range) => {
-                table.setFilter('hireFrom', range?.[0]?.format('YYYY-MM-DD'));
-                table.setFilter('hireTo', range?.[1]?.format('YYYY-MM-DD'));
-              }}
-            />
-            {onlyDeleted && (
-              <Tag color="default" closable onClose={() => table.setFilter('onlyDeleted', undefined)}>
-                {t('employees.filters.trashActive')}
-              </Tag>
-            )}
-          </div>
+        <Select
+          allowClear
+          className={styles.filterSelect}
+          placeholder={t('employees.filters.status')}
+          value={status}
+          onChange={(value) => table.setFilter('status', value)}
+          options={EMPLOYEE_STATUSES.map((value) => ({
+            value,
+            label: t(`employees.status.${value}`),
+          }))}
+        />
+
+        <Select
+          allowClear
+          showSearch
+          optionFilterProp="label"
+          className={styles.filterSelect}
+          placeholder={t('employees.filters.department')}
+          value={departmentId}
+          onChange={(value) => {
+            table.setFilter('departmentId', value);
+            // A position only exists inside a department; keeping the old one
+            // would filter to an impossible combination and show zero rows.
+            table.setFilter('positionId', undefined);
+          }}
+          options={departments.map(({ node, depth }) => ({
+            value: node.id,
+            label: `${'  '.repeat(depth)}${node.name}`,
+          }))}
+        />
+
+        <Select
+          allowClear
+          showSearch
+          optionFilterProp="label"
+          className={styles.filterSelect}
+          placeholder={t('employees.filters.position')}
+          value={positionId}
+          disabled={departmentId === undefined}
+          onChange={(value) => table.setFilter('positionId', value)}
+          options={positions.map((position) => ({
+            value: position.id,
+            label: position.name,
+          }))}
+        />
+
+        <Select
+          allowClear
+          className={styles.filterSelect}
+          placeholder={t('employees.filters.gender')}
+          value={gender}
+          onChange={(value) => table.setFilter('gender', value)}
+          options={GENDERS.map((value) => ({
+            value,
+            label: t(`employees.gender.${value}`),
+          }))}
+        />
+
+        <DatePicker.RangePicker
+          className={styles.filterRange}
+          format="DD/MM/YYYY"
+          placeholder={[t('employees.filters.hireFrom'), t('employees.filters.hireTo')]}
+          value={hireFrom && hireTo ? [dayjs(hireFrom), dayjs(hireTo)] : null}
+          onChange={(range) => {
+            table.setFilter('hireFrom', range?.[0]?.format('YYYY-MM-DD'));
+            table.setFilter('hireTo', range?.[1]?.format('YYYY-MM-DD'));
+          }}
+        />
+
+        {/* Chỉ hiện khi đang ở chế độ thùng rác (bật từ menu ⋮ trên đầu
+            trang) — một thẻ đóng được để thoát mà không phải quay lên menu. */}
+        {onlyDeleted && (
+          <Tag color="default" closable onClose={() => table.setFilter('onlyDeleted', undefined)}>
+            {t('employees.filters.trashActive')}
+          </Tag>
         )}
+
+        <Button
+          type="link"
+          icon={<ReloadOutlined />}
+          onClick={resetFilters}
+          disabled={!hasFilters}
+        >
+          {t('employees.filters.reset')}
+        </Button>
       </div>
 
       {/* ------------------------------------------------------- body --- */}
