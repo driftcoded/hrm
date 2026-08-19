@@ -27,6 +27,8 @@ import { EmployeesModule } from './modules/employees/employees.module';
 import { FamilyMembersModule } from './modules/family-members/family-members.module';
 import { LeaveTypesModule } from './modules/leaves/leave-types.module';
 import { PositionsModule } from './modules/positions/positions.module';
+import { AttendancesModule } from './modules/attendances/attendances.module';
+import { OvertimeModule } from './modules/overtime/overtime.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { HolidaysModule } from './modules/system/holidays.module';
 import { SystemModule } from './modules/system/system.module';
@@ -69,6 +71,8 @@ import { UsersModule } from './modules/users/users.module';
     FamilyMembersModule,
     DependentsModule,
     // Báo cáo & xuất file – api-spec.md §19
+    AttendancesModule,
+    OvertimeModule,
     ReportsModule,
   ],
   controllers: [AppController],
