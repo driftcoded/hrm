@@ -40,3 +40,32 @@ export const USER_WRITE_ROLES: readonly UserRole[] = ['admin'];
  * luôn quyền xuất file.
  */
 export const EMPLOYEE_EXPORT_ROLES: readonly UserRole[] = ['admin', 'hr_manager', 'hr_staff'];
+
+/**
+ * Vai trò XEM ĐƯỢC bảng chấm công toàn công ty (`GET /attendances`).
+ *
+ * `manager` có mặt nhưng backend giới hạn họ trong phòng ban mình quản
+ * (`resolveScope`); nhân viên thường nhận 403 và phải dùng `/attendances/me`.
+ */
+export const ATTENDANCE_READ_ALL_ROLES: readonly UserRole[] = [
+  'admin',
+  'hr_manager',
+  'hr_staff',
+  'manager',
+];
+
+/**
+ * Vai trò SỬA bảng chấm công và NẠP FILE — mirrors backend `EMPLOYEE_WRITE_ROLES`.
+ *
+ * Hẹp hơn danh sách đọc: `manager` đọc được phòng mình nhưng không sửa. Sửa
+ * bảng chấm công là sửa căn cứ trả lương, để trưởng phòng tự sửa giờ cho nhân
+ * viên phòng mình là bỏ lớp kiểm soát duy nhất của việc đó.
+ */
+export const ATTENDANCE_WRITE_ROLES: readonly UserRole[] = [
+  'admin',
+  'hr_manager',
+  'hr_staff',
+];
+
+/** Vai trò xuất bảng chấm công — mirrors `AttendanceExportService.EXPORT_ROLES`. */
+export const ATTENDANCE_EXPORT_ROLES: readonly UserRole[] = ATTENDANCE_READ_ALL_ROLES;

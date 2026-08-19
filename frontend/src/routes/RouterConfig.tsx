@@ -49,6 +49,28 @@ const EmployeeDetailPage = lazy(() =>
   })),
 );
 
+// Attendance module (Giai đoạn 4.2), each its own chunk.
+const AttendanceLayout = lazy(() =>
+  import('@/pages/attendance/AttendanceLayout').then((module) => ({
+    default: module.AttendanceLayout,
+  })),
+);
+const MyAttendancePage = lazy(() =>
+  import('@/pages/attendance/MyAttendancePage').then((module) => ({
+    default: module.MyAttendancePage,
+  })),
+);
+const AttendanceTablePage = lazy(() =>
+  import('@/pages/attendance/AttendanceTablePage').then((module) => ({
+    default: module.AttendanceTablePage,
+  })),
+);
+const OvertimePage = lazy(() =>
+  import('@/pages/attendance/OvertimePage').then((module) => ({
+    default: module.OvertimePage,
+  })),
+);
+
 // Master-data settings screens (Giai đoạn 2.2), each its own chunk.
 const SettingsIndexPage = lazy(() =>
   import('@/pages/settings/SettingsIndexPage').then((module) => ({
@@ -81,11 +103,10 @@ const HolidaysPage = lazy(() =>
  * a dead link or a redirect that looks like a bug.
  *
  * `departments` left this list in Giai đoạn 2.2: departments are master data and
- * now live at `/settings/departments`. `employees` left it in Giai đoạn 3.2 —
- * the module has real screens now.
+ * now live at `/settings/departments`. `employees` left it in Giai đoạn 3.2 and
+ * `attendance` in Giai đoạn 4.2 — both modules have real screens now.
  */
 const UPCOMING_MODULES: Array<{ path: string; titleKey: string; phase: string }> = [
-  { path: 'attendance', titleKey: 'nav.attendance', phase: '4' },
   { path: 'payroll', titleKey: 'nav.payroll', phase: '6' },
   { path: 'leave', titleKey: 'nav.leave', phase: '5' },
   { path: 'reports', titleKey: 'nav.reports', phase: '8' },
@@ -127,6 +148,15 @@ const router = createBrowserRouter([
             children: [
               { index: true, element: <EmployeesPage /> },
               { path: ':id', element: <EmployeeDetailPage /> },
+            ],
+          },
+          {
+            path: 'attendance',
+            element: <AttendanceLayout />,
+            children: [
+              { index: true, element: <MyAttendancePage /> },
+              { path: 'overtime', element: <OvertimePage /> },
+              { path: 'table', element: <AttendanceTablePage /> },
             ],
           },
           {

@@ -6,6 +6,12 @@
  * làm chuẩn, không phải mẹo vặt.
  */
 
+/** Một file đã tải về, còn nằm trong bộ nhớ. */
+export interface DownloadedFile {
+  blob: Blob;
+  filename: string;
+}
+
 /** Tách tên file ra từ header `Content-Disposition`. */
 export function filenameFromDisposition(
   disposition: string | undefined,

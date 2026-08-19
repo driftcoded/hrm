@@ -90,7 +90,8 @@
     "retry": "Retry",
     "refresh": "Refresh",
     "comingSoon": "Coming soon",
-    "comingSoonAria": "{{label}} (coming soon)"
+    "comingSoonAria": "{{label}} (coming soon)",
+    "confirm": "Confirm"
   },
   "crud": {
     "totalRecords": "{{total}} records in total",
@@ -231,7 +232,24 @@
       "DEPENDENT_NOT_FOUND": "Dependent not found.",
       "DEPENDENT_REASON_REQUIRED": "A reason is required when stopping a deduction.",
       "EXPORT_TOO_MANY_ROWS": "The current filter matches too many employees to export at once. Narrow it down and try again.",
-      "SENSITIVE_EXPORT_FORBIDDEN": "You don't have permission to export sensitive columns."
+      "SENSITIVE_EXPORT_FORBIDDEN": "You don't have permission to export sensitive columns.",
+      "ALREADY_CHECKED_IN": "You have already clocked in today.",
+      "NOT_CHECKED_IN": "You have not clocked in today.",
+      "ALREADY_CHECKED_OUT": "You have already clocked out today.",
+      "ATTENDANCE_NOT_FOUND": "Attendance record not found.",
+      "INVALID_ATTENDANCE_TIMES": "Check-out cannot be earlier than check-in.",
+      "OVERTIME_NOT_FOUND": "Overtime request not found.",
+      "OVERTIME_NOT_PENDING": "This request is no longer pending.",
+      "OVERLAPPING_OVERTIME": "This time range overlaps another of your overtime requests.",
+      "CANNOT_APPROVE_OWN_OVERTIME": "You cannot approve your own request.",
+      "OVERTIME_DAILY_LIMIT_EXCEEDED": "Over the 12-hour daily cap (Article 107, Labour Code 2019).",
+      "OVERTIME_MONTHLY_LIMIT_EXCEEDED": "Over the 40-hour monthly overtime cap (Article 107, Labour Code 2019).",
+      "OVERTIME_YEARLY_LIMIT_EXCEEDED": "Over the 200-hour yearly overtime cap (Article 107, Labour Code 2019).",
+      "IMPORT_FILE_REQUIRED": "Please choose an .xlsx file.",
+      "IMPORT_INVALID_FILE_TYPE": "That file is not a valid .xlsx workbook.",
+      "IMPORT_MISSING_COLUMNS": "The file is missing required columns. Download the template to compare headers.",
+      "IMPORT_TOO_MANY_ROWS": "The file has too many rows. Split it by month or department.",
+      "IMPORT_EMPTY_FILE": "The workbook has no worksheet."
     }
   },
   "layout": {
@@ -914,6 +932,195 @@
       "title": "Employee profile",
       "code": "Employee code",
       "printedAt": "Printed {{at}}"
+    }
+  },
+  "attendance": {
+    "title": "Attendance",
+    "subtitle": "Daily clock-in, the monthly timesheet and overtime requests.",
+    "loadError": "Could not load attendance data.",
+    "tabs": {
+      "mine": "Mine",
+      "overtime": "Overtime",
+      "table": "Timesheet"
+    },
+    "clock": {
+      "today": "Today",
+      "in": "Clock in",
+      "out": "Clock out",
+      "notYet": "Not yet",
+      "inSuccess": "Clocked in.",
+      "outSuccess": "Clocked out."
+    },
+    "status": {
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late",
+      "early_leave": "Left early",
+      "leave": "On leave",
+      "holiday": "Public holiday",
+      "wfh": "Working from home"
+    },
+    "fields": {
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "status": "Status",
+      "note": "Note",
+      "reason": "Reason for the adjustment"
+    },
+    "columns": {
+      "employee": "Employee",
+      "workDate": "Date",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "workHours": "Hours",
+      "overtimeHours": "Hours past shift",
+      "status": "Status",
+      "lateMinutes": "Late (min)",
+      "earlyLeaveMinutes": "Left early (min)"
+    },
+    "summary": {
+      "presentDays": "Days worked",
+      "presentDaysCaption": "Days recorded out of the month's working days",
+      "totalWorkHours": "Total hours",
+      "totalWorkHoursCaption": "Excludes the 60-minute lunch break each day",
+      "lateDays": "Late days",
+      "lateDaysCaption": "Arrived more than 15 minutes after 08:00",
+      "absentDays": "Absent days",
+      "absentDaysCaption": "Working days already passed with no record",
+      "overtimeSection": "Overtime",
+      "overtimeHours": "Hours actually worked",
+      "approvedOvertimeHours": "Approved hours",
+      "overtimeNote": "Only APPROVED hours are paid as overtime. Hours actually worked are the factual figure, kept for reconciliation."
+    },
+    "calendar": {
+      "title": "Attendance calendar",
+      "weekdays": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "pickDay": "Day detail",
+      "pickDayHint": "Pick a day on the calendar to see its detail.",
+      "noRecord": "No attendance recorded",
+      "overtimeMark": "{{hours}} approved overtime hours",
+      "kind": {
+        "present": "Present",
+        "late": "Late",
+        "earlyLeave": "Left early",
+        "absent": "Absent",
+        "leave": "On leave",
+        "holiday": "Public holiday",
+        "wfh": "Working from home",
+        "weekend": "Weekend",
+        "future": "Not yet",
+        "empty": ""
+      }
+    },
+    "filters": {
+      "department": "Department",
+      "status": "Status",
+      "reset": "Reset"
+    },
+    "actions": {
+      "adjust": "Adjust",
+      "adjustFor": "Adjust {{name}}'s attendance on {{date}}"
+    },
+    "adjust": {
+      "title": "Adjust attendance — {{name}}, {{date}}",
+      "success": "Attendance record updated.",
+      "statusHint": "Leave blank and the status is recomputed from the times.",
+      "reasonHint": "The record has to say why it differs from what the clock recorded.",
+      "reasonRequired": "Please give a reason for the adjustment",
+      "reasonTooShort": "Reason is too short"
+    },
+    "export": {
+      "action": "Export to Excel",
+      "hint": "Export the timesheet for the month on screen ({{count}} rows)",
+      "success": "Timesheet downloaded."
+    },
+    "import": {
+      "open": "Import from Excel",
+      "title": "Import a timesheet from Excel",
+      "columnsHint": "Required columns: Mã NV, Ngày, Giờ vào. Optional: Giờ ra, Ghi chú.",
+      "template": "Download template",
+      "dropHint": "Drop an .xlsx file here, or click to choose one",
+      "dropSubHint": "The file is checked first; nothing is written yet.",
+      "totalRows": "Rows read",
+      "created": "New",
+      "updated": "Overwritten",
+      "commit": "Import",
+      "commitWithOverwrite": "Import and overwrite {{count}} days",
+      "readyTitle": "File is valid — {{count}} days will be created.",
+      "overwriteTitle": "{{count}} existing days will be overwritten",
+      "overwriteDetail": "These days already have a record and will be replaced by the file's data. Check before importing.",
+      "rejectedTitle": "The file has {{count}} bad rows",
+      "rejectedDetail": "NOTHING was written. Fix the rows below in the file, then choose it again.",
+      "errorRow": "Row",
+      "errorEmployee": "Code",
+      "errorMessage": "Problem",
+      "success": "Imported: {{created}} new, {{updated}} overwritten."
+    },
+    "overtime": {
+      "create": "Request overtime",
+      "submit": "Submit",
+      "createSuccess": "Overtime request submitted.",
+      "approve": "Approve",
+      "approveSuccess": "Overtime request approved.",
+      "reject": "Reject",
+      "rejectTitle": "Reject {{name}}'s request — {{date}}",
+      "rejectSuccess": "Overtime request rejected.",
+      "cancel": "Withdraw",
+      "cancelConfirm": "Withdraw this overtime request?",
+      "cancelSuccess": "Request withdrawn.",
+      "loadError": "Could not load overtime requests.",
+      "night": "Night",
+      "nightHint": "{{hours}} hours between 22:00 and 06:00, with {{surcharge}}× added for those hours.",
+      "estimate": "Estimated hours: {{hours}}",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "cancelled": "Withdrawn"
+      },
+      "rateType": {
+        "weekday": "Weekday",
+        "weekend": "Weekend",
+        "holiday": "Public holiday"
+      },
+      "columns": {
+        "employee": "Employee",
+        "workDate": "Date",
+        "span": "Hours",
+        "totalHours": "Total",
+        "rate": "Rate",
+        "status": "Status"
+      },
+      "filters": {
+        "status": "Status",
+        "pendingShortcut": "Pending only"
+      },
+      "fields": {
+        "workDate": "Date",
+        "startTime": "From",
+        "endTime": "To",
+        "endTimeHint": "Earlier than the start time means the next day (night shift).",
+        "reason": "Reason",
+        "reasonHint": "This is the record a labour inspection would read.",
+        "rejectReason": "Reason for rejection",
+        "rejectReasonHint": "The applicant needs to know what to fix before resubmitting."
+      },
+      "errors": {
+        "workDate": "Please pick the date",
+        "startTime": "Please pick the start time",
+        "endTime": "Please pick the end time",
+        "reason": "Please give a reason",
+        "reasonTooShort": "Reason is too short",
+        "rejectReason": "Please give a reason for rejecting"
+      }
     }
   }
 }

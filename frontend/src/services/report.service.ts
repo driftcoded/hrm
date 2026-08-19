@@ -1,7 +1,7 @@
-import axios from 'axios';
 import { apiClient } from '@/lib/axios';
 import type { EmployeeFilters } from '@/types/employee.types';
-import { filenameFromDisposition } from '@/utils/download';
+import { filenameFromDisposition, type DownloadedFile } from '@/utils/download';
+import { withJsonErrorBody } from './blobError';
 
 /**
  * Mọi call tới `/reports` — hiện chỉ có bản xuất Excel danh sách nhân viên,
@@ -12,11 +12,6 @@ import { filenameFromDisposition } from '@/utils/download';
  * ở backend và có phân quyền riêng, nên trộn vào đó là làm sai chính câu
  * ghi chú đầu file kia.
  */
-
-export interface DownloadedFile {
-  blob: Blob;
-  filename: string;
-}
 
 /** Tên dùng khi server không gửi `Content-Disposition` (ví dụ qua proxy lạ). */
 const EXPORT_FALLBACK_FILENAME = 'employees.xlsx';
@@ -62,26 +57,43 @@ export async function exportEmployees(filters?: EmployeeFilters): Promise<Downlo
 }
 
 /**
- * `responseType: 'blob'` áp cho CẢ response lỗi, nên body `{ success: false,
- * error: { code } }` về tay ta dưới dạng `Blob` chứ không phải object. Khi đó
- * `getApiError()` không đọc thấy `code` và mọi lỗi — kể cả
- * `EXPORT_TOO_MANY_ROWS` vốn có hướng dẫn cụ thể — đều tụt xuống câu báo lỗi
- * chung chung.
+ * `GET /reports/attendances/export` → bảng chấm công một tháng, 2 sheet.
  *
- * Đọc blob ra JSON rồi gắn ngược vào `error.response.data` để phần còn lại của
- * ứng dụng xử lý lỗi này y hệt mọi lỗi khác. Blob không phải JSON (HTML của
- * proxy, response rỗng...) thì trả nguyên lỗi cũ — vẫn là nhánh "không rõ mã".
+ * `month`/`year` BẮT BUỘC, khác với bản xuất nhân viên: bảng chấm công là tài
+ * liệu CỦA MỘT THÁNG, không có tháng thì file là toàn bộ lịch sử của công ty.
  */
-async function withJsonErrorBody(error: unknown): Promise<unknown> {
-  if (!axios.isAxiosError(error) || !(error.response?.data instanceof Blob)) {
-    return error;
+export async function exportAttendances(filter: {
+  month: number;
+  year: number;
+  departmentId?: number;
+  employeeId?: number;
+}): Promise<DownloadedFile> {
+  const params: Record<string, string> = {
+    month: String(filter.month),
+    year: String(filter.year),
+  };
+
+  if (filter.departmentId !== undefined) {
+    params.departmentId = String(filter.departmentId);
+  }
+  if (filter.employeeId !== undefined) {
+    params.employeeId = String(filter.employeeId);
   }
 
   try {
-    error.response.data = JSON.parse(await error.response.data.text()) as unknown;
-  } catch {
-    // Không phải JSON — để nguyên, caller sẽ hiển thị lỗi chung.
-  }
+    const response = await apiClient.get<Blob>('/reports/attendances/export', {
+      params,
+      responseType: 'blob',
+    });
 
-  return error;
+    return {
+      blob: response.data,
+      filename: filenameFromDisposition(
+        response.headers['content-disposition'] as string | undefined,
+        'bang-cham-cong.xlsx',
+      ),
+    };
+  } catch (error) {
+    throw await withJsonErrorBody(error);
+  }
 }

@@ -21,6 +21,8 @@
   --hrm-color-warning: #faad14;
   --hrm-color-warning-soft: #fffbe6;
   --hrm-color-error: #ff4d4f;
+  /* Nền nhạt cho trạng thái lỗi/vắng mặt — cùng bậc -1 với success/warning-soft. */
+  --hrm-color-error-soft: #fff1f0;
   --hrm-color-accent: #722ed1;
   --hrm-color-accent-soft: #f9f0ff;
   --hrm-color-teal: #08979c;

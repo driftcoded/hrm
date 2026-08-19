@@ -90,7 +90,8 @@
     "retry": "Thử lại",
     "refresh": "Làm mới",
     "comingSoon": "Sắp có",
-    "comingSoonAria": "{{label}} (sắp có)"
+    "comingSoonAria": "{{label}} (sắp có)",
+    "confirm": "Xác nhận"
   },
   "crud": {
     "totalRecords": "Tổng {{total}} bản ghi",
@@ -231,7 +232,24 @@
       "DEPENDENT_NOT_FOUND": "Không tìm thấy người phụ thuộc.",
       "DEPENDENT_REASON_REQUIRED": "Cần nhập lý do khi ngừng giảm trừ.",
       "EXPORT_TOO_MANY_ROWS": "Bộ lọc hiện tại khớp quá nhiều nhân viên để xuất một lần. Hãy thu hẹp bộ lọc rồi xuất lại.",
-      "SENSITIVE_EXPORT_FORBIDDEN": "Bạn không có quyền xuất các cột thông tin nhạy cảm."
+      "SENSITIVE_EXPORT_FORBIDDEN": "Bạn không có quyền xuất các cột thông tin nhạy cảm.",
+      "ALREADY_CHECKED_IN": "Bạn đã chấm công vào hôm nay rồi.",
+      "NOT_CHECKED_IN": "Bạn chưa chấm công vào hôm nay.",
+      "ALREADY_CHECKED_OUT": "Bạn đã chấm công ra hôm nay rồi.",
+      "ATTENDANCE_NOT_FOUND": "Không tìm thấy bản ghi chấm công.",
+      "INVALID_ATTENDANCE_TIMES": "Giờ ra không được sớm hơn giờ vào.",
+      "OVERTIME_NOT_FOUND": "Không tìm thấy đơn làm thêm giờ.",
+      "OVERTIME_NOT_PENDING": "Đơn này không còn ở trạng thái chờ duyệt.",
+      "OVERLAPPING_OVERTIME": "Khung giờ này trùng với một đơn làm thêm khác của bạn.",
+      "CANNOT_APPROVE_OWN_OVERTIME": "Bạn không thể tự duyệt đơn của chính mình.",
+      "OVERTIME_DAILY_LIMIT_EXCEEDED": "Vượt trần 12 giờ làm việc trong một ngày (Điều 107 BLLĐ 2019).",
+      "OVERTIME_MONTHLY_LIMIT_EXCEEDED": "Vượt trần 40 giờ làm thêm trong tháng (Điều 107 BLLĐ 2019).",
+      "OVERTIME_YEARLY_LIMIT_EXCEEDED": "Vượt trần 200 giờ làm thêm trong năm (Điều 107 BLLĐ 2019).",
+      "IMPORT_FILE_REQUIRED": "Vui lòng chọn một file .xlsx.",
+      "IMPORT_INVALID_FILE_TYPE": "File không phải định dạng .xlsx hợp lệ.",
+      "IMPORT_MISSING_COLUMNS": "File thiếu cột bắt buộc. Hãy tải file mẫu để đối chiếu tên cột.",
+      "IMPORT_TOO_MANY_ROWS": "File có quá nhiều dòng. Hãy tách nhỏ theo tháng hoặc phòng ban.",
+      "IMPORT_EMPTY_FILE": "File không có sheet nào."
     }
   },
   "layout": {
@@ -914,6 +932,195 @@
       "title": "Hồ sơ nhân viên",
       "code": "Mã nhân viên",
       "printedAt": "In lúc {{at}}"
+    }
+  },
+  "attendance": {
+    "title": "Chấm công",
+    "subtitle": "Chấm công hằng ngày, bảng công tháng và đăng ký làm thêm giờ.",
+    "loadError": "Không tải được dữ liệu chấm công.",
+    "tabs": {
+      "mine": "Của tôi",
+      "overtime": "Làm thêm giờ",
+      "table": "Bảng chấm công"
+    },
+    "clock": {
+      "today": "Hôm nay",
+      "in": "Chấm vào",
+      "out": "Chấm ra",
+      "notYet": "Chưa chấm",
+      "inSuccess": "Đã chấm công vào.",
+      "outSuccess": "Đã chấm công ra."
+    },
+    "status": {
+      "present": "Đi làm",
+      "absent": "Vắng",
+      "late": "Đi muộn",
+      "early_leave": "Về sớm",
+      "leave": "Nghỉ phép",
+      "holiday": "Ngày lễ",
+      "wfh": "Làm từ xa"
+    },
+    "fields": {
+      "checkIn": "Giờ vào",
+      "checkOut": "Giờ ra",
+      "status": "Trạng thái",
+      "note": "Ghi chú",
+      "reason": "Lý do điều chỉnh"
+    },
+    "columns": {
+      "employee": "Nhân viên",
+      "workDate": "Ngày",
+      "checkIn": "Giờ vào",
+      "checkOut": "Giờ ra",
+      "workHours": "Giờ công",
+      "overtimeHours": "Giờ vượt ca",
+      "status": "Trạng thái",
+      "lateMinutes": "Đi muộn (phút)",
+      "earlyLeaveMinutes": "Về sớm (phút)"
+    },
+    "summary": {
+      "presentDays": "Ngày công",
+      "presentDaysCaption": "Số ngày đã chấm trên tổng ngày làm việc",
+      "totalWorkHours": "Tổng giờ công",
+      "totalWorkHoursCaption": "Đã trừ 60 phút nghỉ trưa mỗi ngày",
+      "lateDays": "Ngày đi muộn",
+      "lateDaysCaption": "Vào sau 08:00 quá 15 phút",
+      "absentDays": "Ngày vắng",
+      "absentDaysCaption": "Ngày làm việc đã qua mà không có chấm công",
+      "overtimeSection": "Làm thêm giờ",
+      "overtimeHours": "Giờ đã ở lại làm",
+      "approvedOvertimeHours": "Giờ được duyệt",
+      "overtimeNote": "Chỉ số giờ ĐƯỢC DUYỆT mới được trả lương làm thêm. Giờ ở lại làm là số liệu thực tế để đối chiếu."
+    },
+    "calendar": {
+      "title": "Lịch chấm công",
+      "weekdays": [
+        "T2",
+        "T3",
+        "T4",
+        "T5",
+        "T6",
+        "T7",
+        "CN"
+      ],
+      "pickDay": "Chi tiết ngày",
+      "pickDayHint": "Chọn một ngày trên lịch để xem chi tiết.",
+      "noRecord": "Không có dữ liệu chấm công",
+      "overtimeMark": "Có {{hours}} giờ làm thêm đã duyệt",
+      "kind": {
+        "present": "Đi làm",
+        "late": "Đi muộn",
+        "earlyLeave": "Về sớm",
+        "absent": "Vắng",
+        "leave": "Nghỉ phép",
+        "holiday": "Ngày lễ",
+        "wfh": "Làm từ xa",
+        "weekend": "Cuối tuần",
+        "future": "Chưa tới",
+        "empty": ""
+      }
+    },
+    "filters": {
+      "department": "Phòng ban",
+      "status": "Trạng thái",
+      "reset": "Đặt lại"
+    },
+    "actions": {
+      "adjust": "Điều chỉnh",
+      "adjustFor": "Điều chỉnh chấm công của {{name}} ngày {{date}}"
+    },
+    "adjust": {
+      "title": "Điều chỉnh chấm công — {{name}}, {{date}}",
+      "success": "Đã cập nhật bản ghi chấm công.",
+      "statusHint": "Để trống thì trạng thái được tính lại từ giờ vào/ra.",
+      "reasonHint": "Bản ghi phải nói được vì sao nó khác với dữ liệu máy chấm công ghi.",
+      "reasonRequired": "Vui lòng nhập lý do điều chỉnh",
+      "reasonTooShort": "Lý do quá ngắn"
+    },
+    "export": {
+      "action": "Xuất Excel",
+      "hint": "Xuất bảng chấm công tháng đang xem ({{count}} dòng)",
+      "success": "Đã tải bảng chấm công."
+    },
+    "import": {
+      "open": "Nạp từ Excel",
+      "title": "Nạp bảng chấm công từ Excel",
+      "columnsHint": "Cột bắt buộc: Mã NV, Ngày, Giờ vào. Tuỳ chọn: Giờ ra, Ghi chú.",
+      "template": "Tải file mẫu",
+      "dropHint": "Kéo file .xlsx vào đây hoặc bấm để chọn",
+      "dropSubHint": "File được kiểm tra trước, chưa ghi gì vào hệ thống.",
+      "totalRows": "Số dòng đọc được",
+      "created": "Tạo mới",
+      "updated": "Ghi đè",
+      "commit": "Nạp dữ liệu",
+      "commitWithOverwrite": "Nạp và ghi đè {{count}} ngày công",
+      "readyTitle": "File hợp lệ — sẽ tạo mới {{count}} ngày công.",
+      "overwriteTitle": "Sẽ ghi đè {{count}} ngày công đã có",
+      "overwriteDetail": "Những ngày công này đã tồn tại và sẽ bị thay bằng dữ liệu trong file. Kiểm tra lại trước khi nạp.",
+      "rejectedTitle": "File có {{count}} dòng lỗi",
+      "rejectedDetail": "KHÔNG dòng nào được ghi. Sửa các dòng bên dưới trong file rồi chọn lại.",
+      "errorRow": "Dòng",
+      "errorEmployee": "Mã NV",
+      "errorMessage": "Lỗi",
+      "success": "Đã nạp xong: tạo mới {{created}}, ghi đè {{updated}}."
+    },
+    "overtime": {
+      "create": "Đăng ký làm thêm giờ",
+      "submit": "Gửi đơn",
+      "createSuccess": "Đã gửi đơn làm thêm giờ.",
+      "approve": "Duyệt",
+      "approveSuccess": "Đã duyệt đơn làm thêm giờ.",
+      "reject": "Từ chối",
+      "rejectTitle": "Từ chối đơn của {{name}} — {{date}}",
+      "rejectSuccess": "Đã từ chối đơn làm thêm giờ.",
+      "cancel": "Huỷ đơn",
+      "cancelConfirm": "Huỷ đơn làm thêm giờ này?",
+      "cancelSuccess": "Đã huỷ đơn.",
+      "loadError": "Không tải được danh sách đơn làm thêm giờ.",
+      "night": "Ca đêm",
+      "nightHint": "{{hours}} giờ trong khung 22h–6h, cộng thêm {{surcharge}}× cho phần giờ đó.",
+      "estimate": "Số giờ dự kiến: {{hours}}",
+      "status": {
+        "pending": "Chờ duyệt",
+        "approved": "Đã duyệt",
+        "rejected": "Từ chối",
+        "cancelled": "Đã huỷ"
+      },
+      "rateType": {
+        "weekday": "Ngày thường",
+        "weekend": "Cuối tuần",
+        "holiday": "Ngày lễ"
+      },
+      "columns": {
+        "employee": "Nhân viên",
+        "workDate": "Ngày",
+        "span": "Khung giờ",
+        "totalHours": "Số giờ",
+        "rate": "Hệ số",
+        "status": "Trạng thái"
+      },
+      "filters": {
+        "status": "Trạng thái",
+        "pendingShortcut": "Chỉ xem đơn chờ duyệt"
+      },
+      "fields": {
+        "workDate": "Ngày làm thêm",
+        "startTime": "Từ giờ",
+        "endTime": "Đến giờ",
+        "endTimeHint": "Nhỏ hơn giờ bắt đầu nghĩa là sang ngày hôm sau (ca đêm).",
+        "reason": "Lý do làm thêm",
+        "reasonHint": "Đây là hồ sơ đối chiếu khi thanh tra lao động.",
+        "rejectReason": "Lý do từ chối",
+        "rejectReasonHint": "Người nộp cần biết vì sao để sửa và nộp lại."
+      },
+      "errors": {
+        "workDate": "Vui lòng chọn ngày làm thêm",
+        "startTime": "Vui lòng chọn giờ bắt đầu",
+        "endTime": "Vui lòng chọn giờ kết thúc",
+        "reason": "Vui lòng nhập lý do",
+        "reasonTooShort": "Lý do quá ngắn",
+        "rejectReason": "Vui lòng nhập lý do từ chối"
+      }
     }
   }
 }

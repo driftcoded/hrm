@@ -1,0 +1,64 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+/*
+ * Một hàng duy nhất, tự xuống dòng khi hẹp. Không bọc card: đây là dải điều
+ * khiển của bảng ngay bên dưới, không phải một panel nội dung riêng.
+ */
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  flex-wrap: wrap;
+}
+
+/* Đẩy nhóm nút nạp/xuất file sang phải, tách khỏi nhóm bộ lọc. */
+.spacer {
+  flex: 1 1 auto;
+}
+
+.monthPicker {
+  min-width: 140px;
+}
+
+.filterSelect {
+  min-width: 180px;
+}
+
+/* --- ô trong bảng --- */
+
+.person {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.personName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--hrm-color-text);
+}
+
+.personMeta {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767px) {
+  .spacer {
+    flex-basis: 100%;
+  }
+
+  .filterSelect {
+    flex: 1 1 150px;
+    min-width: 150px;
+  }
+}

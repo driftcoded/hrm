@@ -1,5 +1,8 @@
 import { useAuthStore } from '@/store/authStore';
 import {
+  ATTENDANCE_EXPORT_ROLES,
+  ATTENDANCE_READ_ALL_ROLES,
+  ATTENDANCE_WRITE_ROLES,
   CONTRACT_WRITE_ROLES,
   EMPLOYEE_EXPORT_ROLES,
   EMPLOYEE_DELETE_ROLES,
@@ -75,4 +78,31 @@ export function useCanCreateUsers(): boolean {
  */
 export function useCanExportEmployees(): boolean {
   return useHasRole(EMPLOYEE_EXPORT_ROLES);
+}
+
+/**
+ * May the user see the company-wide attendance table? (`admin`, `hr_manager`,
+ * `hr_staff`, `manager`)
+ *
+ * Everyone else gets their own month at `/attendance` and never sees the
+ * company table — the backend refuses it, so showing the tab would be a
+ * guaranteed 403.
+ */
+export function useCanReadAllAttendance(): boolean {
+  return useHasRole(ATTENDANCE_READ_ALL_ROLES);
+}
+
+/**
+ * May the user adjust an attendance record or import a timesheet?
+ * (`admin`, `hr_manager`, `hr_staff`)
+ *
+ * Narrower than reading on purpose — see `ATTENDANCE_WRITE_ROLES`.
+ */
+export function useCanWriteAttendance(): boolean {
+  return useHasRole(ATTENDANCE_WRITE_ROLES);
+}
+
+/** May the user export the monthly timesheet to Excel? */
+export function useCanExportAttendance(): boolean {
+  return useHasRole(ATTENDANCE_EXPORT_ROLES);
 }
