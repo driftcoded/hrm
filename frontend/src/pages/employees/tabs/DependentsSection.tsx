@@ -292,7 +292,7 @@ export function DependentsSection({ employeeId, canWrite }: DependentsSectionPro
       <Alert
         type="error"
         showIcon
-        message={t('employees.dependents.loadError')}
+        title={t('employees.dependents.loadError')}
         action={
           <Button size="small" onClick={resource.refetch}>
             {t('common.retry')}
@@ -415,7 +415,7 @@ export function DependentsSection({ employeeId, canWrite }: DependentsSectionPro
           </Row>
         </Form>
 
-        {formError && <Alert type="error" showIcon message={formError} />}
+        {formError && <Alert type="error" showIcon title={formError} />}
       </Modal>
 
       {/* ---------------------------------------------- stop deduction --- */}
@@ -444,7 +444,7 @@ export function DependentsSection({ employeeId, canWrite }: DependentsSectionPro
           </Form.Item>
         </Form>
 
-        {formError && <Alert type="error" showIcon message={formError} />}
+        {formError && <Alert type="error" showIcon title={formError} />}
       </Modal>
     </div>
   );

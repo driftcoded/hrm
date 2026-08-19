@@ -69,7 +69,7 @@ export function ContractTypesPage() {
         className={styles.notice}
         type="info"
         showIcon
-        message={t('settings.contractTypes.fixedByLawTitle')}
+        title={t('settings.contractTypes.fixedByLawTitle')}
         description={t('settings.contractTypes.fixedByLaw')}
       />
 

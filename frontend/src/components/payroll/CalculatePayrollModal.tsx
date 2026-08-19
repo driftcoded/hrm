@@ -125,7 +125,7 @@ export function CalculatePayrollModal({
           }}
         />
 
-        {error && <Alert type="error" showIcon message={error} />}
+        {error && <Alert type="error" showIcon title={error} />}
 
         {preview && (
           <>
@@ -157,7 +157,7 @@ export function CalculatePayrollModal({
               <Alert
                 type="info"
                 showIcon
-                message={t('payroll.calculate.lockedTitle', {
+                title={t('payroll.calculate.lockedTitle', {
                   count: preview.skippedLocked,
                 })}
                 description={t('payroll.calculate.lockedDetail')}
@@ -172,7 +172,7 @@ export function CalculatePayrollModal({
               <Alert
                 type="warning"
                 showIcon
-                message={t('payroll.calculate.noContractTitle', {
+                title={t('payroll.calculate.noContractTitle', {
                   count: preview.skippedNoContract.length,
                 })}
                 description={t('payroll.calculate.noContractDetail', {

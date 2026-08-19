@@ -77,7 +77,7 @@ export function OverviewRail({
       <Alert
         type="warning"
         showIcon
-        message={t('employees.overview.error')}
+        title={t('employees.overview.error')}
         action={
           <Button size="small" onClick={onRetry}>
             {t('common.retry')}

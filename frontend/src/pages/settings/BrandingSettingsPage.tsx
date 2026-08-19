@@ -90,7 +90,7 @@ export function BrandingSettingsPage() {
         <Alert
           type="error"
           showIcon
-          message={t('settings.branding.loadError')}
+          title={t('settings.branding.loadError')}
           action={
             <Button size="small" onClick={() => void refetch()}>
               {t('common.retry')}

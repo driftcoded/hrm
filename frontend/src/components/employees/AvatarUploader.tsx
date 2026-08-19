@@ -150,7 +150,7 @@ export function AvatarUploader({
         {file && <p className={styles.previewNote}>{t('employees.avatar.previewNote')}</p>}
 
         {localError && (
-          <Alert type="error" showIcon message={localError} className={styles.error} />
+          <Alert type="error" showIcon title={localError} className={styles.error} />
         )}
       </div>
     </div>

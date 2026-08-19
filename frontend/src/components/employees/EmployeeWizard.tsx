@@ -928,7 +928,7 @@ export function EmployeeWizard({
       </Form>
 
       {submitError && (
-        <Alert type="error" showIcon message={submitError} className={styles.submitError} />
+        <Alert type="error" showIcon title={submitError} className={styles.submitError} />
       )}
     </Modal>
   );

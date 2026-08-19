@@ -101,7 +101,7 @@ export function AdjustLeaveBalanceModal({
       destroyOnHidden
     >
       {error && (
-        <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />
+        <Alert type="error" showIcon title={error} style={{ marginBottom: 16 }} />
       )}
 
       <Form form={form} layout="vertical" onFinish={handleSubmit} disabled={isAdjusting}>

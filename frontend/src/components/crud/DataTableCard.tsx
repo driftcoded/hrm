@@ -185,7 +185,7 @@ export function DataTableCard<TRow extends object>({
         <Alert
           type="error"
           showIcon
-          message={errorMessage}
+          title={errorMessage}
           role="alert"
           action={
             <Button size="small" onClick={onRetry}>

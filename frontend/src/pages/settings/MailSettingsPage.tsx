@@ -96,7 +96,7 @@ export function MailSettingsPage() {
     return (
       <>
         <PageHeader title={t('settings.mail.pageTitle')} />
-        <Alert type="warning" showIcon message={t('settings.mail.accessDenied')} />
+        <Alert type="warning" showIcon title={t('settings.mail.accessDenied')} />
       </>
     );
   }
@@ -115,7 +115,7 @@ export function MailSettingsPage() {
         <Alert
           type="error"
           showIcon
-          message={t('settings.mail.loadError')}
+          title={t('settings.mail.loadError')}
           action={
             <Button size="small" onClick={() => void refetch()}>
               {t('common.retry')}
@@ -243,7 +243,7 @@ export function MailSettingsPage() {
                 className={styles.testResult}
                 type={testResult.type}
                 showIcon
-                message={testResult.text}
+                title={testResult.text}
               />
             )}
           </Card>

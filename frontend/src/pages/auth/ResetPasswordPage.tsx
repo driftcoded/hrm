@@ -86,7 +86,7 @@ export function ResetPasswordPage() {
           type="error"
           showIcon
           role="alert"
-          message={errorText ?? t('errors.api.RESET_TOKEN_INVALID')}
+          title={errorText ?? t('errors.api.RESET_TOKEN_INVALID')}
         />
       )}
 

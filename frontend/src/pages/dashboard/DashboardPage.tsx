@@ -66,7 +66,7 @@ export function DashboardPage() {
         className={styles.notice}
         type="info"
         showIcon
-        message={t('dashboard.placeholderNotice')}
+        title={t('dashboard.placeholderNotice')}
       />
 
       <Row gutter={[16, 16]}>

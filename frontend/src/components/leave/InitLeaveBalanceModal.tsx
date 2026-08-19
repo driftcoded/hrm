@@ -148,7 +148,7 @@ export function InitLeaveBalanceModal({
         */}
         <p className={styles.hint}>{t('leave.balances.carryOverHint')}</p>
 
-        {error && <Alert type="error" showIcon message={error} />}
+        {error && <Alert type="error" showIcon title={error} />}
 
         {preview && (
           <>
@@ -171,13 +171,13 @@ export function InitLeaveBalanceModal({
               <Alert
                 type="info"
                 showIcon
-                message={t('leave.balances.skipTitle', { count: preview.skipped })}
+                title={t('leave.balances.skipTitle', { count: preview.skipped })}
                 description={t('leave.balances.skipDetail')}
               />
             )}
 
             {preview.created === 0 && preview.skipped > 0 && (
-              <Alert type="success" showIcon message={t('leave.balances.allDone')} />
+              <Alert type="success" showIcon title={t('leave.balances.allDone')} />
             )}
           </>
         )}

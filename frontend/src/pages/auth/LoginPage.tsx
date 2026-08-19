@@ -93,7 +93,7 @@ export function LoginPage() {
       </div>
 
       {errorText && (
-        <Alert className={styles.alert} type="error" showIcon message={errorText} role="alert" />
+        <Alert className={styles.alert} type="error" showIcon title={errorText} role="alert" />
       )}
 
       <Form<LoginFormValues>

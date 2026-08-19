@@ -52,7 +52,7 @@ export function LeaveCalendarPage() {
           <Alert
             type="error"
             showIcon
-            message={resolveError(error) || t('leave.calendar.loadError')}
+            title={resolveError(error) || t('leave.calendar.loadError')}
             action={
               <Button size="small" onClick={() => void refetch()}>
                 {t('common.retry')}

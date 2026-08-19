@@ -55,14 +55,14 @@ export function ForgotPasswordPage() {
       </div>
 
       {errorText && (
-        <Alert className={styles.alert} type="error" showIcon message={errorText} role="alert" />
+        <Alert className={styles.alert} type="error" showIcon title={errorText} role="alert" />
       )}
 
       {submitted ? (
         <Alert
           type="success"
           showIcon
-          message={t('auth.forgotSentTitle')}
+          title={t('auth.forgotSentTitle')}
           description={t('auth.forgotSentDescription')}
           role="status"
         />

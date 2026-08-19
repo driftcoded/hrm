@@ -79,7 +79,7 @@ export function PayrollSettingsPage() {
       <Alert
         type="error"
         showIcon
-        message={resolveError(query.error) || t('payroll.settings.loadError')}
+        title={resolveError(query.error) || t('payroll.settings.loadError')}
         action={
           <Button size="small" onClick={() => void query.refetch()}>
             {t('common.retry')}

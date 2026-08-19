@@ -259,7 +259,7 @@ export function ContractsTab({ employeeId, canWrite }: ContractsTabProps) {
       <Alert
         type="error"
         showIcon
-        message={t('employees.contracts.loadError')}
+        title={t('employees.contracts.loadError')}
         action={
           <Button size="small" onClick={resource.refetch}>
             {t('common.retry')}
@@ -433,7 +433,7 @@ export function ContractsTab({ employeeId, canWrite }: ContractsTabProps) {
           </Row>
         </Form>
 
-        {formError && <Alert type="error" showIcon message={formError} />}
+        {formError && <Alert type="error" showIcon title={formError} />}
       </Modal>
 
       {/* --------------------------------------------- terminate modal --- */}
@@ -470,7 +470,7 @@ export function ContractsTab({ employeeId, canWrite }: ContractsTabProps) {
           </Form.Item>
         </Form>
 
-        {formError && <Alert type="error" showIcon message={formError} />}
+        {formError && <Alert type="error" showIcon title={formError} />}
       </Modal>
     </div>
   );

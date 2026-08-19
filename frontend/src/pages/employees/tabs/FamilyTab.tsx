@@ -241,7 +241,7 @@ export function FamilyTab({ employeeId, canWrite }: FamilyTabProps) {
       <Alert
         type="error"
         showIcon
-        message={t('employees.family.loadError')}
+        title={t('employees.family.loadError')}
         action={
           <Button size="small" onClick={resource.refetch}>
             {t('common.retry')}
@@ -351,7 +351,7 @@ export function FamilyTab({ employeeId, canWrite }: FamilyTabProps) {
           </Row>
         </Form>
 
-        {formError && <Alert type="error" showIcon message={formError} />}
+        {formError && <Alert type="error" showIcon title={formError} />}
       </Modal>
     </div>
   );

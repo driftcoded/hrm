@@ -73,7 +73,7 @@ export function CrudFormModal<TValues extends object>({
       maskClosable={false}
     >
       {submitError && (
-        <Alert className={styles.alert} type="error" showIcon message={submitError} role="alert" />
+        <Alert className={styles.alert} type="error" showIcon title={submitError} role="alert" />
       )}
       <Form<TValues>
         key={open ? recordKey : 'closed'}

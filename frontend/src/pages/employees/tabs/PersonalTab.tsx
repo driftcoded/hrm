@@ -406,7 +406,7 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
         </Space>
       </div>
 
-      {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
+      {error && <Alert type="error" showIcon title={error} style={{ marginBottom: 16 }} />}
 
       <p className={styles.sectionTitle}>{t('employees.detail.sectionPersonal')}</p>
       <Row gutter={16}>

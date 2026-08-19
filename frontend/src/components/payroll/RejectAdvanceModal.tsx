@@ -69,7 +69,7 @@ export function RejectAdvanceModal({
       destroyOnHidden
     >
       {error && (
-        <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />
+        <Alert type="error" showIcon title={error} style={{ marginBottom: 16 }} />
       )}
 
       {advance && (

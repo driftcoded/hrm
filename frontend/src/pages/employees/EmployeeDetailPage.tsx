@@ -186,7 +186,7 @@ export function EmployeeDetailPage() {
   }, [canWrite, canWriteContracts, employee, mutations.isSaving, t]);
 
   if (!isValidId) {
-    return <Alert type="error" showIcon message={t('employees.detail.invalidId')} />;
+    return <Alert type="error" showIcon title={t('employees.detail.invalidId')} />;
   }
 
   if (isLoading) {
@@ -202,7 +202,7 @@ export function EmployeeDetailPage() {
       <Alert
         type="error"
         showIcon
-        message={resolveError(error) || t('employees.detail.loadError')}
+        title={resolveError(error) || t('employees.detail.loadError')}
         action={
           <Space>
             <Button size="small" onClick={refetch}>
@@ -268,7 +268,7 @@ export function EmployeeDetailPage() {
       </div>
 
       {employee.deletedAt && (
-        <Alert type="warning" showIcon message={t('employees.detail.deletedNotice')} />
+        <Alert type="warning" showIcon title={t('employees.detail.deletedNotice')} />
       )}
 
       <div className={styles.columns}>

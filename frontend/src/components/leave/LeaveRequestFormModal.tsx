@@ -171,7 +171,7 @@ export function LeaveRequestFormModal({
       destroyOnHidden
     >
       {error && (
-        <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />
+        <Alert type="error" showIcon title={error} style={{ marginBottom: 16 }} />
       )}
 
       {/*
@@ -182,7 +182,7 @@ export function LeaveRequestFormModal({
         <Alert
           type="warning"
           showIcon
-          message={t('leave.requests.editApprovedNotice')}
+          title={t('leave.requests.editApprovedNotice')}
           style={{ marginBottom: 16 }}
         />
       )}

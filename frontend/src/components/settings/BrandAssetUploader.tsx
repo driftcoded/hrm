@@ -109,7 +109,7 @@ export function BrandAssetUploader({
         <p className={styles.hint}>{hint}</p>
 
         {localError && (
-          <Alert type="error" showIcon message={localError} className={styles.error} />
+          <Alert type="error" showIcon title={localError} className={styles.error} />
         )}
       </div>
     </div>

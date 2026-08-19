@@ -79,7 +79,7 @@ export function ProfilePage() {
             <Alert
               type="error"
               showIcon
-              message={t('profile.loadError')}
+              title={t('profile.loadError')}
               action={
                 <Button size="small" onClick={() => void refetch()}>
                   {t('common.retry')}
@@ -133,7 +133,7 @@ export function ProfilePage() {
               className={styles.formAlert}
               type="error"
               showIcon
-              message={errorText}
+              title={errorText}
               role="alert"
             />
           )}

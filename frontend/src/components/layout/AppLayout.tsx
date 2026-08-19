@@ -61,7 +61,7 @@ export function AppLayout() {
         <Drawer
           open={drawerOpen}
           placement="left"
-          width={SIDEBAR_WIDTH}
+          size={SIDEBAR_WIDTH}
           onClose={() => setSidebarCollapsed(true)}
           closable={false}
           // Slot class rather than an inline style, so the dark background and

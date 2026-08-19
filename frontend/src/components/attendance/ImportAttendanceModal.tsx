@@ -171,7 +171,7 @@ export function ImportAttendanceModal({ open, onClose }: ImportAttendanceModalPr
           <p className="ant-upload-hint">{t('attendance.import.dropSubHint')}</p>
         </Upload.Dragger>
 
-        {error && <Alert type="error" showIcon message={error} />}
+        {error && <Alert type="error" showIcon title={error} />}
 
         {preview && (
           <>
@@ -198,7 +198,7 @@ export function ImportAttendanceModal({ open, onClose }: ImportAttendanceModalPr
               <Alert
                 type="error"
                 showIcon
-                message={t('attendance.import.rejectedTitle', {
+                title={t('attendance.import.rejectedTitle', {
                   count: preview.errors.length,
                 })}
                 description={t('attendance.import.rejectedDetail')}
@@ -207,7 +207,7 @@ export function ImportAttendanceModal({ open, onClose }: ImportAttendanceModalPr
               <Alert
                 type="warning"
                 showIcon
-                message={t('attendance.import.overwriteTitle', {
+                title={t('attendance.import.overwriteTitle', {
                   count: preview.updated,
                 })}
                 description={t('attendance.import.overwriteDetail')}
@@ -216,7 +216,7 @@ export function ImportAttendanceModal({ open, onClose }: ImportAttendanceModalPr
               <Alert
                 type="success"
                 showIcon
-                message={t('attendance.import.readyTitle', { count: preview.created })}
+                title={t('attendance.import.readyTitle', { count: preview.created })}
               />
             )}
 

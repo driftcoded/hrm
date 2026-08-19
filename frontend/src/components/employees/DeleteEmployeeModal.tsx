@@ -128,7 +128,7 @@ export function DeleteEmployeeModal({
       </Form>
 
       {/* Inline, in the still-open modal — no toast for the same event (§8). */}
-      {error && <Alert type="error" showIcon message={error} />}
+      {error && <Alert type="error" showIcon title={error} />}
     </Modal>
   );
 }

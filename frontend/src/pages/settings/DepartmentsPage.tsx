@@ -482,7 +482,7 @@ export function DepartmentsPage() {
             type="warning"
             showIcon
             role="alert"
-            message={t('settings.departments.loadTreeError')}
+            title={t('settings.departments.loadTreeError')}
             action={
               <Button size="small" onClick={company.refetch}>
                 {t('common.retry')}
