@@ -159,11 +159,16 @@ const router = createBrowserRouter([
                  không có chấm công cá nhân, ai vào cũng là để xem/nhập dữ liệu
                  của người khác.
 
-                 `/attendance/table` giữ lại như một redirect: nó từng là địa
-                 chỉ của bảng này trong bản trước, và bookmark thì không tự sửa.
+                 `/attendance/table` và `/attendance/overtime` giữ lại như hai
+                 redirect: cả hai từng là địa chỉ thật trong bản trước, và
+                 bookmark thì không tự sửa. `overtime` về đây vì giờ làm thêm nay
+                 là MỘT CỘT của bảng này chứ không còn màn hình riêng — để nó rơi
+                 vào route bắt-tất `*` thì người dùng bị đẩy về dashboard, xa chỗ
+                 chứa đúng dữ liệu họ đang tìm.
               */
               { index: true, element: <AttendanceTablePage /> },
               { path: 'table', element: <Navigate to="/attendance" replace /> },
+              { path: 'overtime', element: <Navigate to="/attendance" replace /> },
             ],
           },
           {
