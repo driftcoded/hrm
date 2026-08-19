@@ -38,6 +38,12 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
+    // Browsers hide every response header from JS except a short safelist, and
+    // `Content-Disposition` is not on it. Without this the Excel export still
+    // downloads, but the filename the server chose is unreadable and the file
+    // lands as something like "download". Invisible in dev, because the Vite
+    // proxy makes the call same-origin.
+    exposedHeaders: ['Content-Disposition'],
   });
 
   // Global route prefix (vd: /api/v1). KHÔNG áp dụng cho path Swagger UI
