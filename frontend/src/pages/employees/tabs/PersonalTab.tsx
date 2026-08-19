@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Button,
-  Card,
   Col,
   DatePicker,
   Form,
@@ -248,7 +247,7 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
         )}
 
         <div className={styles.blocks}>
-          <Card variant="borderless">
+          <section className={styles.block}>
             <h3 className={styles.blockTitle}>
                 <span className={styles.blockLetter}>A.</span>
                 {t('employees.detail.sectionPersonal')}
@@ -330,9 +329,9 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
                     )
                   : null}
               </dl>
-          </Card>
+          </section>
 
-          <Card variant="borderless">
+          <section className={styles.block}>
             <h3 className={styles.blockTitle}>
                 <span className={styles.blockLetter}>B.</span>
                 {t('employees.detail.sectionJob')}
@@ -377,9 +376,9 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
                     )
                   : null}
               </dl>
-          </Card>
+          </section>
 
-          <Card variant="borderless">
+          <section className={styles.block}>
             <h3 className={styles.blockTitle}>
                 <span className={styles.blockLetter}>C.</span>
                 {t('employees.detail.sectionNotes')}
@@ -393,7 +392,7 @@ export function PersonalTab({ employee, canEdit, isSaving, onSave }: PersonalTab
               ) : (
                 <p className={styles.pendingCard}>{t('employees.detail.noNotes')}</p>
               )}
-          </Card>
+          </section>
           </div>
 
       </div>

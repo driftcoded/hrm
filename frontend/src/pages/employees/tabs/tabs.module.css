@@ -47,13 +47,33 @@
   font-size: var(--hrm-font-size-caption);
 }
 
-/* Tab "Thông tin cá nhân": các khối A/B/C xếp dọc, một cột. Cột phụ đã lên
-   cấp trang (EmployeeSideRail) nên ở đây không còn lưới hai cột. */
+/*
+ * Tab "Thông tin cá nhân": MỘT mặt phẳng liền, không phải ba thẻ rời.
+ *
+ * Trước đây mỗi khối A/B/C là một `<Card>` nằm trong `<Card>` bọc tab — card
+ * lồng card, mỗi khối tự có viền, bo góc và khe hở, nên mắt phải vượt qua ba
+ * lớp đường viền để đọc một hồ sơ vốn là liền mạch. Giờ các khối chỉ ngăn nhau
+ * bằng một đường kẻ mảnh.
+ */
 .blocks {
   display: flex;
   flex-direction: column;
-  gap: var(--hrm-grid-gap);
   min-width: 0;
+}
+
+.block {
+  padding: var(--hrm-space-5) 0;
+  border-top: 1px solid var(--hrm-color-border-subtle);
+}
+
+/* Khối đầu tiên áp sát thanh công cụ, không cần kẻ ngăn phía trên. */
+.block:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.block:last-child {
+  padding-bottom: 0;
 }
 
 /* Tiêu đề khối kiểu "A. Thông tin cá nhân". */
