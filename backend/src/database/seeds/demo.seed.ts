@@ -63,6 +63,14 @@ import { User } from '../../modules/users/entities/user.entity';
 const DEMO_EMAIL_DOMAIN = 'vietphattech.vn';
 
 /**
+ * The placeholder org `users.seed.ts` creates so the dev login accounts have a
+ * department and a position. Kept in sync with the constants there — this seed
+ * folds it into the real company (see `absorbBaselineOrg`).
+ */
+const BASELINE_DEPARTMENT_CODE = 'ADM';
+const BASELINE_POSITION_CODE = 'STAFF';
+
+/**
  * `NV` prefix / 4-digit width, as
  * `src/modules/employees/employees.repository.ts` defines them. Duplicated
  * rather than imported so a dev-only seed does not drag the employees
@@ -2224,6 +2232,92 @@ async function countDemoEmployees(dataSource: DataSource): Promise<number> {
 }
 
 /**
+ * Folds the baseline seed's placeholder department into the real company.
+ *
+ * `users.seed.ts` must give the dev login accounts a department and a position
+ * (both columns are NOT NULL), so on a fresh database it creates `ADM` /
+ * `STAFF`. Once the demo company exists, that leaves two HR departments sitting
+ * next to each other in the org chart.
+ *
+ * The six employees behind those accounts are NOT deletable — they are what
+ * `admin`, `hr.manager`, `an.hoang` … resolve to, and the ownership tests
+ * compare two of them — so they are moved rather than removed. The placeholder
+ * rows are only dropped once nothing references them; if anything still does,
+ * they are left in place rather than forcing the delete.
+ *
+ * @returns how many employees were moved (0 when there was nothing to fold in).
+ */
+async function absorbBaselineOrg(
+  dataSource: DataSource,
+  hrDepartmentId: number | undefined,
+  hrPositionId: number | undefined,
+): Promise<number> {
+  if (hrDepartmentId === undefined || hrPositionId === undefined) {
+    return 0;
+  }
+
+  const departmentRepo = dataSource.getRepository(Department);
+  const positionRepo = dataSource.getRepository(Position);
+  const employeeRepo = dataSource.getRepository(Employee);
+
+  const placeholder = await departmentRepo.findOne({
+    where: { code: BASELINE_DEPARTMENT_CODE },
+  });
+
+  if (!placeholder) {
+    return 0;
+  }
+
+  const stranded = await employeeRepo.find({
+    where: { departmentId: placeholder.id },
+  });
+
+  const head = await departmentRepo.findOne({ where: { id: hrDepartmentId } });
+
+  for (const employee of stranded) {
+    await employeeRepo.update(
+      { id: employee.id },
+      {
+        departmentId: hrDepartmentId,
+        positionId: hrPositionId,
+        // They report to the real HR head, unless they ARE that person.
+        directManagerId:
+          head?.managerId && Number(head.managerId) !== Number(employee.id)
+            ? head.managerId
+            : null,
+      },
+    );
+  }
+
+  // A department cannot be deleted while it still points at a manager.
+  await departmentRepo.update({ id: placeholder.id }, { managerId: null });
+
+  const placeholderPosition = await positionRepo.findOne({
+    where: { code: BASELINE_POSITION_CODE },
+  });
+
+  if (placeholderPosition) {
+    const stillUsed = await employeeRepo.count({
+      where: { positionId: placeholderPosition.id },
+    });
+
+    if (stillUsed === 0) {
+      await positionRepo.delete({ id: placeholderPosition.id });
+    }
+  }
+
+  const remaining = await employeeRepo.count({
+    where: { departmentId: placeholder.id },
+  });
+
+  if (remaining === 0) {
+    await departmentRepo.delete({ id: placeholder.id });
+  }
+
+  return stranded.length;
+}
+
+/**
  * Removes every row this seed created and nothing else.
  *
  * The only marker is the `@vietphattech.vn` work email; departments and
@@ -2439,9 +2533,33 @@ export async function seedDemo(dataSource: DataSource): Promise<void> {
     );
   }
 
+  // ---- Absorb the baseline seed's placeholder org ----
+  //
+  // `users.seed.ts` has to give the dev login accounts a department and a
+  // position, because both columns are NOT NULL — so on a fresh database it
+  // creates `ADM` / `STAFF`. Left alone, the company then shows TWO HR
+  // departments side by side ("Phòng Hành chính – Nhân sự" next to "Phòng Nhân
+  // sự"), which is what the project owner spotted in the UI.
+  //
+  // Those six employees are NOT deletable: they are the records behind the
+  // `admin` / `hr.manager` / `an.hoang` / … accounts, and the ownership tests
+  // compare two of them. So they move into the real HR department instead, and
+  // the placeholder department/position are dropped once nothing points at them.
+  const absorbed = await absorbBaselineOrg(
+    dataSource,
+    departmentIds.get('NS'),
+    positionIds.get('NS_TD'),
+  );
+
   console.log(`  - departments: OK (${DEPARTMENTS.length} inserted)`);
   console.log(`  - positions: OK (${POSITIONS.length} inserted)`);
   console.log(`  - employees: OK (${built.length} inserted)`);
+  console.log(
+    `  - baseline org: ${absorbed} hồ sơ tài khoản dev chuyển vào Phòng Nhân sự` +
+      (absorbed > 0
+        ? ', đã xoá phòng/chức vụ giữ chỗ'
+        : ' (không có gì để gộp)'),
+  );
   console.log(
     '  - leave types / users: untouched on purpose (see the header comment)',
   );

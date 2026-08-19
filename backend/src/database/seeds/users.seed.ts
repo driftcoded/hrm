@@ -211,16 +211,28 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
   const employeeRepo = dataSource.getRepository(Employee);
   const userRepo = dataSource.getRepository(User);
 
-  // ---- Phòng ban ----
-  let department = await departmentRepo.findOne({
-    where: { code: DEPARTMENT_CODE },
+  // ---- Phòng ban + chức vụ ----
+  //
+  // Các tài khoản dev bắt buộc phải có phòng ban/chức vụ vì `employees` NOT NULL
+  // ở hai cột đó. Nhưng nếu `seed:demo` đã chạy và đã chuyển 6 hồ sơ này vào cơ
+  // cấu thật của công ty, thì TÁI SỬ DỤNG chỗ hiện có — nếu không, mỗi lần chạy
+  // lại seed nền sẽ dựng lại `ADM` rỗng bên cạnh phòng Nhân sự thật, đúng kiểu
+  // hai phòng trùng chức năng mà bản demo vừa dọn đi.
+  const existingAnchor = await employeeRepo.findOne({
+    where: { employeeCode: EMPLOYEES[0].employeeCode },
   });
+
+  let department = existingAnchor
+    ? await departmentRepo.findOne({
+        where: { id: existingAnchor.departmentId },
+      })
+    : await departmentRepo.findOne({ where: { code: DEPARTMENT_CODE } });
 
   if (!department) {
     department = await departmentRepo.save(
       departmentRepo.create({
         code: DEPARTMENT_CODE,
-        name: 'Phòng Hành chính – Nhân sự',
+        name: 'Phòng Nhân sự',
         description: 'Phòng ban mẫu cho môi trường dev',
         sortOrder: 1,
         isActive: true,
@@ -228,8 +240,9 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
     );
   }
 
-  // ---- Chức vụ ----
-  let position = await positionRepo.findOne({ where: { code: POSITION_CODE } });
+  let position = existingAnchor
+    ? await positionRepo.findOne({ where: { id: existingAnchor.positionId } })
+    : await positionRepo.findOne({ where: { code: POSITION_CODE } });
 
   if (!position) {
     position = await positionRepo.save(
@@ -327,7 +340,10 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
   }
 
   console.log(
-    `  - departments/positions: OK (${DEPARTMENT_CODE} / ${POSITION_CODE})`,
+    // Print what was actually used, not the constants: after `seed:demo` these
+    // accounts live in the real company, and printing `ADM / STAFF` there would
+    // claim a placeholder department that no longer exists.
+    `  - departments/positions: OK (${department.code} / ${position.code})`,
   );
   console.log(
     `  - employees: OK (${insertedEmployees} inserted / ${EMPLOYEES.length} total)`,
