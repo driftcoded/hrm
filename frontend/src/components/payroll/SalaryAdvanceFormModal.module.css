@@ -1,0 +1,28 @@
+.dateRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--hrm-space-4);
+}
+
+.fullWidth,
+.number {
+  width: 100%;
+}
+
+/*
+ * Nhắc thẳng ở dưới hai ô ngày: đây là điểm dễ nhầm nhất của màn hình — ngày
+ * chi tiền và kỳ lương bị trừ là hai thứ khác nhau.
+ */
+.hint {
+  margin: calc(var(--hrm-space-2) * -1) 0 var(--hrm-space-4);
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  line-height: var(--hrm-line-height-base);
+}
+
+@media (max-width: 575px) {
+  .dateRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

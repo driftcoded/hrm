@@ -15,7 +15,7 @@
 | 3 | Nhân viên | 29 / 29 | ✅ Hoàn thành |
 | 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
 | 5 | Phép | 41 / 41 | ✅ Hoàn thành |
-| 6 | Lương | 21 / 30 | 🟡 6.1 backend xong; 6.2 frontend chưa |
+| 6 | Lương | 27 / 31 | 🟡 Code xong; 4 mục kiểm chứng UI còn treo |
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
 
@@ -596,17 +596,26 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Kỳ lương trước 2026 → ném lỗi thay vì chạy êm với bộ hằng số sai
 
 ### 6.2 Frontend Payroll
-- [ ] Trang `/payroll`: danh sách bảng lương theo tháng (HR)
-- [ ] Nút "Tính lương tháng X" + confirm + progress indicator
-- [ ] Bảng chi tiết: từng NV, các khoản thu/khấu trừ, net
-- [ ] Phiếu lương cá nhân: in được, đủ thông tin
-- [ ] Trang tạm ứng lương
+- [x] Trang `/payroll`: bảng lương theo kỳ, có thẻ tổng của cả kỳ
+- [x] Nút "Tính lương" hai bước: tính thử rồi mới tính thật
+- [x] Từng dòng: ngày công, giờ làm thêm, tổng thu nhập, khấu trừ, thực nhận
+- [x] Phiếu lương in được ngay từ danh sách, đủ thông tin theo Điều 95 BLLĐ
+- [x] Trang `/payroll/advances` — tạm ứng lương
+- [x] Trang `/payroll/settings` — cấu hình lương cấp công ty
 
-**Tests (6.2):**
-- [ ] Trigger tính lương → hiện progress, sau đó hiện kết quả
+> **Mục Bảng lương ẩn khỏi menu với `manager`.** Backend từ chối mọi endpoint
+> của phân hệ này với họ; để mục đó trong menu là bày ra một lối đi chắc chắn
+> cụt, bấm vào chỉ nhận một màn hình toàn 403.
+>
+> **In phiếu ngay từ danh sách, không qua trang chi tiết.** Việc thật của kế
+> toán là in lần lượt cả danh sách; bắt mở một trang riêng cho mỗi người chỉ
+> thêm một cú bấm cho mỗi tờ giấy.
+
+**Tests (6.2):** *(kiểm chứng thủ công — frontend chưa có test runner)*
+- [ ] Tính lương: bước tính thử báo đúng số sẽ tạo / ghi đè / bỏ qua
 - [ ] Số tiền hiển thị đúng định dạng `1.000.000 ₫`
 - [ ] In phiếu lương: layout không bị vỡ, đủ thông tin pháp lý
-- [ ] Bảng lương locked → ẩn nút "Tính lại"
+- [ ] Phiếu đã duyệt / đã trả → ẩn nút Chỉnh tay và nút Duyệt
 
 ---
 

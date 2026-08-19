@@ -1,0 +1,24 @@
+/* Ai đang được sửa, kỳ nào — đứng trên form để không sửa nhầm phiếu. */
+.subject {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-1);
+  margin: 0 0 var(--hrm-space-4);
+  line-height: var(--hrm-line-height-tight);
+}
+
+.meta {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-secondary);
+}
+
+.number {
+  width: 100%;
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  line-height: var(--hrm-line-height-base);
+}

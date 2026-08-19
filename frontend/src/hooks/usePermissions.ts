@@ -6,6 +6,10 @@ import {
   CONTRACT_WRITE_ROLES,
   LEAVE_APPROVE_ROLES,
   LEAVE_BALANCE_WRITE_ROLES,
+  PAYROLL_READ_ROLES,
+  PAYROLL_WRITE_ROLES,
+  ADVANCE_RECORD_ROLES,
+  ADVANCE_APPROVE_ROLES,
   LEAVE_RECORD_ROLES,
   EMPLOYEE_EXPORT_ROLES,
   EMPLOYEE_DELETE_ROLES,
@@ -137,4 +141,29 @@ export function useCanApproveLeave(): boolean {
 /** May the user allocate or adjust leave balances? */
 export function useCanWriteLeaveBalance(): boolean {
   return useHasRole(LEAVE_BALANCE_WRITE_ROLES);
+}
+
+/**
+ * May the user read payroll? (`admin`, `hr_manager`, `hr_staff`)
+ *
+ * Narrower than every other read permission — `manager` sees their department's
+ * profiles and timesheets but never their salaries.
+ */
+export function useCanReadPayroll(): boolean {
+  return useHasRole(PAYROLL_READ_ROLES);
+}
+
+/** May the user run, adjust or approve payroll? (`admin`, `hr_manager`) */
+export function useCanWritePayroll(): boolean {
+  return useHasRole(PAYROLL_WRITE_ROLES);
+}
+
+/** May the user record a salary advance for an employee? */
+export function useCanRecordAdvance(): boolean {
+  return useHasRole(ADVANCE_RECORD_ROLES);
+}
+
+/** May the user approve or reject a salary advance? */
+export function useCanApproveAdvance(): boolean {
+  return useHasRole(ADVANCE_APPROVE_ROLES);
 }

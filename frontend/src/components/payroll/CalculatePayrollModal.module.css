@@ -1,0 +1,45 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-4);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  line-height: var(--hrm-line-height-base);
+}
+
+/* Ba con số của bước tính thử: ngày công chuẩn, tạo mới, ghi đè. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--hrm-space-4);
+  padding: var(--hrm-space-4);
+  border: 1px solid var(--hrm-color-border-subtle);
+  border-radius: var(--hrm-radius-md);
+  background: var(--hrm-color-bg-layout);
+}
+
+/*
+ * Tổng quỹ lương của kỳ. Nằm riêng khỏi khối `stats` vì đây là con số người
+ * duyệt thực sự nhìn trước khi bấm — đặt chung với ba số đếm sẽ làm nó chìm đi.
+ */
+.totals {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--hrm-space-4);
+  font-size: var(--hrm-font-size-base);
+}
+
+.totals strong {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 575px) {
+  .stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

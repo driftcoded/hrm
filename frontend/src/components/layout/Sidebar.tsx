@@ -16,7 +16,11 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 import { BrandMark } from '@/components/common/BrandMark';
 import { SETTINGS_SECTIONS } from '@/constants/settingsSections';
-import { useCanManageSettings, useCanWriteMasterData } from '@/hooks/usePermissions';
+import {
+  useCanManageSettings,
+  useCanReadPayroll,
+  useCanWriteMasterData,
+} from '@/hooks/usePermissions';
 import { useUiStore } from '@/store/uiStore';
 import styles from './Sidebar.module.css';
 
@@ -101,9 +105,23 @@ export function Sidebar({ onNavigate }: SidebarProps) {
    */
   const canWriteMasterData = useCanWriteMasterData();
   const canManageSettings = useCanManageSettings();
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => item.key !== '/settings' || canWriteMasterData,
-  );
+  /*
+   * `manager` không đọc được bảng lương (backend từ chối mọi endpoint của phân
+   * hệ này). Để mục Bảng lương trong menu thì họ bấm vào và nhận một màn hình
+   * toàn 403 — bày ra một lối đi chắc chắn cụt.
+   */
+  const canReadPayroll = useCanReadPayroll();
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    if (item.key === '/settings') {
+      return canWriteMasterData;
+    }
+
+    if (item.key === '/payroll') {
+      return canReadPayroll;
+    }
+
+    return true;
+  });
 
   // The Drawer always renders the full sidebar, even while the persisted
   // `sidebarCollapsed` flag is what opened it.

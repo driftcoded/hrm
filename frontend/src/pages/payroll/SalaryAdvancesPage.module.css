@@ -1,0 +1,53 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  flex-wrap: wrap;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.filterSelect {
+  min-width: 180px;
+}
+
+.periodPicker {
+  min-width: 150px;
+}
+
+/* --- ô trong bảng --- */
+
+.person {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.personMeta {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+/* Cột tiền so le thì không đối chiếu được — chữ số phải đều bề ngang. */
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767px) {
+  .spacer {
+    flex-basis: 100%;
+  }
+
+  .filterSelect {
+    flex: 1 1 150px;
+    min-width: 150px;
+  }
+}

@@ -1,0 +1,136 @@
+/*
+ * Chỉ có tác dụng khi in. Việc ẩn/hiện do quy tắc `@media print` toàn cục trong
+ * `src/index.css` đảm nhiệm (nó bám vào lớp `.hrm-print-sheet`, là tên toàn cục
+ * chứ không phải tên do CSS module sinh ra).
+ *
+ * Màu cố định đen/xám thay vì lấy từ token: token được chọn cho nền trắng của
+ * màn hình, còn máy in thì mực xám nhạt ra giấy gần như không đọc được.
+ */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #000;
+}
+
+.title {
+  margin: 0;
+  font-size: 18pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 11pt;
+  font-weight: 600;
+}
+
+.company {
+  font-size: 11pt;
+  font-weight: 700;
+  text-align: right;
+}
+
+.section {
+  margin-top: 14px;
+  /* Không cắt một mục làm đôi qua hai trang giấy. */
+  break-inside: avoid;
+}
+
+.sectionTitle {
+  margin: 0 0 6px;
+  font-size: 11pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-bottom: 1px solid #000;
+  padding-bottom: 3px;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2.5px 0;
+  font-size: 10.5pt;
+}
+
+.label {
+  flex: 1 1 auto;
+}
+
+/*
+ * Số căn phải và dùng chữ số đều bề ngang: người nhận phiếu cộng lại bằng tay,
+ * và cột số so le thì việc đó thành cực hình.
+ */
+.value {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.subtotal {
+  margin-top: 4px;
+  padding-top: 5px;
+  border-top: 1px solid #000;
+  font-weight: 700;
+}
+
+.note {
+  margin-bottom: 4px;
+  font-size: 9pt;
+  color: #444;
+}
+
+/* Con số duy nhất người nhận tìm ngay khi cầm tờ giấy. */
+.netBlock {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 8px 10px;
+  border: 2px solid #000;
+}
+
+.netLabel {
+  font-size: 12pt;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.netValue {
+  font-size: 15pt;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 28px;
+  break-inside: avoid;
+}
+
+/* Chừa chỗ ký tay bên dưới nhãn — phiếu lương là chứng từ có chữ ký. */
+.signature {
+  flex: 1 1 0;
+  padding-bottom: 52px;
+  font-size: 10pt;
+  font-weight: 600;
+  text-align: center;
+}
+
+.printedAt {
+  margin: 12px 0 0;
+  font-size: 8.5pt;
+  color: #555;
+  text-align: right;
+}

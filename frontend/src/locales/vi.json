@@ -160,6 +160,8 @@
     "api": {
       "ACCOUNT_LOCKED": "Tài khoản đang bị tạm khóa. Vui lòng thử lại sau hoặc liên hệ quản trị viên.",
       "ACCOUNT_LOCKED_WITH_TIME": "Tài khoản đang bị tạm khóa. Vui lòng thử lại sau {{minutes}} phút.",
+      "ADVANCE_NOT_FOUND": "Không tìm thấy phiếu tạm ứng.",
+      "ADVANCE_NOT_PENDING": "Phiếu tạm ứng này không còn ở trạng thái chờ duyệt.",
       "ANNUAL_LEAVE_TYPE_MISSING": "Chưa có loại phép năm trong danh mục. Hãy kiểm tra Cài đặt → Loại nghỉ phép.",
       "ATTENDANCE_ALREADY_EXISTS": "Ngày này đã có dữ liệu chấm công. Hãy sửa bản ghi đang có thay vì thêm mới.",
       "ATTENDANCE_NOT_FOUND": "Không tìm thấy bản ghi chấm công.",
@@ -248,6 +250,7 @@
       "PARENT_DEPARTMENT_NOT_FOUND": "Không tìm thấy phòng ban cha đã chọn. Vui lòng tải lại trang và chọn lại.",
       "PASSWORD_MISMATCH": "Mật khẩu xác nhận không khớp.",
       "PAYLOAD_TOO_LARGE": "Dữ liệu gửi lên quá lớn.",
+      "PAYROLL_NO_WORKING_DAYS": "Kỳ này không có ngày công chuẩn nào nên không tính lương được.",
       "PORTAL_ACCESS_DENIED": "Tài khoản này không được sử dụng hệ thống quản trị. Nhân viên tra cứu thông tin qua cổng riêng.",
       "POSITION_DEPARTMENT_MISMATCH": "Chức vụ không thuộc phòng ban đã chọn.",
       "POSITION_HAS_EMPLOYEES": "Không thể xóa chức vụ này vì vẫn còn nhân viên đang giữ chức vụ. Hãy chuyển họ sang chức vụ khác trước, hoặc chuyển chức vụ sang trạng thái Ngừng hoạt động.",
@@ -257,6 +260,11 @@
       "RESET_TOKEN_EXPIRED": "Liên kết đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu liên kết mới.",
       "RESET_TOKEN_INVALID": "Liên kết đặt lại mật khẩu không hợp lệ. Vui lòng yêu cầu liên kết mới.",
       "ROLE_NOT_FOUND": "Vai trò không tồn tại.",
+      "SALARY_ALREADY_CANCELLED": "Phiếu lương này đã bị huỷ.",
+      "SALARY_LOCKED": "Phiếu lương đã chốt nên không sửa được. Hãy huỷ phiếu trước.",
+      "SALARY_NOT_APPROVED": "Chỉ phiếu đã duyệt mới đánh dấu đã trả được.",
+      "SALARY_NOT_CALCULATED": "Chỉ phiếu vừa tính mới duyệt được.",
+      "SALARY_NOT_FOUND": "Không tìm thấy phiếu lương.",
       "SENSITIVE_EXPORT_FORBIDDEN": "Bạn không có quyền xuất các cột thông tin nhạy cảm.",
       "SERVICE_UNAVAILABLE": "Hệ thống đang tạm thời không khả dụng. Vui lòng thử lại sau.",
       "TOKEN_EXPIRED": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
@@ -1241,6 +1249,195 @@
       "days": "ngày",
       "empty": "Không có ai nghỉ phép trong tháng này.",
       "loadError": "Không tải được lịch nghỉ phép."
+    }
+  },
+  "payroll": {
+    "title": "Bảng lương",
+    "subtitle": "Tính lương theo tháng từ hợp đồng, chấm công và ngày phép.",
+    "periodLabel": "Tháng {{month}}/{{year}}",
+    "loadError": "Không tải được bảng lương.",
+    "tabs": {
+      "salaries": "Bảng lương",
+      "advances": "Tạm ứng",
+      "settings": "Cấu hình"
+    },
+    "status": {
+      "draft": "Nháp",
+      "calculated": "Đã tính",
+      "approved": "Đã duyệt",
+      "paid": "Đã trả",
+      "cancelled": "Đã huỷ"
+    },
+    "columns": {
+      "employee": "Nhân viên",
+      "workingDays": "Ngày công",
+      "overtimeHours": "Giờ TT",
+      "gross": "Tổng thu nhập",
+      "deduction": "Khấu trừ",
+      "net": "Thực nhận",
+      "status": "Trạng thái"
+    },
+    "filters": {
+      "department": "Phòng ban",
+      "status": "Trạng thái",
+      "reset": "Bỏ lọc"
+    },
+    "summary": {
+      "headcount": "Số người",
+      "totalGross": "Tổng thu nhập",
+      "totalInsurance": "Tổng bảo hiểm",
+      "totalTax": "Tổng thuế TNCN",
+      "totalNet": "Tổng thực nhận"
+    },
+    "actions": {
+      "print": "In phiếu lương",
+      "printFor": "In phiếu lương của {{name}}",
+      "adjust": "Chỉnh tay",
+      "approve": "Duyệt",
+      "approveConfirm": "Duyệt phiếu lương này? Sau khi duyệt sẽ không tính lại được.",
+      "approveSuccess": "Đã duyệt phiếu lương.",
+      "pay": "Đánh dấu đã trả",
+      "payConfirm": "Xác nhận đã trả lương cho người này?",
+      "paySuccess": "Đã đánh dấu đã trả lương.",
+      "cancel": "Huỷ phiếu",
+      "cancelConfirmTitle": "Huỷ phiếu lương này?",
+      "cancelConfirmDetail": "Phiếu vẫn nằm lại trong bảng làm vết nhưng không còn hiệu lực. Muốn có số mới thì huỷ rồi tính lại kỳ này.",
+      "cancelSuccess": "Đã huỷ phiếu lương."
+    },
+    "calculate": {
+      "open": "Tính lương",
+      "title": "Tính lương cho một kỳ",
+      "hint": "Tính cho toàn bộ nhân viên đang làm việc có hợp đồng còn hiệu lực trong kỳ. Phiếu đã duyệt hoặc đã trả được giữ nguyên.",
+      "preview": "Tính thử",
+      "commit": "Tính thật",
+      "standardDays": "Ngày công chuẩn",
+      "willCreate": "Sẽ tạo mới",
+      "willUpdate": "Sẽ ghi đè",
+      "totalGross": "Tổng thu nhập",
+      "totalNet": "Tổng thực nhận",
+      "lockedTitle": "Giữ nguyên {{count}} phiếu đã chốt",
+      "lockedDetail": "Những phiếu đã duyệt hoặc đã trả không bị tính lại. Muốn có số mới thì huỷ phiếu đó trước.",
+      "noContractTitle": "{{count}} người không có hợp đồng còn hiệu lực",
+      "noContractDetail": "Không có hợp đồng thì không có căn cứ trả lương nên họ bị bỏ qua: {{codes}}.",
+      "success": "Đã tính lương: tạo mới {{created}}, ghi đè {{updated}} phiếu."
+    },
+    "adjust": {
+      "title": "Chỉnh tay phiếu lương",
+      "success": "Đã cập nhật phiếu lương.",
+      "recalcHint": "Thực nhận hiện tại {{net}}. Lưu xong hệ thống tính lại thuế TNCN và số thực nhận."
+    },
+    "fields": {
+      "baseSalary": "Lương cơ bản",
+      "positionAllowance": "Phụ cấp chức vụ",
+      "attendanceAllowance": "Phụ cấp chuyên cần",
+      "mealAllowance": "Phụ cấp bữa ăn",
+      "transportAllowance": "Phụ cấp đi lại",
+      "phoneAllowance": "Phụ cấp điện thoại",
+      "otherAllowances": "Phụ cấp khác",
+      "performanceBonus": "Thưởng hiệu suất",
+      "otherIncome": "Thu nhập khác",
+      "grossSalary": "Tổng thu nhập (Gross)",
+      "socialInsurance": "BHXH (8%)",
+      "healthInsurance": "BHYT (1,5%)",
+      "unemploymentInsurance": "BHTN (1%)",
+      "personalIncomeTax": "Thuế TNCN",
+      "advanceDeduction": "Trừ tạm ứng",
+      "otherDeductions": "Khấu trừ khác",
+      "selfDeduction": "Giảm trừ bản thân",
+      "taxableIncome": "Thu nhập tính thuế",
+      "netSalary": "Thực nhận",
+      "note": "Ghi chú"
+    },
+    "payslip": {
+      "title": "Phiếu lương",
+      "employee": "Nhân viên",
+      "department": "Bộ phận",
+      "workingDays": "Ngày công",
+      "workingDaysValue": "{{actual}}/{{standard}} ngày · phép có lương {{paidLeave}} · không lương {{unpaid}}",
+      "income": "Các khoản thu nhập",
+      "deduction": "Các khoản khấu trừ",
+      "totalDeduction": "Tổng khấu trừ",
+      "insuranceBase": "Lương đóng bảo hiểm: {{amount}}",
+      "overtimeWithHours": "Lương làm thêm giờ ({{hours}} giờ)",
+      "taxBasis": "Căn cứ tính thuế",
+      "dependentDeduction": "Giảm trừ người phụ thuộc ({{count}} người)",
+      "signEmployee": "Người lao động",
+      "signEmployer": "Người sử dụng lao động",
+      "printedAt": "In ngày {{date}}"
+    },
+    "advances": {
+      "create": "Ghi nhận tạm ứng",
+      "submit": "Ghi nhận",
+      "createSuccess": "Đã ghi nhận phiếu tạm ứng.",
+      "loadError": "Không tải được danh sách tạm ứng.",
+      "approve": "Duyệt",
+      "approveSuccess": "Đã duyệt phiếu tạm ứng.",
+      "reject": "Từ chối",
+      "rejectTitle": "Từ chối phiếu tạm ứng",
+      "rejectSubject": "Từ chối phiếu tạm ứng {{amount}} của {{name}}.",
+      "rejectSuccess": "Đã từ chối phiếu tạm ứng.",
+      "cancel": "Rút lại",
+      "cancelConfirm": "Rút lại phiếu tạm ứng này?",
+      "cancelSuccess": "Đã rút lại phiếu tạm ứng.",
+      "deductHint": "Ngày ứng là ngày chi tiền; kỳ bị trừ là tháng lương sẽ trừ khoản này — hai thứ khác nhau.",
+      "status": {
+        "pending": "Chờ duyệt",
+        "approved": "Đã duyệt",
+        "rejected": "Từ chối",
+        "deducted": "Đã trừ lương",
+        "cancelled": "Đã rút"
+      },
+      "columns": {
+        "employee": "Nhân viên",
+        "amount": "Số tiền",
+        "advanceDate": "Ngày ứng",
+        "deductPeriod": "Trừ vào kỳ",
+        "reason": "Lý do",
+        "recordedBy": "Người ghi",
+        "status": "Trạng thái"
+      },
+      "filters": {
+        "status": "Trạng thái",
+        "deductPeriod": "Kỳ bị trừ",
+        "pendingShortcut": "Chờ duyệt"
+      },
+      "fields": {
+        "employee": "Nhân viên",
+        "employeePlaceholder": "Chọn nhân viên được ứng",
+        "amount": "Số tiền ứng",
+        "advanceDate": "Ngày ứng",
+        "deductPeriod": "Trừ vào kỳ lương",
+        "reason": "Lý do",
+        "rejectReason": "Lý do từ chối"
+      },
+      "errors": {
+        "employee": "Chọn nhân viên",
+        "amount": "Nhập số tiền ứng",
+        "advanceDate": "Chọn ngày ứng",
+        "deductPeriod": "Chọn kỳ lương bị trừ",
+        "reason": "Nhập lý do",
+        "reasonTooShort": "Lý do quá ngắn",
+        "rejectReason": "Nhập lý do từ chối"
+      }
+    },
+    "settings": {
+      "title": "Cấu hình lương",
+      "success": "Đã lưu cấu hình lương.",
+      "loadError": "Không tải được cấu hình lương.",
+      "regionHint": "Quyết định trần đóng BHTN. Trần đóng BHXH/BHYT tính theo mức tham chiếu, không theo vùng.",
+      "regionOption": "Vùng {{region}} — lương tối thiểu {{wage}}, trần BHTN {{cap}}",
+      "mealHint": "Miễn thuế TNCN tới 730.000 ₫; phần vượt vẫn chịu thuế. Khoản này chia theo số ngày thực đi làm.",
+      "attendanceHint": "Mất trắng nếu tháng đó có ngày nghỉ không lương.",
+      "payOvertimeHint": "Tắt nếu công ty chốt làm thêm bằng biên bản riêng thay vì theo giờ máy chấm công.",
+      "scopeNote": "Lương cơ bản, lương đóng bảo hiểm và phụ cấp chức vụ là thoả thuận riêng với từng người — sửa ở hợp đồng lao động, không sửa ở đây.",
+      "fields": {
+        "region": "Vùng lương tối thiểu",
+        "meal": "Phụ cấp bữa ăn",
+        "transport": "Phụ cấp đi lại",
+        "phone": "Phụ cấp điện thoại",
+        "attendance": "Phụ cấp chuyên cần",
+        "payOvertime": "Trả tiền làm thêm giờ"
+      }
     }
   }
 }

@@ -160,6 +160,8 @@
     "api": {
       "ACCOUNT_LOCKED": "This account is temporarily locked. Please try again later or contact your administrator.",
       "ACCOUNT_LOCKED_WITH_TIME": "This account is temporarily locked. Please try again in {{minutes}} minutes.",
+      "ADVANCE_NOT_FOUND": "Salary advance not found.",
+      "ADVANCE_NOT_PENDING": "This salary advance is no longer pending.",
       "ANNUAL_LEAVE_TYPE_MISSING": "There is no annual leave type in the catalogue. Check Settings → Leave types.",
       "ATTENDANCE_ALREADY_EXISTS": "This day already has attendance data. Edit the existing record instead of adding a new one.",
       "ATTENDANCE_NOT_FOUND": "Attendance record not found.",
@@ -248,6 +250,7 @@
       "PARENT_DEPARTMENT_NOT_FOUND": "The selected parent department no longer exists. Please reload the page and choose again.",
       "PASSWORD_MISMATCH": "Passwords do not match.",
       "PAYLOAD_TOO_LARGE": "The request payload is too large.",
+      "PAYROLL_NO_WORKING_DAYS": "This period has no standard working day, so payroll cannot be calculated.",
       "PORTAL_ACCESS_DENIED": "This account cannot use the admin system. Employees look up their own details through a separate portal.",
       "POSITION_DEPARTMENT_MISMATCH": "That position does not belong to the selected department.",
       "POSITION_HAS_EMPLOYEES": "Employees still hold this position. Move them to another position first, or set this position to Inactive instead of deleting it.",
@@ -257,6 +260,11 @@
       "RESET_TOKEN_EXPIRED": "This password reset link has expired. Please request a new one.",
       "RESET_TOKEN_INVALID": "This password reset link is invalid. Please request a new one.",
       "ROLE_NOT_FOUND": "That role does not exist.",
+      "SALARY_ALREADY_CANCELLED": "This payslip is already cancelled.",
+      "SALARY_LOCKED": "This payslip is locked and can no longer be changed. Cancel it first.",
+      "SALARY_NOT_APPROVED": "Only an approved payslip can be marked as paid.",
+      "SALARY_NOT_CALCULATED": "Only a freshly calculated payslip can be approved.",
+      "SALARY_NOT_FOUND": "Payslip not found.",
       "SENSITIVE_EXPORT_FORBIDDEN": "You don't have permission to export sensitive columns.",
       "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Please try again later.",
       "TOKEN_EXPIRED": "Your session has expired. Please sign in again.",
@@ -1241,6 +1249,195 @@
       "days": "days",
       "empty": "Nobody is on leave this month.",
       "loadError": "Could not load the leave calendar."
+    }
+  },
+  "payroll": {
+    "title": "Payroll",
+    "subtitle": "Monthly pay calculated from contracts, attendance and leave.",
+    "periodLabel": "{{month}}/{{year}}",
+    "loadError": "Could not load the payroll.",
+    "tabs": {
+      "salaries": "Payroll",
+      "advances": "Advances",
+      "settings": "Settings"
+    },
+    "status": {
+      "draft": "Draft",
+      "calculated": "Calculated",
+      "approved": "Approved",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "columns": {
+      "employee": "Employee",
+      "workingDays": "Days",
+      "overtimeHours": "OT hrs",
+      "gross": "Gross",
+      "deduction": "Deductions",
+      "net": "Net pay",
+      "status": "Status"
+    },
+    "filters": {
+      "department": "Department",
+      "status": "Status",
+      "reset": "Clear"
+    },
+    "summary": {
+      "headcount": "Headcount",
+      "totalGross": "Total gross",
+      "totalInsurance": "Total insurance",
+      "totalTax": "Total tax",
+      "totalNet": "Total net"
+    },
+    "actions": {
+      "print": "Print payslip",
+      "printFor": "Print {{name}}'s payslip",
+      "adjust": "Adjust",
+      "approve": "Approve",
+      "approveConfirm": "Approve this payslip? It cannot be recalculated afterwards.",
+      "approveSuccess": "Payslip approved.",
+      "pay": "Mark as paid",
+      "payConfirm": "Confirm this salary has been paid?",
+      "paySuccess": "Marked as paid.",
+      "cancel": "Cancel payslip",
+      "cancelConfirmTitle": "Cancel this payslip?",
+      "cancelConfirmDetail": "It stays in the table as a record but no longer counts. To get new numbers, cancel it and recalculate the period.",
+      "cancelSuccess": "Payslip cancelled."
+    },
+    "calculate": {
+      "open": "Run payroll",
+      "title": "Run payroll for a period",
+      "hint": "Covers every active employee with a contract in force during the period. Approved and paid payslips are left untouched.",
+      "preview": "Dry run",
+      "commit": "Run for real",
+      "standardDays": "Standard days",
+      "willCreate": "To create",
+      "willUpdate": "To overwrite",
+      "totalGross": "Total gross",
+      "totalNet": "Total net",
+      "lockedTitle": "{{count}} locked payslip(s) kept",
+      "lockedDetail": "Approved or paid payslips are never recalculated. Cancel them first if you need new numbers.",
+      "noContractTitle": "{{count}} employee(s) without a contract in force",
+      "noContractDetail": "No contract means no basis for pay, so they were skipped: {{codes}}.",
+      "success": "Payroll done: {{created}} created, {{updated}} overwritten."
+    },
+    "adjust": {
+      "title": "Adjust payslip",
+      "success": "Payslip updated.",
+      "recalcHint": "Current net pay {{net}}. Saving recalculates the income tax and the net pay."
+    },
+    "fields": {
+      "baseSalary": "Base salary",
+      "positionAllowance": "Position allowance",
+      "attendanceAllowance": "Attendance allowance",
+      "mealAllowance": "Meal allowance",
+      "transportAllowance": "Transport allowance",
+      "phoneAllowance": "Phone allowance",
+      "otherAllowances": "Other allowances",
+      "performanceBonus": "Performance bonus",
+      "otherIncome": "Other income",
+      "grossSalary": "Gross pay",
+      "socialInsurance": "Social insurance (8%)",
+      "healthInsurance": "Health insurance (1.5%)",
+      "unemploymentInsurance": "Unemployment insurance (1%)",
+      "personalIncomeTax": "Income tax",
+      "advanceDeduction": "Advance deducted",
+      "otherDeductions": "Other deductions",
+      "selfDeduction": "Personal deduction",
+      "taxableIncome": "Taxable income",
+      "netSalary": "Net pay",
+      "note": "Note"
+    },
+    "payslip": {
+      "title": "Payslip",
+      "employee": "Employee",
+      "department": "Department",
+      "workingDays": "Days worked",
+      "workingDaysValue": "{{actual}}/{{standard}} days · paid leave {{paidLeave}} · unpaid {{unpaid}}",
+      "income": "Income",
+      "deduction": "Deductions",
+      "totalDeduction": "Total deductions",
+      "insuranceBase": "Insurance base salary: {{amount}}",
+      "overtimeWithHours": "Overtime pay ({{hours}} hrs)",
+      "taxBasis": "Tax basis",
+      "dependentDeduction": "Dependent deduction ({{count}})",
+      "signEmployee": "Employee",
+      "signEmployer": "Employer",
+      "printedAt": "Printed {{date}}"
+    },
+    "advances": {
+      "create": "Record advance",
+      "submit": "Record",
+      "createSuccess": "Salary advance recorded.",
+      "loadError": "Could not load salary advances.",
+      "approve": "Approve",
+      "approveSuccess": "Advance approved.",
+      "reject": "Reject",
+      "rejectTitle": "Reject salary advance",
+      "rejectSubject": "Rejecting the {{amount}} advance for {{name}}.",
+      "rejectSuccess": "Advance rejected.",
+      "cancel": "Withdraw",
+      "cancelConfirm": "Withdraw this advance?",
+      "cancelSuccess": "Advance withdrawn.",
+      "deductHint": "The advance date is when the money is paid out; the deduction period is the payroll month it comes off — two different things.",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "deducted": "Deducted",
+        "cancelled": "Withdrawn"
+      },
+      "columns": {
+        "employee": "Employee",
+        "amount": "Amount",
+        "advanceDate": "Advance date",
+        "deductPeriod": "Deduct from",
+        "reason": "Reason",
+        "recordedBy": "Recorded by",
+        "status": "Status"
+      },
+      "filters": {
+        "status": "Status",
+        "deductPeriod": "Deduction period",
+        "pendingShortcut": "Pending"
+      },
+      "fields": {
+        "employee": "Employee",
+        "employeePlaceholder": "Pick the employee",
+        "amount": "Amount",
+        "advanceDate": "Advance date",
+        "deductPeriod": "Deduct from period",
+        "reason": "Reason",
+        "rejectReason": "Rejection reason"
+      },
+      "errors": {
+        "employee": "Pick an employee",
+        "amount": "Enter the amount",
+        "advanceDate": "Pick the advance date",
+        "deductPeriod": "Pick the deduction period",
+        "reason": "Enter a reason",
+        "reasonTooShort": "The reason is too short",
+        "rejectReason": "Enter a rejection reason"
+      }
+    },
+    "settings": {
+      "title": "Payroll settings",
+      "success": "Payroll settings saved.",
+      "loadError": "Could not load the payroll settings.",
+      "regionHint": "Sets the unemployment-insurance cap. The social/health cap follows the reference salary instead, not the region.",
+      "regionOption": "Region {{region}} — minimum wage {{wage}}, UI cap {{cap}}",
+      "mealHint": "Tax-exempt up to 730,000 ₫; anything above is taxed. Prorated by the days actually worked.",
+      "attendanceHint": "Lost entirely if the month contains an unpaid day off.",
+      "payOvertimeHint": "Turn off if overtime is settled by separate paperwork rather than clock-in hours.",
+      "scopeNote": "Base salary, insurance salary and position allowance are agreed per person — edit those on the employment contract, not here.",
+      "fields": {
+        "region": "Minimum-wage region",
+        "meal": "Meal allowance",
+        "transport": "Transport allowance",
+        "phone": "Phone allowance",
+        "attendance": "Attendance allowance",
+        "payOvertime": "Pay overtime"
+      }
     }
   }
 }

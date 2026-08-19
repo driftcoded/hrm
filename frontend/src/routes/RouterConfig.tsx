@@ -80,6 +80,26 @@ const LeaveCalendarPage = lazy(() =>
     default: module.LeaveCalendarPage,
   })),
 );
+const PayrollLayout = lazy(() =>
+  import('@/pages/payroll/PayrollLayout').then((module) => ({
+    default: module.PayrollLayout,
+  })),
+);
+const PayrollPage = lazy(() =>
+  import('@/pages/payroll/PayrollPage').then((module) => ({
+    default: module.PayrollPage,
+  })),
+);
+const SalaryAdvancesPage = lazy(() =>
+  import('@/pages/payroll/SalaryAdvancesPage').then((module) => ({
+    default: module.SalaryAdvancesPage,
+  })),
+);
+const PayrollSettingsPage = lazy(() =>
+  import('@/pages/payroll/PayrollSettingsPage').then((module) => ({
+    default: module.PayrollSettingsPage,
+  })),
+);
 
 // Master-data settings screens (Giai đoạn 2.2), each its own chunk.
 const SettingsIndexPage = lazy(() =>
@@ -123,11 +143,11 @@ const MailSettingsPage = lazy(() =>
  * a dead link or a redirect that looks like a bug.
  *
  * `departments` left this list in Giai đoạn 2.2: departments are master data and
- * now live at `/settings/departments`. `employees` left it in Giai đoạn 3.2 and
- * `attendance` in Giai đoạn 4.2 — both modules have real screens now.
+ * now live at `/settings/departments`. `employees` left it in Giai đoạn 3.2,
+ * `attendance` in Giai đoạn 4.2, `leave` in 5.2 and `payroll` in 6.2 — all four
+ * modules have real screens now.
  */
 const UPCOMING_MODULES: Array<{ path: string; titleKey: string; phase: string }> = [
-  { path: 'payroll', titleKey: 'nav.payroll', phase: '6' },
   { path: 'reports', titleKey: 'nav.reports', phase: '8' },
 ];
 
@@ -197,6 +217,20 @@ const router = createBrowserRouter([
               { index: true, element: <LeaveRequestsPage /> },
               { path: 'balances', element: <LeaveBalancesPage /> },
               { path: 'calendar', element: <LeaveCalendarPage /> },
+            ],
+          },
+          {
+            path: 'payroll',
+            element: <PayrollLayout />,
+            children: [
+              { index: true, element: <PayrollPage /> },
+              { path: 'advances', element: <SalaryAdvancesPage /> },
+              /*
+               * Cấu hình lương nằm dưới `/payroll` chứ không dưới `/settings`:
+               * nó chỉ có nghĩa với người đang làm bảng lương, và `/settings` là
+               * nơi của master data dùng chung cho mọi phân hệ.
+               */
+              { path: 'settings', element: <PayrollSettingsPage /> },
             ],
           },
           {

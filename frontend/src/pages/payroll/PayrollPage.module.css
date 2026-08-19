@@ -1,0 +1,83 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+/*
+ * Năm con số tổng của kỳ, đứng trên cả bộ lọc: người mở màn hình lương hỏi
+ * "tháng này chi bao nhiêu" trước khi hỏi về từng người.
+ */
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--hrm-space-4);
+  padding: var(--hrm-space-4);
+  border: 1px solid var(--hrm-color-border-subtle);
+  border-radius: var(--hrm-radius-md);
+  background: var(--hrm-color-bg-container);
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  flex-wrap: wrap;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.periodPicker {
+  min-width: 130px;
+}
+
+.filterSelect {
+  min-width: 180px;
+}
+
+/* --- ô trong bảng --- */
+
+.person {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.personMeta {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+/* Cột tiền so le thì không đối chiếu được — chữ số phải đều bề ngang. */
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--hrm-color-text-tertiary);
+}
+
+@media (max-width: 991px) {
+  .summaryRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .spacer {
+    flex-basis: 100%;
+  }
+
+  .filterSelect {
+    flex: 1 1 150px;
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 575px) {
+  .summaryRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -113,6 +113,8 @@
      neutral (not white) so white cards read as raised against it. --- */
   /* Cột tên người ở lịch phép — trục ngày phải chừa đúng bằng chỗ này để thẳng hàng. */
   --hrm-leave-label-width: 180px;
+  /* Form cấu hình vài trường: kéo hết chiều ngang chỉ làm nhãn rời xa ô nhập. */
+  --hrm-form-max-width: 560px;
   --hrm-sidebar-width: 240px;
   --hrm-sidebar-width-collapsed: 80px;
   /* Dark sidebar: a deep navy from the same family as --hrm-color-heading, so

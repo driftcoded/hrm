@@ -1,0 +1,18 @@
+/*
+ * Form hẹp: đây là 6 trường cấu hình, không phải bảng dữ liệu. Kéo dài hết
+ * chiều ngang màn hình chỉ khiến nhãn và ô nhập rời nhau ra xa.
+ */
+.form {
+  max-width: var(--hrm-form-max-width);
+}
+
+.control {
+  width: 100%;
+}
+
+.footnote {
+  margin: 0 0 var(--hrm-space-4);
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  line-height: var(--hrm-line-height-base);
+}
