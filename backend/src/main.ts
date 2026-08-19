@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ServerResponse } from 'http';
 import { resolve } from 'path';
@@ -79,23 +79,38 @@ async function bootstrap() {
     }),
   );
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('HRM Backend API')
-    .setDescription('API quản lý nhân sự (HRM) cho công ty Việt Nam')
-    .setVersion('0.1.0')
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      SWAGGER_BEARER_AUTH_NAME,
-    )
-    .addCookieAuth('refresh_token', {
-      type: 'apiKey',
-      in: 'cookie',
-      description:
-        'Refresh token (HttpOnly, SameSite=Strict, Secure ở production). Được set bởi POST /auth/login.',
-    })
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger is NOT mounted in production. The spec is a complete map of the
+  // API — every route, every DTO field, every error code — and serving it
+  // publicly hands an attacker the reconnaissance step for free. It stays on
+  // everywhere else, which is where it is actually used.
+  //
+  // If it is ever wanted on a staging box, gate it on its own env flag rather
+  // than loosening this check; "production" should not be the thing standing
+  // between the public and the schema.
+  const isProduction =
+    configService.get<string>('app.nodeEnv') === 'production';
+
+  if (isProduction) {
+    new Logger('Bootstrap').log('Swagger disabled (NODE_ENV=production)');
+  } else {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('HRM Backend API')
+      .setDescription('API quản lý nhân sự (HRM) cho công ty Việt Nam')
+      .setVersion('0.1.0')
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        SWAGGER_BEARER_AUTH_NAME,
+      )
+      .addCookieAuth('refresh_token', {
+        type: 'apiKey',
+        in: 'cookie',
+        description:
+          'Refresh token (HttpOnly, SameSite=Strict, Secure ở production). Được set bởi POST /auth/login.',
+      })
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   await app.listen(port);
 }
