@@ -13,7 +13,7 @@ export enum SalaryAdvanceStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
   REJECTED = 'rejected',
-  /** Đã bị trừ vào một bảng lương — từ đây là chứng từ, không sửa được nữa. */
+  /** Đã thu hồi ĐỦ qua bảng lương — từ đây là chứng từ, không sửa được nữa. */
   DEDUCTED = 'deducted',
   CANCELLED = 'cancelled',
 }
@@ -43,6 +43,18 @@ export class SalaryAdvance {
 
   @Column({ type: 'decimal', precision: 15, scale: 2 })
   amount: string;
+
+  /**
+   * Đã thu hồi được bao nhiêu qua các kỳ lương.
+   *
+   * KHÔNG PHẢI CỜ ĐÃ/CHƯA. Lương của một kỳ có thể không đủ để trừ hết khoản
+   * ứng — người nghỉ gần trọn tháng thì thực nhận gần bằng 0. Kỳ đó lấy đúng
+   * phần chịu được, phần còn lại nằm lại và kỳ sau lấy tiếp. Trừ trọn bất kể
+   * lương sẽ cho ra bảng lương âm; bỏ qua rồi kỳ sau trừ lại từ đầu sẽ thu
+   * hai lần.
+   */
+  @Column({ name: 'deducted_amount', type: 'decimal', precision: 15, scale: 2 })
+  deductedAmount: string;
 
   /** Ngày thực chi tiền cho nhân viên. */
   @Column({ name: 'advance_date', type: 'date' })

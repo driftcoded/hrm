@@ -1366,40 +1366,32 @@
       "printedAt": "Printed {{date}}"
     },
     "advances": {
-      "create": "Record advance",
-      "submit": "Record",
-      "createSuccess": "Salary advance recorded.",
-      "loadError": "Could not load salary advances.",
       "approve": "Approve",
       "approveSuccess": "Advance approved.",
-      "reject": "Reject",
-      "rejectTitle": "Reject salary advance",
-      "rejectSubject": "Rejecting the {{amount}} advance for {{name}}.",
-      "rejectSuccess": "Advance rejected.",
       "cancel": "Withdraw",
       "cancelConfirm": "Withdraw this advance?",
       "cancelSuccess": "Advance withdrawn.",
-      "deductHint": "The advance date is when the money is paid out; the deduction period is the payroll month it comes off — two different things.",
-      "status": {
-        "pending": "Pending",
-        "approved": "Approved",
-        "rejected": "Rejected",
-        "deducted": "Deducted",
-        "cancelled": "Withdrawn"
-      },
       "columns": {
-        "employee": "Employee",
-        "amount": "Amount",
         "advanceDate": "Advance date",
+        "amount": "Amount",
         "deductPeriod": "Deduct from",
+        "employee": "Employee",
+        "outstanding": "Outstanding",
         "reason": "Reason",
         "recordedBy": "Recorded by",
         "status": "Status"
       },
-      "filters": {
-        "status": "Status",
-        "deductPeriod": "Deduction period",
-        "pendingShortcut": "Pending"
+      "create": "Record advance",
+      "createSuccess": "Salary advance recorded.",
+      "deductHint": "The advance date is when the money is paid out; the deduction period is the payroll month it comes off — two different things.",
+      "errors": {
+        "employee": "Pick an employee",
+        "amount": "Enter the amount",
+        "advanceDate": "Pick the advance date",
+        "deductPeriod": "Pick the deduction period",
+        "reason": "Enter a reason",
+        "reasonTooShort": "The reason is too short",
+        "rejectReason": "Enter a rejection reason"
       },
       "fields": {
         "employee": "Employee",
@@ -1410,15 +1402,25 @@
         "reason": "Reason",
         "rejectReason": "Rejection reason"
       },
-      "errors": {
-        "employee": "Pick an employee",
-        "amount": "Enter the amount",
-        "advanceDate": "Pick the advance date",
-        "deductPeriod": "Pick the deduction period",
-        "reason": "Enter a reason",
-        "reasonTooShort": "The reason is too short",
-        "rejectReason": "Enter a rejection reason"
-      }
+      "filters": {
+        "status": "Status",
+        "deductPeriod": "Deduction period",
+        "pendingShortcut": "Pending"
+      },
+      "loadError": "Could not load salary advances.",
+      "reject": "Reject",
+      "rejectSubject": "Rejecting the {{amount}} advance for {{name}}.",
+      "rejectSuccess": "Advance rejected.",
+      "rejectTitle": "Reject salary advance",
+      "settled": "Settled",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "deducted": "Deducted",
+        "cancelled": "Withdrawn"
+      },
+      "submit": "Record"
     },
     "settings": {
       "title": "Payroll settings",

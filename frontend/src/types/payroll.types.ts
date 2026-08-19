@@ -156,6 +156,14 @@ export interface SalaryAdvance {
     departmentName: string | null;
   };
   amount: number;
+  /**
+   * Đã thu hồi được bao nhiêu qua bảng lương.
+   *
+   * Nhỏ hơn `amount` nghĩa là lương của kỳ không đủ trừ hết — phần còn lại vẫn
+   * đang nợ, và bảng lương KHÔNG bao giờ trừ quá phần lương còn lại để tránh ra
+   * số âm.
+   */
+  deductedAmount: number;
   advanceDate: string;
   /** KỲ LƯƠNG bị trừ — tách khỏi `advanceDate` là ngày thực chi. */
   deductMonth: number;

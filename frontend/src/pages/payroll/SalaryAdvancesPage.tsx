@@ -112,6 +112,30 @@ export function SalaryAdvancesPage() {
       ),
     },
     {
+      title: t('payroll.advances.columns.outstanding'),
+      key: 'outstanding',
+      width: 150,
+      align: 'right',
+      /*
+       * Bảng lương KHÔNG trừ quá phần lương còn lại, nên một phiếu có thể mới
+       * thu được một phần. Con số còn nợ phải hiện ra — nếu không, kế toán đọc
+       * trạng thái "đã duyệt" mà tưởng đã thu xong.
+       */
+      render: (_: unknown, record) => {
+        const outstanding = record.amount - record.deductedAmount;
+
+        if (record.status !== 'approved' && record.status !== 'deducted') {
+          return <span className={styles.muted}>—</span>;
+        }
+
+        return outstanding > 0 ? (
+          <span className={styles.mono}>{formatCurrency(outstanding)}</span>
+        ) : (
+          <span className={styles.muted}>{t('payroll.advances.settled')}</span>
+        );
+      },
+    },
+    {
       title: t('payroll.advances.columns.advanceDate'),
       dataIndex: 'advanceDate',
       width: 120,
@@ -311,7 +335,7 @@ export function SalaryAdvancesPage() {
         errorMessage={t('payroll.advances.loadError')}
         hasFilters={hasFilters}
         total={total}
-        scrollX={1150}
+        scrollX={1300}
         pagination={{
           page: table.page,
           pageSize: table.pageSize,

@@ -8,6 +8,7 @@ import { Employee } from '@/modules/employees/entities/employee.entity';
 import { LeaveRequestsRepository } from '@/modules/leave-requests/leave-requests.repository';
 import { HolidaysService } from '@/modules/system/holidays.service';
 import { PayrollSettings } from './entities/payroll-settings.entity';
+import { SalaryAdvance } from './entities/salary-advance.entity';
 import { Salary, SalaryStatus } from './entities/salary.entity';
 import { PayrollRepository } from './payroll.repository';
 import { PayrollService } from './payroll.service';
@@ -93,6 +94,21 @@ function workedDays(count: number): Attendance[] {
   });
 }
 
+function makeAdvance(overrides: Partial<SalaryAdvance> = {}): SalaryAdvance {
+  return {
+    id: 3,
+    employeeId: 51,
+    amount: '5000000.00',
+    deductedAmount: '0.00',
+    advanceDate: '2026-07-28',
+    deductMonth: MONTH,
+    deductYear: YEAR,
+    reason: 'Ứng trước',
+    status: 'approved',
+    ...overrides,
+  } as unknown as SalaryAdvance;
+}
+
 async function captureError(
   run: () => Promise<unknown>,
 ): Promise<{ status: number; code: string }> {
@@ -115,10 +131,13 @@ describe('PayrollService', () => {
   let settings: PayrollSettings;
   /** Các dòng lương đã được ghi qua `manager.save()`. */
   let written: Salary[];
+  /** Phần tạm ứng đã thu hồi được, do service báo lên repository. */
+  let recoveries: { deducted: number }[];
 
   beforeEach(async () => {
     settings = makeSettings();
     written = [];
+    recoveries = [];
 
     const manager = {
       save: jest.fn((_entity: unknown, rows: Salary[]) => {
@@ -141,9 +160,14 @@ describe('PayrollService', () => {
               .fn()
               .mockResolvedValue(new Map([[51, workedDays(STANDARD_DAYS)]])),
             countActiveDependents: jest.fn().mockResolvedValue(new Map()),
-            sumApprovedAdvances: jest.fn().mockResolvedValue(new Map()),
+            findAdvancesForPeriod: jest.fn().mockResolvedValue(new Map()),
             findSalariesForPeriod: jest.fn().mockResolvedValue([]),
-            markAdvancesDeducted: jest.fn().mockResolvedValue(undefined),
+            recordAdvanceRecovery: jest.fn(
+              (_manager: unknown, rows: { deducted: number }[]) => {
+                recoveries = rows;
+                return Promise.resolve();
+              },
+            ),
           },
         },
         {
@@ -283,14 +307,128 @@ describe('PayrollService', () => {
     });
 
     it('deducts an approved advance from the net pay', async () => {
-      repository.sumApprovedAdvances.mockResolvedValue(
-        new Map([[51, 5_000_000]]),
+      repository.findAdvancesForPeriod.mockResolvedValue(
+        new Map([[51, [makeAdvance({ amount: '5000000.00' })]]]),
       );
 
       await service.calculate({ year: YEAR, month: MONTH }, hrUser);
 
       expect(written[0].advanceDeduction).toBe('5000000.00');
-      expect(repository.markAdvancesDeducted).toHaveBeenCalledWith(YEAR, MONTH);
+      expect(recoveries).toEqual([
+        expect.objectContaining({ deducted: 5_000_000 }),
+      ]);
+    });
+
+    /*
+     * MỘT BẢNG LƯƠNG KHÔNG BAO GIỜ RA SỐ ÂM. Người nghỉ gần trọn tháng thì thực
+     * nhận gần bằng 0; trừ trọn khoản ứng ở đó là công ty đòi tiền nhân viên
+     * ngay trên tờ phiếu lương của họ.
+     */
+    it('never deducts more of an advance than the pay can cover', async () => {
+      repository.findAttendanceInPeriod.mockResolvedValue(new Map([[51, []]]));
+      repository.findAdvancesForPeriod.mockResolvedValue(
+        new Map([[51, [makeAdvance({ amount: '5000000.00' })]]]),
+      );
+
+      await service.calculate({ year: YEAR, month: MONTH }, hrUser);
+
+      expect(written[0].advanceDeduction).toBe('0.00');
+      expect(Number(written[0].netSalary)).toBeGreaterThanOrEqual(0);
+      /*
+       * Vẫn ghi lại phiếu với số 0: đây là lần dựng lại con số từ đầu, bỏ sót
+       * phiếu sẽ để nguyên con số của lần chạy trước và nói sai.
+       */
+      expect(recoveries).toEqual([expect.objectContaining({ deducted: 0 })]);
+    });
+
+    /* Thu được bao nhiêu ghi bấy nhiêu; phần chưa thu vẫn hiện ở phiếu ứng. */
+    /*
+     * TÍNH LẠI MỘT KỲ PHẢI RA ĐÚNG CON SỐ CŨ. Cộng dồn phần thu hồi sẽ làm mỗi
+     * lần chạy lại cộng thêm một lượt: chạy hai lần là phiếu ứng trông như đã
+     * thu gấp đôi số tiền mà bảng lương thực sự trừ.
+     */
+    it('does not double-count the recovery when the period is recalculated', async () => {
+      const advance = makeAdvance({ amount: '5000000.00' });
+
+      repository.findAdvancesForPeriod.mockResolvedValue(
+        new Map([[51, [advance]]]),
+      );
+
+      await service.calculate({ year: YEAR, month: MONTH }, hrUser);
+      const first = recoveries[0].deducted;
+
+      // Lần hai: phiếu đã mang `deductedAmount` của lần một.
+      advance.deductedAmount = first.toFixed(2);
+      await service.calculate({ year: YEAR, month: MONTH }, hrUser);
+
+      expect(recoveries[0].deducted).toBe(first);
+      expect(written[0].advanceDeduction).toBe(first.toFixed(2));
+    });
+
+    it('recovers an advance partially when the pay runs out', async () => {
+      // 5 ngày công trên 21 ⇒ khoảng 5tr lương, không đủ cho khoản ứng 20tr.
+      repository.findAttendanceInPeriod.mockResolvedValue(
+        new Map([[51, workedDays(5)]]),
+      );
+      repository.findAdvancesForPeriod.mockResolvedValue(
+        new Map([[51, [makeAdvance({ amount: '20000000.00' })]]]),
+      );
+
+      await service.calculate({ year: YEAR, month: MONTH }, hrUser);
+
+      const deducted = Number(written[0].advanceDeduction);
+
+      expect(deducted).toBeGreaterThan(0);
+      expect(deducted).toBeLessThan(20_000_000);
+      expect(Number(written[0].netSalary)).toBe(0);
+      expect(recoveries[0].deducted).toBe(deducted);
+    });
+
+    /*
+     * Khoản chỉnh tay được giữ qua mỗi lần tính lại — nhưng giữ mà không CỘNG
+     * vào thì gross hụt đúng bằng khoản thưởng, và thuế lẫn thực nhận sai theo.
+     */
+    it('feeds a carried-over bonus into gross, not just into its own column', async () => {
+      repository.findSalariesForPeriod.mockResolvedValue([
+        {
+          id: 5,
+          employeeId: 51,
+          status: SalaryStatus.CALCULATED,
+          performanceBonus: '2000000.00',
+          otherIncome: '0.00',
+          otherDeductions: '0.00',
+        } as Salary,
+      ]);
+
+      await service.calculate({ year: YEAR, month: MONTH }, hrUser);
+
+      // Lương tháng đủ 21 ngày là 21tr, cộng thưởng 2tr.
+      expect(written[0].performanceBonus).toBe('2000000.00');
+      expect(written[0].grossSalary).toBe('23000000.00');
+    });
+
+    it('subtracts a carried-over other deduction from the net pay', async () => {
+      repository.findSalariesForPeriod.mockResolvedValue([
+        {
+          id: 5,
+          employeeId: 51,
+          status: SalaryStatus.CALCULATED,
+          performanceBonus: '0.00',
+          otherIncome: '0.00',
+          otherDeductions: '1000000.00',
+        } as Salary,
+      ]);
+
+      await service.calculate({ year: YEAR, month: MONTH }, hrUser);
+
+      const gross = Number(written[0].grossSalary);
+      const insurance = Number(written[0].totalInsurance);
+      const tax = Number(written[0].personalIncomeTax);
+
+      expect(written[0].otherDeductions).toBe('1000000.00');
+      expect(Number(written[0].netSalary)).toBe(
+        gross - insurance - tax - 1_000_000,
+      );
     });
   });
 
@@ -349,7 +487,7 @@ describe('PayrollService', () => {
       expect(result.dryRun).toBe(true);
       expect(result.created).toBe(1);
       expect(written).toHaveLength(0);
-      expect(repository.markAdvancesDeducted).not.toHaveBeenCalled();
+      expect(recoveries).toEqual([]);
     });
   });
 });

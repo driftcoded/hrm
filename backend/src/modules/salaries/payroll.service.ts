@@ -21,6 +21,7 @@ import { Employee } from '@/modules/employees/entities/employee.entity';
 import { LeaveRequestsRepository } from '@/modules/leave-requests/leave-requests.repository';
 import { HolidaysService } from '@/modules/system/holidays.service';
 import { PayrollSettings } from './entities/payroll-settings.entity';
+import { SalaryAdvance } from './entities/salary-advance.entity';
 import { Salary, SalaryStatus } from './entities/salary.entity';
 import { PayrollRepository } from './payroll.repository';
 import { PayrollSettingsService } from './payroll-settings.service';
@@ -32,6 +33,12 @@ import { PayrollSettingsService } from './payroll-settings.service';
  * lại một dòng như thế sẽ làm bảng lương nói khác với thứ đã trả — muốn sửa thì
  * phải huỷ dòng đó ra `cancelled` một cách tường minh.
  */
+/** Một phiếu tạm ứng và phần vừa thu hồi được ở kỳ này. */
+interface AdvanceRecovery {
+  advance: SalaryAdvance;
+  deducted: number;
+}
+
 const LOCKED_STATUSES = new Set<SalaryStatus>([
   SalaryStatus.APPROVED,
   SalaryStatus.PAID,
@@ -145,7 +152,7 @@ export class PayrollService {
           periodEnd,
         ),
         this.payrollRepository.countActiveDependents(employeeIds, periodEnd),
-        this.payrollRepository.sumApprovedAdvances(year, month),
+        this.payrollRepository.findAdvancesForPeriod(year, month),
         this.payrollRepository.findSalariesForPeriod(year, month),
       ]);
 
@@ -173,6 +180,7 @@ export class PayrollService {
     };
 
     const drafts: Salary[] = [];
+    const advanceRecoveries: AdvanceRecovery[] = [];
 
     for (const employee of employees) {
       const employeeId = Number(employee.id);
@@ -190,7 +198,7 @@ export class PayrollService {
         continue;
       }
 
-      const draft = this.buildSalary({
+      const { salary: draft, recoveries } = this.buildSalary({
         employee,
         contract,
         settings,
@@ -201,13 +209,14 @@ export class PayrollService {
         attendanceRows: attendance.get(employeeId) ?? [],
         paidLeaveDays: paidLeaveDays.get(employeeId) ?? 0,
         dependentCount: dependents.get(employeeId) ?? 0,
-        advanceDeduction: advances.get(employeeId) ?? 0,
+        advances: advances.get(employeeId) ?? [],
         existing: current,
         generatedBy,
       });
 
       summary.totalGross += Number(draft.grossSalary);
       summary.totalNet += Number(draft.netSalary);
+      advanceRecoveries.push(...recoveries);
 
       if (current) {
         summary.updated += 1;
@@ -229,7 +238,10 @@ export class PayrollService {
      */
     await this.dataSource.transaction(async (manager) => {
       await manager.save(Salary, drafts);
-      await this.payrollRepository.markAdvancesDeducted(year, month);
+      await this.payrollRepository.recordAdvanceRecovery(
+        manager,
+        advanceRecoveries,
+      );
     });
 
     this.logger.log(
@@ -268,10 +280,11 @@ export class PayrollService {
     }[];
     paidLeaveDays: number;
     dependentCount: number;
-    advanceDeduction: number;
+    /** Phiếu tạm ứng khai trừ vào kỳ này, đã sắp theo thứ tự ứng. */
+    advances: SalaryAdvance[];
     existing?: Salary;
     generatedBy: number | null;
-  }): Salary {
+  }): { salary: Salary; recoveries: AdvanceRecovery[] } {
     const monthlySalary = Number(input.contract.baseSalary);
     const positionAllowance = Number(input.contract.positionAllowance);
 
@@ -325,6 +338,20 @@ export class PayrollService {
 
     const overtimePay = input.settings.payOvertime ? attendance.overtimePay : 0;
 
+    /*
+     * KHOẢN CHỈNH TAY PHẢI ĐI VÀO PHÉP TÍNH, không chỉ nằm lại trong cột của nó.
+     * Thưởng, thu nhập khác và khấu trừ khác không suy ra được từ dữ liệu gốc
+     * nên được giữ qua mỗi lần tính lại — nhưng giữ mà không cộng vào thì gross
+     * hụt đúng bằng khoản thưởng, và thuế lẫn thực nhận sai theo.
+     */
+    const performanceBonus = Number(input.existing?.performanceBonus ?? 0);
+    const otherIncome = Number(input.existing?.otherIncome ?? 0);
+    const otherDeductions = Number(input.existing?.otherDeductions ?? 0);
+
+    /*
+     * Tính TRƯỚC khi trừ tạm ứng: tạm ứng là khoản trừ sau thuế, nên phần lương
+     * còn lại sau bảo hiểm và thuế chính là trần thu hồi được của kỳ này.
+     */
     const calculation = calculateNetSalary({
       year: input.year,
       month: input.month,
@@ -336,12 +363,28 @@ export class PayrollService {
       phoneAllowance: Number(input.settings.phoneAllowance),
       otherAllowances: Number(input.contract.otherAllowance),
       overtimePay,
+      performanceBonus,
+      otherIncome,
       insuranceSalary: Number(input.contract.insuranceSalary),
       region: input.settings.minimumWageRegion,
       dependentCount: input.dependentCount,
       unpaidWorkingDays: unpaidLeaveDays,
-      advanceDeduction: input.advanceDeduction,
+      otherDeductions,
     });
+
+    /*
+     * KHÔNG TRỪ QUÁ PHẦN LƯƠNG CÒN LẠI. Một bảng lương ra số âm nghĩa là công ty
+     * đang đòi tiền nhân viên trên chính tờ phiếu lương của họ. Phần chưa thu
+     * được nằm lại ở `deducted_amount` và phiếu vẫn ở trạng thái `approved` để
+     * kế toán nhìn thấy; muốn thu tiếp thì chuyển kỳ trừ của phiếu sang tháng
+     * sau.
+     */
+    const { deducted: advanceDeduction, recoveries } = this.allocateAdvances(
+      input.advances,
+      Math.max(0, calculation.netSalary),
+    );
+
+    const netSalary = calculation.netSalary - advanceDeduction;
 
     const salary = input.existing ?? new Salary();
 
@@ -365,8 +408,8 @@ export class PayrollService {
     salary.phoneAllowance = Number(input.settings.phoneAllowance).toFixed(2);
     salary.otherAllowances = Number(input.contract.otherAllowance).toFixed(2);
     salary.overtimePay = roundVnd(overtimePay).toFixed(2);
-    salary.performanceBonus = input.existing?.performanceBonus ?? '0.00';
-    salary.otherIncome = input.existing?.otherIncome ?? '0.00';
+    salary.performanceBonus = performanceBonus.toFixed(2);
+    salary.otherIncome = otherIncome.toFixed(2);
     salary.grossSalary = calculation.grossSalary.toFixed(2);
 
     salary.insuranceBaseSalary = calculation.insuranceBaseSalary.toFixed(2);
@@ -381,14 +424,46 @@ export class PayrollService {
     salary.taxableIncome = calculation.taxableIncome.toFixed(2);
     salary.personalIncomeTax = calculation.personalIncomeTax.toFixed(2);
 
-    salary.advanceDeduction = input.advanceDeduction.toFixed(2);
-    salary.otherDeductions = input.existing?.otherDeductions ?? '0.00';
-    salary.netSalary = calculation.netSalary.toFixed(2);
+    salary.advanceDeduction = advanceDeduction.toFixed(2);
+    salary.otherDeductions = otherDeductions.toFixed(2);
+    salary.netSalary = netSalary.toFixed(2);
 
     salary.status = SalaryStatus.CALCULATED;
     salary.generatedBy = input.generatedBy;
 
-    return salary;
+    return { salary, recoveries };
+  }
+
+  /**
+   * Chia phần lương còn lại cho các phiếu tạm ứng, theo thứ tự ứng trước trả
+   * trước.
+   *
+   * Ứng trước trả trước chứ không chia đều: một khoản ứng cũ để lửng lơ qua
+   * nhiều kỳ là thứ không ai theo dõi nổi, còn thứ tự thời gian thì kế toán đối
+   * chiếu được với chứng từ chi.
+   */
+  private allocateAdvances(
+    advances: SalaryAdvance[],
+    available: number,
+  ): { deducted: number; recoveries: AdvanceRecovery[] } {
+    let remaining = available;
+    let deducted = 0;
+    const recoveries: AdvanceRecovery[] = [];
+
+    /*
+     * Mọi phiếu của kỳ đều được ghi lại, KỂ CẢ phiếu không thu được đồng nào:
+     * đây là lần dựng lại con số từ đầu, nên phiếu bị bỏ sót sẽ giữ nguyên con
+     * số của lần chạy trước và nói sai.
+     */
+    for (const advance of advances) {
+      const take = Math.max(0, Math.min(Number(advance.amount), remaining));
+
+      recoveries.push({ advance, deducted: roundVnd(take) });
+      deducted += roundVnd(take);
+      remaining -= take;
+    }
+
+    return { deducted, recoveries };
   }
 
   /**

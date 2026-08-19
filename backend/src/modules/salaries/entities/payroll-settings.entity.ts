@@ -6,7 +6,13 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { MinimumWageRegion } from '@/common/constants/payroll.constant';
+/*
+ * Đường dẫn TƯƠNG ĐỐI, không dùng alias `@/`: `typeorm-ts-node-commonjs` của
+ * script migration chạy KHÔNG kèm `tsconfig-paths/register`, nên mọi entity
+ * dùng alias sẽ làm `npm run migration:run` chết ngay khi nạp data-source.
+ * Các entity khác trong dự án cũng vì thế mà dùng đường dẫn tương đối.
+ */
+import { MinimumWageRegion } from '../../../common/constants/payroll.constant';
 import { User } from '../../users/entities/user.entity';
 
 const money = { type: 'decimal' as const, precision: 15, scale: 2 };

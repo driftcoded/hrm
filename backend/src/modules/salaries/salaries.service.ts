@@ -234,7 +234,16 @@ export class SalariesService {
 
   // --------------------------------------------------------- nội bộ ----
 
-  /** Tính lại thuế và net sau khi các khoản chỉnh tay thay đổi. */
+  /**
+   * Tính lại thuế và net sau khi các khoản chỉnh tay thay đổi.
+   *
+   * BẢO HIỂM GIỮ NGUYÊN, KHÔNG TÍNH LẠI. Nó tính trên lương ghi trong hợp đồng
+   * chứ không trên thu nhập thực tế, nên một khoản thưởng không làm nó đổi. Và
+   * quan trọng hơn: bảng lương chỉ lưu lương đóng bảo hiểm ĐÃ ÁP TRẦN — tính
+   * lại từ con số đó sẽ ra BHTN sai, vì trần BHTN (theo lương tối thiểu vùng)
+   * cao hơn trần BHXH. Bản trước làm đúng như vậy và để lại những phiếu lương
+   * mà `gross − khấu trừ` không bằng `net`.
+   */
   private async recalculate(salary: Salary): Promise<void> {
     const settings = await this.payrollSettingsService.getSettings();
 
@@ -251,13 +260,18 @@ export class SalariesService {
       overtimePay: Number(salary.overtimePay),
       performanceBonus: Number(salary.performanceBonus),
       otherIncome: Number(salary.otherIncome),
-      // Lương đóng bảo hiểm KHÔNG đổi theo thưởng: nó là con số ghi trong hợp
-      // đồng, và bảng lương đã lưu lại kết quả sau khi áp trần.
       insuranceSalary: Number(salary.insuranceBaseSalary),
       region: settings.minimumWageRegion,
       dependentCount: salary.dependentCount,
       advanceDeduction: Number(salary.advanceDeduction),
       otherDeductions: Number(salary.otherDeductions),
+      insuranceOverride: {
+        insuranceBase: Number(salary.insuranceBaseSalary),
+        socialInsurance: Number(salary.socialInsurance),
+        healthInsurance: Number(salary.healthInsurance),
+        unemploymentInsurance: Number(salary.unemploymentInsurance),
+        total: Number(salary.totalInsurance),
+      },
     });
 
     salary.grossSalary = result.grossSalary.toFixed(2);

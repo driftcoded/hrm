@@ -1366,40 +1366,32 @@
       "printedAt": "In ngày {{date}}"
     },
     "advances": {
-      "create": "Ghi nhận tạm ứng",
-      "submit": "Ghi nhận",
-      "createSuccess": "Đã ghi nhận phiếu tạm ứng.",
-      "loadError": "Không tải được danh sách tạm ứng.",
       "approve": "Duyệt",
       "approveSuccess": "Đã duyệt phiếu tạm ứng.",
-      "reject": "Từ chối",
-      "rejectTitle": "Từ chối phiếu tạm ứng",
-      "rejectSubject": "Từ chối phiếu tạm ứng {{amount}} của {{name}}.",
-      "rejectSuccess": "Đã từ chối phiếu tạm ứng.",
       "cancel": "Rút lại",
       "cancelConfirm": "Rút lại phiếu tạm ứng này?",
       "cancelSuccess": "Đã rút lại phiếu tạm ứng.",
-      "deductHint": "Ngày ứng là ngày chi tiền; kỳ bị trừ là tháng lương sẽ trừ khoản này — hai thứ khác nhau.",
-      "status": {
-        "pending": "Chờ duyệt",
-        "approved": "Đã duyệt",
-        "rejected": "Từ chối",
-        "deducted": "Đã trừ lương",
-        "cancelled": "Đã rút"
-      },
       "columns": {
-        "employee": "Nhân viên",
-        "amount": "Số tiền",
         "advanceDate": "Ngày ứng",
+        "amount": "Số tiền",
         "deductPeriod": "Trừ vào kỳ",
+        "employee": "Nhân viên",
+        "outstanding": "Còn nợ",
         "reason": "Lý do",
         "recordedBy": "Người ghi",
         "status": "Trạng thái"
       },
-      "filters": {
-        "status": "Trạng thái",
-        "deductPeriod": "Kỳ bị trừ",
-        "pendingShortcut": "Chờ duyệt"
+      "create": "Ghi nhận tạm ứng",
+      "createSuccess": "Đã ghi nhận phiếu tạm ứng.",
+      "deductHint": "Ngày ứng là ngày chi tiền; kỳ bị trừ là tháng lương sẽ trừ khoản này — hai thứ khác nhau.",
+      "errors": {
+        "employee": "Chọn nhân viên",
+        "amount": "Nhập số tiền ứng",
+        "advanceDate": "Chọn ngày ứng",
+        "deductPeriod": "Chọn kỳ lương bị trừ",
+        "reason": "Nhập lý do",
+        "reasonTooShort": "Lý do quá ngắn",
+        "rejectReason": "Nhập lý do từ chối"
       },
       "fields": {
         "employee": "Nhân viên",
@@ -1410,15 +1402,25 @@
         "reason": "Lý do",
         "rejectReason": "Lý do từ chối"
       },
-      "errors": {
-        "employee": "Chọn nhân viên",
-        "amount": "Nhập số tiền ứng",
-        "advanceDate": "Chọn ngày ứng",
-        "deductPeriod": "Chọn kỳ lương bị trừ",
-        "reason": "Nhập lý do",
-        "reasonTooShort": "Lý do quá ngắn",
-        "rejectReason": "Nhập lý do từ chối"
-      }
+      "filters": {
+        "status": "Trạng thái",
+        "deductPeriod": "Kỳ bị trừ",
+        "pendingShortcut": "Chờ duyệt"
+      },
+      "loadError": "Không tải được danh sách tạm ứng.",
+      "reject": "Từ chối",
+      "rejectSubject": "Từ chối phiếu tạm ứng {{amount}} của {{name}}.",
+      "rejectSuccess": "Đã từ chối phiếu tạm ứng.",
+      "rejectTitle": "Từ chối phiếu tạm ứng",
+      "settled": "Đã thu đủ",
+      "status": {
+        "pending": "Chờ duyệt",
+        "approved": "Đã duyệt",
+        "rejected": "Từ chối",
+        "deducted": "Đã trừ lương",
+        "cancelled": "Đã rút"
+      },
+      "submit": "Ghi nhận"
     },
     "settings": {
       "title": "Cấu hình lương",

@@ -51,3 +51,8 @@
     min-width: 150px;
   }
 }
+
+/* Giá trị bằng 0 / phần phụ — nhạt hơn để mắt lướt qua được. */
+.muted {
+  color: var(--hrm-color-text-tertiary);
+}

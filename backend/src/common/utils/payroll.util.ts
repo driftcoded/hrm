@@ -232,6 +232,23 @@ export interface NetSalaryInput {
    */
   unpaidWorkingDays?: number;
 
+  /**
+   * Bảo hiểm ĐÃ CHỐT của kỳ, dùng thay cho việc tính lại.
+   *
+   * Cần cho đường TÍNH LẠI SAU KHI CHỈNH TAY: bảng lương chỉ lưu lương đóng bảo
+   * hiểm ĐÃ ÁP TRẦN, không lưu lương hợp đồng gốc. Tính lại từ con số đã áp trần
+   * sẽ ra BHTN sai — trần BHTN theo lương tối thiểu vùng cao hơn trần BHXH, nên
+   * lấy nhầm đầu vào là trừ hụt. Mà thưởng thêm cũng không làm đổi tiền bảo
+   * hiểm: nó tính trên lương hợp đồng, không tính trên thu nhập thực tế.
+   */
+  insuranceOverride?: {
+    insuranceBase: number;
+    socialInsurance: number;
+    healthInsurance: number;
+    unemploymentInsurance: number;
+    total: number;
+  };
+
   /** Trừ sau thuế. */
   advanceDeduction?: number;
   otherDeductions?: number;
@@ -293,13 +310,15 @@ export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
       (input.otherIncome ?? 0),
   );
 
-  const insurance = calculateEmployeeInsurance({
-    insuranceSalary: input.insuranceSalary,
-    region: input.region,
-    year: input.year,
-    month: input.month,
-    unpaidWorkingDays: input.unpaidWorkingDays,
-  });
+  const insurance =
+    input.insuranceOverride ??
+    calculateEmployeeInsurance({
+      insuranceSalary: input.insuranceSalary,
+      region: input.region,
+      year: input.year,
+      month: input.month,
+      unpaidWorkingDays: input.unpaidWorkingDays,
+    });
 
   /*
    * Bữa ăn giữa ca chỉ miễn thuế tới 730.000; phần VƯỢT vẫn chịu thuế. Miễn cả

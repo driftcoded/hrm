@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, In, Repository } from 'typeorm';
+import { Between, EntityManager, In, Repository } from 'typeorm';
 import { Attendance } from '@/modules/attendances/entities/attendance.entity';
 import { Contract } from '@/modules/contracts/entities/contract.entity';
 import { Employee } from '@/modules/employees/entities/employee.entity';
@@ -159,11 +159,22 @@ export class PayrollRepository {
     );
   }
 
-  /** Tạm ứng ĐÃ DUYỆT của kỳ, gộp theo nhân viên. */
-  async sumApprovedAdvances(
+  /**
+   * Tạm ứng phải thu ở kỳ này, gộp theo nhân viên.
+   *
+   * MỘT PHIẾU ỨNG CHỈ ĐƯỢC THU Ở ĐÚNG KỲ NÓ KHAI (`deduct_month`/`deduct_year`).
+   * Nhờ vậy phần thu hồi của một kỳ hoàn toàn do lần chạy của kỳ đó quyết định,
+   * và tính lại kỳ đó là GHI ĐÈ chứ không cộng dồn. Cho một phiếu trôi sang kỳ
+   * sau sẽ cần biết kỳ nào đã thu bao nhiêu của phiếu nào — một sổ phụ mà lợi
+   * ích không bù nổi.
+   *
+   * Trả về CẢ phiếu đã thu đủ: lần tính lại phải dựng lại con số từ đầu, nên nó
+   * cần thấy toàn bộ phiếu của kỳ chứ không chỉ phần còn thiếu.
+   */
+  async findAdvancesForPeriod(
     year: number,
     month: number,
-  ): Promise<Map<number, number>> {
+  ): Promise<Map<number, SalaryAdvance[]>> {
     const rows = await this.advances.find({
       where: {
         deductYear: year,
@@ -173,14 +184,17 @@ export class PayrollRepository {
           SalaryAdvanceStatus.DEDUCTED,
         ]),
       },
+      order: { advanceDate: 'ASC', id: 'ASC' },
     });
 
-    const byEmployee = new Map<number, number>();
+    const byEmployee = new Map<number, SalaryAdvance[]>();
 
     for (const row of rows) {
       const key = Number(row.employeeId);
+      const list = byEmployee.get(key) ?? [];
 
-      byEmployee.set(key, (byEmployee.get(key) ?? 0) + Number(row.amount));
+      list.push(row);
+      byEmployee.set(key, list);
     }
 
     return byEmployee;
@@ -190,14 +204,29 @@ export class PayrollRepository {
     return this.salaries.find({ where: { year, month } });
   }
 
-  markAdvancesDeducted(year: number, month: number): Promise<unknown> {
-    return this.advances.update(
-      {
-        deductYear: year,
-        deductMonth: month,
-        status: SalaryAdvanceStatus.APPROVED,
-      },
-      { status: SalaryAdvanceStatus.DEDUCTED },
-    );
+  /**
+   * Ghi phần đã thu hồi vào từng phiếu — GHI ĐÈ, không cộng dồn.
+   *
+   * Tính lương một kỳ chạy lại được bao nhiêu lần cũng được, nên phần thu hồi
+   * phải dựng lại từ đầu mỗi lần. Cộng dồn sẽ làm mỗi lần tính lại cộng thêm
+   * một lượt nữa: chạy hai lần là phiếu ứng trông như đã thu gấp đôi số tiền
+   * mà bảng lương thực sự trừ.
+   *
+   * `deducted` CHỈ khi đã thu đủ. Đánh dấu "đã trừ" bất kể thu được bao nhiêu
+   * sẽ khiến phần chưa thu biến mất khỏi hệ thống mà không ai biết.
+   */
+  async recordAdvanceRecovery(
+    manager: EntityManager,
+    recoveries: { advance: SalaryAdvance; deducted: number }[],
+  ): Promise<void> {
+    for (const { advance, deducted } of recoveries) {
+      advance.deductedAmount = deducted.toFixed(2);
+      advance.status =
+        deducted >= Number(advance.amount) - 0.005
+          ? SalaryAdvanceStatus.DEDUCTED
+          : SalaryAdvanceStatus.APPROVED;
+
+      await manager.save(SalaryAdvance, advance);
+    }
   }
 }

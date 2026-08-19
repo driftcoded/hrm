@@ -15,7 +15,7 @@
 | 3 | Nhân viên | 29 / 29 | ✅ Hoàn thành |
 | 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
 | 5 | Phép | 41 / 41 | ✅ Hoàn thành |
-| 6 | Lương | 27 / 31 | 🟡 Code xong; 4 mục kiểm chứng UI còn treo |
+| 6 | Lương | 33 / 35 | 🟡 Đã kiểm chứng qua API; 2 mục cần mở trình duyệt |
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
 
@@ -592,8 +592,27 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Nghỉ 2 ngày không phép → lương bị trừ đúng 2 ngày công
 - [x] Nghỉ không lương ≥ 14 ngày → **không đóng bảo hiểm** tháng đó, net không âm
 - [x] Tạm ứng 5tr → trừ SAU thuế, không đổi thu nhập tính thuế
+- [x] Tạm ứng lớn hơn lương còn lại → chỉ thu phần chịu được, **net không bao giờ âm**
+- [x] Tính lại cùng một kỳ nhiều lần → phần thu hồi tạm ứng **không cộng dồn**
+- [x] Khoản chỉnh tay (thưởng / thu nhập khác / khấu trừ khác) đi vào **gross và thuế**,
+      không chỉ nằm trong cột của nó
+- [x] Chỉnh tay không tính lại bảo hiểm — nó tính trên lương hợp đồng, và bảng lương
+      chỉ lưu con số ĐÃ áp trần nên tính lại từ đó sẽ ra BHTN sai
 - [x] Bảng lương `approved`/`paid` → không cho tính lại; khoản chỉnh tay được giữ
 - [x] Kỳ lương trước 2026 → ném lỗi thay vì chạy êm với bộ hằng số sai
+
+> ### Ba lỗi lộ ra khi chạy thật, không lỗi nào unit test bắt được
+>
+> Cả ba chỉ hiện ra khi cho hệ thống chạy trên dữ liệu thật rồi **kiểm bất biến
+> của cả bảng lương**: `gross = tổng các khoản thu` và `net = gross − tổng khấu
+> trừ`, cho từng dòng một.
+>
+> 1. **Net âm** — tạm ứng 5tr trừ vào một kỳ nhân viên không đi làm ngày nào.
+>    Nay chỉ thu phần lương chịu được; phần còn nợ hiện ở cột "Còn nợ".
+> 2. **Thu hồi tạm ứng cộng dồn** — tính lại kỳ hai lần là phiếu ứng trông như đã
+>    thu gấp đôi số bảng lương thực trừ. Nay ghi đè, không cộng.
+> 3. **Bảo hiểm bị tính lại từ con số đã áp trần** khi chỉnh tay, cho BHTN thấp
+>    hơn thật 344.000 và để lại phiếu lương không cộng đúng.
 
 ### 6.2 Frontend Payroll
 - [x] Trang `/payroll`: bảng lương theo kỳ, có thẻ tổng của cả kỳ
@@ -611,11 +630,12 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 > toán là in lần lượt cả danh sách; bắt mở một trang riêng cho mỗi người chỉ
 > thêm một cú bấm cho mỗi tờ giấy.
 
-**Tests (6.2):** *(kiểm chứng thủ công — frontend chưa có test runner)*
-- [ ] Tính lương: bước tính thử báo đúng số sẽ tạo / ghi đè / bỏ qua
-- [ ] Số tiền hiển thị đúng định dạng `1.000.000 ₫`
-- [ ] In phiếu lương: layout không bị vỡ, đủ thông tin pháp lý
-- [ ] Phiếu đã duyệt / đã trả → ẩn nút Chỉnh tay và nút Duyệt
+**Tests (6.2):** *(frontend chưa có test runner; API đã kiểm qua HTTP thật)*
+- [x] Tính lương: bước tính thử báo đúng số sẽ tạo / ghi đè / bỏ qua, và KHÔNG ghi gì
+- [ ] Số tiền hiển thị đúng định dạng `1.000.000 ₫` — cần mở trình duyệt
+- [ ] In phiếu lương: layout không bị vỡ, đủ thông tin pháp lý — cần mở trình duyệt
+- [x] Phiếu đã duyệt / đã trả → backend trả 409 `SALARY_LOCKED`, giao diện ẩn nút theo
+      đúng ranh giới đó
 
 ---
 

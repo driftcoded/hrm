@@ -297,6 +297,7 @@ export class SalaryAdvancesService {
         departmentName: advance.employee?.department?.name ?? null,
       },
       amount: Number(advance.amount),
+      deductedAmount: Number(advance.deductedAmount),
       advanceDate: toDateOnlyString(advance.advanceDate),
       deductMonth: advance.deductMonth,
       deductYear: advance.deductYear,

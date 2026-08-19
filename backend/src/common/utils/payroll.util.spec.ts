@@ -362,6 +362,38 @@ describe('calculateNetSalary', () => {
     );
   });
 
+  /*
+   * Đường TÍNH LẠI SAU KHI CHỈNH TAY chỉ có trong tay lương đóng bảo hiểm ĐÃ ÁP
+   * TRẦN, không có lương hợp đồng gốc. Tính lại bảo hiểm từ con số đó sẽ ra BHTN
+   * sai (trần BHTN theo lương tối thiểu vùng cao hơn trần BHXH), và phiếu lương
+   * hết cộng đúng: `gross − khấu trừ` không còn bằng `net`.
+   */
+  it('uses the insurance already settled instead of recomputing it', () => {
+    const settled = {
+      insuranceBase: 50_600_000,
+      socialInsurance: 4_048_000,
+      healthInsurance: 759_000,
+      unemploymentInsurance: 850_000,
+      total: 5_657_000,
+    };
+
+    const result = calculateNetSalary({
+      year: 2026,
+      month: 8,
+      baseSalary: 61_997_739,
+      // Con số ĐÃ áp trần — tính lại từ đây sẽ cho BHTN 506.000 thay vì 850.000.
+      insuranceSalary: 50_600_000,
+      region: MinimumWageRegion.I,
+      insuranceOverride: settled,
+    });
+
+    expect(result.totalInsurance).toBe(5_657_000);
+    expect(result.unemploymentInsurance).toBe(850_000);
+    expect(result.netSalary).toBe(
+      61_997_739 - 5_657_000 - result.personalIncomeTax,
+    );
+  });
+
   /* PLAN 6.1: tạm ứng 5tr bị trừ vào lương net của tháng đó. */
   it('subtracts the advance after tax, not before', () => {
     const base = {

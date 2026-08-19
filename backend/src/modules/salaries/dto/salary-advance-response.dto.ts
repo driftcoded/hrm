@@ -28,6 +28,13 @@ export class SalaryAdvanceResponseDto {
   @ApiProperty({ example: 5000000 })
   amount: number;
 
+  @ApiProperty({
+    example: 3000000,
+    description:
+      'Đã thu hồi được bao nhiêu qua bảng lương. Nhỏ hơn `amount` nghĩa là lương của kỳ không đủ trừ hết — phần còn lại vẫn đang nợ.',
+  })
+  deductedAmount: number;
+
   @ApiProperty({ example: '2026-08-20' })
   advanceDate: string;
 
