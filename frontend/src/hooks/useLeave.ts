@@ -1,14 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   adjustLeaveBalance,
+  deleteLeaveBalance,
   approveLeaveRequest,
   cancelLeaveRequest,
   createLeaveRequest,
+  deleteLeaveRequest,
   initLeaveBalances,
   listLeaveBalances,
   listLeaveCalendar,
   listLeaveRequests,
   rejectLeaveRequest,
+  updateLeaveRequest,
 } from '@/services/leave.service';
 import type {
   AdjustLeaveBalancePayload,
@@ -16,6 +19,7 @@ import type {
   InitLeaveBalancePayload,
   LeaveBalanceFilters,
   LeaveRequestFilters,
+  UpdateLeaveRequestPayload,
 } from '@/types/leave.types';
 
 /**
@@ -69,6 +73,22 @@ export function useLeaveRequestMutations() {
     onSuccess: invalidate,
   });
 
+  const update = useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: UpdateLeaveRequestPayload;
+    }) => updateLeaveRequest(id, payload),
+    onSuccess: invalidate,
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: number) => deleteLeaveRequest(id),
+    onSuccess: invalidate,
+  });
+
   const approve = useMutation({
     mutationFn: (id: number) => approveLeaveRequest(id),
     onSuccess: invalidate,
@@ -87,10 +107,14 @@ export function useLeaveRequestMutations() {
 
   return {
     createRequest: create.mutateAsync,
+    updateRequest: update.mutateAsync,
+    deleteRequest: remove.mutateAsync,
     approveRequest: approve.mutateAsync,
     rejectRequest: reject.mutateAsync,
     cancelRequest: cancel.mutateAsync,
     isCreating: create.isPending,
+    isUpdating: update.isPending,
+    isDeleting: remove.isPending,
     isApproving: approve.isPending,
     isRejecting: reject.isPending,
     isCancelling: cancel.isPending,
@@ -132,7 +156,14 @@ export function useLeaveBalanceMutations() {
     onSuccess: invalidate,
   });
 
+  const remove = useMutation({
+    mutationFn: (id: number) => deleteLeaveBalance(id),
+    onSuccess: invalidate,
+  });
+
   return {
+    deleteBalance: remove.mutateAsync,
+    isDeleting: remove.isPending,
     previewInit: preview.mutateAsync,
     commitInit: commit.mutateAsync,
     adjustBalance: adjust.mutateAsync,

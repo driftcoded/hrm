@@ -1,20 +1,32 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, App, DatePicker, Form, Input, Modal, Select } from 'antd';
-import type { Dayjs } from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { EmployeeSelect } from '@/components/employees/EmployeeSelect';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { useLeaveRequestMutations } from '@/hooks/useLeave';
 import { useLeaveTypes } from '@/hooks/useLeaveTypes';
-import { LEAVE_HALVES, type LeaveHalf } from '@/types/leave.types';
+import {
+  LEAVE_HALVES,
+  type LeaveHalf,
+  type LeaveRequest,
+} from '@/types/leave.types';
 import styles from './LeaveRequestFormModal.module.css';
 
 /**
- * Form GHI NHẬN đơn nghỉ phép cho một nhân viên (PLAN 5.2).
+ * Form GHI NHẬN và SỬA đơn nghỉ phép (PLAN 5.2).
  *
  * KHÔNG PHẢI FORM TỰ NỘP ĐƠN. Nhân viên không đăng nhập hệ thống này; quản lý
  * ghi nhận cho phòng mình, nhân sự ghi cho bất kỳ ai. Ô đầu tiên vì thế là CHỌN
  * NHÂN VIÊN.
+ *
+ * MỘT FORM CHO CẢ HAI VIỆC. Ghi nhận và sửa dùng đúng một bộ quy tắc ở backend;
+ * tách thành hai form là mở đường cho hai bộ ràng buộc lệch nhau, và người dùng
+ * phải học lại cách điền lần thứ hai.
+ *
+ * KHI SỬA, Ô NHÂN VIÊN THÀNH CHỮ THƯỜNG chứ không phải ô chọn bị khoá: backend
+ * không nhận `employeeId` trong PATCH, nên bày ra một ô chọn không bấm được chỉ
+ * khiến người dùng đi tìm cách mở khoá nó.
  *
  * SỐ NGÀY PHÉP KHÔNG PHẢI MỘT Ô NHẬP — server tính từ khoảng ngày, nửa ngày ở
  * hai đầu và lịch nghỉ lễ. Cho nhập là cho khai 1 ngày cho một kỳ nghỉ hai tuần.
@@ -25,6 +37,8 @@ import styles from './LeaveRequestFormModal.module.css';
 export interface LeaveRequestFormModalProps {
   open: boolean;
   onClose: () => void;
+  /** Có giá trị = đang SỬA đơn đó; `null`/bỏ trống = ghi nhận đơn mới. */
+  request?: LeaveRequest | null;
 }
 
 interface FormValues {
@@ -39,13 +53,18 @@ interface FormValues {
 export function LeaveRequestFormModal({
   open,
   onClose,
+  request = null,
 }: LeaveRequestFormModalProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const resolveError = useApiErrorMessage();
   const [form] = Form.useForm<FormValues>();
-  const { createRequest, isCreating } = useLeaveRequestMutations();
+  const { createRequest, updateRequest, isCreating, isUpdating } =
+    useLeaveRequestMutations();
   const [error, setError] = useState<string | null>(null);
+
+  const isEdit = request !== null;
+  const isSaving = isCreating || isUpdating;
 
   // Danh mục loại phép chỉ có chục dòng — không phân trang, `data` là mảng.
   const leaveTypes = useLeaveTypes({ isActive: true });
@@ -60,27 +79,50 @@ export function LeaveRequestFormModal({
   );
 
   useEffect(() => {
-    if (open) {
-      setError(null);
-      form.resetFields();
+    if (!open) {
+      return;
     }
-  }, [open, form]);
+
+    setError(null);
+    form.resetFields();
+
+    if (request) {
+      form.setFieldsValue({
+        leaveTypeId: request.leaveType?.id,
+        range: [dayjs(request.startDate), dayjs(request.endDate)],
+        // `full` là "không nghỉ nửa ngày" — để trống ô cho đúng nghĩa đó, chứ
+        // không hiện một lựa chọn mà người dùng phải xoá đi.
+        startHalf: request.startHalf === 'full' ? undefined : request.startHalf,
+        endHalf: request.endHalf === 'full' ? undefined : request.endHalf,
+        reason: request.reason,
+      });
+    }
+  }, [open, request, form]);
 
   const handleSubmit = (values: FormValues) => {
     void (async () => {
       setError(null);
+
+      const payload = {
+        leaveTypeId: values.leaveTypeId,
+        startDate: values.range[0].format('YYYY-MM-DD'),
+        endDate: values.range[1].format('YYYY-MM-DD'),
+        startHalf: values.startHalf,
+        endHalf: values.endHalf,
+        reason: values.reason.trim(),
+      };
+
       try {
-        await createRequest({
-          employeeId: values.employeeId,
-          leaveTypeId: values.leaveTypeId,
-          startDate: values.range[0].format('YYYY-MM-DD'),
-          endDate: values.range[1].format('YYYY-MM-DD'),
-          startHalf: values.startHalf,
-          endHalf: values.endHalf,
-          reason: values.reason.trim(),
-        });
+        if (request) {
+          await updateRequest({ id: request.id, payload });
+        } else {
+          await createRequest({ ...payload, employeeId: values.employeeId });
+        }
+
         onClose();
-        message.success(t('leave.requests.createSuccess'));
+        message.success(
+          t(isEdit ? 'leave.requests.updateSuccess' : 'leave.requests.createSuccess'),
+        );
       } catch (submitError) {
         setError(resolveError(submitError));
       }
@@ -95,10 +137,10 @@ export function LeaveRequestFormModal({
   return (
     <Modal
       open={open}
-      title={t('leave.requests.create')}
+      title={t(isEdit ? 'leave.requests.edit' : 'leave.requests.create')}
       okText={t('leave.requests.submit')}
       cancelText={t('common.cancel')}
-      confirmLoading={isCreating}
+      confirmLoading={isSaving}
       onOk={() => form.submit()}
       onCancel={onClose}
       destroyOnHidden
@@ -107,17 +149,31 @@ export function LeaveRequestFormModal({
         <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />
       )}
 
-      <Form form={form} layout="vertical" onFinish={handleSubmit} disabled={isCreating}>
-        <Form.Item
-          name="employeeId"
-          label={t('leave.requests.fields.employee')}
-          rules={[{ required: true, message: t('leave.requests.errors.employee') }]}
-        >
-          <EmployeeSelect
-            enabled={open}
-            placeholder={t('leave.requests.fields.employeePlaceholder')}
-          />
-        </Form.Item>
+      <Form form={form} layout="vertical" onFinish={handleSubmit} disabled={isSaving}>
+        {isEdit ? (
+          <Form.Item label={t('leave.requests.fields.employee')}>
+            <div className={styles.readonlyEmployee}>
+              <span>{request.employee?.fullName ?? '—'}</span>
+              <span className={styles.readonlyMeta}>
+                {request.employee?.employeeCode ?? ''}
+                {request.employee?.departmentName
+                  ? ` · ${request.employee.departmentName}`
+                  : ''}
+              </span>
+            </div>
+          </Form.Item>
+        ) : (
+          <Form.Item
+            name="employeeId"
+            label={t('leave.requests.fields.employee')}
+            rules={[{ required: true, message: t('leave.requests.errors.employee') }]}
+          >
+            <EmployeeSelect
+              enabled={open}
+              placeholder={t('leave.requests.fields.employeePlaceholder')}
+            />
+          </Form.Item>
+        )}
 
         <Form.Item
           name="leaveTypeId"

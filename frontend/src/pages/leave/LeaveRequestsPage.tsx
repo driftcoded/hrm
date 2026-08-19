@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react';
 import { App, Button, DatePicker, Popconfirm, Select, Space, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { CheckOutlined, CloseOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import {
+  CheckOutlined,
+  CloseOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { LeaveRequestFormModal } from '@/components/leave/LeaveRequestFormModal';
@@ -80,6 +87,7 @@ export function LeaveRequestsPage() {
 
   const mutations = useLeaveRequestMutations();
   const [isFormOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<LeaveRequest | null>(null);
   const [rejecting, setRejecting] = useState<LeaveRequest | null>(null);
 
   const rows = list.data?.items ?? [];
@@ -132,6 +140,50 @@ export function LeaveRequestsPage() {
         message.error(resolveError(cancelError));
       }
     })();
+  };
+
+  /**
+   * Xoá đơn — hỏi lại TRƯỚC, và câu hỏi nói đúng hậu quả của trạng thái hiện tại.
+   *
+   * Xoá một đơn đã duyệt hoàn lại ngày phép và gỡ ngày nghỉ khỏi bảng chấm công;
+   * một Popconfirm cụt lủn "Chắc chưa?" giấu mất điều đó.
+   */
+  const runDelete = (request: LeaveRequest) => {
+    const content =
+      request.status === 'approved'
+        ? t('leave.requests.deleteConfirmApproved', { days: request.totalDays })
+        : request.status === 'pending'
+          ? t('leave.requests.deleteConfirmPending')
+          : t('leave.requests.deleteConfirmClosed');
+
+    modal.confirm({
+      title: t('leave.requests.deleteConfirmTitle'),
+      content,
+      okText: t('leave.requests.delete'),
+      okButtonProps: { danger: true },
+      cancelText: t('common.cancel'),
+      onOk: async () => {
+        try {
+          const result = await mutations.deleteRequest(request.id);
+
+          // Ngày công giữ lại là dữ liệu người dùng phải biết, không phải một
+          // toast biến mất sau ba giây.
+          if (result.attendanceDaysKept > 0) {
+            modal.warning({
+              title: t('leave.requests.deleteKeptTitle', {
+                count: result.attendanceDaysKept,
+              }),
+              content: t('leave.requests.deleteKeptDetail'),
+            });
+            return;
+          }
+
+          message.success(t('leave.requests.deleteSuccess'));
+        } catch (deleteError) {
+          message.error(resolveError(deleteError));
+        }
+      },
+    });
   };
 
   const setRange = (range: [Dayjs | null, Dayjs | null] | null) => {
@@ -207,19 +259,24 @@ export function LeaveRequestsPage() {
     {
       title: '',
       key: 'actions',
-      width: 170,
+      width: 230,
       render: (_: unknown, record) => {
-        if (record.status !== 'pending') {
-          return null;
-        }
-
-        // Người GHI rút lại đơn mình nhập; nhân sự rút được đơn của người khác.
+        // Người GHI sửa/xoá đơn mình nhập; nhân sự làm được với đơn của bất kỳ ai.
         const isMyRecord =
           myEmployeeId !== null && record.recordedBy === myEmployeeId;
+        const isPending = record.status === 'pending';
+
+        /*
+         * Sửa CHỈ khi còn chờ duyệt. Xoá thì mọi trạng thái, nhưng đơn đã qua
+         * tay người duyệt thì chỉ nhân sự — cùng ranh giới backend đang chặn,
+         * để nút không bày ra rồi trả về 403.
+         */
+        const canAmend = isPending && (canApprove || isMyRecord);
+        const canDelete = isPending ? canAmend : canApprove;
 
         return (
           <Space size={4}>
-            {canApprove && (
+            {isPending && canApprove && (
               <>
                 <Button
                   size="small"
@@ -241,7 +298,8 @@ export function LeaveRequestsPage() {
                 </Button>
               </>
             )}
-            {!canApprove && isMyRecord && (
+
+            {isPending && !canApprove && isMyRecord && (
               <Popconfirm
                 title={t('leave.requests.cancelConfirm')}
                 okText={t('common.confirm')}
@@ -252,6 +310,32 @@ export function LeaveRequestsPage() {
                   {t('leave.requests.cancel')}
                 </Button>
               </Popconfirm>
+            )}
+
+            {canAmend && (
+              <Tooltip title={t('leave.requests.edit')}>
+                <Button
+                  size="small"
+                  type="text"
+                  icon={<EditOutlined />}
+                  aria-label={t('leave.requests.edit')}
+                  onClick={() => setEditing(record)}
+                />
+              </Tooltip>
+            )}
+
+            {canDelete && (
+              <Tooltip title={t('leave.requests.delete')}>
+                <Button
+                  size="small"
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  aria-label={t('leave.requests.delete')}
+                  loading={mutations.isDeleting}
+                  onClick={() => runDelete(record)}
+                />
+              </Tooltip>
             )}
           </Space>
         );
@@ -355,7 +439,7 @@ export function LeaveRequestsPage() {
         errorMessage={t('leave.requests.loadError')}
         hasFilters={hasFilters}
         total={total}
-        scrollX={1150}
+        scrollX={1210}
         pagination={{
           page: table.page,
           pageSize: table.pageSize,
@@ -367,6 +451,12 @@ export function LeaveRequestsPage() {
       />
 
       <LeaveRequestFormModal open={isFormOpen} onClose={() => setFormOpen(false)} />
+
+      <LeaveRequestFormModal
+        open={editing !== null}
+        request={editing}
+        onClose={() => setEditing(null)}
+      />
 
       <RejectLeaveModal request={rejecting} onClose={() => setRejecting(null)} />
     </div>

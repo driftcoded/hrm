@@ -149,6 +149,31 @@ export interface CreateLeaveRequestPayload {
 }
 
 /**
+ * Body sửa đơn.
+ *
+ * KHÔNG có `employeeId`: backend từ chối đổi người được nghỉ, vì quỹ phép và
+ * kiểm tra trùng ngày đều tính theo nhân viên. Nhập nhầm người thì xoá và ghi
+ * lại.
+ */
+export type UpdateLeaveRequestPayload = Partial<
+  Omit<CreateLeaveRequestPayload, 'employeeId'>
+>;
+
+/**
+ * Kết quả xoá đơn.
+ *
+ * `attendanceDaysKept` là những dòng chấm công của đơn này nhưng ĐÃ BỊ SỬA sang
+ * trạng thái khác nên được giữ lại — dữ liệu công thật, không phải hệ quả của
+ * đơn nữa. Khác 0 thì phải nói cho người xoá biết.
+ */
+export interface DeleteLeaveResult {
+  id: number;
+  deleted: boolean;
+  attendanceDaysRemoved: number;
+  attendanceDaysKept: number;
+}
+
+/**
  * Kết quả duyệt đơn.
  *
  * `attendanceConflicts` là những ngày ĐÃ CÓ dữ liệu chấm công nên không bị ghi

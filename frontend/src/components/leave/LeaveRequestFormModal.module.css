@@ -15,6 +15,23 @@
   color: var(--hrm-color-text-secondary);
 }
 
+/*
+ * Ô nhân viên khi SỬA đơn: chữ thường, không phải ô chọn bị khoá. Backend không
+ * nhận đổi người được nghỉ, nên bày ra một control không bấm được chỉ khiến
+ * người dùng đi tìm cách mở khoá nó.
+ */
+.readonlyEmployee {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-1);
+  line-height: var(--hrm-line-height-tight);
+}
+
+.readonlyMeta {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-secondary);
+}
+
 @media (max-width: 575px) {
   .halfRow {
     grid-template-columns: minmax(0, 1fr);

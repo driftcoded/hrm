@@ -1,14 +1,20 @@
 import { useMemo, useState } from 'react';
-import { Button, DatePicker, Progress, Select, Space } from 'antd';
+import { App, Button, DatePicker, Progress, Select, Space, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { EditOutlined, ReloadOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  ReloadOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { AdjustLeaveBalanceModal } from '@/components/leave/AdjustLeaveBalanceModal';
 import { InitLeaveBalanceModal } from '@/components/leave/InitLeaveBalanceModal';
 import { DataTableCard } from '@/components/crud/DataTableCard';
 import { useAllDepartments } from '@/hooks/useDepartments';
-import { useLeaveBalances } from '@/hooks/useLeave';
+import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
+import { useLeaveBalanceMutations, useLeaveBalances } from '@/hooks/useLeave';
 import { useLeaveTypes } from '@/hooks/useLeaveTypes';
 import { useCanWriteLeaveBalance } from '@/hooks/usePermissions';
 import { useTableQuery } from '@/hooks/useTableQuery';
@@ -27,7 +33,10 @@ import styles from './LeaveBalancesPage.module.css';
  */
 export function LeaveBalancesPage() {
   const { t } = useTranslation();
+  const { message, modal } = App.useApp();
+  const resolveError = useApiErrorMessage();
   const canWrite = useCanWriteLeaveBalance();
+  const mutations = useLeaveBalanceMutations();
 
   const table = useTableQuery({ sort: 'remainingDays', order: 'asc' });
 
@@ -62,6 +71,30 @@ export function LeaveBalancesPage() {
 
   const [isInitOpen, setInitOpen] = useState(false);
   const [adjusting, setAdjusting] = useState<LeaveBalance | null>(null);
+
+  /**
+   * Xoá một dòng quỹ — chỉ dùng cho quỹ CẤP NHẦM.
+   *
+   * Backend chặn xoá khi đã có ngày bị tiêu, nên câu hỏi ở đây nói thẳng điều
+   * kiện đó thay vì để người dùng bấm rồi ăn một lỗi 422.
+   */
+  const runDelete = (balance: LeaveBalance) => {
+    modal.confirm({
+      title: t('leave.balances.deleteConfirmTitle'),
+      content: t('leave.balances.deleteConfirmDetail'),
+      okText: t('leave.balances.delete'),
+      okButtonProps: { danger: true },
+      cancelText: t('common.cancel'),
+      onOk: async () => {
+        try {
+          await mutations.deleteBalance(balance.id);
+          message.success(t('leave.balances.deleteSuccess'));
+        } catch (deleteError) {
+          message.error(resolveError(deleteError));
+        }
+      },
+    });
+  };
 
   const rows = list.data?.items ?? [];
   const total = list.data?.meta.total ?? 0;
@@ -162,16 +195,38 @@ export function LeaveBalancesPage() {
           {
             title: '',
             key: 'actions',
-            width: 56,
+            width: 104,
             render: (_: unknown, record: LeaveBalance) => (
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                aria-label={t('leave.balances.adjustFor', {
-                  name: record.employee?.fullName ?? '',
-                })}
-                onClick={() => setAdjusting(record)}
-              />
+              <Space size={0}>
+                <Tooltip title={t('leave.balances.adjust')}>
+                  <Button
+                    type="text"
+                    icon={<EditOutlined />}
+                    aria-label={t('leave.balances.adjustFor', {
+                      name: record.employee?.fullName ?? '',
+                    })}
+                    onClick={() => setAdjusting(record)}
+                  />
+                </Tooltip>
+
+                {/*
+                  Chỉ mở nút xoá khi dòng quỹ CHƯA bị tiêu ngày nào — cùng điều
+                  kiện backend đang chặn, để nút không bày ra rồi trả về 422.
+                */}
+                <Tooltip title={t('leave.balances.delete')}>
+                  <Button
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    aria-label={t('leave.balances.deleteFor', {
+                      name: record.employee?.fullName ?? '',
+                    })}
+                    disabled={record.usedDays > 0 || record.pendingDays > 0}
+                    loading={mutations.isDeleting}
+                    onClick={() => runDelete(record)}
+                  />
+                </Tooltip>
+              </Space>
             ),
           },
         ]
@@ -261,7 +316,7 @@ export function LeaveBalancesPage() {
         errorMessage={t('leave.balances.loadError')}
         hasFilters={hasFilters}
         total={total}
-        scrollX={1050}
+        scrollX={1100}
         pagination={{
           page: table.page,
           pageSize: table.pageSize,

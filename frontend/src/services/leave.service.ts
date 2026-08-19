@@ -4,12 +4,14 @@ import type {
   AdjustLeaveBalancePayload,
   ApproveLeaveResult,
   CreateLeaveRequestPayload,
+  DeleteLeaveResult,
   InitLeaveBalancePayload,
   InitLeaveBalanceResult,
   LeaveBalance,
   LeaveBalanceFilters,
   LeaveRequest,
   LeaveRequestFilters,
+  UpdateLeaveRequestPayload,
 } from '@/types/leave.types';
 
 /**
@@ -71,6 +73,15 @@ export async function initLeaveBalances(
   return data.data;
 }
 
+export async function deleteLeaveBalance(
+  id: number,
+): Promise<{ id: number; deleted: boolean }> {
+  const { data } = await apiClient.delete<
+    ApiSuccessResponse<{ id: number; deleted: boolean }>
+  >(`/leave-balances/${id}`);
+  return data.data;
+}
+
 export async function adjustLeaveBalance(
   id: number,
   payload: AdjustLeaveBalancePayload,
@@ -104,6 +115,26 @@ export async function createLeaveRequest(
   const { data } = await apiClient.post<ApiSuccessResponse<LeaveRequest>>(
     '/leave-requests',
     payload,
+  );
+  return data.data;
+}
+
+export async function updateLeaveRequest(
+  id: number,
+  payload: UpdateLeaveRequestPayload,
+): Promise<LeaveRequest> {
+  const { data } = await apiClient.patch<ApiSuccessResponse<LeaveRequest>>(
+    `/leave-requests/${id}`,
+    payload,
+  );
+  return data.data;
+}
+
+export async function deleteLeaveRequest(
+  id: number,
+): Promise<DeleteLeaveResult> {
+  const { data } = await apiClient.delete<ApiSuccessResponse<DeleteLeaveResult>>(
+    `/leave-requests/${id}`,
   );
   return data.data;
 }
