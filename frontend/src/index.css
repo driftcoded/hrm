@@ -15,3 +15,49 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/*
+ * IN ẤN — chỉ phiếu hồ sơ được ra giấy.
+ *
+ * Thứ tự hai khối dưới đây có ý nghĩa: quy tắc mặc định (`display: none`) phải
+ * đứng TRƯỚC khối `@media print`. Hai rule cùng độ ưu tiên (0,1,0) nên cái
+ * đứng sau thắng — đảo lại thì phiếu in bị ẩn ngay cả lúc in.
+ */
+
+/* Trên màn hình phiếu in không tồn tại. */
+.hrm-print-sheet {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  /*
+   * `visibility` chứ không phải `display`: phiếu in nằm sâu trong cây DOM (bên
+   * trong AppLayout > trang chi tiết), nên `display: none` đặt lên tổ tiên sẽ
+   * giấu luôn nó. Đặt tất cả về `hidden` rồi bật lại riêng phiếu in là cách
+   * duy nhất không phụ thuộc vị trí của nó trong cây.
+   *
+   * Cách này cũng không bám vào class nội bộ của Ant Design — sidebar, header,
+   * thanh tab, nút bấm đều tự biến mất mà không cần liệt kê từng cái.
+   */
+  body * {
+    visibility: hidden;
+  }
+
+  .hrm-print-sheet,
+  .hrm-print-sheet * {
+    visibility: visible;
+  }
+
+  .hrm-print-sheet {
+    display: block;
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    color: #000;
+    background: #fff;
+  }
+}

@@ -906,6 +906,12 @@
       "leaveLeft": "Leave remaining",
       "noContract": "No active contract",
       "pendingPhase": "This figure belongs to phase {{phase}} and has no data yet"
+    },
+    "print": {
+      "title": "Employee profile",
+      "code": "Employee code",
+      "notice": "Abridged printout. Sensitive details (ID number, bank account, tax code, insurance numbers, salary, emergency contact, HR notes) are deliberately left out of this sheet.",
+      "printedAt": "Printed {{at}}"
     }
   }
 }

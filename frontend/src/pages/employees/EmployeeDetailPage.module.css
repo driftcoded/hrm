@@ -16,12 +16,6 @@
   padding: 0;
 }
 
-/* Không in thanh điều hướng khi người dùng bấm "In hồ sơ". */
-@media print {
-  .topBar {
-    display: none;
-  }
-}
 
 /*
  * Trang chia hai cột: nội dung chính bên trái, cột phụ 1/3 bên phải.

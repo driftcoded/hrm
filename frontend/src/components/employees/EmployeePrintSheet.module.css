@@ -1,0 +1,88 @@
+/*
+ * Chỉ có tác dụng khi in. Việc ẩn/hiện do quy tắc `@media print` toàn cục
+ * trong `src/index.css` đảm nhiệm (nó cần bám vào lớp `.hrm-print-sheet`,
+ * là tên toàn cục chứ không phải tên do CSS module sinh ra).
+ *
+ * Màu ở đây cố định đen/xám thay vì lấy từ token: token được chọn cho nền
+ * trắng của màn hình, còn máy in thì mực xám nhạt ra giấy gần như không đọc
+ * được.
+ */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #000;
+}
+
+.title {
+  margin: 0;
+  font-size: 18pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 10pt;
+}
+
+.section {
+  margin-top: 16px;
+  /* Không cắt một mục làm đôi qua hai trang giấy. */
+  break-inside: avoid;
+}
+
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 11pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-bottom: 1px solid #999;
+  padding-bottom: 4px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 24px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 42% minmax(0, 1fr);
+  gap: 8px;
+  font-size: 10pt;
+  break-inside: avoid;
+}
+
+.label {
+  color: #444;
+}
+
+.value {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  margin-top: 24px;
+  padding-top: 8px;
+  border-top: 1px solid #999;
+}
+
+.notice {
+  margin: 0;
+  font-size: 8pt;
+  font-style: italic;
+  color: #444;
+}
+
+.printedAt {
+  margin: 4px 0 0;
+  font-size: 8pt;
+  color: #444;
+}

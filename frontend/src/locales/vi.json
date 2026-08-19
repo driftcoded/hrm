@@ -906,6 +906,12 @@
       "leaveLeft": "Nghỉ phép còn lại",
       "noContract": "Chưa có hợp đồng hiệu lực",
       "pendingPhase": "Số liệu này thuộc Giai đoạn {{phase}}, chưa có dữ liệu"
+    },
+    "print": {
+      "title": "Hồ sơ nhân viên",
+      "code": "Mã nhân viên",
+      "notice": "Bản in rút gọn. Các thông tin nhạy cảm (CCCD, tài khoản ngân hàng, mã số thuế, số sổ BHXH/BHYT, lương, người liên hệ khẩn cấp, ghi chú nhân sự) KHÔNG được đưa vào bản in này.",
+      "printedAt": "In lúc {{at}}"
     }
   }
 }

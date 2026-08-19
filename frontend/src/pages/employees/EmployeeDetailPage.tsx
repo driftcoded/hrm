@@ -12,8 +12,10 @@ import { useTranslation } from 'react-i18next';
 import { AvatarUploader } from '@/components/employees/AvatarUploader';
 import { DeleteEmployeeModal } from '@/components/employees/DeleteEmployeeModal';
 import { EmployeeHeroCard } from '@/components/employees/EmployeeHeroCard';
+import { EmployeePrintSheet } from '@/components/employees/EmployeePrintSheet';
 import { EmployeeSideRail } from '@/components/employees/EmployeeSideRail';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
+import { useProvinces, useWards } from '@/hooks/useProvinces';
 import { useEmployee, useEmployeeMutations, useEmployeeSummary } from '@/hooks/useEmployees';
 import {
   useCanDeleteEmployees,
@@ -66,6 +68,9 @@ export function EmployeeDetailPage() {
   );
   const mutations = useEmployeeMutations();
   const { data: summary } = useEmployeeSummary(isValidId ? employeeId : undefined);
+  // Phiếu in cần TÊN tỉnh/phường, không phải mã trần.
+  const { data: provinces } = useProvinces();
+  const { data: wards } = useWards(employee?.provinceCode);
 
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -300,6 +305,13 @@ export function EmployeeDetailPage() {
         <EmployeeSideRail summary={summary} />
       </div>
 
+      {/* Ẩn trên màn hình; khi in thì CHỈ nó ra giấy. Danh sách trường bị loại
+          trừ và lý do nằm ngay trong component. */}
+      <EmployeePrintSheet
+        employee={employee}
+        provinceName={provinces?.find((province) => province.code === employee.provinceCode)?.name}
+        wardName={wards?.find((ward) => ward.code === employee.wardCode)?.name}
+      />
 
       <DeleteEmployeeModal
         open={isDeleteOpen}
