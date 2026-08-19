@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import { MAX_PAGE_LIMIT, type SortOrder } from '@/types/masterData.types';
 
@@ -81,21 +81,31 @@ function readPage(params: URLSearchParams): number {
  * otherwise be sent as `limit=500`, which the backend rejects with a 400 and the
  * user would see a broken table instead of their rows.
  */
-function readPageSize(params: URLSearchParams): number {
+function readPageSize(params: URLSearchParams, fallback: number): number {
   const parsed = Number(params.get(PAGE_SIZE_PARAM));
   if (!Number.isInteger(parsed) || parsed < 1) {
-    return DEFAULT_PAGE_SIZE;
+    return fallback;
   }
   return (PAGE_SIZE_OPTIONS as readonly number[]).includes(parsed)
     ? parsed
     : Math.min(parsed, MAX_PAGE_LIMIT);
 }
 
-export function useTableQuery(defaults?: { sort?: string; order?: SortOrder }): TableQuery {
+/**
+ * @param defaults `sort`/`order` seed the first render; `pageSize` overrides the
+ *   §5 default of 20 for one screen. Departments uses 10 because its rows are
+ *   tall (icon tile, avatar) and a company has few enough departments that ten
+ *   at a time is the readable page — the convention stays 20 everywhere else.
+ */
+export function useTableQuery(defaults?: {
+  sort?: string;
+  order?: SortOrder;
+  pageSize?: number;
+}): TableQuery {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = readPage(searchParams);
-  const pageSize = readPageSize(searchParams);
+  const pageSize = readPageSize(searchParams, defaults?.pageSize ?? DEFAULT_PAGE_SIZE);
   const sort = searchParams.get(SORT_PARAM) ?? defaults?.sort;
   const rawOrder = searchParams.get(ORDER_PARAM) ?? defaults?.order;
   const order: SortOrder | undefined =
@@ -112,16 +122,40 @@ export function useTableQuery(defaults?: { sort?: string; order?: SortOrder }): 
   }, [searchParams]);
 
   /**
-   * Always mutates a copy of the CURRENT params so two setters called in the
-   * same tick can't drop each other's changes. `replace` keeps the history stack
-   * free of one entry per keystroke in the search box.
+   * Params written by setters in the current tick but not yet committed to the
+   * location. See `update()` — this is what makes several setters compose.
+   */
+  const pendingParams = useRef<URLSearchParams | null>(null);
+
+  // Once the navigation lands, the URL is the truth again.
+  useEffect(() => {
+    pendingParams.current = null;
+  }, [searchParams]);
+
+  /**
+   * Mutates a copy of the current params. `replace` keeps the history stack free
+   * of one entry per keystroke in the search box.
+   *
+   * `pendingParams` exists because React Router's updater is NOT React's
+   * `useState` updater: it receives the params of the currently *committed*
+   * location, so two setters in the same tick both start from the pre-navigation
+   * URL and the second silently overwrites the first. That was a real bug twice
+   * over — the page-size selector snapped back to 20 (a size change wrote
+   * page+pageSize, then a sorter write dropped pageSize), and on the employees
+   * screen "clear filters", the department→position reset and the hire-date range
+   * each only applied their last call.
+   *
+   * Chaining through the ref makes N setters in one tick accumulate instead of
+   * clobbering. It is deliberately reset on every committed `searchParams` so a
+   * navigation that never lands cannot leave stale params behind.
    */
   const update = useCallback(
     (mutate: (next: URLSearchParams) => void) => {
       setSearchParams(
         (current) => {
-          const next = new URLSearchParams(current);
+          const next = new URLSearchParams(pendingParams.current ?? current);
           mutate(next);
+          pendingParams.current = next;
           return next;
         },
         { replace: true },

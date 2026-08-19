@@ -68,6 +68,11 @@ export function useDepartmentTree(
  * `useDepartmentTree`, so on a screen that already shows the tree this reads the
  * cache instead of issuing a second request — a disabled query still serves
  * whatever is already cached under its key.
+ *
+ * `refetch` / `isFetching` are exposed for the screens that SHOW this data rather
+ * than only feeding a dropdown from it (the org chart and the KPI row on
+ * `/settings/departments`): they need a "Thử lại" button and a way to dim while a
+ * save is being re-read (docs/ui-conventions.md §7).
  */
 export function useAllDepartments(enabled = true) {
   const query = useQuery({
@@ -80,6 +85,8 @@ export function useAllDepartments(enabled = true) {
   return {
     tree: query.data,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isError: query.isError,
+    refetch: () => void query.refetch(),
   };
 }

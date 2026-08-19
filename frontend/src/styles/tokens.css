@@ -16,11 +16,15 @@
   --hrm-color-primary-softer: #f0f7ff;
   --hrm-color-success: #52c41a;
   --hrm-color-success-soft: #f6ffed;
+  /* A darker green for glyphs/text on white: #52c41a is only 2.3:1 there. */
+  --hrm-color-success-strong: #389e0d;
   --hrm-color-warning: #faad14;
   --hrm-color-warning-soft: #fffbe6;
   --hrm-color-error: #ff4d4f;
   --hrm-color-accent: #722ed1;
   --hrm-color-accent-soft: #f9f0ff;
+  --hrm-color-teal: #08979c;
+  --hrm-color-teal-soft: #e6fffb;
 
   /* --- Text --- */
   --hrm-color-text: rgba(0, 0, 0, 0.88);
@@ -39,6 +43,37 @@
   /* Soft blue-tinted gradient behind the auth screens */
   --hrm-auth-bg: linear-gradient(135deg, #eff5ff 0%, #e7f0fe 42%, #f6faff 100%);
   --hrm-auth-footer-bg: rgba(255, 255, 255, 0.72);
+
+  /* --- Categorical chart palette: 7 fixed slots, assigned in order ---
+     Drawn from Ant Design's own hue ramps (blue-6, volcano-6, cyan-7, gold-8,
+     purple-6, green-7, magenta-6) so a chart looks like the rest of the app, but
+     STEPPED to pass a colour-vision check rather than taken at the default -6
+     step of each ramp. Verified with the dataviz skill's validator against the
+     white card surface:
+
+       node scripts/validate_palette.js \
+         "#1677ff,#fa541c,#08979c,#ad6800,#722ed1,#389e0d,#eb2f96" \
+         --mode light --surface "#ffffff"
+       -> all checks PASS: OKLCH L in band, chroma >= 0.1, worst adjacent CVD
+          ΔE 12.5 (target >= 8) · tritan 18.0, normal-vision ΔE 21.6
+          (floor >= 15), every slot >= 3:1 against white.
+
+     The ORDER is the safety mechanism, not decoration — re-run the validator
+     before reordering or adding a slot. There is deliberately no 8th slot: a
+     generated hue is indistinguishable from an existing one under CVD, so the
+     tail folds into `--hrm-chart-other` instead. Never used as the only carrier
+     of meaning: every legend row also names its series in text (§11). */
+  --hrm-chart-1: #1677ff;
+  --hrm-chart-2: #fa541c;
+  --hrm-chart-3: #08979c;
+  --hrm-chart-4: #ad6800;
+  --hrm-chart-5: #722ed1;
+  --hrm-chart-6: #389e0d;
+  --hrm-chart-7: #eb2f96;
+  /* De-emphasis grey for the folded "Khác" tail — 3.36:1 on white. */
+  --hrm-chart-other: #8c8c8c;
+  /* Track behind the slices, so a rounding gap still reads as part of a ring. */
+  --hrm-chart-track: #f0f0f0;
 
   /* --- Radius (§2) --- */
   --hrm-radius: 6px;

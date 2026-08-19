@@ -1,0 +1,31 @@
+/*
+ * Matches the vertical rhythm of an AntD `Form.Item` in `layout="vertical"`
+ * (caption row, value row, hint row, 24px gap below) so the read-only code sits
+ * in the form without looking like a stray paragraph.
+ */
+
+.field {
+  margin-bottom: var(--hrm-space-5);
+}
+
+.caption {
+  display: block;
+  color: var(--hrm-color-text);
+  font-size: var(--hrm-font-size-base);
+  line-height: var(--hrm-line-height-base);
+}
+
+.value {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--hrm-font-size-base);
+  color: var(--hrm-color-text);
+  line-height: var(--hrm-line-height-base);
+}
+
+.hint {
+  display: block;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+  line-height: var(--hrm-line-height-base);
+}

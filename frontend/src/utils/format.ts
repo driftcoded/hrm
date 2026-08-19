@@ -7,13 +7,22 @@ import dayjs from 'dayjs';
  * inline.
  */
 
-/** 1000000 -> "1.000.000 ₫" (dot thousands separator, no decimals). */
-export function formatCurrency(value: number): string {
+/**
+ * 1234567 -> "1.234.567" — a whole number with VN thousands separators.
+ *
+ * The base for `formatCurrency`, and what counts (headcount, records) use on
+ * their own. Rounds, because none of those quantities is fractional.
+ */
+export function formatNumber(value: number): string {
   const rounded = Math.round(value);
   const sign = rounded < 0 ? '-' : '';
   const digits = Math.abs(rounded).toString();
-  const withDots = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return `${sign}${withDots} ₫`;
+  return `${sign}${digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+}
+
+/** 1000000 -> "1.000.000 ₫" (dot thousands separator, no decimals). */
+export function formatCurrency(value: number): string {
+  return `${formatNumber(value)} ₫`;
 }
 
 /** "0901234567" -> "0901 234 567" (4-3-3 grouping). */

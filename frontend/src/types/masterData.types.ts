@@ -5,23 +5,27 @@
  * Every shape here was verified against the RUNNING backend, not only the DTO
  * source, because a few response fields differ from what the request accepts:
  *
- *   - a department response carries `manager: { id, fullName } | null` and
- *     `employeeCount`, while create/update take a flat `managerId`;
+ *   - a department response carries `manager: { id, fullName } | null` plus the
+ *     derived `employeeCount` and `positionCount`, while create/update take a
+ *     flat `managerId` and no counts at all;
  *   - a position response carries `department: { id, name }`, while
  *     create/update take a flat `departmentId`;
  *   - a holiday response carries a derived `year` — never send it, the backend
  *     computes it from `holidayDate`;
  *   - `GET /leave-types` returns a PLAIN ARRAY (no pagination envelope).
  *
- * The `MAX_*` / `*_PATTERN` constants mirror the backend validators so the form
- * can reject obvious mistakes before a round trip. The backend stays the
- * authority — these only save the user a failed request.
+ * CODES ARE READ-ONLY. `code` is on every response row below and on none of the
+ * `*Payload` types: the server generates it (`PB0001` for a department, `CV0001`
+ * for a position, `NP0001` for a leave type) and never accepts one. The create
+ * and update DTOs dropped the field, and the API validates with
+ * `whitelist: true`, so a `code` sent anyway is silently discarded rather than
+ * honoured — which is why it is absent from the payload types instead of merely
+ * unused: a future caller cannot reintroduce a field that would be ignored.
+ *
+ * The `MAX_*` constants mirror the backend validators so the form can reject
+ * obvious mistakes before a round trip. The backend stays the authority — these
+ * only save the user a failed request.
  */
-
-/** Codes are `[A-Za-z0-9_]{2,20}`; the server upper-cases them on write. */
-export const MASTER_CODE_PATTERN = /^[A-Za-z0-9_]{2,20}$/;
-export const MASTER_CODE_MIN_LENGTH = 2;
-export const MASTER_CODE_MAX_LENGTH = 20;
 
 /** `limit` above this is rejected with 400 by the backend. */
 export const MAX_PAGE_LIMIT = 100;
@@ -48,6 +52,12 @@ export interface Department {
   manager: EmployeeRef | null;
   /** Employees currently assigned — drives the "cannot delete" explanation. */
   employeeCount: number;
+  /**
+   * Positions defined inside this department — batched server-side, so it costs
+   * no extra request. Also the reason a delete can be refused with
+   * `DEPARTMENT_HAS_POSITIONS`.
+   */
+  positionCount: number;
   sortOrder: number;
   isActive: boolean;
   createdAt: string;
@@ -60,7 +70,6 @@ export interface DepartmentTreeNode extends Department {
 }
 
 export interface DepartmentPayload {
-  code: string;
   name: string;
   description?: string | null;
   /** `null` detaches the department to root level (verified with PATCH). */
@@ -118,7 +127,6 @@ export interface Position {
 }
 
 export interface PositionPayload {
-  code: string;
   name: string;
   departmentId: number;
   level: number;
@@ -187,7 +195,6 @@ export interface LeaveType {
 }
 
 export interface LeaveTypePayload {
-  code: string;
   name: string;
   daysPerYear: number;
   isPaid?: boolean;
@@ -270,4 +277,25 @@ export type SortOrder = 'asc' | 'desc';
 export interface DeleteResult {
   id: number;
   deleted: boolean;
+}
+
+// --------------------------------------------------------------------------
+// Provinces — static reference data (`GET /system/provinces`)
+// --------------------------------------------------------------------------
+
+/**
+ * One of the 34 provinces/cities (post-2025 merger).
+ *
+ * Served from a JSON file bundled with the backend, NOT a database table: the
+ * 26-table schema has no province/district/ward tables, and `employees` stores
+ * the three codes as plain text (scope decision from Giai đoạn 0.1).
+ *
+ * There is deliberately no `District` / `Ward` type here: the project has no
+ * source data for them yet, so those two codes are typed by hand in the
+ * employee form. Add the types when the endpoints exist, not before.
+ */
+export interface Province {
+  code: string;
+  name: string;
+  type: string;
 }

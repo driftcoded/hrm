@@ -1,0 +1,174 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+/* --- KPI row: four equal cards --- */
+
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--hrm-grid-gap);
+}
+
+.kpiSkeleton {
+  padding: var(--hrm-card-padding);
+  background: var(--hrm-card-bg);
+  border: var(--hrm-card-border);
+  border-radius: var(--hrm-card-radius);
+}
+
+/* --- Two columns: list ~58%, context rail ~42% --- */
+
+.body,
+.bodyFull {
+  display: grid;
+  gap: var(--hrm-grid-gap);
+  align-items: start;
+}
+
+.body {
+  grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
+}
+
+/* No rail (the tree request failed): the list gets the whole width. */
+.bodyFull {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.main,
+.side {
+  min-width: 0;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+/*
+ * §5 wants the record count in the footer, and the design wants it on the left of
+ * the pager rather than beside it. `margin-right: auto` keeps the page buttons
+ * grouped on the right instead of spreading them across the row, which is what
+ * `justify-content: space-between` on the whole pager would do.
+ */
+.listCard :global(.ant-table-pagination .ant-pagination-total-text) {
+  margin-right: auto;
+}
+
+/* --- table cells --- */
+
+.deptCell {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  min-width: 0;
+}
+
+/*
+ * One tint for every department tile, deliberately: a per-row colour would read
+ * as an encoding, and the only place colour carries meaning on this screen is the
+ * donut, where the legend spells out every value in text.
+ */
+.deptTile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--hrm-radius);
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+}
+
+.deptBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.deptName {
+  font-weight: 500;
+  color: var(--hrm-color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deptCode {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.managerCell {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  min-width: 0;
+}
+
+.managerAvatar {
+  flex: none;
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+}
+
+.managerName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.numberCell {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--hrm-color-text-tertiary);
+}
+
+/* --- side cards --- */
+
+.cardLink {
+  padding: 0;
+  height: auto;
+  font-size: var(--hrm-font-size-caption);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.filterSelect {
+  min-width: 170px;
+}
+
+/*
+ * Tablet and below (§10): the rail drops beneath the list instead of squeezing a
+ * six-column table into ~400px, where every row would scroll sideways.
+ */
+@media (max-width: 1199px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kpiRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575px) {
+  .kpiRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filterSelect {
+    flex: 1 1 140px;
+    min-width: 140px;
+  }
+}

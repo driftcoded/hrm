@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { BooleanTag } from '@/components/crud/BooleanTag';
 import { CrudFormModal } from '@/components/crud/CrudFormModal';
 import { DataTableCard } from '@/components/crud/DataTableCard';
+import { GeneratedCodeField } from '@/components/crud/GeneratedCodeField';
 import { RowActions } from '@/components/crud/RowActions';
 import { TableSearch } from '@/components/crud/TableSearch';
 import { useAllDepartments } from '@/hooks/useDepartments';
@@ -14,8 +15,6 @@ import { useCrudScreen } from '@/hooks/useCrudScreen';
 import { usePositions } from '@/hooks/usePositions';
 import { parseBoolParam, parseEnumParam, parseIntParam, useTableQuery } from '@/hooks/useTableQuery';
 import {
-  MASTER_CODE_MAX_LENGTH,
-  MASTER_CODE_PATTERN,
   MAX_POSITION_LEVEL,
   MAX_SALARY_VALUE,
   MIN_POSITION_LEVEL,
@@ -37,10 +36,13 @@ import styles from './settingsPage.module.css';
  * The department is a required link, so the picker is fed from the tree endpoint
  * (every department, not just the first 100) and is always loaded on this page —
  * the table needs it for the filter, not only the form.
+ *
+ * CODE FIELD: there isn't one. The server generates `CV0001`, `CV0002`… and never
+ * accepts a code, so the form does not collect it; the edit modal shows the
+ * existing code as read-only context instead.
  */
 
 interface PositionFormValues {
-  code: string;
   name: string;
   departmentId: number;
   level: number;
@@ -210,7 +212,6 @@ export function PositionsPage() {
 
   const initialValues: Partial<PositionFormValues> = screen.editing
     ? {
-        code: screen.editing.code,
         name: screen.editing.name,
         departmentId: screen.editing.department?.id,
         level: screen.editing.level,
@@ -222,8 +223,8 @@ export function PositionsPage() {
     : { isActive: true, level: 1 };
 
   const handleSubmit = (values: PositionFormValues) => {
+    // No `code`: the server owns it and the API strips one that is sent anyway.
     void screen.submit({
-      code: values.code.trim(),
       name: values.name.trim(),
       departmentId: values.departmentId,
       level: values.level,
@@ -318,20 +319,7 @@ export function PositionsPage() {
         submitError={screen.submitError}
         width={720}
       >
-        <Form.Item
-          label={t('settings.fields.codeLabel')}
-          name="code"
-          rules={[
-            { required: true, message: t('settings.validation.codeRequired') },
-            { pattern: MASTER_CODE_PATTERN, message: t('settings.validation.codePattern') },
-          ]}
-          extra={t('settings.fields.codeHint')}
-        >
-          <Input
-            placeholder={t('settings.positions.codePlaceholder')}
-            maxLength={MASTER_CODE_MAX_LENGTH}
-          />
-        </Form.Item>
+        {screen.editing && <GeneratedCodeField code={screen.editing.code} />}
 
         <Form.Item
           label={t('settings.positions.nameLabel')}

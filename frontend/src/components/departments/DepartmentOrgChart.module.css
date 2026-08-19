@@ -1,0 +1,205 @@
+/*
+ * The chart can be wider than the card on a deep tree, so it scrolls inside its
+ * own box rather than widening the page (§10).
+ */
+.scroller {
+  overflow-x: auto;
+  padding-bottom: var(--hrm-space-1);
+}
+
+.tree,
+.children {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-5);
+  min-width: min-content;
+}
+
+.branch {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* --- nodes --- */
+
+.rootCard,
+.card {
+  display: flex;
+  padding: var(--hrm-space-3);
+  border: 1px solid var(--hrm-color-border-subtle);
+  border-radius: var(--hrm-radius-md);
+  background: var(--hrm-card-bg);
+  min-width: 0;
+}
+
+/* The root reads as the head of the chart: tinted, and centred over its row. */
+.rootCard {
+  align-items: center;
+  gap: var(--hrm-space-3);
+  align-self: center;
+  max-width: 320px;
+  background: var(--hrm-color-primary-softer);
+  border-color: var(--hrm-color-primary-soft);
+}
+
+/*
+ * Child nodes stack the tile above the text. Three cards per row inside a 42%
+ * column leaves each one about 130px wide, and Vietnamese department names
+ * ("Phòng Hạ tầng – Vận hành Hệ thống") do not survive that on one line — so the
+ * name wraps and the row's cards equalise height, rather than every card
+ * truncating to "Phòng Hạ...".
+ */
+.card {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--hrm-space-2);
+  height: 100%;
+}
+
+.avatar {
+  flex: none;
+  background: var(--hrm-color-primary);
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--hrm-radius);
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* Fills the remaining width beside the root avatar, and the full width of a
+     child card, where the tile sits on the line above. */
+  flex: 1;
+  align-self: stretch;
+}
+
+.name {
+  font-size: var(--hrm-font-size-caption);
+  font-weight: 600;
+  line-height: var(--hrm-line-height-tight);
+  color: var(--hrm-color-text);
+  overflow-wrap: anywhere;
+}
+
+.manager,
+.headcount,
+.hidden {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  overflow-wrap: anywhere;
+}
+
+.manager {
+  color: var(--hrm-color-text-secondary);
+}
+
+/* --- connectors ---
+ * Three per row: a horizontal rail across the row, a short tick down to each
+ * card, and a stem from the parent into the first row's rail. Rails are trimmed
+ * at the ends of every row (`3n + 1` starts one, `3n` ends one), so a wrapped
+ * row is drawn as its own group instead of leaving a line hanging in the gap.
+ */
+.children {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(96px, 1fr));
+  column-gap: var(--hrm-space-2);
+  row-gap: var(--hrm-space-4);
+}
+
+/* Stem from the parent card down into the first rail. */
+.children::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: var(--hrm-space-3);
+  background: var(--hrm-color-border);
+}
+
+.children > .branch {
+  position: relative;
+  padding-top: var(--hrm-space-5);
+}
+
+/* Horizontal rail, at the height the stem reaches. */
+.children > .branch::before {
+  content: '';
+  position: absolute;
+  top: var(--hrm-space-3);
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--hrm-color-border);
+}
+
+/* Tick from the rail down to the card. */
+.children > .branch::after {
+  content: '';
+  position: absolute;
+  top: var(--hrm-space-3);
+  left: 50%;
+  width: 1px;
+  height: var(--hrm-space-3);
+  background: var(--hrm-color-border);
+}
+
+/* Trim the rail so it spans only between the cards actually in this row. */
+.children > .branch:nth-child(3n + 1)::before {
+  left: 50%;
+}
+
+.children > .branch:nth-child(3n)::before,
+.children > .branch:last-child::before {
+  right: 50%;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--hrm-space-5) 0;
+  text-align: center;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+/* Two per row once the column itself is narrow, so the cards stay readable. */
+@media (max-width: 575px) {
+  .children {
+    grid-template-columns: repeat(2, minmax(96px, 1fr));
+  }
+
+  .children > .branch:nth-child(3n + 1)::before,
+  .children > .branch:nth-child(3n)::before {
+    left: 0;
+    right: 0;
+  }
+
+  .children > .branch:nth-child(2n + 1)::before {
+    left: 50%;
+  }
+
+  .children > .branch:nth-child(2n)::before,
+  .children > .branch:last-child::before {
+    right: 50%;
+  }
+}

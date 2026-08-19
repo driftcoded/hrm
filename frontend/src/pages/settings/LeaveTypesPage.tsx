@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { BooleanTag } from '@/components/crud/BooleanTag';
 import { CrudFormModal } from '@/components/crud/CrudFormModal';
 import { DataTableCard } from '@/components/crud/DataTableCard';
+import { GeneratedCodeField } from '@/components/crud/GeneratedCodeField';
 import { RowActions } from '@/components/crud/RowActions';
 import { useCanWriteMasterData } from '@/hooks/usePermissions';
 import { useCrudScreen } from '@/hooks/useCrudScreen';
@@ -13,8 +14,6 @@ import { parseBoolParam, parseEnumParam, useTableQuery } from '@/hooks/useTableQ
 import {
   LEAVE_GENDERS,
   LEAVE_TYPE_NAME_MAX_LENGTH,
-  MASTER_CODE_MAX_LENGTH,
-  MASTER_CODE_PATTERN,
   MAX_DAYS_PER_YEAR,
   MAX_SMALLINT,
   MIN_LEAVE_MIN_DAYS,
@@ -38,10 +37,15 @@ import styles from './settingsPage.module.css';
  * `description` holds the legal citation (Điều 113 BLLĐ 2019, Luật BHXH …), which
  * runs to several lines — it is truncated in the cell with the full text in a
  * tooltip rather than allowed to triple the row height.
+ *
+ * CODE FIELD: there isn't one. The server generates `NP0001`, `NP0002`… and never
+ * accepts a code, so the form does not collect it; the edit modal shows the
+ * existing code as read-only context instead. The nine statutory types keep the
+ * mnemonic codes they were seeded with (`ANNUAL`, `SICK`, …), which is why the
+ * column shows a mix of both.
  */
 
 interface LeaveTypeFormValues {
-  code: string;
   name: string;
   daysPerYear: number;
   minDays?: number;
@@ -222,7 +226,6 @@ export function LeaveTypesPage() {
 
   const initialValues: Partial<LeaveTypeFormValues> = screen.editing
     ? {
-        code: screen.editing.code,
         name: screen.editing.name,
         daysPerYear: screen.editing.daysPerYear,
         minDays: screen.editing.minDays,
@@ -248,8 +251,8 @@ export function LeaveTypesPage() {
       };
 
   const handleSubmit = (values: LeaveTypeFormValues) => {
+    // No `code`: the server owns it and the API strips one that is sent anyway.
     void screen.submit({
-      code: values.code.trim(),
       name: values.name.trim(),
       daysPerYear: values.daysPerYear,
       minDays: values.minDays ?? MIN_LEAVE_MIN_DAYS,
@@ -328,20 +331,7 @@ export function LeaveTypesPage() {
         submitError={screen.submitError}
         width={720}
       >
-        <Form.Item
-          label={t('settings.fields.codeLabel')}
-          name="code"
-          rules={[
-            { required: true, message: t('settings.validation.codeRequired') },
-            { pattern: MASTER_CODE_PATTERN, message: t('settings.validation.codePattern') },
-          ]}
-          extra={t('settings.fields.codeHint')}
-        >
-          <Input
-            placeholder={t('settings.leaveTypes.codePlaceholder')}
-            maxLength={MASTER_CODE_MAX_LENGTH}
-          />
-        </Form.Item>
+        {screen.editing && <GeneratedCodeField code={screen.editing.code} />}
 
         <Form.Item
           label={t('settings.leaveTypes.nameLabel')}

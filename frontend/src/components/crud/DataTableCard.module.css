@@ -1,3 +1,11 @@
+/* Card heading (§1 "Card title (H3)"), when the screen gives the card a name. */
+.title {
+  margin: 0 0 var(--hrm-space-4);
+  font-size: var(--hrm-font-size-h3);
+  font-weight: 600;
+  color: var(--hrm-color-text);
+}
+
 .toolbar {
   display: flex;
   align-items: flex-start;
@@ -42,4 +50,10 @@
   .actions {
     justify-content: flex-end;
   }
+}
+
+/* Used when the count is the toolbar's primary text (employee list). */
+.countStrong {
+  color: var(--hrm-color-text);
+  font-weight: 500;
 }

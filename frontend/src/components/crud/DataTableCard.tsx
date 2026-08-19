@@ -33,11 +33,21 @@ export interface DataTablePagination {
   pageSize: number;
   total: number;
   onChange: (page: number, pageSize: number) => void;
+  /**
+   * Replaces the default "Tổng N bản ghi" in the pager. `/settings/departments`
+   * shows the visible range instead ("Hiển thị 1 đến 8 trong tổng số 12 phòng
+   * ban"), which is the only footer text its layout has room for.
+   */
+  showTotal?: (total: number, range: [number, number]) => ReactNode;
 }
 
 export interface DataTableCardProps<TRow> {
   columns: TableProps<TRow>['columns'];
   rows: TRow[];
+  /** Card heading above the toolbar, e.g. "Danh sách phòng ban". */
+  title?: ReactNode;
+  /** Extra class on the `Card`, for screen-specific layout tweaks. */
+  className?: string;
   /** Defaults to `id`. */
   rowKey?: string;
   /** First load with no cached data — renders a Skeleton. */
@@ -69,6 +79,24 @@ export interface DataTableCardProps<TRow> {
   /** Offered inside the empty state when the user may create records (§5). */
   emptyAction?: ReactNode;
   expandable?: TableProps<TRow>['expandable'];
+  /**
+   * Checkbox column for bulk actions. Optional because most list screens have
+   * none — passing it in keeps the selection state with the page that owns the
+   * bulk operations, rather than hiding it inside this shell.
+   */
+  rowSelection?: TableProps<TRow>['rowSelection'];
+  /**
+   * Replaces the default "Tổng N bản ghi" text in the toolbar. The employee
+   * list shows how many rows are SELECTED there instead, so it needs to say
+   * something else without losing the rest of the frame.
+   */
+  countSlot?: ReactNode;
+  /**
+   * Set to `false` when the count already appears somewhere else on the card, so
+   * the same number is not printed twice. `/settings/departments` puts the range
+   * summary in the footer and needs the toolbar free for its filters.
+   */
+  showCount?: boolean;
   /** Horizontal scroll width for wide tables (§10). */
   scrollX?: number;
 }
@@ -87,6 +115,8 @@ function toApiOrder(order: string | null | undefined): SortOrder | undefined {
 export function DataTableCard<TRow extends object>({
   columns,
   rows,
+  title,
+  className,
   rowKey = 'id',
   isLoading,
   isRefreshing = false,
@@ -102,6 +132,9 @@ export function DataTableCard<TRow extends object>({
   hasFilters = false,
   emptyAction,
   expandable,
+  rowSelection,
+  countSlot,
+  showCount = true,
   scrollX,
 }: DataTableCardProps<TRow>) {
   const { t } = useTranslation();
@@ -128,19 +161,26 @@ export function DataTableCard<TRow extends object>({
       })
     : columns;
 
+  const count = showCount ? (
+    <span className={styles.count}>{t('crud.totalRecords', { total })}</span>
+  ) : null;
+
   const toolbar = (
-    <div className={styles.toolbar}>
-      <div className={styles.filters}>{filters}</div>
-      <div className={styles.actions}>
-        <span className={styles.count}>{t('crud.totalRecords', { total })}</span>
-        {actions}
+    <>
+      {title && <h2 className={styles.title}>{title}</h2>}
+      <div className={styles.toolbar}>
+        <div className={styles.filters}>{filters}</div>
+        <div className={styles.actions}>
+          {countSlot ?? count}
+          {actions}
+        </div>
       </div>
-    </div>
+    </>
   );
 
   if (isError) {
     return (
-      <Card variant="borderless">
+      <Card variant="borderless" className={className}>
         {toolbar}
         <Alert
           type="error"
@@ -159,7 +199,7 @@ export function DataTableCard<TRow extends object>({
 
   if (isLoading) {
     return (
-      <Card variant="borderless">
+      <Card variant="borderless" className={className}>
         {toolbar}
         <Skeleton active title={false} paragraph={{ rows: 8 }} />
       </Card>
@@ -178,7 +218,7 @@ export function DataTableCard<TRow extends object>({
   );
 
   return (
-    <Card variant="borderless">
+    <Card variant="borderless" className={className}>
       {toolbar}
       <Table<TRow>
         columns={resolvedColumns}
@@ -188,9 +228,17 @@ export function DataTableCard<TRow extends object>({
         loading={isRefreshing}
         locale={{ emptyText }}
         expandable={expandable}
+        rowSelection={rowSelection}
         scroll={scrollX ? { x: scrollX } : undefined}
-        onChange={(_pagination, _filters, sorter) => {
-          if (!onSorterChange || Array.isArray(sorter)) {
+        onChange={(_pagination, _filters, sorter, extra) => {
+          // ONLY react to a real sort. AntD fires this handler for pagination and
+          // filter changes too, with the *current* sorter echoed back — and acting
+          // on that was a live bug: changing the page size fired two URL updates
+          // in the same tick (pagination wrote page+pageSize, this handler then
+          // rewrote sort/order), and the second one computed its params from the
+          // pre-navigation location, silently dropping pageSize. The selector then
+          // snapped back to the default 20. See the note in hooks/useTableQuery.
+          if (extra.action !== 'sort' || !onSorterChange || Array.isArray(sorter)) {
             return;
           }
           const key = sorter.columnKey ?? sorter.field;
@@ -203,9 +251,15 @@ export function DataTableCard<TRow extends object>({
                 current: pagination.page,
                 pageSize: pagination.pageSize,
                 total: pagination.total,
-                showSizeChanger: true,
+                // AntD v6 builds the size changer with `showSearch: true`, which
+                // puts a text box inside a dropdown of four fixed options. These
+                // SelectProps are spread after that default, so this turns it off
+                // and leaves a plain select.
+                showSizeChanger: { showSearch: false },
                 pageSizeOptions: PAGE_SIZE_OPTIONS.map(String),
-                showTotal: (value) => t('crud.totalRecords', { total: value }),
+                showTotal:
+                  pagination.showTotal ??
+                  ((value) => t('crud.totalRecords', { total: value })),
                 onChange: pagination.onChange,
               }
             : false
