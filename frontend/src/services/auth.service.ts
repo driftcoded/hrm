@@ -1,4 +1,4 @@
-import { CREDENTIALED_REQUEST, apiClient } from '@/lib/axios';
+import { CREDENTIALED_REQUEST, apiClient, isSessionRejected } from '@/lib/axios';
 import { useAuthStore } from '@/store/authStore';
 import type { ApiSuccessResponse } from '@/types/api.types';
 import type {
@@ -95,7 +95,17 @@ export async function restoreSession(): Promise<AuthUser> {
     await refreshAccessToken();
     return await getCurrentUser();
   } catch (error) {
-    useAuthStore.getState().clearAuth();
+    // Clear the session only if the server rejected it. A restore that failed
+    // because the API was unreachable says nothing about whether the cookie is
+    // still good, and clearing on that would send someone to the login screen
+    // for a restart or a moment of bad network. The route guard marks the
+    // attempt as settled either way, so it will not spin.
+    if (isSessionRejected(error)) {
+      useAuthStore.getState().clearAuth();
+    } else {
+      useAuthStore.getState().markSessionChecked();
+    }
+
     throw error;
   }
 }

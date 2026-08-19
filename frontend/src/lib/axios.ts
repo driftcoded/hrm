@@ -93,6 +93,28 @@ const PUBLIC_PATHS = ['/login', '/forgot-password', '/reset-password'];
  */
 export const SESSION_EXPIRED_PARAM = 'sessionExpired';
 
+/**
+ * True only when the server actually *rejected* the session, as opposed to not
+ * having answered at all.
+ *
+ * This distinction is the whole point: a refresh can fail because the token is
+ * genuinely dead (401/403 — sign the user out), or because the API was
+ * unreachable for a moment — a restart, a deploy, a dropped connection, a 502
+ * from the proxy. Treating the second case as "your session ended" logs everyone
+ * out on every deploy, and during development kicked the user back to the login
+ * screen every time the backend reloaded. Those failures never even reach the
+ * server, which is why nothing showed up in its logs.
+ *
+ * Anything that is not a clear rejection is treated as "unknown, keep the
+ * session" — the worst case there is one failed request the user can retry,
+ * whereas wrongly clearing auth destroys work in progress.
+ */
+export function isSessionRejected(error: unknown): boolean {
+  const status = (error as AxiosError | undefined)?.response?.status;
+
+  return status === 401 || status === 403;
+}
+
 let isRefreshing = false;
 let pendingQueue: Array<{
   resolve: (token: string) => void;
@@ -179,8 +201,17 @@ apiClient.interceptors.response.use(
       return apiClient(originalRequest);
     } catch (refreshError) {
       flushQueue(refreshError, null);
-      useAuthStore.getState().clearAuth();
-      redirectToLogin();
+
+      // Only end the session when the server actually said no. If it simply did
+      // not answer — restarting, deploying, network blip — keep the user signed
+      // in and let the failed request surface as an ordinary error they can
+      // retry. Signing them out here would throw away whatever they were doing
+      // for a hiccup that resolves in seconds.
+      if (isSessionRejected(refreshError)) {
+        useAuthStore.getState().clearAuth();
+        redirectToLogin();
+      }
+
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
