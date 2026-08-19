@@ -10,6 +10,7 @@ import {
 } from './support/e2e-app';
 import {
   cleanupMasterDataFixtures,
+  codeNumber,
   countFixtureEmployee,
   DeleteBody,
   findDepartmentDeletedAt,
@@ -45,6 +46,13 @@ interface DepartmentTreeBody extends DepartmentBody {
  * under E2ED_GRAND, one employee E2E9001 under E2ED_CHILD. Everything uses the
  * E2E prefix and is deleted in beforeAll + afterAll so the suite is rerunnable
  * and never touches seed data.
+ *
+ * `departments.code` is SERVER-GENERATED (`PB0001`, `PB0002`…) and immutable, so
+ * anything this suite creates through the API carries a generated code, not an
+ * `E2E…` one — hence the `E2E…` NAMES, which is what cleanup matches on. Code
+ * assertions are relative (pattern, or `previous + 1`): generated numbers are
+ * never reused, so every run consumes some and an absolute `PB0001` would only
+ * ever hold on the very first run.
  */
 describe('Departments master data (e2e)', () => {
   let context: E2eContext;
@@ -217,10 +225,16 @@ describe('Departments master data (e2e)', () => {
 
   // ----------------------------------------------------------------- CREATE ---
 
-  it('POST /departments creates a new department, normalizing code to UPPERCASE', async () => {
+  /**
+   * `code` is server-generated and the API does not accept one. The client below
+   * still sends one on purpose: the point is that it is silently DROPPED (the
+   * global ValidationPipe runs `whitelist: true`) and the stored code is the
+   * generated `PB####`, so a user cannot smuggle in an identifier of their own.
+   */
+  it('POST /departments generates the code and ignores one sent by the client', async () => {
     const response = await post('/departments', adminToken)
       .send({
-        code: 'e2ed_new',
+        code: 'CHOSEN_BY_USER',
         name: 'E2E Phòng tạo mới',
         description: 'tạo bởi e2e',
         sortOrder: 7,
@@ -229,7 +243,6 @@ describe('Departments master data (e2e)', () => {
 
     const created = successBody<DepartmentBody>(response).data;
     expect(created).toMatchObject({
-      code: 'E2ED_NEW',
       name: 'E2E Phòng tạo mới',
       parentId: null,
       manager: null,
@@ -237,6 +250,14 @@ describe('Departments master data (e2e)', () => {
       sortOrder: 7,
       isActive: true,
     });
+    expect(created.code).toMatch(/^PB\d{4}$/);
+    expect(created.code).not.toBe('CHOSEN_BY_USER');
+
+    // Re-read it: the generated code is what was persisted, not just echoed.
+    const detail = await get(`/departments/${created.id}`, adminToken).expect(
+      200,
+    );
+    expect(successBody<DepartmentBody>(detail).data.code).toBe(created.code);
 
     // Delete immediately so the suite stays rerunnable (and to verify DELETE succeeds).
     const deleted = await del(`/departments/${created.id}`, adminToken).expect(
@@ -249,35 +270,103 @@ describe('Departments master data (e2e)', () => {
 
     // A soft-deleted record must NOT appear in the detail view or the list.
     await get(`/departments/${created.id}`, adminToken).expect(404);
-    const list = await get('/departments?search=E2ED_NEW', adminToken).expect(
-      200,
-    );
+    const list = await get(
+      `/departments?search=${created.code}`,
+      adminToken,
+    ).expect(200);
     expect(
       successBody<PaginatedBody<DepartmentBody>>(list).data.items,
     ).toHaveLength(0);
   });
 
-  it('POST /departments with a duplicate code → 409 DUPLICATE_DEPARTMENT_CODE', async () => {
-    const response = await post('/departments', adminToken)
-      .send({ code: 'E2ED_ROOT', name: 'Trùng mã' })
-      .expect(409);
+  /**
+   * Codes increment, and a soft-deleted row keeps its code reserved for good.
+   * Reusing a code would hand a new department an identifier that still appears
+   * on paperwork and in other systems — the regression this guards.
+   *
+   * Assertions are RELATIVE (`+ 1`) because every run consumes numbers
+   * permanently; an absolute `PB0001` would pass once and fail forever after.
+   */
+  it('POST /departments issues consecutive codes, and a soft-deleted department never releases its own', async () => {
+    const first = successBody<DepartmentBody>(
+      await post('/departments', adminToken)
+        .send({ name: 'E2E Phòng mã 1' })
+        .expect(201),
+    ).data;
+    const firstNumber = codeNumber(first.code, 'PB');
 
-    expect(errorBody(response).error.code).toBe('DUPLICATE_DEPARTMENT_CODE');
+    const second = successBody<DepartmentBody>(
+      await post('/departments', adminToken)
+        .send({ name: 'E2E Phòng mã 2' })
+        .expect(201),
+    ).data;
+    expect(codeNumber(second.code, 'PB')).toBe(firstNumber + 1);
+
+    // Soft-delete the second one, then create again.
+    await del(`/departments/${second.id}`, adminToken).expect(200);
+    expect(
+      await findDepartmentDeletedAt(context.dataSource, second.id),
+    ).not.toBeNull();
+
+    const third = successBody<DepartmentBody>(
+      await post('/departments', adminToken)
+        .send({ name: 'E2E Phòng mã 3' })
+        .expect(201),
+    ).data;
+    expect(third.code).not.toBe(second.code);
+    expect(codeNumber(third.code, 'PB')).toBe(firstNumber + 2);
+
+    await del(`/departments/${first.id}`, adminToken).expect(200);
+    await del(`/departments/${third.id}`, adminToken).expect(200);
+  });
+
+  it('code generation ignores rows whose code is not `PB` + digits', async () => {
+    const before = successBody<DepartmentBody>(
+      await post('/departments', adminToken)
+        .send({ name: 'E2E Phòng mốc' })
+        .expect(201),
+    ).data;
+
+    // `ADM` (seed) and `E2ED_ROOT` obviously do not match, but `PB9999X` is the
+    // sharp case: without the `^PB[0-9]+$` filter MySQL would CAST it to 9999
+    // and the next department would jump to PB10000.
+    await insertFixtureDepartment(
+      context.dataSource,
+      'PB9999X',
+      'E2E Phòng mã cũ',
+    );
+
+    const after = successBody<DepartmentBody>(
+      await post('/departments', adminToken)
+        .send({ name: 'E2E Phòng sau mốc' })
+        .expect(201),
+    ).data;
+
+    expect(codeNumber(after.code, 'PB')).toBe(
+      codeNumber(before.code, 'PB') + 1,
+    );
+
+    await del(`/departments/${before.id}`, adminToken).expect(200);
+    await del(`/departments/${after.id}`, adminToken).expect(200);
   });
 
   it('POST /departments with missing/invalid fields → 400 VALIDATION_ERROR + details[]', async () => {
     const response = await post('/departments', adminToken)
-      .send({ code: 'x', name: '' })
+      .send({ code: 'x', name: '', sortOrder: -5 })
       .expect(400);
 
     const error = errorBody(response).error;
     expect(error.code).toBe('VALIDATION_ERROR');
     expect(error.details).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ field: 'code' }),
         expect.objectContaining({ field: 'name' }),
+        expect.objectContaining({ field: 'sortOrder' }),
       ]),
     );
+    // `code` is not a validation error – it is stripped before validation runs.
+    expect(
+      (error.details ?? []).some((detail) => detail.field === 'code'),
+    ).toBe(false);
     // Each detail must include all 3 fields: field + code + message (api-spec.md §21).
     for (const detail of error.details ?? []) {
       expect(typeof detail.field).toBe('string');
@@ -290,8 +379,7 @@ describe('Departments master data (e2e)', () => {
   it('POST /departments with a non-existent parentId → 422 PARENT_DEPARTMENT_NOT_FOUND', async () => {
     const response = await post('/departments', adminToken)
       .send({
-        code: 'E2ED_BADP',
-        name: 'Cha không tồn tại',
+        name: 'E2ED_BADP Cha không tồn tại',
         parentId: 99999999,
       })
       .expect(422);
@@ -300,6 +388,21 @@ describe('Departments master data (e2e)', () => {
   });
 
   // ----------------------------------------------------------------- UPDATE ---
+
+  /** `code` is immutable: there is no API path that changes one. */
+  it('PATCH /departments/:id cannot change the code – the rest of the patch still applies', async () => {
+    const before = successBody<DepartmentBody>(
+      await get(`/departments/${childId}`, adminToken).expect(200),
+    ).data;
+
+    const response = await patch(`/departments/${childId}`, hrStaffToken)
+      .send({ code: 'PB9998', description: 'mã không được đổi' })
+      .expect(200);
+
+    const updated = successBody<DepartmentBody>(response).data;
+    expect(updated.code).toBe(before.code);
+    expect(updated.description).toBe('mã không được đổi');
+  });
 
   it('PATCH /departments/:id assigns the fixture employee as manager', async () => {
     const response = await patch(`/departments/${grandChildId}`, hrStaffToken)
@@ -410,7 +513,7 @@ describe('Departments master data (e2e)', () => {
 
     it('role employee CANNOT POST/PATCH/DELETE → 403 FORBIDDEN', async () => {
       const created = await post('/departments', employeeToken)
-        .send({ code: 'E2ED_NOPE', name: 'Không được tạo' })
+        .send({ name: 'E2ED_NOPE' })
         .expect(403);
       expect(errorBody(created).error.code).toBe('FORBIDDEN');
 
@@ -432,16 +535,17 @@ describe('Departments master data (e2e)', () => {
 
     it('role manager CANNOT write master data → 403 FORBIDDEN', async () => {
       await post('/departments', managerToken)
-        .send({ code: 'E2ED_MGR', name: 'Manager tạo' })
+        .send({ name: 'E2ED_MGR' })
         .expect(403);
     });
 
     it('role hr_staff CAN write (PLAN 2.1) → 201, then cleaned up', async () => {
       const response = await post('/departments', hrStaffToken)
-        .send({ code: 'E2ED_HRS', name: 'HR staff tạo' })
+        .send({ name: 'E2ED_HRS' })
         .expect(201);
 
       const created = successBody<DepartmentBody>(response).data;
+      expect(created.code).toMatch(/^PB\d{4}$/);
       await del(`/departments/${created.id}`, hrStaffToken).expect(200);
     });
   });

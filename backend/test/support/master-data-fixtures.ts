@@ -12,11 +12,40 @@ import { loginData, SEED_PASSWORD } from './e2e-app';
  * seed accounts, the 2025/2026 holidays). Every fixture uses the `E2E`
  * prefix (or year 2099 for holidays) and is fully deleted in both
  * `beforeAll` and `afterAll` so the suite can be rerun many times.
+ *
+ * ⚠️ Codes are now SERVER-GENERATED (`PB0001`, `CV0001`, `NP0001`…), so a record
+ * created through the API does NOT carry the `E2E` code prefix. Two consequences
+ * the whole suite depends on:
+ *
+ *  1. Cleanup matches the fixture prefix on `code` **or `name`** — every fixture
+ *     created through the API must therefore be given an `E2E…` NAME, otherwise
+ *     its row leaks and (for departments) blocks the next run with an FK error.
+ *  2. Generated numbers are never reused, so each run permanently consumes some.
+ *     Assertions MUST be relative (`second === first + 1`, or a `^PB\d{4}$`
+ *     pattern match) — never an absolute `PB0001` — or the suite passes once and
+ *     fails on every run after that.
  */
 export const FIXTURE_CODE_PREFIX = 'E2E';
 
 /** Fixture holiday is set to year 2099 to avoid colliding with the seeded 2025/2026 holiday calendar. */
 export const FIXTURE_HOLIDAY_YEAR = 2099;
+
+/** Year used for fixture leave balances (never collides with a real payroll year). */
+export const FIXTURE_LEAVE_BALANCE_YEAR = 2099;
+
+/**
+ * Numeric part of a generated code: `'PB0007'` → `7`.
+ * Lets tests assert RELATIVE positions (`second === first + 1`) instead of
+ * absolute values that only hold on the very first run.
+ *
+ * `\d{4,}` rather than `\d{4}`: the padding is 4 wide, but the generator
+ * deliberately widens instead of truncating past 9999.
+ */
+export function codeNumber(code: string, prefix: string): number {
+  expect(code).toMatch(new RegExp(`^${prefix}\\d{4,}$`));
+
+  return Number(code.slice(prefix.length));
+}
 
 export interface PaginatedBody<T> {
   items: T[];
@@ -39,31 +68,63 @@ export async function loginAs(server: App, username: string): Promise<string> {
 }
 
 /**
- * Deletes every e2e master-data fixture (including soft-deleted records).
- * Order follows the FK direction: employees → positions → departments.
+ * Deletes every e2e master-data fixture (including soft-deleted rows, which the
+ * API never resurrects but which still hold their generated code).
+ *
+ * Matching is on `code LIKE 'E2E%' OR name LIKE 'E2E%'`: rows inserted straight
+ * into the DB carry an `E2E…` code, while rows created through the API get a
+ * generated `PB####`/`CV####`/`NP####` code and can only be recognised by name.
+ * Positions are additionally matched by their department, so a position created
+ * under a fixture department cannot block that department's DELETE.
+ *
+ * Order follows the FK direction:
+ * leave_balances → leave_types → employees → positions → departments.
  */
 export async function cleanupMasterDataFixtures(
   dataSource: DataSource,
 ): Promise<void> {
-  const codePattern = `${FIXTURE_CODE_PREFIX}%`;
+  const pattern = `${FIXTURE_CODE_PREFIX}%`;
+
+  // leave_types uses ON DELETE RESTRICT, so balances must go first.
+  await dataSource.query(
+    `DELETE lb FROM leave_balances lb
+     JOIN leave_types lt ON lt.id = lb.leave_type_id
+     WHERE lt.code LIKE ? OR lt.name LIKE ?`,
+    [pattern, pattern],
+  );
+  await dataSource.query(
+    `DELETE lb FROM leave_balances lb
+     JOIN employees e ON e.id = lb.employee_id
+     WHERE e.employee_code LIKE ?`,
+    [pattern],
+  );
+  await dataSource.query(
+    `DELETE FROM leave_types WHERE code LIKE ? OR name LIKE ?`,
+    [pattern, pattern],
+  );
 
   await dataSource.query(`DELETE FROM employees WHERE employee_code LIKE ?`, [
-    codePattern,
+    pattern,
   ]);
-  // manager_id / parent_id reference each other, so links must be cleared before DELETE.
+  // parent_id / manager_id point at rows about to be deleted, so links first.
   await dataSource.query(
-    `UPDATE departments SET manager_id = NULL, parent_id = NULL WHERE code LIKE ?`,
-    [codePattern],
+    `UPDATE departments SET manager_id = NULL, parent_id = NULL
+     WHERE code LIKE ? OR name LIKE ?`,
+    [pattern, pattern],
   );
-  await dataSource.query(`DELETE FROM positions WHERE code LIKE ?`, [
-    codePattern,
-  ]);
-  await dataSource.query(`DELETE FROM departments WHERE code LIKE ?`, [
-    codePattern,
-  ]);
-  await dataSource.query(`DELETE FROM leave_types WHERE code LIKE ?`, [
-    codePattern,
-  ]);
+  await dataSource.query(
+    `DELETE FROM positions
+     WHERE code LIKE ? OR name LIKE ?
+        OR department_id IN (
+             SELECT id FROM departments WHERE code LIKE ? OR name LIKE ?
+           )`,
+    [pattern, pattern, pattern, pattern],
+  );
+  await dataSource.query(
+    `DELETE FROM departments WHERE code LIKE ? OR name LIKE ?`,
+    [pattern, pattern],
+  );
+
   await dataSource.query(`DELETE FROM holidays WHERE year = ?`, [
     FIXTURE_HOLIDAY_YEAR,
   ]);
@@ -103,6 +164,53 @@ export async function insertFixturePosition(
   );
 
   return selectId(dataSource, `SELECT id FROM positions WHERE code = ?`, code);
+}
+
+/**
+ * Fixture leave type inserted straight into the DB, so the test can choose the
+ * `code` (a legacy-style one that the `NP####` generator must ignore) and the
+ * `is_system` flag.
+ *
+ * `is_system` fixtures exist because the nine statutory seed rows must survive
+ * the run untouched: proving that a statutory type is editable/deletable is done
+ * on our own row, never on `ANNUAL`.
+ */
+export async function insertFixtureLeaveType(
+  dataSource: DataSource,
+  code: string,
+  name: string,
+  isSystem = false,
+): Promise<number> {
+  await dataSource.query(
+    `INSERT INTO leave_types (
+       code, name, days_per_year, is_paid, require_approval, min_days,
+       advance_notice_days, applicable_gender, is_active, sort_order, is_system
+     ) VALUES (?, ?, 3.0, TRUE, TRUE, 0.5, 1, 'all', TRUE, 99, ?)`,
+    [code, name, isSystem],
+  );
+
+  return selectId(
+    dataSource,
+    `SELECT id FROM leave_types WHERE code = ?`,
+    code,
+  );
+}
+
+/**
+ * Fixture leave balance – the cheapest way to make a leave type "in use" so the
+ * LEAVE_TYPE_IN_USE delete guard can be exercised over HTTP.
+ * `remaining_days` is a VIRTUAL generated column and must not be inserted.
+ */
+export async function insertFixtureLeaveBalance(
+  dataSource: DataSource,
+  employeeId: number,
+  leaveTypeId: number,
+): Promise<void> {
+  await dataSource.query(
+    `INSERT INTO leave_balances (employee_id, leave_type_id, year, allocated_days)
+     VALUES (?, ?, ?, 12.0)`,
+    [employeeId, leaveTypeId, FIXTURE_LEAVE_BALANCE_YEAR],
+  );
 }
 
 /**

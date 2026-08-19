@@ -66,7 +66,10 @@ export class PositionsController {
   @ApiAuth()
   @ApiOperation({ summary: 'Tạo chức vụ mới (gắn với 1 phòng ban)' })
   @ApiCreatedResponse({ type: PositionResponseDto })
-  @ApiConflictResponse({ description: 'DUPLICATE_POSITION_CODE' })
+  @ApiConflictResponse({
+    description:
+      'CODE_ALLOCATION_FAILED – không cấp được mã CV#### duy nhất sau số lần thử tối đa (mã do server sinh, client không gửi code)',
+  })
   @ApiUnprocessableEntityResponse({
     description: 'DEPARTMENT_NOT_FOUND / INVALID_SALARY_RANGE',
   })
@@ -81,7 +84,8 @@ export class PositionsController {
   @ApiOperation({ summary: 'Cập nhật chức vụ' })
   @ApiOkResponse({ type: PositionResponseDto })
   @ApiNotFoundResponse({ description: 'POSITION_NOT_FOUND' })
-  @ApiConflictResponse({ description: 'DUPLICATE_POSITION_CODE' })
+  // No 409 here: `code` is generated on create and immutable afterwards, so
+  // PATCH touches no UNIQUE column.
   @ApiUnprocessableEntityResponse({
     description: 'DEPARTMENT_NOT_FOUND / INVALID_SALARY_RANGE',
   })

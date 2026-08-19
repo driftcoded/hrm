@@ -1,12 +1,12 @@
 import {
-  ConflictException,
-  ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { normalizeCode } from '@/common/utils/code.util';
 import { rejectUnexpectedNulls } from '@/common/utils/reject-null.util';
+import { createWithSequentialCode } from '@/common/utils/sequential-code.util';
+import { LEAVE_TYPE_CODE_PREFIX } from './leave-types.constants';
 import { CreateLeaveTypeDto } from './dto/create-leave-type.dto';
 import { FilterLeaveTypeDto } from './dto/filter-leave-type.dto';
 import { LeaveTypeResponseDto } from './dto/leave-type-response.dto';
@@ -17,6 +17,8 @@ import { LeaveTypesRepository } from './leave-types.repository';
 /** All leave-type business logic lives here (CLAUDE.md §Module architecture). */
 @Injectable()
 export class LeaveTypesService {
+  private readonly logger = new Logger(LeaveTypesService.name);
+
   constructor(private readonly leaveTypesRepository: LeaveTypesRepository) {}
 
   async findAll(filter: FilterLeaveTypeDto): Promise<LeaveTypeResponseDto[]> {
@@ -32,24 +34,38 @@ export class LeaveTypesService {
     return this.toResponse(await this.getExistingOrThrow(id));
   }
 
+  /**
+   * `code` is server-generated (`NP0001`…).
+   *
+   * The nine statutory types keep their meaningful seeded codes (`ANNUAL`,
+   * `SICK`, …) because business rules and legislation refer to them by name;
+   * only company-defined types added later get a generated code. That is why
+   * the two styles coexist in this table.
+   */
   async create(dto: CreateLeaveTypeDto): Promise<LeaveTypeResponseDto> {
-    const code = normalizeCode(dto.code);
-    await this.assertCodeAvailable(code);
-
-    const created = await this.leaveTypesRepository.create({
-      code,
-      name: dto.name.trim(),
-      daysPerYear: toDecimalString(dto.daysPerYear),
-      isPaid: dto.isPaid ?? true,
-      requireApproval: dto.requireApproval ?? true,
-      minDays: toDecimalString(dto.minDays ?? 0.5),
-      maxConsecutive: dto.maxConsecutive ?? null,
-      advanceNoticeDays: dto.advanceNoticeDays ?? 1,
-      applicableGender: dto.applicableGender ?? LeaveApplicableGender.ALL,
-      description: dto.description ?? null,
-      isActive: dto.isActive ?? true,
-      sortOrder: dto.sortOrder ?? 0,
-    });
+    const created = await createWithSequentialCode(
+      { prefix: LEAVE_TYPE_CODE_PREFIX, uniqueColumn: 'code' },
+      () => this.leaveTypesRepository.findMaxCodeNumber(LEAVE_TYPE_CODE_PREFIX),
+      (code) =>
+        this.leaveTypesRepository.create({
+          code,
+          name: dto.name.trim(),
+          daysPerYear: toDecimalString(dto.daysPerYear),
+          isPaid: dto.isPaid ?? true,
+          requireApproval: dto.requireApproval ?? true,
+          minDays: toDecimalString(dto.minDays ?? 0.5),
+          maxConsecutive: dto.maxConsecutive ?? null,
+          advanceNoticeDays: dto.advanceNoticeDays ?? 1,
+          applicableGender: dto.applicableGender ?? LeaveApplicableGender.ALL,
+          description: dto.description ?? null,
+          isActive: dto.isActive ?? true,
+          sortOrder: dto.sortOrder ?? 0,
+          // Only the seed marks a type as statutory; anything created through
+          // the API is company-defined and stays editable.
+          isSystem: false,
+        }),
+      this.logger,
+    );
 
     return this.findOne(Number(created.id));
   }
@@ -58,18 +74,13 @@ export class LeaveTypesService {
     id: number,
     dto: UpdateLeaveTypeDto,
   ): Promise<LeaveTypeResponseDto> {
-    const leaveType = await this.getExistingOrThrow(id);
+    await this.getExistingOrThrow(id);
     rejectUnexpectedNulls(dto, ['maxConsecutive', 'description']);
     const patch: Partial<LeaveType> = {};
 
-    if (dto.code !== undefined) {
-      const code = normalizeCode(dto.code);
-      if (code !== leaveType.code) {
-        this.assertNotSystemLocked(leaveType, 'renamed');
-        await this.assertCodeAvailable(code);
-      }
-      patch.code = code;
-    }
+    // `code` is absent from UpdateLeaveTypeDto by design: generated on create
+    // and immutable afterwards. This also removes the old hazard of renaming a
+    // statutory code (`ANNUAL`) that business rules match on.
 
     if (dto.name !== undefined) {
       patch.name = dto.name.trim();
@@ -124,14 +135,20 @@ export class LeaveTypesService {
 
   /**
    * `leave_types` has no `deleted_at` → this is a HARD delete.
-   * Reject the delete if any leave request or leave balance still references
-   * this type: deleting it would destroy an employee's leave history (the FK
-   * is also RESTRICT at the DB level).
-   * To "hide" a leave type from the UI instead, PATCH `isActive: false`.
+   *
+   * "Still in use" is the ONLY delete guard: if a leave request or leave balance
+   * references this type, deleting it would destroy an employee's leave history
+   * (the FK is RESTRICT at the DB level anyway). To "hide" a leave type from the
+   * UI instead, PATCH `isActive: false`.
+   *
+   * `isSystem` deliberately does NOT block anything. Legislation changes —
+   * entitlements are raised and statutory types get repealed (BLLĐ 2019
+   * abolished the `seasonal` contract type the same way) — so HR must be able to
+   * maintain these rows. A statutory type that carries history is still
+   * undeletable, but because of LEAVE_TYPE_IN_USE, which is the right reason.
    */
   async remove(id: number): Promise<{ id: number; deleted: boolean }> {
-    const leaveType = await this.getExistingOrThrow(id);
-    this.assertNotSystemLocked(leaveType, 'deleted');
+    await this.getExistingOrThrow(id);
 
     const requestCount = await this.leaveTypesRepository.countLeaveRequests(id);
     const balanceCount = await this.leaveTypesRepository.countLeaveBalances(id);
@@ -161,38 +178,6 @@ export class LeaveTypesService {
     }
 
     return leaveType;
-  }
-
-  private async assertCodeAvailable(code: string): Promise<void> {
-    const existing = await this.leaveTypesRepository.findByCode(code);
-
-    if (existing) {
-      throw new ConflictException({
-        code: 'DUPLICATE_LEAVE_TYPE_CODE',
-        message: `Leave type code "${code}" already exists`,
-      });
-    }
-  }
-
-  /**
-   * Statutory rows (`isSystem`) keep their `code` and can never be deleted —
-   * their code is a stable identifier that payroll/leave-balance logic will
-   * special-case by value, and deleting one outright loses that identity for
-   * good. Everything else (daysPerYear, description, isActive, ...) stays
-   * editable, since companies may grant more than the legal minimum.
-   */
-  private assertNotSystemLocked(
-    leaveType: LeaveType,
-    action: 'renamed' | 'deleted',
-  ): void {
-    if (!leaveType.isSystem) {
-      return;
-    }
-
-    throw new ForbiddenException({
-      code: 'LEAVE_TYPE_SYSTEM_LOCKED',
-      message: `Leave type ${leaveType.id} ("${leaveType.code}") is a statutory type and cannot be ${action}. Use isActive=false to hide it instead.`,
-    });
   }
 
   private toResponse(leaveType: LeaveType): LeaveTypeResponseDto {

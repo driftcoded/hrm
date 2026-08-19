@@ -71,7 +71,10 @@ export class LeaveTypesController {
   @ApiAuth()
   @ApiOperation({ summary: 'Tạo loại nghỉ phép mới' })
   @ApiCreatedResponse({ type: LeaveTypeResponseDto })
-  @ApiConflictResponse({ description: 'DUPLICATE_LEAVE_TYPE_CODE' })
+  @ApiConflictResponse({
+    description:
+      'CODE_ALLOCATION_FAILED – không cấp được mã NP#### duy nhất sau số lần thử tối đa (mã do server sinh, client không gửi code)',
+  })
   @ApiForbiddenResponse({ description: 'FORBIDDEN – role không được ghi' })
   create(@Body() dto: CreateLeaveTypeDto): Promise<LeaveTypeResponseDto> {
     return this.leaveTypesService.create(dto);
@@ -83,7 +86,8 @@ export class LeaveTypesController {
   @ApiOperation({ summary: 'Cập nhật chính sách của loại nghỉ phép' })
   @ApiOkResponse({ type: LeaveTypeResponseDto })
   @ApiNotFoundResponse({ description: 'LEAVE_TYPE_NOT_FOUND' })
-  @ApiConflictResponse({ description: 'DUPLICATE_LEAVE_TYPE_CODE' })
+  // No 409 here: `code` is generated on create and immutable afterwards, so
+  // PATCH touches no UNIQUE column.
   @ApiForbiddenResponse({ description: 'FORBIDDEN – role không được ghi' })
   update(
     @Param('id', ParseIntPipe) id: number,

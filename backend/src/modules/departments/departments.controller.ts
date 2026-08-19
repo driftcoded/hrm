@@ -94,7 +94,10 @@ export class DepartmentsController {
   @ApiAuth()
   @ApiOperation({ summary: 'Tạo phòng ban mới' })
   @ApiCreatedResponse({ type: DepartmentResponseDto })
-  @ApiConflictResponse({ description: 'DUPLICATE_DEPARTMENT_CODE' })
+  @ApiConflictResponse({
+    description:
+      'CODE_ALLOCATION_FAILED – không cấp được mã PB#### duy nhất sau số lần thử tối đa (mã do server sinh, client không gửi code)',
+  })
   @ApiUnprocessableEntityResponse({
     description: 'PARENT_DEPARTMENT_NOT_FOUND / EMPLOYEE_NOT_FOUND',
   })
@@ -113,7 +116,8 @@ export class DepartmentsController {
   })
   @ApiOkResponse({ type: DepartmentResponseDto })
   @ApiNotFoundResponse({ description: 'DEPARTMENT_NOT_FOUND' })
-  @ApiConflictResponse({ description: 'DUPLICATE_DEPARTMENT_CODE' })
+  // No 409 here: `code` is generated on create and immutable afterwards, so
+  // PATCH touches no UNIQUE column.
   @ApiUnprocessableEntityResponse({
     description:
       'DEPARTMENT_CYCLE / PARENT_DEPARTMENT_NOT_FOUND / EMPLOYEE_NOT_FOUND',

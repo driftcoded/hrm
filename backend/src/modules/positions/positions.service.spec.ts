@@ -41,7 +41,8 @@ describe('PositionsService', () => {
           useValue: {
             findPaginated: jest.fn().mockResolvedValue([[], 0]),
             findById: jest.fn(),
-            findByCode: jest.fn().mockResolvedValue(null),
+            // 0 = no generated code issued yet, so the next one is CV0001.
+            findMaxCodeNumber: jest.fn().mockResolvedValue(0),
             countDepartment: jest.fn().mockResolvedValue(1),
             countEmployees: jest.fn().mockResolvedValue(0),
             create: jest.fn(),
@@ -92,12 +93,13 @@ describe('PositionsService', () => {
   });
 
   describe('create', () => {
-    it('saves code in UPPERCASE and DECIMAL as a 2-decimal string', async () => {
+    beforeEach(() => {
       repository.create.mockResolvedValue(makePosition({ id: 8 }));
       repository.findById.mockResolvedValue(makePosition({ id: 8 }));
+    });
 
+    it('generates the code (CV0001 when none has been issued) and writes DECIMAL as a 2-decimal string', async () => {
       await service.create({
-        code: 'dev_lead',
         name: ' Developer Lead ',
         departmentId: 2,
         level: 3,
@@ -105,9 +107,10 @@ describe('PositionsService', () => {
         maxSalary: 45000000,
       });
 
+      expect(repository.findMaxCodeNumber).toHaveBeenCalledWith('CV');
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: 'DEV_LEAD',
+          code: 'CV0001',
           name: 'Developer Lead',
           minSalary: '30000000.00',
           maxSalary: '45000000.00',
@@ -115,21 +118,31 @@ describe('PositionsService', () => {
       );
     });
 
-    it('duplicate code → 409 DUPLICATE_POSITION_CODE', async () => {
-      repository.findByCode.mockResolvedValue(makePosition());
+    it('allocates the highest issued number + 1', async () => {
+      repository.findMaxCodeNumber.mockResolvedValue(12);
 
-      await expect(
-        service.create({
-          code: 'DEV_SENIOR',
-          name: 'Trùng',
-          departmentId: 2,
-          level: 2,
-        }),
-      ).rejects.toMatchObject({
-        status: HttpStatus.CONFLICT,
-        response: { code: 'DUPLICATE_POSITION_CODE' },
+      await service.create({
+        name: 'Developer Lead',
+        departmentId: 2,
+        level: 3,
       });
-      expect(repository.create).not.toHaveBeenCalled();
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'CV0013' }),
+      );
+    });
+
+    it('ignores a code smuggled into the payload – the generated one wins', async () => {
+      await service.create({
+        name: 'Developer Lead',
+        departmentId: 2,
+        level: 3,
+        code: 'CHOSEN_BY_USER',
+      } as never);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'CV0001' }),
+      );
     });
 
     it('departmentId does not exist → 422 DEPARTMENT_NOT_FOUND', async () => {
@@ -137,7 +150,6 @@ describe('PositionsService', () => {
 
       await expect(
         service.create({
-          code: 'NEW_POS',
           name: 'Chức vụ mới',
           departmentId: 999,
           level: 1,
@@ -152,7 +164,6 @@ describe('PositionsService', () => {
     it('minSalary > maxSalary → 422 INVALID_SALARY_RANGE', async () => {
       await expect(
         service.create({
-          code: 'NEW_POS',
           name: 'Chức vụ mới',
           departmentId: 2,
           level: 1,
@@ -191,6 +202,15 @@ describe('PositionsService', () => {
         minSalary: null,
         maxSalary: '35000000.00',
       });
+    });
+
+    it('code is immutable: a code in the body changes nothing', async () => {
+      repository.findById.mockResolvedValue(makePosition({ code: 'CV0007' }));
+
+      const result = await service.update(1, { code: 'CV9999' } as never);
+
+      expect(repository.update).not.toHaveBeenCalled();
+      expect(result.code).toBe('CV0007');
     });
 
     it('id does not exist → 404 POSITION_NOT_FOUND', async () => {

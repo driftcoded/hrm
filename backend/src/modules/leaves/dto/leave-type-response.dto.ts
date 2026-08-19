@@ -52,7 +52,7 @@ export class LeaveTypeResponseDto {
   @ApiProperty({
     example: false,
     description:
-      'Statutory type from Vietnamese labor law — code cannot be renamed and the row cannot be deleted (set isActive=false to hide it instead).',
+      'Informational only: true = statutory type seeded from Vietnamese labor law, so the UI can mark it as legally mandated. It grants no protection — the only delete guard is LEAVE_TYPE_IN_USE (a type referenced by leave requests/balances). Codes are server-generated and immutable for every type.',
   })
   isSystem: boolean;
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { findMaxCodeNumber } from '@/common/utils/sequential-code.util';
 import { Employee } from '@/modules/employees/entities/employee.entity';
 import { Position } from '@/modules/positions/entities/position.entity';
 import { Department } from './entities/department.entity';
@@ -27,6 +28,11 @@ export interface FindDepartmentsOptions {
 export interface DepartmentEmployeeCount {
   departmentId: number;
   employeeCount: number;
+}
+
+export interface DepartmentPositionCount {
+  departmentId: number;
+  positionCount: number;
 }
 
 /**
@@ -100,20 +106,6 @@ export class DepartmentsRepository {
       .getOne();
   }
 
-  /**
-   * `withDeleted()`: `code` has a plain (non-filtered) UNIQUE constraint at the
-   * DB level, so a soft-deleted department still blocks reusing its code. This
-   * must see soft-deleted rows too, or the service's pre-check would pass and
-   * the INSERT would fail with a raw `ER_DUP_ENTRY` instead of a clean 409.
-   */
-  findByCode(code: string): Promise<Department | null> {
-    return this.repository
-      .createQueryBuilder('department')
-      .withDeleted()
-      .where('department.code = :code', { code })
-      .getOne();
-  }
-
   /** `parent_id` of a department – used to walk up to the root when checking for cycles. */
   async findParentId(id: number): Promise<number | null> {
     const row = await this.repository
@@ -153,6 +145,36 @@ export class DepartmentsRepository {
     }));
   }
 
+  /**
+   * Positions defined per department, batched.
+   *
+   * The single-department `countPositions()` below is a delete guard; this is the
+   * list-view counterpart — calling that one per row would be an N+1 query.
+   */
+  async countPositionsByDepartmentIds(
+    departmentIds: number[],
+  ): Promise<DepartmentPositionCount[]> {
+    if (departmentIds.length === 0) {
+      return [];
+    }
+
+    const rows = await this.positionRepository
+      .createQueryBuilder('position')
+      .select('position.departmentId', 'departmentId')
+      .addSelect('COUNT(position.id)', 'positionCount')
+      .where('position.departmentId IN (:...departmentIds)', { departmentIds })
+      .groupBy('position.departmentId')
+      .getRawMany<{
+        departmentId: string | number;
+        positionCount: string | number;
+      }>();
+
+    return rows.map((row) => ({
+      departmentId: Number(row.departmentId),
+      positionCount: Number(row.positionCount),
+    }));
+  }
+
   /** An employee (not soft-deleted) eligible to be assigned as department manager. */
   countManagerCandidate(employeeId: number): Promise<number> {
     return this.employeeRepository
@@ -180,6 +202,22 @@ export class DepartmentsRepository {
       .createQueryBuilder('position')
       .where('position.departmentId = :departmentId', { departmentId })
       .getCount();
+  }
+
+  /**
+   * Highest number issued for generated `PB####` codes.
+   *
+   * Counts soft-deleted rows too, so a deleted department keeps its code
+   * reserved and a new one can never inherit it.
+   */
+  findMaxCodeNumber(prefix: string): Promise<number> {
+    return findMaxCodeNumber(
+      this.repository,
+      'department',
+      'code',
+      prefix,
+      true,
+    );
   }
 
   create(data: Partial<Department>): Promise<Department> {

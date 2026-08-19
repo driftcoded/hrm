@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { findMaxCodeNumber } from '@/common/utils/sequential-code.util';
 import { LeaveBalance } from '@/modules/leave-balances/entities/leave-balance.entity';
 import { LeaveRequest } from './entities/leave-request.entity';
 import { LeaveApplicableGender, LeaveType } from './entities/leave-type.entity';
@@ -53,13 +54,6 @@ export class LeaveTypesRepository {
       .getOne();
   }
 
-  findByCode(code: string): Promise<LeaveType | null> {
-    return this.repository
-      .createQueryBuilder('leaveType')
-      .where('leaveType.code = :code', { code })
-      .getOne();
-  }
-
   countLeaveRequests(leaveTypeId: number): Promise<number> {
     return this.leaveRequestRepository
       .createQueryBuilder('leaveRequest')
@@ -72,6 +66,23 @@ export class LeaveTypesRepository {
       .createQueryBuilder('leaveBalance')
       .where('leaveBalance.leaveTypeId = :leaveTypeId', { leaveTypeId })
       .getCount();
+  }
+
+  /**
+   * Highest number issued for generated `NP####` codes.
+   *
+   * `leave_types` has no `deleted_at` (schema §5.2) — rows are removed for real,
+   * so there is nothing extra to include here. The statutory seed codes
+   * (`ANNUAL`, `SICK`, …) do not match the generated pattern and are ignored.
+   */
+  findMaxCodeNumber(prefix: string): Promise<number> {
+    return findMaxCodeNumber(
+      this.repository,
+      'leaveType',
+      'code',
+      prefix,
+      false,
+    );
   }
 
   create(data: Partial<LeaveType>): Promise<LeaveType> {

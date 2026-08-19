@@ -6,15 +6,11 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Matches,
   Max,
   MaxLength,
   Min,
 } from 'class-validator';
 import { IsBooleanValue } from '@/common/decorators/is-boolean-value.decorator';
-
-/** `positions.code` VARCHAR(20) UNIQUE, e.g. `DEV_JUNIOR` (schema §2.2). */
-export const POSITION_CODE_PATTERN = /^[A-Za-z0-9_]{2,20}$/;
 
 /** `level`: 1 Staff · 2 Senior · 3 Lead · 4 Manager · 5 Director (schema §2.2). */
 export const MIN_POSITION_LEVEL = 1;
@@ -23,14 +19,11 @@ export const MAX_POSITION_LEVEL = 5;
 /** DECIMAL(15,2) → maximum representable value. */
 export const MAX_SALARY_VALUE = 9_999_999_999_999;
 
+/**
+ * NOTE: `code` is intentionally NOT part of this DTO — the server generates
+ * `CV0001`, `CV0002`… See CreateDepartmentDto for the reasoning.
+ */
 export class CreatePositionDto {
-  @ApiProperty({ example: 'DEV_SENIOR', maxLength: 20 })
-  @IsString()
-  @Matches(POSITION_CODE_PATTERN, {
-    message: 'code must be 2-20 characters of letters, digits or underscore',
-  })
-  code: string;
-
   @ApiProperty({ example: 'Developer Senior', maxLength: 150 })
   @IsString()
   @IsNotEmpty()

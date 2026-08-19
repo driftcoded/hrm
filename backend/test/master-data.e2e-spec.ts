@@ -10,11 +10,14 @@ import {
 } from './support/e2e-app';
 import {
   cleanupMasterDataFixtures,
+  codeNumber,
   countFixtureEmployee,
   DeleteBody,
   FIXTURE_HOLIDAY_YEAR,
   insertFixtureDepartment,
   insertFixtureEmployee,
+  insertFixtureLeaveBalance,
+  insertFixtureLeaveType,
   insertFixturePosition,
   loginAs,
   PaginatedBody,
@@ -71,7 +74,14 @@ interface ContractTypeBody {
  *
  * Fixtures use the E2E prefix (holidays use year 2099) and are deleted in
  * beforeAll + afterAll so the suite is rerunnable and never touches Phase 1
- * seed data.
+ * seed data — in particular the nine statutory leave types, which are edited
+ * and deleted only on our own `is_system = TRUE` fixture, never on `ANNUAL`.
+ *
+ * `positions.code` / `leave_types.code` are SERVER-GENERATED (`CV0001`,
+ * `NP0001`…) and immutable, so records created through the API carry a generated
+ * code rather than an `E2E…` one; cleanup matches their `E2E…` NAME instead.
+ * Code assertions are relative (pattern, or `previous + 1`) because generated
+ * numbers are never reused and every run consumes some.
  */
 describe('Positions / contract types / leave types / holidays (e2e)', () => {
   let context: E2eContext;
@@ -83,6 +93,7 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
 
   let departmentId: number;
   let positionId: number;
+  let employeeId: number;
 
   const EMPLOYEE_SUFFIX = '9002';
 
@@ -104,7 +115,7 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
       departmentId,
       2,
     );
-    await insertFixtureEmployee(
+    employeeId = await insertFixtureEmployee(
       context.dataSource,
       EMPLOYEE_SUFFIX,
       departmentId,
@@ -164,11 +175,16 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
       expect(position).not.toHaveProperty('deletedAt');
     });
 
-    it('POST → PATCH → DELETE full lifecycle', async () => {
+    /**
+     * The client deliberately sends a `code`: it must be dropped (ValidationPipe
+     * `whitelist: true`) and the stored code must be the generated `CV####`, so
+     * a user cannot choose their own identifier. PATCH cannot change it either.
+     */
+    it('POST → PATCH → DELETE full lifecycle, with a server-generated immutable code', async () => {
       const created = successBody<PositionBody>(
         await post('/positions', adminToken)
           .send({
-            code: 'e2em_tmp',
+            code: 'CHOSEN_BY_USER',
             name: 'E2E Chức vụ tạm',
             departmentId,
             level: 3,
@@ -179,18 +195,21 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
       ).data;
 
       expect(created).toMatchObject({
-        code: 'E2EM_TMP',
         level: 3,
         minSalary: 20000000,
         maxSalary: 35000000,
       });
+      expect(created.code).toMatch(/^CV\d{4}$/);
+      expect(created.code).not.toBe('CHOSEN_BY_USER');
 
       const updated = successBody<PositionBody>(
         await patch(`/positions/${created.id}`, hrManagerToken)
-          .send({ level: 4, maxSalary: 50000000 })
+          .send({ level: 4, maxSalary: 50000000, code: 'CV9998' })
           .expect(200),
       ).data;
       expect(updated).toMatchObject({ level: 4, maxSalary: 50000000 });
+      // The code in the PATCH body was ignored, the rest of it applied.
+      expect(updated.code).toBe(created.code);
 
       const deleted = successBody<DeleteBody>(
         await del(`/positions/${created.id}`, adminToken).expect(200),
@@ -200,19 +219,41 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
       await get(`/positions/${created.id}`, adminToken).expect(404);
     });
 
-    it('POST with a duplicate code → 409 DUPLICATE_POSITION_CODE', async () => {
-      const response = await post('/positions', adminToken)
-        .send({ code: 'E2EM_POS', name: 'Trùng mã', departmentId, level: 1 })
-        .expect(409);
+    /**
+     * Codes increment and a soft-deleted position keeps its code reserved for
+     * good — reusing one would give a new position an identifier that other
+     * records still refer to. Relative assertions only: every run permanently
+     * consumes numbers.
+     */
+    it('POST issues consecutive codes, and a soft-deleted position never releases its own', async () => {
+      const body = { name: 'E2E Chức vụ mã', departmentId, level: 1 };
 
-      expect(errorBody(response).error.code).toBe('DUPLICATE_POSITION_CODE');
+      const first = successBody<PositionBody>(
+        await post('/positions', adminToken).send(body).expect(201),
+      ).data;
+      const firstNumber = codeNumber(first.code, 'CV');
+
+      const second = successBody<PositionBody>(
+        await post('/positions', adminToken).send(body).expect(201),
+      ).data;
+      expect(codeNumber(second.code, 'CV')).toBe(firstNumber + 1);
+
+      await del(`/positions/${second.id}`, adminToken).expect(200);
+
+      const third = successBody<PositionBody>(
+        await post('/positions', adminToken).send(body).expect(201),
+      ).data;
+      expect(third.code).not.toBe(second.code);
+      expect(codeNumber(third.code, 'CV')).toBe(firstNumber + 2);
+
+      await del(`/positions/${first.id}`, adminToken).expect(200);
+      await del(`/positions/${third.id}`, adminToken).expect(200);
     });
 
     it('POST with a non-existent departmentId → 422 DEPARTMENT_NOT_FOUND', async () => {
       const response = await post('/positions', adminToken)
         .send({
-          code: 'E2EM_BAD',
-          name: 'Sai phòng ban',
+          name: 'E2EM_BAD Sai phòng ban',
           departmentId: 99999999,
           level: 1,
         })
@@ -224,8 +265,7 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
     it('POST minSalary > maxSalary → 422 INVALID_SALARY_RANGE', async () => {
       const response = await post('/positions', adminToken)
         .send({
-          code: 'E2EM_SAL',
-          name: 'Sai thang lương',
+          name: 'E2EM_SAL Sai thang lương',
           departmentId,
           level: 1,
           minSalary: 50000000,
@@ -238,7 +278,7 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
 
     it('POST with level outside 1..5 → 400 VALIDATION_ERROR', async () => {
       const response = await post('/positions', adminToken)
-        .send({ code: 'E2EM_LVL', name: 'Level sai', departmentId, level: 9 })
+        .send({ name: 'E2EM_LVL Level sai', departmentId, level: 9 })
         .expect(400);
 
       expect(errorBody(response).error.details).toEqual(
@@ -267,7 +307,7 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
     it('authorization: employee CAN GET, POST/PATCH/DELETE → 403', async () => {
       await get('/positions', employeeToken).expect(200);
       await post('/positions', employeeToken)
-        .send({ code: 'E2EM_NO', name: 'x', departmentId, level: 1 })
+        .send({ name: 'E2EM_NO', departmentId, level: 1 })
         .expect(403);
       await patch(`/positions/${positionId}`, employeeToken)
         .send({ name: 'x' })
@@ -366,11 +406,17 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
       );
     });
 
-    it('POST → PATCH → DELETE full lifecycle', async () => {
+    /**
+     * One test covers the whole code contract on purpose: `leave_types.id` is a
+     * TINYINT and generated ids are never reused, so each e2e run permanently
+     * burns a few of the 255 available. Creating two rows here is enough to
+     * prove pattern + "client code ignored" + increment.
+     */
+    it('POST → PATCH → DELETE full lifecycle, with a server-generated immutable code that increments', async () => {
       const created = successBody<LeaveTypeBody>(
         await post('/leave-types', hrManagerToken)
           .send({
-            code: 'e2em_lv',
+            code: 'ANNUAL', // must be stripped, not honoured (and not a 409)
             name: 'E2E Nghỉ thử nghiệm',
             daysPerYear: 2.5,
             isPaid: false,
@@ -382,7 +428,6 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
       ).data;
 
       expect(created).toMatchObject({
-        code: 'E2EM_LV',
         daysPerYear: 2.5,
         isPaid: false,
         advanceNoticeDays: 0,
@@ -390,13 +435,29 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
         applicableGender: 'all',
         isSystem: false,
       });
+      expect(created.code).toMatch(/^NP\d{4}$/);
+      expect(created.code).not.toBe('ANNUAL');
+
+      // The next one gets the following number; the statutory codes (ANNUAL,
+      // SICK…) do not match `NP####` and are ignored by the counter.
+      const next = successBody<LeaveTypeBody>(
+        await post('/leave-types', hrManagerToken)
+          .send({ name: 'E2E Nghỉ thử nghiệm 2', daysPerYear: 1 })
+          .expect(201),
+      ).data;
+      expect(codeNumber(next.code, 'NP')).toBe(
+        codeNumber(created.code, 'NP') + 1,
+      );
+      await del(`/leave-types/${next.id}`, adminToken).expect(200);
 
       const updated = successBody<LeaveTypeBody>(
         await patch(`/leave-types/${created.id}`, adminToken)
-          .send({ daysPerYear: 4, isActive: false })
+          .send({ daysPerYear: 4, isActive: false, code: 'NP9998' })
           .expect(200),
       ).data;
       expect(updated).toMatchObject({ daysPerYear: 4, isActive: false });
+      // The code in the PATCH body was ignored, the rest of it applied.
+      expect(updated.code).toBe(created.code);
 
       await patch(`/leave-types/${created.id}`, adminToken)
         .send({ name: null })
@@ -413,48 +474,78 @@ describe('Positions / contract types / leave types / holidays (e2e)', () => {
       await get(`/leave-types/${created.id}`, adminToken).expect(404);
     });
 
-    it('statutory leave type (isSystem=true): code cannot be changed, cannot be deleted', async () => {
-      const before = successBody<LeaveTypeBody[]>(
-        await get('/leave-types', adminToken).expect(200),
-      ).data.find((item) => item.code === 'ANNUAL');
-      expect(before).toBeDefined();
-
-      const renameResponse = await patch(
-        `/leave-types/${before?.id}`,
-        adminToken,
-      )
-        .send({ code: 'ANNUAL_LEAVE' })
-        .expect(403);
-      expect(errorBody(renameResponse).error.code).toBe(
-        'LEAVE_TYPE_SYSTEM_LOCKED',
+    /**
+     * `isSystem` is informational only — it blocks nothing. Legislation changes:
+     * entitlements are raised and statutory types get repealed (BLLĐ 2019
+     * abolished the `seasonal` contract type the same way), so HR must be able to
+     * maintain these rows. The ONLY delete guard is LEAVE_TYPE_IN_USE.
+     *
+     * Exercised on our own `is_system = TRUE` fixture, never on a seeded type:
+     * the nine statutory rows are shared data the project owner depends on and
+     * must survive the run untouched.
+     */
+    it('a statutory (isSystem=true) type is editable, and deletable once nothing references it', async () => {
+      const systemTypeId = await insertFixtureLeaveType(
+        context.dataSource,
+        'E2EM_SYS',
+        'E2E Nghỉ theo luật',
+        true,
       );
 
-      const deleteResponse = await del(
-        `/leave-types/${before?.id}`,
-        adminToken,
-      ).expect(403);
-      expect(errorBody(deleteResponse).error.code).toBe(
-        'LEAVE_TYPE_SYSTEM_LOCKED',
-      );
+      expect(
+        successBody<LeaveTypeBody>(
+          await get(`/leave-types/${systemTypeId}`, adminToken).expect(200),
+        ).data.isSystem,
+      ).toBe(true);
 
-      const after = successBody<LeaveTypeBody>(
-        await get(`/leave-types/${before?.id}`, adminToken).expect(200),
+      // A leave balance references it → still undeletable, for the right reason.
+      await insertFixtureLeaveBalance(
+        context.dataSource,
+        employeeId,
+        systemTypeId,
+      );
+      const inUse = await del(
+        `/leave-types/${systemTypeId}`,
+        adminToken,
+      ).expect(422);
+      expect(errorBody(inUse).error.code).toBe('LEAVE_TYPE_IN_USE');
+
+      // Editable even while in use – "the law raised the entitlement".
+      const updated = successBody<LeaveTypeBody>(
+        await patch(`/leave-types/${systemTypeId}`, adminToken)
+          .send({ daysPerYear: 16 })
+          .expect(200),
       ).data;
-      expect(after.code).toBe('ANNUAL');
-    });
+      expect(updated).toMatchObject({ daysPerYear: 16, isSystem: true });
+      // A statutory code predates generation and is left alone.
+      expect(updated.code).toBe('E2EM_SYS');
 
-    it('POST duplicate code of a seeded type → 409 DUPLICATE_LEAVE_TYPE_CODE', async () => {
-      const response = await post('/leave-types', adminToken)
-        .send({ code: 'ANNUAL', name: 'Trùng mã', daysPerYear: 1 })
-        .expect(409);
+      // Drop the reference → the repealed type can now be retired.
+      await context.dataSource.query(
+        `DELETE FROM leave_balances WHERE leave_type_id = ?`,
+        [systemTypeId],
+      );
+      expect(
+        successBody<DeleteBody>(
+          await del(`/leave-types/${systemTypeId}`, adminToken).expect(200),
+        ).data,
+      ).toEqual({ id: systemTypeId, deleted: true });
+      await get(`/leave-types/${systemTypeId}`, adminToken).expect(404);
 
-      expect(errorBody(response).error.code).toBe('DUPLICATE_LEAVE_TYPE_CODE');
+      // The seeded statutory rows are untouched.
+      const remaining = successBody<LeaveTypeBody[]>(
+        await get('/leave-types', adminToken).expect(200),
+      ).data;
+      expect(remaining.find((item) => item.code === 'ANNUAL')).toMatchObject({
+        code: 'ANNUAL',
+        isSystem: true,
+      });
     });
 
     it('authorization: employee CAN GET, POST → 403', async () => {
       await get('/leave-types', employeeToken).expect(200);
       await post('/leave-types', employeeToken)
-        .send({ code: 'E2EM_NO2', name: 'x', daysPerYear: 1 })
+        .send({ name: 'E2EM_NO2', daysPerYear: 1 })
         .expect(403);
     });
   });

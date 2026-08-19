@@ -63,7 +63,12 @@ export class LeaveType {
   @Column({ name: 'sort_order', type: 'smallint', default: 0 })
   sortOrder: number;
 
-  /** Statutory row seeded from Vietnamese labor law; code/deletion are locked (see the migration that added this column). */
+  /**
+   * Statutory row seeded from Vietnamese labor law. INFORMATIONAL ONLY — it
+   * enforces nothing: HR can edit and delete these rows, because legislation
+   * changes (entitlements are raised, statutory types get repealed). The only
+   * delete guard is LEAVE_TYPE_IN_USE, in LeaveTypesService.remove().
+   */
   @Column({ name: 'is_system', type: 'boolean', default: false })
   isSystem: boolean;
 }

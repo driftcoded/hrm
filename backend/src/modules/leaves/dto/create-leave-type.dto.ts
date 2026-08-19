@@ -7,16 +7,12 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Matches,
   Max,
   MaxLength,
   Min,
 } from 'class-validator';
 import { IsBooleanValue } from '@/common/decorators/is-boolean-value.decorator';
 import { LeaveApplicableGender } from '../entities/leave-type.entity';
-
-/** `leave_types.code` VARCHAR(20) UNIQUE, e.g. `ANNUAL` (schema §5.2). */
-export const LEAVE_TYPE_CODE_PATTERN = /^[A-Za-z0-9_]{2,20}$/;
 
 /** `days_per_year` DECIMAL(5,1) → max 9999.9; practical limit is 366 days/year. */
 export const MAX_DAYS_PER_YEAR = 366;
@@ -27,14 +23,12 @@ export const MAX_MIN_DAYS = 366;
 /** `max_consecutive` / `advance_notice_days` are signed SMALLINT columns. */
 export const MAX_SMALLINT = 32767;
 
+/**
+ * NOTE: `code` is intentionally NOT part of this DTO — the server generates
+ * `NP0001`, `NP0002`… The nine statutory types keep their seeded codes
+ * (`ANNUAL`, …); see leave-types.constants.ts.
+ */
 export class CreateLeaveTypeDto {
-  @ApiProperty({ example: 'ANNUAL', maxLength: 20 })
-  @IsString()
-  @Matches(LEAVE_TYPE_CODE_PATTERN, {
-    message: 'code must be 2-20 characters of letters, digits or underscore',
-  })
-  code: string;
-
   @ApiProperty({ example: 'Nghỉ phép năm', maxLength: 100 })
   @IsString()
   @IsNotEmpty()

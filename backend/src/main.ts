@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { ServerResponse } from 'http';
 import { resolve } from 'path';
 import { WinstonModule } from 'nest-winston';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -53,7 +54,9 @@ async function bootstrap() {
       prefix: storage.localPublicPath,
       index: false,
       // File upload KHÔNG bao giờ được trình duyệt thực thi như HTML/script.
-      setHeaders: (res) => {
+      // `res` được annotate tường minh: kiểu suy ra từ options là `any`, nên
+      // không có type thì eslint chặn (no-unsafe-call / no-unsafe-member-access).
+      setHeaders: (res: ServerResponse) => {
         res.setHeader('X-Content-Type-Options', 'nosniff');
         res.setHeader('Content-Disposition', 'inline');
       },

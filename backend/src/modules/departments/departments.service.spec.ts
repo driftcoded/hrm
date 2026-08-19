@@ -44,9 +44,11 @@ describe('DepartmentsService', () => {
             findPaginated: jest.fn().mockResolvedValue([[], 0]),
             findAllOrdered: jest.fn().mockResolvedValue([]),
             findById: jest.fn(),
-            findByCode: jest.fn().mockResolvedValue(null),
             findParentId: jest.fn().mockResolvedValue(null),
+            // 0 = no generated code issued yet, so the next one is PB0001.
+            findMaxCodeNumber: jest.fn().mockResolvedValue(0),
             countEmployeesByDepartmentIds: jest.fn().mockResolvedValue([]),
+            countPositionsByDepartmentIds: jest.fn().mockResolvedValue([]),
             countManagerCandidate: jest.fn().mockResolvedValue(1),
             countEmployees: jest.fn().mockResolvedValue(0),
             countChildren: jest.fn().mockResolvedValue(0),
@@ -168,16 +170,18 @@ describe('DepartmentsService', () => {
   // ----------------------------------------------------------------- create ---
 
   describe('create', () => {
-    it('normalizes code to UPPERCASE and trims name', async () => {
+    beforeEach(() => {
       repository.create.mockResolvedValue(makeDepartment({ id: 11 }));
       repository.findById.mockResolvedValue(makeDepartment({ id: 11 }));
+    });
 
-      await service.create({ code: 'fin', name: '  Phòng Tài chính  ' });
+    it('generates the code (PB0001 when none has been issued) and trims name', async () => {
+      await service.create({ name: '  Phòng Tài chính  ' });
 
-      expect(repository.findByCode).toHaveBeenCalledWith('FIN');
+      expect(repository.findMaxCodeNumber).toHaveBeenCalledWith('PB');
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: 'FIN',
+          code: 'PB0001',
           name: 'Phòng Tài chính',
           parentId: null,
           managerId: null,
@@ -187,23 +191,34 @@ describe('DepartmentsService', () => {
       );
     });
 
-    it('duplicate code → 409 DUPLICATE_DEPARTMENT_CODE (no DB write)', async () => {
-      repository.findByCode.mockResolvedValue(makeDepartment());
+    it('allocates the highest issued number + 1', async () => {
+      repository.findMaxCodeNumber.mockResolvedValue(41);
 
-      await expect(
-        service.create({ code: 'HR', name: 'Phòng Nhân sự 2' }),
-      ).rejects.toMatchObject({
-        status: HttpStatus.CONFLICT,
-        response: { code: 'DUPLICATE_DEPARTMENT_CODE' },
-      });
-      expect(repository.create).not.toHaveBeenCalled();
+      await service.create({ name: 'Phòng Tài chính' });
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'PB0042' }),
+      );
+    });
+
+    it('ignores a code smuggled into the payload – the generated one wins', async () => {
+      // The DTO has no `code`, and the global ValidationPipe (whitelist: true)
+      // strips it; this makes sure the service does not read it either.
+      await service.create({
+        name: 'Phòng Tài chính',
+        code: 'CHOSEN_BY_USER',
+      } as never);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'PB0001' }),
+      );
     });
 
     it('non-existent parentId → 422 PARENT_DEPARTMENT_NOT_FOUND', async () => {
       repository.findById.mockResolvedValue(null);
 
       await expect(
-        service.create({ code: 'NEW', name: 'Phòng mới', parentId: 99 }),
+        service.create({ name: 'Phòng mới', parentId: 99 }),
       ).rejects.toMatchObject({
         status: HttpStatus.UNPROCESSABLE_ENTITY,
         response: { code: 'PARENT_DEPARTMENT_NOT_FOUND' },
@@ -215,7 +230,7 @@ describe('DepartmentsService', () => {
       repository.countManagerCandidate.mockResolvedValue(0);
 
       await expect(
-        service.create({ code: 'NEW', name: 'Phòng mới', managerId: 777 }),
+        service.create({ name: 'Phòng mới', managerId: 777 }),
       ).rejects.toMatchObject({
         status: HttpStatus.UNPROCESSABLE_ENTITY,
         response: { code: 'EMPLOYEE_NOT_FOUND' },
@@ -291,15 +306,16 @@ describe('DepartmentsService', () => {
       expect(repository.findParentId).not.toHaveBeenCalled();
     });
 
-    it('keeping its own code is not treated as a duplicate', async () => {
+    it('code is immutable: a code in the body changes nothing', async () => {
       repository.findById.mockResolvedValue(
-        makeDepartment({ id: 6, code: 'HR' }),
+        makeDepartment({ id: 6, code: 'PB0006' }),
       );
 
-      await service.update(6, { code: 'hr' });
+      const result = await service.update(6, { code: 'PB9999' } as never);
 
-      expect(repository.findByCode).not.toHaveBeenCalled();
-      expect(repository.update).toHaveBeenCalledWith(6, { code: 'HR' });
+      // Nothing to patch → no DB write at all, and the code is unchanged.
+      expect(repository.update).not.toHaveBeenCalled();
+      expect(result.code).toBe('PB0006');
     });
 
     it('empty body → does not call update but still returns the current record', async () => {
@@ -311,11 +327,11 @@ describe('DepartmentsService', () => {
       expect(result.id).toBe(6);
     });
 
-    it('explicit null on a non-nullable field (code) → 400 VALIDATION_ERROR, no update', async () => {
+    it('explicit null on a non-nullable field (name) → 400 VALIDATION_ERROR, no update', async () => {
       repository.findById.mockResolvedValue(makeDepartment({ id: 6 }));
 
       await expect(
-        service.update(6, { code: null } as never),
+        service.update(6, { name: null } as never),
       ).rejects.toMatchObject({
         status: HttpStatus.BAD_REQUEST,
         response: { code: 'VALIDATION_ERROR' },

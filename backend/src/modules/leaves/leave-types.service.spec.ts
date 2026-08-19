@@ -37,7 +37,8 @@ describe('LeaveTypesService', () => {
           useValue: {
             findAll: jest.fn().mockResolvedValue([]),
             findById: jest.fn(),
-            findByCode: jest.fn().mockResolvedValue(null),
+            // 0 = no generated code issued yet, so the next one is NP0001.
+            findMaxCodeNumber: jest.fn().mockResolvedValue(0),
             countLeaveRequests: jest.fn().mockResolvedValue(0),
             countLeaveBalances: jest.fn().mockResolvedValue(0),
             create: jest.fn(),
@@ -86,15 +87,18 @@ describe('LeaveTypesService', () => {
   });
 
   describe('create', () => {
-    it('defaults isPaid/requireApproval/minDays/advanceNoticeDays per schema §5.2', async () => {
+    beforeEach(() => {
       repository.create.mockResolvedValue(makeLeaveType({ id: 10 }));
       repository.findById.mockResolvedValue(makeLeaveType({ id: 10 }));
+    });
 
-      await service.create({ code: 'study', name: 'Nghỉ học', daysPerYear: 5 });
+    it('generates the code (NP0001 when none has been issued) and applies the schema §5.2 defaults', async () => {
+      await service.create({ name: 'Nghỉ học', daysPerYear: 5 });
 
+      expect(repository.findMaxCodeNumber).toHaveBeenCalledWith('NP');
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: 'STUDY',
+          code: 'NP0001',
           daysPerYear: '5.0',
           isPaid: true,
           requireApproval: true,
@@ -103,20 +107,34 @@ describe('LeaveTypesService', () => {
           applicableGender: LeaveApplicableGender.ALL,
           maxConsecutive: null,
           sortOrder: 0,
+          // Only the seed marks a type statutory; API-created ones never are.
+          isSystem: false,
         }),
       );
     });
 
-    it('duplicate code → 409 DUPLICATE_LEAVE_TYPE_CODE', async () => {
-      repository.findByCode.mockResolvedValue(makeLeaveType());
+    it('allocates the highest issued number + 1, ignoring the statutory codes', async () => {
+      // The 9 seeded codes (ANNUAL, SICK, …) do not match `NP####`, so the
+      // repository's max-number query never sees them.
+      repository.findMaxCodeNumber.mockResolvedValue(3);
 
-      await expect(
-        service.create({ code: 'ANNUAL', name: 'Trùng', daysPerYear: 1 }),
-      ).rejects.toMatchObject({
-        status: HttpStatus.CONFLICT,
-        response: { code: 'DUPLICATE_LEAVE_TYPE_CODE' },
-      });
-      expect(repository.create).not.toHaveBeenCalled();
+      await service.create({ name: 'Nghỉ học', daysPerYear: 5 });
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'NP0004' }),
+      );
+    });
+
+    it('ignores a code smuggled into the payload – the generated one wins', async () => {
+      await service.create({
+        name: 'Nghỉ học',
+        daysPerYear: 5,
+        code: 'ANNUAL',
+      } as never);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'NP0001' }),
+      );
     });
   });
 
@@ -163,21 +181,18 @@ describe('LeaveTypesService', () => {
       );
     });
 
-    it('renaming the code of a statutory leave type (isSystem=true) → 403 LEAVE_TYPE_SYSTEM_LOCKED', async () => {
+    it('code is immutable: a code in the body changes nothing', async () => {
       repository.findById.mockResolvedValue(
-        makeLeaveType({ id: 1, isSystem: true }),
+        makeLeaveType({ id: 2, code: 'NP0003' }),
       );
 
-      await expect(
-        service.update(1, { code: 'ANNUAL_LEAVE' }),
-      ).rejects.toMatchObject({
-        status: HttpStatus.FORBIDDEN,
-        response: { code: 'LEAVE_TYPE_SYSTEM_LOCKED' },
-      });
+      const result = await service.update(2, { code: 'NP9999' } as never);
+
       expect(repository.update).not.toHaveBeenCalled();
+      expect(result.code).toBe('NP0003');
     });
 
-    it('editing daysPerYear on a statutory leave type is still allowed (only code/delete are locked)', async () => {
+    it('a statutory leave type (isSystem=true) can still be edited – the law raised the entitlement', async () => {
       repository.findById.mockResolvedValue(
         makeLeaveType({ id: 1, isSystem: true }),
       );
@@ -222,17 +237,31 @@ describe('LeaveTypesService', () => {
       expect(result).toEqual({ id: 5, deleted: true });
     });
 
-    it('statutory leave type (isSystem=true) → 403 LEAVE_TYPE_SYSTEM_LOCKED, not deleted even when unused', async () => {
+    it('a statutory leave type (isSystem=true) with no references IS deleted – a repealed type must be retirable', async () => {
+      // `isSystem` is informational: legislation changes, so HR must be able to
+      // retire a statutory type (BLLĐ 2019 abolished the `seasonal` contract
+      // type the same way). "Still in use" is the only guard.
       repository.findById.mockResolvedValue(
         makeLeaveType({ id: 5, isSystem: true }),
       );
 
+      const result = await service.remove(5);
+
+      expect(repository.delete).toHaveBeenCalledWith(5);
+      expect(result).toEqual({ id: 5, deleted: true });
+    });
+
+    it('a statutory leave type that IS referenced → 422 LEAVE_TYPE_IN_USE, not deleted', async () => {
+      repository.findById.mockResolvedValue(
+        makeLeaveType({ id: 5, isSystem: true }),
+      );
+      repository.countLeaveBalances.mockResolvedValue(12);
+
       await expect(service.remove(5)).rejects.toMatchObject({
-        status: HttpStatus.FORBIDDEN,
-        response: { code: 'LEAVE_TYPE_SYSTEM_LOCKED' },
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+        response: { code: 'LEAVE_TYPE_IN_USE' },
       });
       expect(repository.delete).not.toHaveBeenCalled();
-      expect(repository.countLeaveRequests).not.toHaveBeenCalled();
     });
   });
 });

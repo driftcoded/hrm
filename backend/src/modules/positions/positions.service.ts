@@ -1,14 +1,15 @@
 import {
-  ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { PaginatedResponseDto } from '@/common/dto/pagination-response.dto';
-import { normalizeCode } from '@/common/utils/code.util';
 import { toIsoString } from '@/common/utils/date.util';
 import { resolvePagination } from '@/common/utils/pagination.util';
 import { rejectUnexpectedNulls } from '@/common/utils/reject-null.util';
+import { createWithSequentialCode } from '@/common/utils/sequential-code.util';
+import { POSITION_CODE_PREFIX } from './positions.constants';
 import { CreatePositionDto } from './dto/create-position.dto';
 import { FilterPositionDto } from './dto/filter-position.dto';
 import { PositionResponseDto } from './dto/position-response.dto';
@@ -19,6 +20,8 @@ import { PositionsRepository } from './positions.repository';
 /** All business logic for positions (CLAUDE.md §Module architecture). */
 @Injectable()
 export class PositionsService {
+  private readonly logger = new Logger(PositionsService.name);
+
   constructor(private readonly positionsRepository: PositionsRepository) {}
 
   async findAll(
@@ -50,25 +53,30 @@ export class PositionsService {
     return this.toResponse(await this.getExistingOrThrow(id));
   }
 
+  /** `code` is server-generated (`CV0001`…) and never reused — see the util. */
   async create(dto: CreatePositionDto): Promise<PositionResponseDto> {
-    const code = normalizeCode(dto.code);
-    await this.assertCodeAvailable(code);
     await this.assertDepartmentExists(dto.departmentId);
 
     const minSalary = dto.minSalary ?? null;
     const maxSalary = dto.maxSalary ?? null;
     assertSalaryRange(minSalary, maxSalary);
 
-    const created = await this.positionsRepository.create({
-      code,
-      name: dto.name.trim(),
-      departmentId: dto.departmentId,
-      level: dto.level,
-      minSalary: toDecimalString(minSalary),
-      maxSalary: toDecimalString(maxSalary),
-      description: dto.description ?? null,
-      isActive: dto.isActive ?? true,
-    });
+    const created = await createWithSequentialCode(
+      { prefix: POSITION_CODE_PREFIX, uniqueColumn: 'code' },
+      () => this.positionsRepository.findMaxCodeNumber(POSITION_CODE_PREFIX),
+      (code) =>
+        this.positionsRepository.create({
+          code,
+          name: dto.name.trim(),
+          departmentId: dto.departmentId,
+          level: dto.level,
+          minSalary: toDecimalString(minSalary),
+          maxSalary: toDecimalString(maxSalary),
+          description: dto.description ?? null,
+          isActive: dto.isActive ?? true,
+        }),
+      this.logger,
+    );
 
     return this.findOne(Number(created.id));
   }
@@ -81,13 +89,8 @@ export class PositionsService {
     rejectUnexpectedNulls(dto, ['minSalary', 'maxSalary', 'description']);
     const patch: Partial<Position> = {};
 
-    if (dto.code !== undefined) {
-      const code = normalizeCode(dto.code);
-      if (code !== position.code) {
-        await this.assertCodeAvailable(code);
-      }
-      patch.code = code;
-    }
+    // `code` is absent from UpdatePositionDto by design: generated on create,
+    // immutable afterwards, because other records and paperwork reference it.
 
     if (dto.name !== undefined) {
       patch.name = dto.name.trim();
@@ -163,17 +166,6 @@ export class PositionsService {
     }
 
     return position;
-  }
-
-  private async assertCodeAvailable(code: string): Promise<void> {
-    const existing = await this.positionsRepository.findByCode(code);
-
-    if (existing) {
-      throw new ConflictException({
-        code: 'DUPLICATE_POSITION_CODE',
-        message: `Position code "${code}" already exists`,
-      });
-    }
   }
 
   private async assertDepartmentExists(departmentId: number): Promise<void> {

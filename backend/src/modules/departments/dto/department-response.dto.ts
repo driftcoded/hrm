@@ -39,6 +39,12 @@ export class DepartmentResponseDto {
   })
   employeeCount: number;
 
+  @ApiProperty({
+    example: 4,
+    description: 'Số chức vụ được định nghĩa trong phòng ban',
+  })
+  positionCount: number;
+
   @ApiProperty({ example: 1 })
   sortOrder: number;
 

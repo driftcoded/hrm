@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { findMaxCodeNumber } from '@/common/utils/sequential-code.util';
 import { Department } from '@/modules/departments/entities/department.entity';
 import { Employee } from '@/modules/employees/entities/employee.entity';
 import { Position } from './entities/position.entity';
@@ -80,20 +81,6 @@ export class PositionsRepository {
       .getOne();
   }
 
-  /**
-   * `withDeleted()`: `code` has a plain (non-filtered) UNIQUE constraint at the
-   * DB level, so a soft-deleted position still blocks reusing its code. This
-   * must see soft-deleted rows too, or the service's pre-check would pass and
-   * the INSERT would fail with a raw `ER_DUP_ENTRY` instead of a clean 409.
-   */
-  findByCode(code: string): Promise<Position | null> {
-    return this.repository
-      .createQueryBuilder('position')
-      .withDeleted()
-      .where('position.code = :code', { code })
-      .getOne();
-  }
-
   /** Whether the department (not soft-deleted) exists – used to validate departmentId. */
   countDepartment(departmentId: number): Promise<number> {
     return this.departmentRepository
@@ -108,6 +95,14 @@ export class PositionsRepository {
       .createQueryBuilder('employee')
       .where('employee.positionId = :positionId', { positionId })
       .getCount();
+  }
+
+  /**
+   * Highest number issued for generated `CV####` codes. Counts soft-deleted
+   * rows so a deleted position keeps its code reserved.
+   */
+  findMaxCodeNumber(prefix: string): Promise<number> {
+    return findMaxCodeNumber(this.repository, 'position', 'code', prefix, true);
   }
 
   create(data: Partial<Position>): Promise<Position> {
