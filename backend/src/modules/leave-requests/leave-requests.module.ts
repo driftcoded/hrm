@@ -28,6 +28,12 @@ import { LeaveRequestsService } from './leave-requests.service';
   ],
   controllers: [LeaveRequestsController],
   providers: [LeaveRequestsRepository, LeaveRequestsService],
-  exports: [LeaveRequestsService],
+  /*
+   * `LeaveRequestsRepository` được export cho phân hệ LƯƠNG: tính lương phải
+   * đếm ngày phép CÓ LƯƠNG, mà "có lương hay không" nằm ở `leave_types.is_paid`
+   * chứ không có trên bảng chấm công. Export repository thay vì service vì
+   * payroll chỉ cần đọc thô, không cần lớp kiểm tra quyền của service này.
+   */
+  exports: [LeaveRequestsService, LeaveRequestsRepository],
 })
 export class LeaveRequestsModule {}

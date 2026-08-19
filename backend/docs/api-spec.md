@@ -1223,123 +1223,199 @@ là hệ quả của đơn nữa mà là ngày công thật, nhập tay hoặc n
 
 ## 9. Salaries – Lương
 
-> ⏳ **Toàn bộ §9 chưa hiện thực** (Giai đoạn 6).
+> **Quyền ở phân hệ này HẸP HƠN mọi phân hệ khác.** `manager` đọc được hồ sơ và
+> chấm công của phòng mình nhưng **không** đọc lương: biết lương nhân viên dưới
+> quyền không cần cho việc quản lý công việc, và một bảng lương lộ ra nội bộ là
+> chuyện không thu lại được.
+>
+> | | Vai trò |
+> |---|---|
+> | Đọc bảng lương | `admin`, `hr_manager`, `hr_staff` |
+> | Tính / sửa / duyệt / huỷ | `admin`, `hr_manager` |
+>
+> **Không có `GET /salaries/me`** — nhân viên không đăng nhập hệ thống này;
+> phiếu lương cá nhân do nhân sự in ra từ `GET /salaries/:id`.
+>
+> Mọi số tiền trả về là **`number`**, không phải chuỗi: TypeORM trả `DECIMAL`
+> dạng chuỗi để khỏi mất chính xác, nhưng giữ nguyên ra tới client thì mọi phép
+> cộng ở giao diện đều là nối chuỗi.
 
 ### POST `/salaries/calculate`
 > 🔒 Roles: `admin`, `hr_manager`
 
-Tính lương hàng loạt cho toàn bộ NV hoặc 1 phòng ban.
+Tính lương cho **toàn bộ** nhân viên đang làm việc có hợp đồng còn hiệu lực
+trong kỳ. Một lần chạy là **một tháng** — số ngày công chuẩn là mẫu số chung của
+cả công ty, tính lẻ từng người sẽ mở đường cho hai người cùng tháng khác mẫu số.
 
 ```json
-{
-  "month": 5,
-  "year": 2026,
-  "departmentId": null,      // null = toàn công ty
-  "overwrite": false         // true = tính lại nếu đã tồn tại
-}
+{ "year": 2026, "month": 8, "dryRun": false }
 ```
+
+**Chạy lại được bao nhiêu lần cũng được** chừng nào bảng lương chưa chốt: dòng
+`draft`/`calculated` bị ghi đè bằng số mới, dòng `approved`/`paid` được **giữ
+nguyên** và đếm ở `skippedLocked`. Chấm công nhập bổ sung sau khi đã tính là
+chuyện thường ngày, nên "tính một lần rồi thôi" sẽ luôn cho ra bảng lương cũ.
+
+Khoản **chỉnh tay** (`performanceBonus`, `otherIncome`, `otherDeductions`) được
+giữ lại qua lần tính lại — chúng không suy ra được từ dữ liệu gốc.
 
 **Response 200:**
 ```json
 {
-  "data": {
-    "processed": 45,
-    "skipped": 2,
-    "errors": [],
-    "totalNetSalary": 850000000
-  }
+  "year": 2026, "month": 8, "standardWorkingDays": 21,
+  "employeesConsidered": 66, "created": 60, "updated": 0,
+  "skippedLocked": 0, "skippedNoContract": ["NV0001"],
+  "totalGross": 955159291, "totalNet": 804272345, "dryRun": false
 }
 ```
+
+**Errors:** `422 PAYROLL_NO_WORKING_DAYS` – kỳ không có ngày công chuẩn nào
+
+---
+
+### GET `/salaries/summary?year=2026&month=8`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+Số người, tổng gross/net/bảo hiểm/thuế và số dòng theo từng trạng thái. Gộp ở DB
+chứ không kéo hết dòng về rồi cộng bằng JavaScript.
+
+### GET `/salaries/periods`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+Mảng `{ year, month }` các kỳ **đã có dữ liệu**, mới nhất trước — để giao diện
+biết tháng nào chọn được thay vì cho chọn mọi tháng rồi trả về rỗng.
 
 ---
 
 ### GET `/salaries`
-> 🔒 Roles: `admin`, `hr_manager`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
-**Query:** `?month=5&year=2026&departmentId=2&status=draft`
+**Query:** `?year=2026` (**bắt buộc**) `&month=8&employeeId=51&departmentId=2&status=calculated`,
+phân trang chuẩn §1.2. `sort`: `employeeCode` (mặc định) · `netSalary` · `grossSalary`.
 
----
+Bỏ trống `month` để xem cả năm của một người — đó là câu hỏi thật khi tra cứu
+thu nhập cả năm. Nhưng `year` thì không bỏ được: trộn nhiều năm vào một danh
+sách thì cột "thực nhận" không còn cộng lại thành gì có nghĩa.
 
-### GET `/salaries/me/:year/:month`
-> 🔒 Auth required (employee xem phiếu lương)
+### GET `/salaries/:id`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
-**Response 200:**
+**Response (rút gọn):**
 ```json
 {
-  "data": {
-    "id": 501,
-    "month": 5,
-    "year": 2026,
-    "employee": { "id": 51, "fullName": "Nguyễn Văn Bình", "employeeCode": "NV0051" },
-
-    "workingDays": {
-      "standard": 22,
-      "actual": 21,
-      "paidLeave": 1,
-      "unpaidLeave": 0,
-      "overtimeHours": 4
-    },
-
-    "income": {
-      "baseSalary": 15000000,
-      "positionAllowance": 500000,
-      "mealAllowance": 730000,
-      "transportAllowance": 300000,
-      "phoneAllowance": 200000,
-      "overtimePay": 227272,
-      "performanceBonus": 0,
-      "grossSalary": 16957272
-    },
-
-    "insurance": {
-      "insuranceSalary": 15000000,
-      "socialInsurance": 1200000,
-      "healthInsurance": 225000,
-      "unemploymentInsurance": 150000,
-      "total": 1575000
-    },
-
-    "tax": {
-      "selfDeduction": 11000000,
-      "dependentDeduction": 0,
-      "dependentCount": 0,
-      "taxableIncome": 2132272,
-      "personalIncomeTax": 106613
-    },
-
-    "summary": {
-      "totalDeductions": 1681613,
-      "netSalary": 15275659
-    },
-
-    "status": "approved",
-    "paidAt": "2026-05-31T02:00:00.000Z"
-  }
+  "id": 120, "employeeId": 51,
+  "employee": { "employeeCode": "NV0051", "fullName": "Nguyễn Văn Bình",
+                "departmentName": "Phòng Kỹ thuật", "positionName": "Kỹ sư phần mềm" },
+  "month": 8, "year": 2026,
+  "standardWorkingDays": 21, "actualWorkingDays": 19,
+  "paidLeaveDays": 2, "unpaidLeaveDays": 0, "overtimeHours": 6.5,
+  "baseSalary": 20000000, "positionAllowance": 2000000,
+  "mealAllowance": 730000, "overtimePay": 1218750,
+  "grossSalary": 23948750,
+  "insuranceBaseSalary": 20000000,
+  "socialInsurance": 1600000, "healthInsurance": 300000,
+  "unemploymentInsurance": 200000, "totalInsurance": 2100000,
+  "dependentCount": 1, "selfDeduction": 15500000, "dependentDeduction": 6200000,
+  "taxableIncome": 0, "personalIncomeTax": 0,
+  "advanceDeduction": 0, "otherDeductions": 0,
+  "netSalary": 21848750,
+  "status": "calculated", "approvedAt": null, "paidAt": null
 }
 ```
 
 ---
 
-### PATCH `/salaries/:id/approve`
-> 🔒 Roles: `admin`, `hr_manager`
-
----
-
-### PATCH `/salaries/:id/mark-paid`
+### PATCH `/salaries/:id`
 > 🔒 Roles: `admin`, `hr_manager`
 
 ```json
-{ "paidAt": "2026-05-31T02:00:00.000Z" }
+{ "performanceBonus": 3000000, "otherIncome": 0, "otherDeductions": 0,
+  "note": "Thưởng dự án Q3" }
 ```
+
+**CHỈ ba khoản không suy ra được từ dữ liệu gốc.** Lương cơ bản, bảo hiểm, thuế
+và ngày công đều do server tính từ hợp đồng và chấm công; cho sửa tay là mở
+đường cho một bảng lương không khớp với bất kỳ dữ liệu gốc nào và không ai dò
+lại được.
+
+Sửa xong server **tính lại** thuế TNCN và lương thực nhận.
+
+**Errors:** `409 SALARY_LOCKED` – phiếu đã duyệt/đã trả
 
 ---
 
-### GET `/salaries/:id/payslip`
-> 🔒 Auth required
+### PATCH `/salaries/:id/approve` · `/mark-paid` · `/cancel`
+> 🔒 Roles: `admin`, `hr_manager`
 
-Xuất phiếu lương PDF.
+Vòng đời một phiếu: `calculated` → `approved` → `paid`.
 
-**Response:** `Content-Type: application/pdf`
+| Endpoint | Từ | Sang | Ghi chú |
+|---|---|---|---|
+| `/approve` | `calculated` | `approved` | Từ đây phiếu bị khoá: không tính lại, không sửa tay |
+| `/mark-paid` | `approved` | `paid` | Nhảy thẳng từ `calculated` là bỏ mất bước kiểm soát cuối cùng trước khi tiền rời công ty |
+| `/cancel` | bất kỳ | `cancelled` | Đường thoát duy nhất khi phát hiện sai sau khi duyệt; phiếu vẫn nằm lại làm vết |
+
+**Errors:** `409 SALARY_NOT_CALCULATED` · `409 SALARY_NOT_APPROVED` ·
+`409 SALARY_ALREADY_CANCELLED`
+
+---
+
+## 9b. Salary Advances – Tạm ứng lương
+
+> Cùng khuôn với đơn nghỉ phép, vì cùng một lý do: nhân viên không đăng nhập hệ
+> thống này nên không ai tự đề nghị. **Quản lý ghi nhận** cho phòng mình (nhân sự
+> ghi cho bất kỳ ai), **nhân sự duyệt**, và người đã ghi **không** duyệt được
+> chính phiếu đó — tạm ứng là tiền mặt ra khỏi công ty.
+
+### POST `/salary-advances`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager`
+
+```json
+{ "employeeId": 51, "amount": 5000000, "advanceDate": "2026-08-20",
+  "deductMonth": 9, "deductYear": 2026, "reason": "Ứng trước tiền viện phí" }
+```
+
+**`deductMonth`/`deductYear` là KỲ LƯƠNG bị trừ, tách khỏi `advanceDate` là ngày
+thực chi.** Ứng ngày 28/07 để trừ vào lương tháng 8 là chuyện bình thường; suy
+kỳ trừ từ ngày ứng sẽ đoán sai đúng những trường hợp đó, mà đoán sai ở đây nghĩa
+là trừ hai lần hoặc không trừ lần nào.
+
+### GET `/salary-advances`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager` — `manager` chỉ thấy phòng mình.
+
+**Query:** `?employeeId=51&status=pending&deductYear=2026&deductMonth=9`
+
+### PATCH `/salary-advances/:id/approve` · `/reject` · `/cancel`
+> 🔒 `approve`/`reject`: `admin`, `hr_manager`. `cancel`: người GHI NHẬN hoặc nhân sự.
+
+`reject` cần `reason`. Cả ba chỉ chạy trên phiếu còn `pending`.
+
+Phiếu đã duyệt sẽ được lần chạy tính lương của kỳ đó trừ vào `advanceDeduction`
+và chuyển sang trạng thái `deducted`.
+
+**Errors:** `403 CANNOT_APPROVE_OWN_RECORD` · `409 ADVANCE_NOT_PENDING`
+
+---
+
+## 9c. Payroll Settings – Cấu hình lương
+
+### GET `/payroll-settings` | PATCH `/payroll-settings`
+> 🔒 Roles: `admin`, `hr_manager`
+
+```json
+{ "minimumWageRegion": 1, "mealAllowance": 730000, "transportAllowance": 0,
+  "phoneAllowance": 0, "attendanceAllowance": 0, "payOvertime": true }
+```
+
+Ở đây là những thứ **giống nhau cho mọi người**: vùng lương tối thiểu và các
+khoản phụ cấp theo chính sách chung. Khoản thoả thuận riêng với từng người (lương
+cơ bản, lương đóng bảo hiểm, phụ cấp chức vụ) nằm ở **hợp đồng**.
+
+`minimumWageRegion` quyết định **trần đóng BHTN** (20 × lương tối thiểu vùng),
+khác trần BHXH/BHYT (20 × mức tham chiếu) — xem business-rules.md §1.2.
+
+Sửa cấu hình chỉ ảnh hưởng tới các kỳ lương **tính từ nay**; bảng lương đã tính
+giữ nguyên con số của lúc đó, vì nó là chứng từ.
 
 ---
 

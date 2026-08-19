@@ -131,6 +131,18 @@ Trong đó: **Ngày công thực tế** = ngày thực làm + ngày phép có l�
 > BHTN = Lương đóng BHTN × 1%
 > Tổng bảo hiểm NLĐ = BHXH + BHYT + BHTN
 
+### 3.4. Tháng nghỉ dài không đóng bảo hiểm
+
+> Căn cứ: **Điều 42 Quyết định 595/QĐ-BHXH**.
+
+Người lao động **không làm việc và không hưởng tiền lương từ 14 ngày làm việc
+trở lên** trong tháng thì **tháng đó không đóng** BHXH, BHYT, BHTN.
+
+Không áp quy tắc này thì một người nghỉ trọn tháng vẫn bị trừ 10,5% trên lương
+ghi trong hợp đồng trong khi thu nhập gần bằng 0 — và bảng lương ra **số âm**,
+tức công ty đang đòi tiền nhân viên. Các trường hợp thường gặp: nghỉ không lương
+dài ngày, nghỉ thai sản, tạm hoãn hợp đồng.
+
 ---
 
 ## 4. Thuế thu nhập cá nhân (TNCN)
@@ -180,6 +192,16 @@ Trong đó: **Ngày công thực tế** = ngày thực làm + ngày phép có l�
 **Bước 1 – Tính Gross (tổng thu nhập trước khấu trừ)**
 
 > Gross = Lương cơ bản + Phụ cấp chức vụ + Phụ cấp bữa ăn + Phụ cấp đi lại + Phụ cấp điện thoại + Lương làm thêm giờ + Thưởng KPI + Thu nhập khác
+
+**Khoản nào chia theo ngày công, khoản nào không:**
+
+| Khoản | Theo ngày công? | Vì sao |
+|---|---|---|
+| Lương cơ bản, phụ cấp chức vụ | **Có** — §2.3 | Tiền công của những ngày thực sự làm |
+| Phụ cấp bữa ăn giữa ca | **Có** | Tiền bữa trưa của từng ngày đi làm |
+| Phụ cấp đi lại, điện thoại | Không | Bù chi phí cố định theo tháng |
+| Phụ cấp chuyên cần | **Mất trắng** nếu có ngày nghỉ không lương | Chia tỉ lệ thì nó không còn là "chuyên cần" |
+| Làm thêm giờ, thưởng, thu nhập khác | Không | Đã là số tiền của việc cụ thể |
 
 **Bước 2 – Tính bảo hiểm người lao động đóng (10,5%)**
 

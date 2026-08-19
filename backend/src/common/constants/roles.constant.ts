@@ -98,3 +98,41 @@ export const LEAVE_APPROVE_ROLES: string[] = [
   ROLE_HR_MANAGER,
   ROLE_HR_STAFF,
 ];
+
+/**
+ * Vai trò được XEM bảng lương.
+ *
+ * HẸP HƠN MỌI QUYỀN ĐỌC KHÁC trong hệ thống. `manager` đọc được hồ sơ và chấm
+ * công của phòng mình, nhưng lương thì không: biết lương của nhân viên dưới
+ * quyền không cần thiết cho việc quản lý công việc, và một bảng lương lộ ra nội
+ * bộ là chuyện không thu lại được.
+ */
+export const PAYROLL_READ_ROLES: string[] = [
+  ROLE_ADMIN,
+  ROLE_HR_MANAGER,
+  ROLE_HR_STAFF,
+];
+
+/**
+ * Vai trò được TÍNH, SỬA và DUYỆT bảng lương.
+ *
+ * `hr_staff` xem được nhưng KHÔNG duyệt: duyệt bảng lương là chốt số tiền công
+ * ty chi ra trong tháng, và đó là bước kiểm soát cuối cùng trước khi tiền đi.
+ */
+export const PAYROLL_WRITE_ROLES: string[] = [ROLE_ADMIN, ROLE_HR_MANAGER];
+
+/**
+ * Vai trò được GHI NHẬN phiếu tạm ứng lương.
+ *
+ * Cùng khuôn với đơn nghỉ phép: quản lý ghi cho phòng mình, nhân sự ghi cho bất
+ * kỳ ai — nhân viên không đăng nhập hệ thống này nên không ai tự đề nghị.
+ */
+export const ADVANCE_RECORD_ROLES: string[] = [
+  ROLE_ADMIN,
+  ROLE_HR_MANAGER,
+  ROLE_HR_STAFF,
+  ROLE_MANAGER,
+];
+
+/** Vai trò được DUYỆT phiếu tạm ứng — tiền ra khỏi công ty, hẹp hơn người ghi. */
+export const ADVANCE_APPROVE_ROLES: string[] = [ROLE_ADMIN, ROLE_HR_MANAGER];

@@ -15,7 +15,7 @@
 | 3 | Nhân viên | 29 / 29 | ✅ Hoàn thành |
 | 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
 | 5 | Phép | 41 / 41 | ✅ Hoàn thành |
-| 6 | Lương | 0 / 13 | ⬜ Chưa bắt đầu |
+| 6 | Lương | 21 / 30 | 🟡 6.1 backend xong; 6.2 frontend chưa |
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
 
@@ -549,28 +549,51 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 
 ## Giai đoạn 6 — Lương
 
-> Theo đúng `docs/vn-business-rules.md`. Kiểm tra kỹ số liệu trước khi tick.
+> Theo đúng `backend/docs/business-rules.md`. Kiểm tra kỹ số liệu trước khi tick.
+>
+> ### Luật 2026 — bản cũ của mục này ghi sai
+>
+> Mục này trước đây ghi **7 bậc thuế, giảm trừ 11tr/4,4tr**. Đó là luật CŨ.
+> Từ **01/01/2026** biểu thuế rút còn **5 bậc** (Luật 109/2025/QH15) và giảm trừ
+> lên **15,5tr / 6,2tr** (NQ 110/2025/UBTVQH15). Dùng bảng cũ sẽ tính THỪA thuế
+> cho gần như mọi người — bậc 1 cũ chỉ tới 5tr, bậc 1 mới tới 10tr.
+>
+> Mức tham chiếu còn đổi **giữa năm**: 2,34tr → 2,53tr từ 01/07/2026, kéo theo
+> trần đóng BHXH/BHYT 46,8tr → 50,6tr. Nên hằng số được hỏi theo KỲ LƯƠNG
+> (`payrollConstantsFor(year, month)`), không đọc thẳng.
 
 ### 6.1 Backend Payroll
-- [ ] `SalaryComponentsModule`: cấu hình các khoản phụ cấp theo NV
-- [ ] `PayrollModule`: tính lương hàng loạt — trigger cho một tháng
-- [ ] Logic BHXH 8%, BHYT 1.5%, BHTN 1% (tổng 10.5% NLĐ)
-- [ ] Logic thuế TNCN lũy tiến 7 bậc + giảm trừ bản thân 11tr + phụ thuộc 4.4tr
-- [ ] Tính hệ số công = ngày công thực tế / ngày công chuẩn tháng
-- [ ] Tích hợp dữ liệu chấm công (gồm giờ làm thêm suy ra từ đó) + phép vào bảng lương
-- [ ] Lock bảng lương: đã lock thì không tính lại
-- [ ] `SalaryAdvancesModule`: tạm ứng lương
+- [x] `payroll_settings`: cấu hình lương cấp công ty (vùng lương tối thiểu, phụ cấp chung)
+- [x] `PayrollService`: tính lương hàng loạt cho một kỳ, có `dryRun`
+- [x] Logic BHXH 8%, BHYT 1.5%, BHTN 1% (tổng 10.5% NLĐ) — **hai trần khác nhau**
+- [x] Logic thuế TNCN lũy tiến **5 bậc** + giảm trừ bản thân 15,5tr + phụ thuộc 6,2tr
+- [x] Lương theo ngày công thực tế = (lương tháng ÷ ngày công chuẩn) × ngày được trả
+- [x] Tích hợp dữ liệu chấm công (gồm giờ làm thêm suy ra từ đó) + phép vào bảng lương
+- [x] Lock bảng lương: `approved`/`paid` thì không tính lại, không sửa tay
+- [x] `SalaryAdvancesService`: tạm ứng lương (ghi nhận → duyệt → trừ vào kỳ lương)
+- [x] `contract.seed.ts`: hợp đồng demo, vì không có hợp đồng thì không có căn cứ trả lương
 
-**Tests (6.1 — Bắt buộc kiểm tra từng số):**
-- [ ] Lương gross 20tr → BHXH đúng = 1.6tr, BHYT = 300k, BHTN = 200k
-- [ ] Thu nhập chịu thuế = Gross - BHXH NLĐ - Giảm trừ bản thân 11tr
-- [ ] Thuế TNCN bracket 1 (0–5tr × 5%) đúng
-- [ ] Thuế TNCN bracket 2 (5–10tr × 10%) đúng
-- [ ] Lương Net = Gross - tổng khấu trừ — khớp với ví dụ trong business-rules.md
-- [ ] NV có 1 người phụ thuộc → giảm trừ thêm 4.4tr
-- [ ] Hệ số công: nghỉ 2 ngày không phép → lương bị trừ đúng
-- [ ] Tạm ứng 5tr → bị trừ vào lương net tháng đó
-- [ ] Bảng lương đã lock → không cho tính lại
+> **Phụ cấp cơm/xe/điện thoại ở cấp CÔNG TY, không ở hợp đồng.** Hợp đồng đã có
+> lương cơ bản, lương đóng bảo hiểm và phụ cấp chức vụ — những khoản thoả thuận
+> riêng với từng người. Ba khoản còn lại là chính sách chung ghi trong nội quy;
+> ghi lặp vào từng hợp đồng thì đổi mức ăn ca một lần phải sửa cả trăm hợp đồng.
+>
+> **Quyền đọc lương HẸP HƠN mọi phân hệ khác:** `manager` đọc được hồ sơ và chấm
+> công của phòng mình nhưng KHÔNG đọc lương.
+
+**Tests (6.1 — Bắt buộc kiểm tra từng số):** *(55 unit test)*
+- [x] Lương đóng BH 20tr → BHXH đúng = 1.6tr, BHYT = 300k, BHTN = 200k
+- [x] Trần BHXH/BHYT theo kỳ: 46,8tr (trước 01/07/2026) → 50,6tr (từ 01/07/2026)
+- [x] Trần BHTN tính theo **lương tối thiểu vùng**, không dùng chung trần BHXH
+- [x] Thuế TNCN đủ 5 bậc, và **liền mạch ở cả 4 mốc** 10/30/60/100tr
+- [x] Lương Net khớp từng dòng với ví dụ minh hoạ trong business-rules.md §6
+- [x] NV có 1 người phụ thuộc → giảm trừ thêm 6,2tr
+- [x] Phụ cấp bữa ăn chỉ miễn thuế tới 730k; phần vượt vẫn chịu thuế
+- [x] Nghỉ 2 ngày không phép → lương bị trừ đúng 2 ngày công
+- [x] Nghỉ không lương ≥ 14 ngày → **không đóng bảo hiểm** tháng đó, net không âm
+- [x] Tạm ứng 5tr → trừ SAU thuế, không đổi thu nhập tính thuế
+- [x] Bảng lương `approved`/`paid` → không cho tính lại; khoản chỉnh tay được giữ
+- [x] Kỳ lương trước 2026 → ném lỗi thay vì chạy êm với bộ hằng số sai
 
 ### 6.2 Frontend Payroll
 - [ ] Trang `/payroll`: danh sách bảng lương theo tháng (HR)
