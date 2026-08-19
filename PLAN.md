@@ -13,7 +13,7 @@
 | 1 | Auth & User | 43 / 43 | ✅ Hoàn thành (đã nghiệm thu) |
 | 2 | Master Data | 18 / 18 | ✅ Hoàn thành (đã nghiệm thu) |
 | 3 | Nhân viên | 29 / 29 | ✅ Hoàn thành |
-| 4 | Chấm công | 0 / 10 | ⬜ Chưa bắt đầu |
+| 4 | Chấm công | 10 / 13 | 🟡 Đang làm (4.1 xong, 4.2 frontend chưa) |
 | 5 | Phép | 0 / 12 | ⬜ Chưa bắt đầu |
 | 6 | Lương | 0 / 13 | ⬜ Chưa bắt đầu |
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
@@ -265,18 +265,39 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 ## Giai đoạn 4 — Chấm công
 
 ### 4.1 Backend Attendance
-- [ ] `AttendanceModule`: check-in/out, tính giờ công thực tế
-- [ ] Tổng hợp chấm công theo tháng cho từng NV
-- [ ] `OvertimeModule`: đăng ký + duyệt làm thêm giờ
-- [ ] API export Excel báo cáo chấm công tháng
+- [x] `AttendanceModule`: check-in/out, tính giờ công thực tế
+- [x] Tổng hợp chấm công theo tháng cho từng NV
+- [x] `OvertimeModule`: đăng ký + duyệt làm thêm giờ
+- [x] API export Excel báo cáo chấm công tháng
 
 **Tests (4.1):**
-- [ ] Check-in lúc 8h, check-out lúc 17h30 → 8.5 giờ công
-- [ ] Check-in 2 lần trong ngày → chỉ tính lần đầu
-- [ ] Chưa check-out → `check_out_time` null, giờ công = null
-- [ ] Tổng hợp tháng đúng với dữ liệu check-in/out
-- [ ] OT: manager duyệt → trạng thái `approved`
-- [ ] Export Excel có đủ cột, đúng dữ liệu
+- [x] Check-in lúc 8h, check-out lúc 17h30 → 8.5 giờ công *(unit: `work-hours.util.spec` + `attendances.service.spec`)*
+- [x] Check-in 2 lần trong ngày → chỉ tính lần đầu *(409 ALREADY_CHECKED_IN, không ghi đè)*
+- [x] Chưa check-out → `check_out_time` null, giờ công = null
+- [x] Tổng hợp tháng đúng với dữ liệu check-in/out
+- [x] OT: manager duyệt → trạng thái `approved`
+- [x] Export Excel có đủ cột, đúng dữ liệu
+
+> **Quyết định thiết kế quan trọng nhất của giai đoạn — tách "giờ đã làm" khỏi "giờ được trả tiền".**
+> business-rules §12.3 định nghĩa làm thêm giờ = phần vượt quá 8 giờ/ngày, trong khi PLAN lại yêu cầu có luồng đăng ký + duyệt. Hiểu là một thì cứ ai quên về là công ty tự phát sinh nghĩa vụ trả lương. Điều 107 BLLĐ 2019 đòi làm thêm giờ phải **được NLĐ đồng ý**, nên ở lại muộn KHÔNG phải làm thêm giờ. Hệ thống ghi cả hai, tách hẳn:
+> - `attendances.overtime_hours` = số giờ **đã ở lại làm**, suy từ giờ chấm. Là bằng chứng để đối chiếu và để phát hiện vượt trần 12 giờ/ngày.
+> - `overtime_requests` = số giờ **công ty đồng ý trả**. **Giai đoạn 6 tính lương đọc bảng này**, không đọc `attendances.overtime_hours`.
+> `GET /attendances/me` trả về CẢ HAI cạnh nhau (`overtimeHours` và `approvedOvertimeHours`) để HR đối chiếu.
+>
+> **Những chỗ khác cố ý làm chặt hơn tài liệu:**
+> - **Giờ do SERVER đọc, theo múi giờ Việt Nam.** `check-in`/`check-out` không nhận tham số thời gian — nhận là cho nhân viên tự khai giờ vào. Container thường chạy UTC: 06:00 ở VN vẫn là *hôm qua* theo UTC, ca sáng sẽ bị ghi công sai ngày và đụng UNIQUE `(employee_id, work_date)`.
+> - **Chấm ra khi chưa chấm vào → 404**, không tự suy giờ vào từ khung giờ chuẩn. Bịa nốt nửa còn thiếu của một dữ kiện trả lương thì tệ hơn là từ chối.
+> - **Sửa bảng công BẮT BUỘC ghi lý do** (`note` required ở `PATCH`), và chỉ nhóm HR — `manager` đọc được phòng mình nhưng không sửa được.
+> - **Nghỉ trưa chỉ trừ phần thực sự chồng lên ca.** Trừ vô điều kiện biến ca sáng 08:00–11:00 thành 2 giờ thay vì 3, ca 30 phút thành giờ công ÂM.
+> - **`absentDays` chỉ đếm tới hôm nay.** Mở bảng công ngày mùng 3 mà thấy "vắng 18 ngày" là báo cáo kỷ luật sai sự thật về những ngày chưa xảy ra.
+> - **Ba trần Điều 107 kiểm ngay lúc NỘP đơn, và kiểm LẠI lúc duyệt.** Trần ngày là *tổng* giờ có mặt: ngày thường còn 4 giờ làm thêm (8 giờ ca chính), ngày nghỉ được trọn 12. Kiểm lại lúc duyệt vì hai đơn mỗi đơn hợp lệ vẫn cộng thành vi phạm.
+> - **Không ai tự duyệt đơn của mình**, kể cả admin.
+> - **Hệ số Điều 98 chốt vào đơn lúc tạo** — giống cách `salaries` lưu snapshot tỷ lệ bảo hiểm.
+>
+> **Chưa làm:**
+> - `POST /attendances/bulk-import` (api-spec §7) — không nằm trong phạm vi 4.1.
+> - Cấu hình khung giờ làm việc nằm ở `attendance.constant.ts` chứ không phải bảng `settings` (schema chưa có bảng đó). Có test khoá `STANDARD_WORK_HOURS_PER_DAY` với khung giờ để hai chỗ không lệch nhau.
+> - **Kiểm chứng end-to-end bằng e2e spec chưa chạy được** tại thời điểm commit: một phiên làm việc khác đang sửa dở `demo.seed.ts` khiến dev server không build. 99 unit test đã xanh và 14 route đã map đúng lúc build còn sạch.
 
 ### 4.2 Frontend Attendance
 - [ ] Calendar view cá nhân: hiển thị có đi làm / vắng / OT
