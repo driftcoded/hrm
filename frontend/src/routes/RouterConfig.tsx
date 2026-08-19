@@ -60,11 +60,6 @@ const AttendanceTablePage = lazy(() =>
     default: module.AttendanceTablePage,
   })),
 );
-const OvertimePage = lazy(() =>
-  import('@/pages/attendance/OvertimePage').then((module) => ({
-    default: module.OvertimePage,
-  })),
-);
 
 // Master-data settings screens (Giai đoạn 2.2), each its own chunk.
 const SettingsIndexPage = lazy(() =>
@@ -168,7 +163,6 @@ const router = createBrowserRouter([
                  chỉ của bảng này trong bản trước, và bookmark thì không tự sửa.
               */
               { index: true, element: <AttendanceTablePage /> },
-              { path: 'overtime', element: <OvertimePage /> },
               { path: 'table', element: <Navigate to="/attendance" replace /> },
             ],
           },

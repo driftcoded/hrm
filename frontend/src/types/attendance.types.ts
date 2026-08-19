@@ -40,10 +40,12 @@ export interface AttendanceRecord {
   /** `null` khi chưa chấm ra — KHÔNG phải 0. */
   workHours: number | null;
   /**
-   * Số giờ đã ở lại làm vượt ngày công chuẩn.
+   * Giờ làm thêm, suy ra từ chính giờ vào/ra: phần vượt 8 giờ/ngày, hoặc toàn
+   * bộ thời gian làm nếu là ngày nghỉ tuần/ngày lễ.
    *
-   * ⚠️ KHÔNG phải số giờ được trả tiền làm thêm. Tiền tính theo đơn đã duyệt ở
-   * `/overtime-requests` — xem `AttendanceSummary.approvedOvertimeHours`.
+   * ĐÂY LÀ CĂN CỨ TRẢ TIỀN. Không có bảng đơn đăng ký/duyệt song song — hệ số
+   * Điều 98 và phụ trội ca đêm 22h–6h do backend áp lúc tính lương
+   * (business-rules.md §7.1, §12.3).
    */
   overtimeHours: number;
   isLate: boolean;
@@ -116,71 +118,4 @@ export interface AttendanceImportResult {
   updated: number;
   /** Rỗng = file hợp lệ. Có phần tử = KHÔNG dòng nào được ghi. */
   errors: AttendanceImportError[];
-}
-
-// ----------------------------------------------------------- overtime ----
-
-export const OVERTIME_STATUSES = [
-  'pending',
-  'approved',
-  'rejected',
-  'cancelled',
-] as const;
-
-export type OvertimeStatus = (typeof OVERTIME_STATUSES)[number];
-
-export const OVERTIME_RATE_TYPES = ['weekday', 'weekend', 'holiday'] as const;
-
-export type OvertimeRateType = (typeof OVERTIME_RATE_TYPES)[number];
-
-export const OVERTIME_SORT_KEYS = ['workDate', 'createdAt', 'totalHours'] as const;
-
-export type OvertimeSortKey = (typeof OVERTIME_SORT_KEYS)[number];
-
-export interface OvertimeRequest {
-  id: number;
-  employeeId: number;
-  employee: AttendanceEmployee | null;
-  workDate: string;
-  startTime: string;
-  endTime: string;
-  totalHours: number;
-  /** Phần giờ rơi vào khung 22h–6h. */
-  nightHours: number;
-  rateType: OvertimeRateType;
-  /** Hệ số Điều 98 đã chốt lúc tạo đơn. */
-  rate: number;
-  nightRateSurcharge: number;
-  reason: string;
-  /** Người GHI NHẬN đơn (quản lý/nhân sự nhập hộ). `null` với đơn cũ. */
-  recordedBy: number | null;
-  recorderName: string | null;
-  status: OvertimeStatus;
-  approvedBy: number | null;
-  approverName: string | null;
-  approvedAt: string | null;
-  rejectedReason: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface OvertimeFilters {
-  page?: number;
-  limit?: number;
-  sort?: OvertimeSortKey;
-  order?: 'asc' | 'desc';
-  employeeId?: number;
-  departmentId?: number;
-  status?: OvertimeStatus;
-  month?: number;
-  year?: number;
-}
-
-export interface CreateOvertimePayload {
-  /** Nhân viên ĐƯỢC hưởng giờ làm thêm — không phải người đang đăng nhập. */
-  employeeId: number;
-  workDate: string;
-  startTime: string;
-  endTime: string;
-  reason: string;
 }

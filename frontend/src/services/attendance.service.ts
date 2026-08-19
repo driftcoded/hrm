@@ -5,21 +5,19 @@ import type {
   AttendanceImportResult,
   AttendanceRecord,
   CreateAttendancePayload,
-  CreateOvertimePayload,
-  OvertimeFilters,
-  OvertimeRequest,
   UpdateAttendancePayload,
 } from '@/types/attendance.types';
 import { filenameFromDisposition, type DownloadedFile } from '@/utils/download';
 import { withJsonErrorBody } from './blobError';
 
 /**
- * Mọi call của module Chấm công — nơi DUY NHẤT gọi `/attendances` và
- * `/overtime-requests` (frontend/CLAUDE.md folder rule).
+ * Mọi call của module Chấm công — nơi DUY NHẤT gọi `/attendances`
+ * (frontend/CLAUDE.md folder rule). Bản xuất Excel thì KHÔNG ở đây — nó thuộc
+ * `/reports`, xem `report.service.ts`.
  *
- * Hai nhóm endpoint nằm chung một file vì chúng là một màn hình nghiệp vụ, và
- * tách ra hai file chỉ làm rải cùng bốn dòng axios sang chỗ khác. Bản xuất
- * Excel thì KHÔNG ở đây — nó thuộc `/reports`, xem `report.service.ts`.
+ * KHÔNG CÓ ĐƠN LÀM THÊM GIỜ. Giờ làm thêm suy ra từ chính giờ vào/ra (phần vượt
+ * 8 giờ/ngày, hoặc toàn bộ thời gian nếu là ngày nghỉ tuần/ngày lễ) và về theo
+ * `AttendanceRecord.overtimeHours` — không có endpoint đăng ký/duyệt nào cả.
  *
  * KHÔNG CÓ CHẤM CÔNG TỰ ĐỘNG. Việc chấm công diễn ra trên nền tảng ngoài; dữ
  * liệu vào hệ thống bằng `importAttendances` (Excel, đường chính) hoặc
@@ -130,47 +128,3 @@ export async function downloadImportTemplate(): Promise<DownloadedFile> {
   }
 }
 
-// ------------------------------------------------------------- overtime ----
-
-export function listOvertimeRequests(
-  filters?: OvertimeFilters,
-): Promise<PaginatedData<OvertimeRequest>> {
-  return get<PaginatedData<OvertimeRequest>>('/overtime-requests', filters);
-}
-
-export async function createOvertimeRequest(
-  payload: CreateOvertimePayload,
-): Promise<OvertimeRequest> {
-  const { data } = await apiClient.post<ApiSuccessResponse<OvertimeRequest>>(
-    '/overtime-requests',
-    payload,
-  );
-  return data.data;
-}
-
-export async function approveOvertimeRequest(id: number): Promise<OvertimeRequest> {
-  const { data } = await apiClient.patch<ApiSuccessResponse<OvertimeRequest>>(
-    `/overtime-requests/${id}/approve`,
-    {},
-  );
-  return data.data;
-}
-
-export async function rejectOvertimeRequest(
-  id: number,
-  reason: string,
-): Promise<OvertimeRequest> {
-  const { data } = await apiClient.patch<ApiSuccessResponse<OvertimeRequest>>(
-    `/overtime-requests/${id}/reject`,
-    { reason },
-  );
-  return data.data;
-}
-
-export async function cancelOvertimeRequest(id: number): Promise<OvertimeRequest> {
-  const { data } = await apiClient.patch<ApiSuccessResponse<OvertimeRequest>>(
-    `/overtime-requests/${id}/cancel`,
-    {},
-  );
-  return data.data;
-}

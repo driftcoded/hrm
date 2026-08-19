@@ -183,9 +183,14 @@ Wizard dùng **một** instance `Form` cho cả 4 bước (ẩn pane không ho�
 
 | File | Mô tả |
 |------|-------|
-| `AttendanceListPage` | Xem lịch chấm công theo tháng (calendar view) |
-| `AttendanceManagePage` | HR xem bảng chấm công toàn công ty |
-| `OvertimeRequestPage` | Đăng ký / duyệt làm thêm giờ |
+| `AttendanceLayout` | Vỏ của module: tiêu đề + `Outlet`. Không còn tabbar (chỉ còn một màn hình) |
+| `AttendanceTablePage` | Màn hình chính: bảng công toàn công ty, lọc phòng ban + tháng |
+| `AddAttendanceModal` / `AdjustAttendanceModal` | Nhập một ngày công / sửa ngày công đã có (bắt buộc ghi lý do) |
+| `ImportAttendanceModal` | Nạp Excel 2 bước: chạy thử → ghi thật |
+| `AttendanceStatusTag` | Tag trạng thái ngày công |
+
+> KHÔNG có trang đăng ký/duyệt làm thêm giờ. Giờ làm thêm là một cột của bảng
+> công, suy ra từ giờ vào/ra — xem PLAN.md Giai đoạn 4.
 
 ### 4.3 Leave (Phép)
 

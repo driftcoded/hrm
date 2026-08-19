@@ -1,22 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  approveOvertimeRequest,
-  cancelOvertimeRequest,
   createAttendance,
-  createOvertimeRequest,
   downloadImportTemplate,
   importAttendances,
   listAttendances,
-  listOvertimeRequests,
-  rejectOvertimeRequest,
   updateAttendance,
 } from '@/services/attendance.service';
 import { exportAttendances } from '@/services/report.service';
 import type {
   AttendanceFilters,
   CreateAttendancePayload,
-  CreateOvertimePayload,
-  OvertimeFilters,
   UpdateAttendancePayload,
 } from '@/types/attendance.types';
 import { saveBlob } from '@/utils/download';
@@ -24,28 +17,19 @@ import { saveBlob } from '@/utils/download';
 /**
  * Query key của module Chấm công.
  *
- * `root` để mọi thay đổi (nhập tay, sửa, nạp file) làm mới TẤT CẢ màn hình của
- * module cùng lúc: bảng chấm công và danh sách giờ làm thêm đọc chồng lên cùng
- * một tháng dữ liệu, để một cái cũ hơn cái kia là để người dùng thấy hai sự thật.
+ * `root` để mọi thay đổi (nhập tay, sửa, nạp file) làm mới TẤT CẢ màn hình đọc
+ * bảng công cùng lúc — sửa một ngày công là đổi luôn giờ làm và giờ làm thêm của
+ * tháng đó, nên không màn hình nào được giữ số cũ.
  */
 export const ATTENDANCE_KEYS = {
   root: ['attendances'] as const,
   list: (filters?: AttendanceFilters) => ['attendances', 'list', filters] as const,
-  overtime: (filters?: OvertimeFilters) => ['attendances', 'overtime', filters] as const,
 };
 
 export function useAttendances(filters?: AttendanceFilters) {
   return useQuery({
     queryKey: ATTENDANCE_KEYS.list(filters),
     queryFn: () => listAttendances(filters),
-  });
-}
-
-export function useOvertimeRequests(filters?: OvertimeFilters, enabled = true) {
-  return useQuery({
-    queryKey: ATTENDANCE_KEYS.overtime(filters),
-    queryFn: () => listOvertimeRequests(filters),
-    enabled,
   });
 }
 
@@ -115,45 +99,6 @@ export function useAttendanceImport() {
   };
 }
 
-/** Đăng ký, duyệt, từ chối, huỷ đơn làm thêm giờ. */
-export function useOvertimeMutations() {
-  const queryClient = useQueryClient();
-  const invalidate = () => {
-    void queryClient.invalidateQueries({ queryKey: ATTENDANCE_KEYS.root });
-  };
-
-  const create = useMutation({
-    mutationFn: (payload: CreateOvertimePayload) => createOvertimeRequest(payload),
-    onSuccess: invalidate,
-  });
-
-  const approve = useMutation({
-    mutationFn: (id: number) => approveOvertimeRequest(id),
-    onSuccess: invalidate,
-  });
-
-  const reject = useMutation({
-    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
-      rejectOvertimeRequest(id, reason),
-    onSuccess: invalidate,
-  });
-
-  const cancel = useMutation({
-    mutationFn: (id: number) => cancelOvertimeRequest(id),
-    onSuccess: invalidate,
-  });
-
-  return {
-    createOvertime: create.mutateAsync,
-    approveOvertime: approve.mutateAsync,
-    rejectOvertime: reject.mutateAsync,
-    cancelOvertime: cancel.mutateAsync,
-    isCreating: create.isPending,
-    isApproving: approve.isPending,
-    isRejecting: reject.isPending,
-    isCancelling: cancel.isPending,
-  };
-}
 
 /** Xuất bảng chấm công tháng ra Excel — xem `useExportEmployees` cho lý do dùng mutation. */
 export function useExportAttendances() {

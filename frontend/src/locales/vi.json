@@ -243,12 +243,6 @@
       "MAIL_TEST_FAILED": "Gửi email thử thất bại. Kiểm tra lại máy chủ, cổng, tên đăng nhập và mật khẩu.",
       "ATTENDANCE_NOT_FOUND": "Không tìm thấy bản ghi chấm công.",
       "INVALID_ATTENDANCE_TIMES": "Giờ ra không được sớm hơn giờ vào.",
-      "OVERTIME_NOT_FOUND": "Không tìm thấy đơn làm thêm giờ.",
-      "OVERTIME_NOT_PENDING": "Đơn này không còn ở trạng thái chờ duyệt.",
-      "OVERLAPPING_OVERTIME": "Khung giờ này trùng với một đơn làm thêm khác của bạn.",
-      "OVERTIME_DAILY_LIMIT_EXCEEDED": "Vượt trần 12 giờ làm việc trong một ngày (Điều 107 BLLĐ 2019).",
-      "OVERTIME_MONTHLY_LIMIT_EXCEEDED": "Vượt trần 40 giờ làm thêm trong tháng (Điều 107 BLLĐ 2019).",
-      "OVERTIME_YEARLY_LIMIT_EXCEEDED": "Vượt trần 200 giờ làm thêm trong năm (Điều 107 BLLĐ 2019).",
       "IMPORT_FILE_REQUIRED": "Vui lòng chọn một file .xlsx.",
       "IMPORT_INVALID_FILE_TYPE": "File không phải định dạng .xlsx hợp lệ.",
       "IMPORT_MISSING_COLUMNS": "File thiếu cột bắt buộc. Hãy tải file mẫu để đối chiếu tên cột.",
@@ -1008,12 +1002,8 @@
   },
   "attendance": {
     "title": "Chấm công",
-    "subtitle": "Bảng công tháng từ nền tảng chấm công bên ngoài, và ghi nhận giờ làm thêm.",
+    "subtitle": "Bảng công tháng từ nền tảng chấm công bên ngoài. Giờ làm thêm suy ra từ giờ vào/ra.",
     "loadError": "Không tải được dữ liệu chấm công.",
-    "tabs": {
-      "overtime": "Làm thêm giờ",
-      "table": "Bảng chấm công"
-    },
     "status": {
       "present": "Đi làm",
       "absent": "Vắng",
@@ -1038,7 +1028,7 @@
       "checkIn": "Giờ vào",
       "checkOut": "Giờ ra",
       "workHours": "Giờ công",
-      "overtimeHours": "Giờ vượt ca",
+      "overtimeHours": "Giờ làm thêm",
       "status": "Trạng thái",
       "lateMinutes": "Đi muộn (phút)",
       "earlyLeaveMinutes": "Về sớm (phút)",
@@ -1088,68 +1078,6 @@
       "errorEmployee": "Mã NV",
       "errorMessage": "Lỗi",
       "success": "Đã nạp xong: tạo mới {{created}}, ghi đè {{updated}}."
-    },
-    "overtime": {
-      "create": "Ghi nhận làm thêm giờ",
-      "submit": "Lưu",
-      "createSuccess": "Đã ghi nhận giờ làm thêm.",
-      "approve": "Duyệt",
-      "approveSuccess": "Đã duyệt đơn làm thêm giờ.",
-      "reject": "Từ chối",
-      "rejectTitle": "Từ chối giờ làm thêm của {{name}} — {{date}}",
-      "rejectSuccess": "Đã từ chối đơn làm thêm giờ.",
-      "cancel": "Rút lại",
-      "cancelConfirm": "Rút lại đơn vừa ghi nhận?",
-      "cancelSuccess": "Đã rút lại đơn.",
-      "loadError": "Không tải được danh sách đơn làm thêm giờ.",
-      "night": "Ca đêm",
-      "nightHint": "{{hours}} giờ trong khung 22h–6h, cộng thêm {{surcharge}}× cho phần giờ đó.",
-      "estimate": "Số giờ dự kiến: {{hours}}",
-      "status": {
-        "pending": "Chờ duyệt",
-        "approved": "Đã duyệt",
-        "rejected": "Từ chối",
-        "cancelled": "Đã huỷ"
-      },
-      "rateType": {
-        "weekday": "Ngày thường",
-        "weekend": "Cuối tuần",
-        "holiday": "Ngày lễ"
-      },
-      "columns": {
-        "employee": "Nhân viên",
-        "workDate": "Ngày",
-        "span": "Khung giờ",
-        "totalHours": "Số giờ",
-        "rate": "Hệ số",
-        "status": "Trạng thái",
-        "recordedBy": "Người ghi"
-      },
-      "filters": {
-        "status": "Trạng thái",
-        "pendingShortcut": "Chỉ xem đơn chờ duyệt"
-      },
-      "fields": {
-        "workDate": "Ngày làm thêm",
-        "startTime": "Từ giờ",
-        "endTime": "Đến giờ",
-        "endTimeHint": "Nhỏ hơn giờ bắt đầu nghĩa là sang ngày hôm sau (ca đêm).",
-        "reason": "Lý do làm thêm",
-        "reasonHint": "Đây là hồ sơ đối chiếu khi thanh tra lao động, và là chỗ duy nhất ghi lại thoả thuận với người lao động (Điều 107 BLLĐ 2019).",
-        "rejectReason": "Lý do từ chối",
-        "rejectReasonHint": "Người ghi nhận cần biết vì sao để sửa và nộp lại.",
-        "employee": "Nhân viên",
-        "employeePlaceholder": "Tìm theo tên hoặc mã nhân viên"
-      },
-      "errors": {
-        "workDate": "Vui lòng chọn ngày làm thêm",
-        "startTime": "Vui lòng chọn giờ bắt đầu",
-        "endTime": "Vui lòng chọn giờ kết thúc",
-        "reason": "Vui lòng nhập lý do",
-        "reasonTooShort": "Lý do quá ngắn",
-        "rejectReason": "Vui lòng nhập lý do từ chối",
-        "employee": "Vui lòng chọn nhân viên"
-      }
     },
     "add": {
       "open": "Nhập ngày công",

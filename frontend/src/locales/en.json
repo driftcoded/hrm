@@ -243,12 +243,6 @@
       "MAIL_TEST_FAILED": "The test email failed to send. Double-check the host, port, username and password.",
       "ATTENDANCE_NOT_FOUND": "Attendance record not found.",
       "INVALID_ATTENDANCE_TIMES": "Check-out cannot be earlier than check-in.",
-      "OVERTIME_NOT_FOUND": "Overtime request not found.",
-      "OVERTIME_NOT_PENDING": "This request is no longer pending.",
-      "OVERLAPPING_OVERTIME": "This time range overlaps another of your overtime requests.",
-      "OVERTIME_DAILY_LIMIT_EXCEEDED": "Over the 12-hour daily cap (Article 107, Labour Code 2019).",
-      "OVERTIME_MONTHLY_LIMIT_EXCEEDED": "Over the 40-hour monthly overtime cap (Article 107, Labour Code 2019).",
-      "OVERTIME_YEARLY_LIMIT_EXCEEDED": "Over the 200-hour yearly overtime cap (Article 107, Labour Code 2019).",
       "IMPORT_FILE_REQUIRED": "Please choose an .xlsx file.",
       "IMPORT_INVALID_FILE_TYPE": "That file is not a valid .xlsx workbook.",
       "IMPORT_MISSING_COLUMNS": "The file is missing required columns. Download the template to compare headers.",
@@ -1008,12 +1002,8 @@
   },
   "attendance": {
     "title": "Attendance",
-    "subtitle": "The monthly timesheet from the external clocking platform, plus overtime records.",
+    "subtitle": "The monthly timesheet from the external clocking platform. Overtime is derived from the clock times.",
     "loadError": "Could not load attendance data.",
-    "tabs": {
-      "overtime": "Overtime",
-      "table": "Timesheet"
-    },
     "status": {
       "present": "Present",
       "absent": "Absent",
@@ -1038,7 +1028,7 @@
       "checkIn": "Check-in",
       "checkOut": "Check-out",
       "workHours": "Hours",
-      "overtimeHours": "Hours past shift",
+      "overtimeHours": "Overtime",
       "status": "Status",
       "lateMinutes": "Late (min)",
       "earlyLeaveMinutes": "Left early (min)",
@@ -1088,68 +1078,6 @@
       "errorEmployee": "Code",
       "errorMessage": "Problem",
       "success": "Imported: {{created}} new, {{updated}} overwritten."
-    },
-    "overtime": {
-      "create": "Record overtime",
-      "submit": "Save",
-      "createSuccess": "Overtime recorded.",
-      "approve": "Approve",
-      "approveSuccess": "Overtime request approved.",
-      "reject": "Reject",
-      "rejectTitle": "Reject {{name}}'s overtime — {{date}}",
-      "rejectSuccess": "Overtime request rejected.",
-      "cancel": "Withdraw",
-      "cancelConfirm": "Withdraw this entry?",
-      "cancelSuccess": "Entry withdrawn.",
-      "loadError": "Could not load overtime requests.",
-      "night": "Night",
-      "nightHint": "{{hours}} hours between 22:00 and 06:00, with {{surcharge}}× added for those hours.",
-      "estimate": "Estimated hours: {{hours}}",
-      "status": {
-        "pending": "Pending",
-        "approved": "Approved",
-        "rejected": "Rejected",
-        "cancelled": "Withdrawn"
-      },
-      "rateType": {
-        "weekday": "Weekday",
-        "weekend": "Weekend",
-        "holiday": "Public holiday"
-      },
-      "columns": {
-        "employee": "Employee",
-        "workDate": "Date",
-        "span": "Hours",
-        "totalHours": "Total",
-        "rate": "Rate",
-        "status": "Status",
-        "recordedBy": "Recorded by"
-      },
-      "filters": {
-        "status": "Status",
-        "pendingShortcut": "Pending only"
-      },
-      "fields": {
-        "workDate": "Date",
-        "startTime": "From",
-        "endTime": "To",
-        "endTimeHint": "Earlier than the start time means the next day (night shift).",
-        "reason": "Reason",
-        "reasonHint": "This is the record a labour inspection would read, and the only place the agreement with the employee (Article 107) is written down.",
-        "rejectReason": "Reason for rejection",
-        "rejectReasonHint": "Whoever recorded it needs to know what to fix before entering it again.",
-        "employee": "Employee",
-        "employeePlaceholder": "Search by name or code"
-      },
-      "errors": {
-        "workDate": "Please pick the date",
-        "startTime": "Please pick the start time",
-        "endTime": "Please pick the end time",
-        "reason": "Please give a reason",
-        "reasonTooShort": "Reason is too short",
-        "rejectReason": "Please give a reason for rejecting",
-        "employee": "Please pick an employee"
-      }
     },
     "add": {
       "open": "Add a day",
