@@ -587,8 +587,7 @@
       "email": "Send email",
       "export": "Export Excel",
       "department": "Change department",
-      "exportHint": "Export the filtered list to Excel",
-      "exportSelected": "Export selected",
+      "exportHint": "Export the {{count}} employees matching the current filter to Excel",
       "exportSuccess": "Employee list downloaded."
     },
     "pagination": {

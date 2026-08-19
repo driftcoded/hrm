@@ -587,8 +587,7 @@
       "email": "Gửi email",
       "export": "Xuất Excel",
       "department": "Thay đổi phòng ban",
-      "exportHint": "Xuất Excel danh sách đang lọc",
-      "exportSelected": "Xuất mục đã chọn",
+      "exportHint": "Xuất {{count}} nhân viên khớp bộ lọc hiện tại ra Excel",
       "exportSuccess": "Đã tải file danh sách nhân viên."
     },
     "pagination": {

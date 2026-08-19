@@ -92,18 +92,12 @@ const { Text } = Typography;
  * re-applying the same filter, sorting or paginating leaves the page alone.
  *
  * FEATURES THAT DO NOT EXIST YET are shown disabled with a "sắp có" tooltip
- * rather than omitted or, worse, wired to nothing: bulk email, Excel export and
- * bulk department change have no endpoint in any phase yet. The same convention
+ * rather than omitted or, worse, wired to nothing: bulk email and bulk
+ * department change have no endpoint in any phase yet. The same convention
  * the sidebar already uses for upcoming modules.
  */
 
 /** How many rows a selection has to reach before the bulk bar means anything. */
-const BULK_ACTIONS = [
-  { key: 'email', icon: <MailOutlined />, labelKey: 'employees.bulk.email' },
-  { key: 'export', icon: <ExportOutlined />, labelKey: 'employees.bulk.exportSelected' },
-  { key: 'department', icon: <SwapOutlined />, labelKey: 'employees.bulk.department' },
-] as const;
-
 export function EmployeesPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -470,16 +464,6 @@ export function EmployeesPage() {
                 {t('employees.actions.create')}
               </Button>
             )}
-            {canExport && (
-              <Tooltip title={t('employees.bulk.exportHint')}>
-                <Button
-                  icon={<ExportOutlined />}
-                  loading={isExporting}
-                  onClick={handleExport}
-                  aria-label={t('employees.bulk.export')}
-                />
-              </Tooltip>
-            )}
             <Dropdown
               menu={{
                 items: [
@@ -677,14 +661,36 @@ export function EmployeesPage() {
             }
             filters={
               <Space wrap size="small">
-                {BULK_ACTIONS.map((action) => (
-                  <Tooltip key={action.key} title={t('common.comingSoon')}>
-                    {/* Disabled, never wired to nothing — see the page note. */}
-                    <Button size="small" icon={action.icon} disabled>
-                      {t(action.labelKey)}
+                {/* Disabled, never wired to nothing — see the page note. */}
+                <Tooltip title={t('common.comingSoon')}>
+                  <Button size="small" icon={<MailOutlined />} disabled>
+                    {t('employees.bulk.email')}
+                  </Button>
+                </Tooltip>
+                {/*
+                  Nút DUY NHẤT xuất Excel, đặt ngay trên bảng mà nó xuất.
+                  Nó xuất theo BỘ LỌC chứ không theo các dòng đang tick — hai
+                  nút bên cạnh lại thao tác trên vùng chọn, nên tooltip nói
+                  thẳng số dòng sắp ra file để không ai chọn 20 rồi bất ngờ
+                  nhận 68.
+                */}
+                {canExport && (
+                  <Tooltip title={t('employees.bulk.exportHint', { count: total })}>
+                    <Button
+                      size="small"
+                      icon={<ExportOutlined />}
+                      loading={isExporting}
+                      onClick={handleExport}
+                    >
+                      {t('employees.bulk.export')}
                     </Button>
                   </Tooltip>
-                ))}
+                )}
+                <Tooltip title={t('common.comingSoon')}>
+                  <Button size="small" icon={<SwapOutlined />} disabled>
+                    {t('employees.bulk.department')}
+                  </Button>
+                </Tooltip>
               </Space>
             }
             actions={
