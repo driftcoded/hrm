@@ -229,7 +229,7 @@ src/
 │                                  # (KHÔNG có shared/scheduler/ – xem §10)
 │
 └── modules/                       # Business modules (domain-driven)
-    ├── auth/          ✅          ├── attendances/       (chỉ entity)
+    ├── auth/          ✅          ├── attendances/       ✅
     ├── users/         ✅          ├── leave-balances/    (chỉ entity)
     ├── employees/     ✅          ├── salaries/          (chỉ entity)
     ├── departments/   ✅          ├── documents/         (chỉ entity)
@@ -239,12 +239,10 @@ src/
     ├── system/        ✅ (provinces/wards/holidays)  ├── work-history/ (chỉ entity)
     ├── family-members/✅          ├── announcements/     (chỉ entity)
     ├── dependents/    ✅          └── audit-logs/        (chỉ entity)
-    └── reports/       ✅ (employee-export)
+    └── reports/       ✅ (xuất Excel nhân viên + bảng công)
 ```
 
 > "chỉ entity" = thư mục đã có `entities/*.ts` để migration dựng bảng, nhưng chưa có controller/service/route nào.
->
-> Ngoại lệ: `modules/attendances/` đã có `attendances.service.ts` + `attendances.repository.ts` + `dto/` nhưng **chưa có controller và chưa được import vào `AppModule`** — chưa gọi được từ HTTP.
 
 ---
 

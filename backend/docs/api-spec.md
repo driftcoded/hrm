@@ -960,53 +960,6 @@ File .xlsx mẫu, có sẵn các dòng ví dụ cho định dạng mong đợi.
 
 ---
 
-## 7b. Overtime – Làm thêm giờ
-
-> Nhân viên không tự đăng ký. **Quản lý ghi nhận** cho phòng mình (nhân sự ghi
-> cho bất kỳ ai), **kế toán/nhân sự duyệt**. Xem business-rules.md §7.3.
-
-### POST `/overtime-requests`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager`
-
-```json
-{
-  "employeeId": 51,
-  "workDate": "2026-05-25",
-  "startTime": "18:00",
-  "endTime": "21:00",
-  "reason": "Xử lý sự cố hệ thống thanh toán"
-}
-```
-
-Số giờ, loại ngày và hệ số Điều 98 đều **suy ra từ server**, client không gửi.
-`endTime` <= `startTime` nghĩa là ca vắt sang ngày hôm sau. Người ghi được lưu
-vào `recorded_by` lấy **từ token**, không lấy từ body.
-
-**Errors:** `409 OVERLAPPING_OVERTIME`, `422 OVERTIME_DAILY_LIMIT_EXCEEDED`,
-`422 OVERTIME_MONTHLY_LIMIT_EXCEEDED`, `422 OVERTIME_YEARLY_LIMIT_EXCEEDED`
-
----
-
-### GET `/overtime-requests`
-> 🔒 Auth required. Trang duyệt dùng `?status=pending`.
-
-### PATCH `/overtime-requests/:id/approve`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
-
-`manager` **không duyệt được** (họ là người ghi nhận). Người đã ghi một đơn cũng
-không duyệt được chính đơn đó.
-
-**Errors:** `403 FORBIDDEN`, `403 CANNOT_APPROVE_OWN_RECORD`,
-`409 OVERTIME_NOT_PENDING`, `422` vượt trần Điều 107
-
-### PATCH `/overtime-requests/:id/reject`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff` — `reason` bắt buộc.
-
-### PATCH `/overtime-requests/:id/cancel`
-> 🔒 Người GHI NHẬN đơn, hoặc nhân sự. Chỉ đơn còn `pending`.
-
----
-
 ## 8. Leaves – Nghỉ phép
 
 > **Trạng thái:** `/leave-types` (danh mục loại nghỉ) đã hiện thực đầy đủ CRUD. Phần đơn nghỉ (`/leaves`, `/leaves/balance`) **chưa hiện thực** — Giai đoạn 5.
@@ -2060,21 +2013,13 @@ ATTENDANCE
   IMPORT_TOO_MANY_ROWS       File vượt trần số dòng
   IMPORT_EMPTY_FILE          File không có sheet nào
 
-OVERTIME
-  OVERTIME_NOT_FOUND
-  OVERTIME_NOT_PENDING       Đơn không còn ở trạng thái chờ duyệt
-  OVERLAPPING_OVERTIME       Trùng giờ với đơn còn hiệu lực
-  CANNOT_APPROVE_OWN_RECORD  Người ghi nhận không được tự duyệt
-  OVERTIME_DAILY_LIMIT_EXCEEDED    Vượt trần 12 giờ/ngày (Điều 107)
-  OVERTIME_MONTHLY_LIMIT_EXCEEDED  Vượt trần 40 giờ/tháng
-  OVERTIME_YEARLY_LIMIT_EXCEEDED   Vượt trần 200 giờ/năm
-
 LEAVE
   LEAVE_NOT_FOUND
   INSUFFICIENT_LEAVE_BALANCE Không đủ ngày phép
   OVERLAPPING_LEAVE          Trùng với đơn nghỉ khác đã được duyệt
   CANNOT_CANCEL_APPROVED     Không thể huỷ đơn đã duyệt
   LEAVE_IN_PAST              Không thể tạo đơn nghỉ ngày đã qua
+  CANNOT_APPROVE_OWN_RECORD  Người ghi nhận đơn không được tự duyệt
 
 SALARY
   SALARY_ALREADY_EXISTS      Bảng lương tháng này đã được tính

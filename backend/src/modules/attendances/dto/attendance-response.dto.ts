@@ -67,7 +67,7 @@ export class AttendanceResponseDto {
   @ApiProperty({
     example: 0.5,
     description:
-      'Số giờ VƯỢT ngày công chuẩn, suy ra từ giờ vào/ra. KHÔNG phải căn cứ trả tiền làm thêm — tiền tính theo đơn đã duyệt tại `/overtime-requests`.',
+      'Giờ làm thêm, suy ra từ giờ vào/ra: phần vượt 8 giờ làm thực, hoặc toàn bộ thời gian nếu là ngày nghỉ tuần/ngày lễ. ĐÂY LÀ căn cứ trả tiền — không có bảng đơn đăng ký/duyệt song song (business-rules.md §12.3).',
   })
   overtimeHours: number;
 

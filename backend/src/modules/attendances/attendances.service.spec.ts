@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthenticatedUser } from '@/common/types/authenticated-user';
 import { EmployeesService } from '@/modules/employees/employees.service';
 import { Employee } from '@/modules/employees/entities/employee.entity';
-import { OvertimeService } from '@/modules/overtime/overtime.service';
 import { HolidaysService } from '@/modules/system/holidays.service';
 import { AttendancesRepository } from './attendances.repository';
 import { AttendancesService } from './attendances.service';
@@ -126,10 +125,6 @@ describe('AttendancesService', () => {
         {
           provide: HolidaysService,
           useValue: { findByYear: jest.fn().mockResolvedValue([]) },
-        },
-        {
-          provide: OvertimeService,
-          useValue: { sumApprovedHours: jest.fn().mockResolvedValue(0) },
         },
       ],
     }).compile();

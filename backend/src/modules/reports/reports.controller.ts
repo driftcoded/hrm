@@ -96,7 +96,7 @@ export class ReportsController {
       '`month` và `year` BẮT BUỘC — bảng chấm công là tài liệu của MỘT tháng.\n\n' +
       '**Phạm vi dữ liệu:** đi qua `AttendancesService.findAll`, nên `manager` chỉ xuất được phòng ban mình quản.\n\n' +
       `**Trần số dòng:** ${AttendanceExportService.MAX_EXPORT_ROWS}. Vượt trần trả 422 EXPORT_TOO_MANY_ROWS, KHÔNG cắt bớt im lặng.\n\n` +
-      'Cột "Giờ vượt ca (thực tế)" là số giờ đã ở lại làm, KHÔNG phải giờ được trả tiền làm thêm — tiền tính theo đơn đã duyệt ở `/overtime-requests`.',
+      'Cột "Giờ làm thêm" suy ra từ giờ vào/ra: phần vượt 8 giờ/ngày, hoặc toàn bộ thời gian nếu là ngày nghỉ tuần/ngày lễ. Đây LÀ căn cứ trả tiền — không có bảng đơn từ song song (business-rules.md §12.3).',
   })
   @ApiProduces(XLSX_CONTENT_TYPE)
   @ApiOkResponse({

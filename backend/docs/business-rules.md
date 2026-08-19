@@ -243,16 +243,32 @@ Theo Thông tư 111/2013/TT-BTC, các khoản phụ cấp sau được miễn th
 
 ### 7.1. Hệ số lương làm thêm
 
-| Loại thời gian | Hệ số | Ghi chú |
-|----------------|:-----:|---------|
-| Ngày thường (T2–T6) | 1,5× | 150% lương giờ bình thường |
-| Thứ 7, Chủ nhật | 2,0× | 200% |
-| Ngày lễ, ngày nghỉ có lương | 3,0× | 300% |
-| Ban đêm (22h–6h) | +0,3× | Cộng thêm vào các mức trên |
+| Loại thời gian | Hệ số | Căn cứ |
+|----------------|:-----:|--------|
+| Ngày thường (T2–T6) | 1,5× | Điều 98 khoản 1 điểm a |
+| Thứ 7, Chủ nhật | 2,0× | Điều 98 khoản 1 điểm b |
+| Ngày lễ, ngày nghỉ có lương | 3,0× | Điều 98 khoản 1 điểm c — chưa kể lương ngày lễ vẫn được trả |
+| Ban đêm (22h–6h) | **+0,3×** | Điều 98 khoản 2 — áp cho **mọi** giờ làm ban đêm |
+| **Làm thêm giờ** vào ban đêm | **+0,2× nữa** | Điều 98 khoản 3 — chỉ khi giờ ban đêm đó đồng thời là giờ làm thêm |
+
+> ⚠️ Hai khoản phụ trội ban đêm là **hai khoản khác nhau**, đừng gộp:
+> **0,3×** dành cho mọi giờ làm ban đêm, kể cả ca đêm chính thức không phải làm
+> thêm. **0,2×** chỉ cộng thêm khi giờ ban đêm đó là giờ làm thêm. Gộp thành một
+> số sẽ trả thừa cho ca đêm chính thức và **trả thiếu cho làm thêm ban đêm**.
+>
+> Ví dụ chốt: một giờ làm thêm ban đêm ngày thường = 1,5 + 0,3 + 0,2 = **2,0×**
+> đơn giá ngày thường. Làm thêm ban đêm ngày lễ = 3,0 + 0,3 + 0,2 = **3,5×**.
 
 **Công thức:**
 
 > Tiền làm thêm = Lương giờ × Số giờ làm thêm × Hệ số
+>
+> Phần giờ rơi trong khung 22h–6h được cộng thêm phụ trội ban đêm; phần giờ ban
+> ngày thì không. Một ca 18h–23h có 4 giờ ngày và 1 giờ đêm, tính hai mức khác
+> nhau chứ không lấy một hệ số cho cả ca.
+
+Khung giờ ban đêm **22:00 → 06:00** sáng hôm sau (Điều 106 BLLĐ 2019), áp dụng
+chung cả nước, không phân biệt ngành.
 
 ### 7.2. Giới hạn làm thêm giờ (Điều 107 BLLĐ 2019)
 
@@ -411,11 +427,35 @@ import báo lỗi dòng đó thay vì trừ số âm — trừ số âm nghĩa l
 
 ### 12.3. Xác định làm thêm giờ
 
-Giờ làm thêm = thời gian làm việc vượt quá 8 giờ/ngày (sau giờ tan ca chính thức).
+Giờ làm thêm = thời gian làm việc vượt quá 8 giờ/ngày (sau khi trừ nghỉ trưa).
+Làm việc vào ngày nghỉ tuần hoặc ngày lễ thì **toàn bộ** thời gian là làm thêm,
+không cần vượt 8 giờ.
 
-> ⚠️ Con số này (`attendances.overtime_hours`) là **số giờ đã ở lại làm**, KHÔNG
-> phải căn cứ trả tiền. Điều 107 BLLĐ 2019 đòi làm thêm giờ phải được NLĐ đồng ý,
-> nên tiền chỉ trả theo **đơn đã duyệt** ở bảng `overtime_requests`. Xem §7.
+`attendances.overtime_hours` là **căn cứ trả tiền duy nhất**, dẫn xuất từ chính
+bảng công. Không có bảng đơn từ nào song song.
+
+> **Vì sao không có luồng "đăng ký – duyệt làm thêm giờ".** Bản trước của tài liệu
+> này viết rằng tiền chỉ trả theo đơn đã duyệt, viện dẫn Điều 107 BLLĐ 2019. Đó là
+> **diễn giải sai luật**: yêu cầu "phải được NLĐ đồng ý" ở Điều 107 giới hạn
+> **quyền của người sử dụng lao động khi muốn huy động** làm thêm — nó không phải
+> điều kiện để được trả tiền cho công việc đã làm xong. Nhân viên đã làm thêm và
+> công ty biết thì công ty **phải trả**; từ chối vì "thiếu đơn duyệt" là vi phạm,
+> không phải tuân thủ.
+>
+> Ngoài ra, giữ hai nguồn số liệu cho cùng một đại lượng (bảng công nói 2 giờ, đơn
+> duyệt nói 3 giờ) là mầm mống sai lệch bảng lương mà không ai phát hiện, vì cả
+> hai chỗ đều "có dữ liệu".
+>
+> Điều cần kiểm soát không phải là duyệt từng lần, mà là **các giới hạn cứng ở
+> §7.2** (12 giờ/ngày, 40 giờ/tháng, 200–300 giờ/năm). Vượt giới hạn là công ty
+> vi phạm, nên hệ thống phải tự tính và **cảnh báo** dựa trên bảng công — chứ
+> không phải chặn trả tiền cho giờ đã làm.
+>
+> ⚠️ **Chưa hiện thực:** cảnh báo vượt giới hạn §7.2 hiện KHÔNG có ở đâu cả —
+> phần kiểm này trước đây nằm trong luồng duyệt đơn và mất theo luồng đó.
+> Cũng **chưa có ngưỡng tối thiểu / bước làm tròn** cho giờ làm thêm: suy trực
+> tiếp từ giờ chấm nên lệch vài phút quanh giờ tan ca cũng thành giờ được trả
+> tiền. Cả hai phải chốt trước khi Giai đoạn 6 tính lương thật.
 
 ### 12.4. Các trạng thái chấm công
 

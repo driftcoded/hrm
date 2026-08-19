@@ -31,7 +31,6 @@ import { PositionsModule } from './modules/positions/positions.module';
 import { AttendancesModule } from './modules/attendances/attendances.module';
 import { LeaveBalancesModule } from './modules/leave-balances/leave-balances.module';
 import { LeaveRequestsModule } from './modules/leave-requests/leave-requests.module';
-import { OvertimeModule } from './modules/overtime/overtime.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { HolidaysModule } from './modules/system/holidays.module';
 import { SystemModule } from './modules/system/system.module';
@@ -78,7 +77,6 @@ import { UsersModule } from './modules/users/users.module';
     AttendancesModule,
     LeaveBalancesModule,
     LeaveRequestsModule,
-    OvertimeModule,
     ReportsModule,
   ],
   controllers: [AppController],

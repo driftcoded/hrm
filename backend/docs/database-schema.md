@@ -405,8 +405,10 @@ Lưu thông tin gia đình cho hồ sơ nhân sự (không liên quan đến gi�
 | work_date | ngày | ✅ | Ngày làm việc. **Unique** theo cặp (employee_id, work_date) |
 | check_in | thời gian (HH:mm) | ❌ | Giờ chấm vào. `NULL` nếu không chấm vào |
 | check_out | thời gian (HH:mm) | ❌ | Giờ chấm ra |
+| break_start | thời gian (HH:mm) | ❌ | Giờ nghỉ THỰC TẾ bắt đầu. `NULL` = trừ theo khung chuẩn 12:00–13:00 |
+| break_end | thời gian (HH:mm) | ❌ | Giờ nghỉ thực tế kết thúc. Có giá trị thì trừ đúng khoảng này, không trừ khung chuẩn |
 | work_hours | số thập phân | ❌ | Giờ làm thực tế – tính tự động khi check_out |
-| overtime_hours | số thập phân | ✅ | Giờ làm thêm. Mặc định `0` |
+| overtime_hours | số thập phân | ✅ | Giờ làm thêm, **suy ra từ `check_in`/`check_out`**: phần vượt 8 giờ làm thực, hoặc toàn bộ nếu là ngày nghỉ tuần/ngày lễ. **LÀ căn cứ trả tiền** — không có bảng đơn duyệt song song (business-rules.md §12.3). Mặc định `0` |
 | is_late | boolean | ✅ | Đến muộn > 15 phút. Mặc định `false` |
 | late_minutes | số nhỏ | ✅ | Số phút đến muộn. Mặc định `0` |
 | is_early_leave | boolean | ✅ | Về sớm > 15 phút. Mặc định `false` |
@@ -536,7 +538,7 @@ Mỗi nhân viên có tối đa **1 bản ghi/tháng** (unique theo employee_id 
 | actual_working_days | số thập phân | ✅ | Ngày công thực tế. Mặc định `0` |
 | paid_leave_days | số thập phân | ✅ | Ngày nghỉ phép có lương. Mặc định `0` |
 | unpaid_leave_days | số thập phân | ✅ | Ngày nghỉ không lương. Mặc định `0` |
-| overtime_hours | số thập phân | ✅ | Tổng giờ làm thêm trong tháng. Mặc định `0` |
+| overtime_hours | số thập phân | ✅ | Tổng giờ làm thêm trong tháng, **cộng dồn từ `attendances.overtime_hours`** của tháng đó. Mặc định `0` |
 
 #### Thu nhập
 

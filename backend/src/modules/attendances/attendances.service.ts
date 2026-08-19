@@ -16,7 +16,6 @@ import {
 } from '@/common/utils/work-hours.util';
 import { EmployeesService } from '@/modules/employees/employees.service';
 import { HolidaysService } from '@/modules/system/holidays.service';
-import { OvertimeService } from '@/modules/overtime/overtime.service';
 import { AttendancesRepository } from './attendances.repository';
 import { AttendanceResponseDto } from './dto/attendance-response.dto';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
@@ -41,8 +40,10 @@ import { Attendance, AttendanceStatus } from './entities/attendance.entity';
  * ở đây không có endpoint nào "của tôi". Cổng tra cứu cá nhân là một ứng dụng
  * riêng sẽ xây sau.
  *
- * `attendances.overtime_hours` KHÔNG PHẢI CĂN CỨ TRẢ TIỀN. Nó là số giờ suy ra
- * từ giờ vào/ra. Tiền làm thêm trả theo đơn đã duyệt ở `OvertimeService`.
+ * `attendances.overtime_hours` LÀ căn cứ trả tiền làm thêm, suy ra từ giờ vào/ra:
+ * phần vượt 8 giờ/ngày, hoặc toàn bộ thời gian nếu là ngày nghỉ tuần/ngày lễ.
+ * Không có bảng đơn từ nào song song — xem business-rules.md §12.3 để biết vì sao
+ * luồng "đăng ký – duyệt làm thêm giờ" đã được bỏ.
  *
  * Riêng `PATCH` vẫn BẮT BUỘC ghi lý do: sửa một con số đã có khác với nhập một
  * con số chưa có — bản ghi sau khi sửa phải nói được vì sao nó khác dữ liệu gốc.
@@ -53,7 +54,6 @@ export class AttendancesService {
     private readonly attendancesRepository: AttendancesRepository,
     private readonly employeesService: EmployeesService,
     private readonly holidaysService: HolidaysService,
-    private readonly overtimeService: OvertimeService,
   ) {}
 
   // --------------------------------------------------------- nhập tay ----
