@@ -26,7 +26,8 @@
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
     "seed:demo": "ts-node -r tsconfig-paths/register src/database/seeds/demo.seed.ts",
     "seed:contract": "ts-node -r tsconfig-paths/register src/database/seeds/contract.seed.ts",
-    "seed:attendance": "ts-node -r tsconfig-paths/register src/database/seeds/attendance.seed.ts"
+    "seed:attendance": "ts-node -r tsconfig-paths/register src/database/seeds/attendance.seed.ts",
+    "seed:leave": "ts-node -r tsconfig-paths/register src/database/seeds/leave.seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

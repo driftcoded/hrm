@@ -14,6 +14,14 @@ Hệ thống quản lý nhân sự (HRM) cho công ty Việt Nam.
   (KHÔNG seed tỉnh/xã: danh mục hành chính là file JSON tĩnh trong
   `src/common/data/`, và cấp huyện đã bị bỏ từ 01/07/2025)
 - `npm run seed:demo` – Seed dữ liệu demo (phòng ban, chức vụ, nhân viên mẫu)
+- `npm run seed:contract` – Seed hợp đồng cho nhân viên demo
+- `npm run seed:attendance` – Seed bảng công 01/07–19/08/2026 (thêm `-- --reset` để
+  xoá và sinh lại)
+- `npm run seed:leave` – Seed đơn nghỉ phép 20/08–30/09/2026 (đã duyệt / chờ duyệt /
+  bị từ chối). Chạy **qua LeaveRequestsService**, không insert SQL, nên quỹ phép và
+  ngày công `leave` khớp đúng logic thật; `-- --reset` xoá qua service để hoàn quỹ.
+  Cần `seed:demo` trước, và nên chạy SAU `seed:attendance` (khung ngày không giao
+  nhau nên không có ngày công nào bị ghi đè)
 
 ## Code style
 - TypeScript strict mode, không dùng `any` (dùng `unknown` nếu cần)
