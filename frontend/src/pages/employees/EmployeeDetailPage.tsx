@@ -239,8 +239,8 @@ export function EmployeeDetailPage() {
               {t('employees.detail.edit')}
             </Button>
           )}
-          {/* In hồ sơ chưa có bản in riêng — dùng hộp thoại in của trình duyệt
-              thay vì để một nút không làm gì. */}
+          {/* `window.print()` in ra `EmployeePrintSheet` ở cuối trang, không
+              phải trang đang xem — quy tắc @media print nằm ở index.css. */}
           <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
             {t('employees.detail.print')}
           </Button>

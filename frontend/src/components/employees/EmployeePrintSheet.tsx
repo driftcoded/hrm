@@ -127,9 +127,6 @@ export function EmployeePrintSheet({
       </section>
 
       <footer className={styles.footer}>
-        {/* Nói thẳng trên giấy rằng đây là bản rút gọn, để người cầm tờ giấy
-            không tưởng đây là toàn bộ hồ sơ. */}
-        <p className={styles.notice}>{t('employees.print.notice')}</p>
         <p className={styles.printedAt}>
           {t('employees.print.printedAt', { at: formatDateTime(new Date()) })}
         </p>
