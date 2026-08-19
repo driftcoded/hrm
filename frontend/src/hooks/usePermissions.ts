@@ -8,6 +8,7 @@ import {
   EMPLOYEE_DELETE_ROLES,
   EMPLOYEE_WRITE_ROLES,
   MASTER_DATA_WRITE_ROLES,
+  SETTINGS_WRITE_ROLES,
   USER_WRITE_ROLES,
 } from '@/constants/roles';
 import type { UserRole } from '@/types/auth.types';
@@ -78,6 +79,15 @@ export function useCanCreateUsers(): boolean {
  */
 export function useCanExportEmployees(): boolean {
   return useHasRole(EMPLOYEE_EXPORT_ROLES);
+}
+
+/**
+ * May the user view/edit branding (logo/company name) and SMTP settings?
+ * (`admin` only) — narrower than `useCanWriteMasterData`: this is
+ * system-wide configuration, not a business-data catalog like departments.
+ */
+export function useCanManageSettings(): boolean {
+  return useHasRole(SETTINGS_WRITE_ROLES);
 }
 
 /**

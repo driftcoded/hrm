@@ -8,6 +8,7 @@ import { authConfig } from './config/auth.config';
 import { databaseConfig } from './config/database.config';
 import { jwtConfig } from './config/jwt.config';
 import { mailConfig } from './config/mail.config';
+import { settingsConfig } from './config/settings.config';
 import { storageConfig } from './config/storage.config';
 import { envValidationSchema } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
@@ -45,6 +46,7 @@ import { UsersModule } from './modules/users/users.module';
         jwtConfig,
         authConfig,
         mailConfig,
+        settingsConfig,
         storageConfig,
       ],
       validationSchema: envValidationSchema,

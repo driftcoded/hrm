@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useBranding } from '@/hooks/useBranding';
 import styles from './BrandMark.module.css';
 
 interface BrandMarkProps {
@@ -16,9 +17,10 @@ interface BrandMarkProps {
 }
 
 /**
- * Neutral in-house brand lockup: a geometric hexagon mark + the "HRM" wordmark
- * (`t('app.name')`). Deliberately generic — this project has no third-party
- * branding and no designer-supplied logo asset yet.
+ * Brand lockup: a company-uploaded logo + name when configured
+ * (`/settings/branding`, admin only), falling back to the neutral in-house
+ * hexagon mark + `t('app.name')` otherwise — including while the branding
+ * query is still loading, so nothing flashes empty on first paint.
  */
 export function BrandMark({
   size = 'md',
@@ -26,6 +28,7 @@ export function BrandMark({
   wordmarkHidden = false,
 }: BrandMarkProps) {
   const { t } = useTranslation();
+  const { data: branding } = useBranding();
   // Unique per instance: the same lockup renders twice on the login screen.
   const gradientId = `hrm-brand-mark-${useId()}`;
   const classes = [
@@ -36,25 +39,31 @@ export function BrandMark({
     .filter(Boolean)
     .join(' ');
 
+  const companyName = branding?.companyName || t('app.name');
+
   return (
     <div className={classes}>
-      <svg className={styles.mark} viewBox="0 0 40 40" role="img" aria-label={t('app.name')}>
-        <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-            {/* stop-color set from CSS so it can use design tokens */}
-            <stop offset="0%" className={styles.stopFrom} />
-            <stop offset="100%" className={styles.stopTo} />
-          </linearGradient>
-        </defs>
-        {/* Hexagon */}
-        <path d="M20 2.5 34.6 11v18L20 37.5 5.4 29V11z" fill={`url(#${gradientId})`} />
-        {/* Abstract "H" cut out of the mark */}
-        <path
-          className={styles.glyph}
-          d="M14.5 12.5h3.4v5.9h4.2v-5.9h3.4v15h-3.4v-6h-4.2v6h-3.4z"
-        />
-      </svg>
-      {!wordmarkHidden && <span className={styles.wordmark}>{t('app.name')}</span>}
+      {branding?.logoUrl ? (
+        <img className={styles.mark} src={branding.logoUrl} alt={companyName} />
+      ) : (
+        <svg className={styles.mark} viewBox="0 0 40 40" role="img" aria-label={companyName}>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+              {/* stop-color set from CSS so it can use design tokens */}
+              <stop offset="0%" className={styles.stopFrom} />
+              <stop offset="100%" className={styles.stopTo} />
+            </linearGradient>
+          </defs>
+          {/* Hexagon */}
+          <path d="M20 2.5 34.6 11v18L20 37.5 5.4 29V11z" fill={`url(#${gradientId})`} />
+          {/* Abstract "H" cut out of the mark */}
+          <path
+            className={styles.glyph}
+            d="M14.5 12.5h3.4v5.9h4.2v-5.9h3.4v15h-3.4v-6h-4.2v6h-3.4z"
+          />
+        </svg>
+      )}
+      {!wordmarkHidden && <span className={styles.wordmark}>{companyName}</span>}
     </div>
   );
 }

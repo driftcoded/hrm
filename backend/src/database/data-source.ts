@@ -15,7 +15,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE ?? 'hrm_dev',
   charset: 'utf8mb4',
   timezone: '+07:00',
-  entities: [__dirname + '/../modules/**/entities/*.entity{.ts,.js}'],
+  entities: [__dirname + '/../{modules,shared}/**/entities/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: false,
 });

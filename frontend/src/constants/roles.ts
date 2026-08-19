@@ -30,6 +30,14 @@ export const CONTRACT_WRITE_ROLES: readonly UserRole[] = ['admin', 'hr_manager']
 export const USER_WRITE_ROLES: readonly UserRole[] = ['admin'];
 
 /**
+ * Cấu hình thương hiệu (logo/tên công ty) và SMTP (`/settings/branding`,
+ * `/settings/mail`) — admin only, hẹp hơn `MASTER_DATA_WRITE_ROLES`. Đây là
+ * cấu hình TOÀN HỆ THỐNG (SMTP còn chứa mật khẩu, dù đã mã hoá), không phải
+ * danh mục nghiệp vụ như phòng ban/chức vụ nên không dùng chung hằng đó.
+ */
+export const SETTINGS_WRITE_ROLES: readonly UserRole[] = ['admin'];
+
+/**
  * Vai trò được XUẤT danh sách nhân viên ra Excel — mirrors the backend's
  * `EMPLOYEE_EXPORT_ROLES` in `modules/reports/employee-export.service.ts`.
  *

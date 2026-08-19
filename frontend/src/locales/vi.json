@@ -233,6 +233,14 @@
       "DEPENDENT_REASON_REQUIRED": "Cần nhập lý do khi ngừng giảm trừ.",
       "EXPORT_TOO_MANY_ROWS": "Bộ lọc hiện tại khớp quá nhiều nhân viên để xuất một lần. Hãy thu hẹp bộ lọc rồi xuất lại.",
       "SENSITIVE_EXPORT_FORBIDDEN": "Bạn không có quyền xuất các cột thông tin nhạy cảm.",
+      "LOGO_TOO_LARGE": "Logo vượt quá dung lượng cho phép (2MB).",
+      "LOGO_INVALID_TYPE": "File tải lên không phải ảnh JPEG/PNG/WEBP.",
+      "LOGO_REQUIRED": "Chưa chọn ảnh để tải lên.",
+      "FAVICON_TOO_LARGE": "Favicon vượt quá dung lượng cho phép (2MB).",
+      "FAVICON_INVALID_TYPE": "File tải lên không phải ảnh JPEG/PNG/WEBP.",
+      "FAVICON_REQUIRED": "Chưa chọn ảnh để tải lên.",
+      "MAIL_SETTINGS_INCOMPLETE": "Vui lòng nhập đủ máy chủ, cổng và email người gửi trước khi gửi thử.",
+      "MAIL_TEST_FAILED": "Gửi email thử thất bại. Kiểm tra lại máy chủ, cổng, tên đăng nhập và mật khẩu.",
       "ALREADY_CHECKED_IN": "Bạn đã chấm công vào hôm nay rồi.",
       "NOT_CHECKED_IN": "Bạn chưa chấm công vào hôm nay.",
       "ALREADY_CHECKED_OUT": "Bạn đã chấm công ra hôm nay rồi.",
@@ -285,7 +293,9 @@
     "contractTypes": "Loại hợp đồng",
     "leaveTypes": "Loại phép",
     "holidays": "Ngày lễ",
-    "reports": "Báo cáo"
+    "reports": "Báo cáo",
+    "branding": "Thương hiệu",
+    "mailSettings": "Cấu hình email"
   },
   "profile": {
     "title": "Hồ sơ cá nhân",
@@ -320,7 +330,9 @@
       "positions": "Danh mục chức vụ theo từng phòng ban, cấp bậc và khoảng lương.",
       "contractTypes": "Bốn loại hợp đồng lao động theo Bộ luật Lao động 2019 (chỉ xem).",
       "leaveTypes": "Loại phép, số ngày được hưởng mỗi năm và quy định áp dụng.",
-      "holidays": "Lịch nghỉ lễ theo từng năm, dùng cho chấm công và tính lương."
+      "holidays": "Lịch nghỉ lễ theo từng năm, dùng cho chấm công và tính lương.",
+      "branding": "Tên công ty, logo và favicon hiển thị trên hệ thống (chỉ admin).",
+      "mail": "Cấu hình SMTP để gửi email thật: duyệt phép, thông báo lương, đặt lại mật khẩu (chỉ admin)."
     },
     "fields": {
       "code": "Mã",
@@ -549,6 +561,61 @@
       "notePlaceholder": "Ví dụ: 10/3 âm lịch, nghỉ bù thứ Hai",
       "searchPlaceholder": "Tìm theo tên ngày lễ",
       "loadError": "Không tải được danh sách ngày lễ."
+    },
+    "branding": {
+      "pageTitle": "Thương hiệu",
+      "subtitle": "Tên công ty, logo và favicon hiển thị trên toàn hệ thống, kể cả trang đăng nhập.",
+      "loadError": "Không tải được cấu hình thương hiệu.",
+      "companyNameTitle": "Tên công ty",
+      "companyName": "Tên công ty:",
+      "companyNamePlaceholder": "Ví dụ: Công ty TNHH ABC",
+      "saveSuccess": "Đã lưu tên công ty.",
+      "logoTitle": "Logo",
+      "logoHint": "Hiển thị ở sidebar và trang đăng nhập. JPEG/PNG/WEBP, tối đa 2MB.",
+      "logoUploadSuccess": "Đã cập nhật logo.",
+      "logoRemoveSuccess": "Đã xoá logo, quay về biểu tượng mặc định.",
+      "faviconTitle": "Favicon",
+      "faviconHint": "Hiển thị trên tab trình duyệt. JPEG/PNG/WEBP, tối đa 2MB.",
+      "faviconUploadSuccess": "Đã cập nhật favicon.",
+      "faviconRemoveSuccess": "Đã xoá favicon, quay về biểu tượng mặc định.",
+      "assetChoose": "Chọn ảnh",
+      "assetRemove": "Xoá",
+      "assetRemoveConfirm": "Xoá ảnh này và quay về mặc định?",
+      "assetInvalidType": "Ảnh phải là JPEG, PNG hoặc WEBP.",
+      "assetTooLarge": "Ảnh không được vượt quá 2MB."
+    },
+    "mail": {
+      "pageTitle": "Cấu hình email (SMTP)",
+      "subtitle": "Cấu hình máy chủ SMTP để gửi email thật: duyệt phép, thông báo lương, đặt lại mật khẩu.",
+      "loadError": "Không tải được cấu hình SMTP.",
+      "accessDenied": "Chỉ quản trị viên (admin) mới được xem cấu hình email.",
+      "smtpTitle": "Máy chủ SMTP",
+      "host": "Máy chủ (host):",
+      "hostPlaceholder": "Ví dụ: smtp.gmail.com",
+      "port": "Cổng (port):",
+      "secure": "TLS/SSL:",
+      "username": "Tên đăng nhập:",
+      "usernamePlaceholder": "Ví dụ: no-reply@congty.com",
+      "password": "Mật khẩu:",
+      "passwordHint": "Đã lưu mật khẩu. Để trống nếu không muốn đổi.",
+      "passwordPlaceholderSet": "•••••••• (giữ nguyên nếu để trống)",
+      "passwordPlaceholderUnset": "Nhập mật khẩu SMTP",
+      "fromEmail": "Email người gửi:",
+      "fromEmailPlaceholder": "Ví dụ: no-reply@congty.com",
+      "fromName": "Tên người gửi:",
+      "fromNamePlaceholder": "Ví dụ: HRM System",
+      "saveSuccess": "Đã lưu cấu hình SMTP.",
+      "testTitle": "Gửi email thử",
+      "testHint": "Gửi bằng cấu hình ĐÃ LƯU ở trên để kiểm tra kết nối SMTP hoạt động.",
+      "testEmailPlaceholder": "Nhập email để nhận thử",
+      "testSend": "Gửi thử",
+      "testSuccess": "Đã gửi email thử thành công (mã: {{reference}}).",
+      "validation": {
+        "hostRequired": "Vui lòng nhập máy chủ SMTP",
+        "portRequired": "Vui lòng nhập cổng",
+        "fromEmailRequired": "Vui lòng nhập email người gửi",
+        "fromEmailInvalid": "Email không hợp lệ"
+      }
     }
   },
   "tabs": {

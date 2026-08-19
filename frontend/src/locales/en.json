@@ -233,6 +233,14 @@
       "DEPENDENT_REASON_REQUIRED": "A reason is required when stopping a deduction.",
       "EXPORT_TOO_MANY_ROWS": "The current filter matches too many employees to export at once. Narrow it down and try again.",
       "SENSITIVE_EXPORT_FORBIDDEN": "You don't have permission to export sensitive columns.",
+      "LOGO_TOO_LARGE": "The logo exceeds the allowed size (2MB).",
+      "LOGO_INVALID_TYPE": "The uploaded file is not a JPEG/PNG/WEBP image.",
+      "LOGO_REQUIRED": "No image was selected.",
+      "FAVICON_TOO_LARGE": "The favicon exceeds the allowed size (2MB).",
+      "FAVICON_INVALID_TYPE": "The uploaded file is not a JPEG/PNG/WEBP image.",
+      "FAVICON_REQUIRED": "No image was selected.",
+      "MAIL_SETTINGS_INCOMPLETE": "Please fill in the host, port and from email before sending a test.",
+      "MAIL_TEST_FAILED": "The test email failed to send. Double-check the host, port, username and password.",
       "ALREADY_CHECKED_IN": "You have already clocked in today.",
       "NOT_CHECKED_IN": "You have not clocked in today.",
       "ALREADY_CHECKED_OUT": "You have already clocked out today.",
@@ -285,7 +293,9 @@
     "contractTypes": "Contract types",
     "leaveTypes": "Leave types",
     "holidays": "Public holidays",
-    "reports": "Reports"
+    "reports": "Reports",
+    "branding": "Branding",
+    "mailSettings": "Email settings"
   },
   "profile": {
     "title": "My profile",
@@ -320,7 +330,9 @@
       "positions": "Job titles per department, with grade and reference salary range.",
       "contractTypes": "The four employment contract types defined by the 2019 Labour Code (read-only).",
       "leaveTypes": "Leave categories, the yearly entitlement and the policy for each.",
-      "holidays": "The public-holiday calendar per year, used by attendance and payroll."
+      "holidays": "The public-holiday calendar per year, used by attendance and payroll.",
+      "branding": "Company name, logo and favicon shown across the system (admin only).",
+      "mail": "SMTP configuration for sending real email: leave approvals, payroll notices, password resets (admin only)."
     },
     "fields": {
       "code": "Code",
@@ -549,6 +561,61 @@
       "notePlaceholder": "e.g. 10th day of the 3rd lunar month, observed on Monday",
       "searchPlaceholder": "Search by holiday name",
       "loadError": "Could not load the holiday list."
+    },
+    "branding": {
+      "pageTitle": "Branding",
+      "subtitle": "Company name, logo and favicon shown across the whole system, including the login page.",
+      "loadError": "Could not load branding settings.",
+      "companyNameTitle": "Company name",
+      "companyName": "Company name:",
+      "companyNamePlaceholder": "e.g. Acme Corp",
+      "saveSuccess": "Company name saved.",
+      "logoTitle": "Logo",
+      "logoHint": "Shown in the sidebar and on the login page. JPEG/PNG/WEBP, up to 2MB.",
+      "logoUploadSuccess": "Logo updated.",
+      "logoRemoveSuccess": "Logo removed, back to the default mark.",
+      "faviconTitle": "Favicon",
+      "faviconHint": "Shown in the browser tab. JPEG/PNG/WEBP, up to 2MB.",
+      "faviconUploadSuccess": "Favicon updated.",
+      "faviconRemoveSuccess": "Favicon removed, back to the default icon.",
+      "assetChoose": "Choose image",
+      "assetRemove": "Remove",
+      "assetRemoveConfirm": "Remove this image and revert to the default?",
+      "assetInvalidType": "The image must be JPEG, PNG or WEBP.",
+      "assetTooLarge": "The image must be at most 2MB."
+    },
+    "mail": {
+      "pageTitle": "Email settings (SMTP)",
+      "subtitle": "Configure the SMTP server used to send real email: leave approvals, payroll notices, password resets.",
+      "loadError": "Could not load SMTP settings.",
+      "accessDenied": "Only administrators can view email settings.",
+      "smtpTitle": "SMTP server",
+      "host": "Host:",
+      "hostPlaceholder": "e.g. smtp.gmail.com",
+      "port": "Port:",
+      "secure": "TLS/SSL:",
+      "username": "Username:",
+      "usernamePlaceholder": "e.g. no-reply@company.com",
+      "password": "Password:",
+      "passwordHint": "A password is already saved. Leave blank to keep it unchanged.",
+      "passwordPlaceholderSet": "•••••••• (leave blank to keep it)",
+      "passwordPlaceholderUnset": "Enter the SMTP password",
+      "fromEmail": "From email:",
+      "fromEmailPlaceholder": "e.g. no-reply@company.com",
+      "fromName": "From name:",
+      "fromNamePlaceholder": "e.g. HRM System",
+      "saveSuccess": "SMTP settings saved.",
+      "testTitle": "Send a test email",
+      "testHint": "Sends using the SETTINGS ALREADY SAVED above, to verify the SMTP connection works.",
+      "testEmailPlaceholder": "Enter an email to receive the test",
+      "testSend": "Send test",
+      "testSuccess": "Test email sent successfully (reference: {{reference}}).",
+      "validation": {
+        "hostRequired": "Please enter the SMTP host",
+        "portRequired": "Please enter the port",
+        "fromEmailRequired": "Please enter the from email",
+        "fromEmailInvalid": "Invalid email"
+      }
     }
   },
   "tabs": {

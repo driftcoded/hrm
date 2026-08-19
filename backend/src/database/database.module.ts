@@ -20,7 +20,12 @@ import { DatabaseConfig } from '../config/database.config';
           database: db.database,
           charset: 'utf8mb4',
           timezone: '+07:00',
-          entities: [__dirname + '/../modules/**/entities/*.entity{.ts,.js}'],
+          // `{modules,shared}`: most entities live under modules/, but a few
+          // (e.g. system_mail_settings) belong to shared/ infra modules
+          // (mail, storage) rather than any single business module.
+          entities: [
+            __dirname + '/../{modules,shared}/**/entities/*.entity{.ts,.js}',
+          ],
           autoLoadEntities: true,
           synchronize: false,
           migrationsRun: false,

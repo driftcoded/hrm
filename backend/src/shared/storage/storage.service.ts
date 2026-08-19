@@ -2,9 +2,15 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
 import { StorageConfig } from '@/config/storage.config';
-import { assertValidAvatar, UploadedFileLike } from './image-file.util';
+import {
+  assertValidAvatar,
+  assertValidImage,
+  UploadedFileLike,
+} from './image-file.util';
 import { StorageDriver, StoredFile } from './storage-driver.interface';
 import { STORAGE_DRIVER } from './storage.constants';
+
+export type SystemAssetKind = 'logo' | 'favicon';
 
 @Injectable()
 export class StorageService {
@@ -46,6 +52,40 @@ export class StorageService {
 
     this.logger.log(
       `Đã lưu avatar của nhân viên ${employeeId} qua driver=${stored.driver} (key=${stored.key})`,
+    );
+
+    return stored;
+  }
+
+  /**
+   * Validate rồi lưu logo/favicon hiển thị trên UI (system_branding_settings).
+   * Dùng chung trần dung lượng với avatar (`AVATAR_MAX_BYTES`) — không phải
+   * ảnh nhân viên nhưng cùng là ảnh nhỏ hiển thị trên UI nên không cần cấu
+   * hình riêng.
+   */
+  async putSystemAsset(
+    kind: SystemAssetKind,
+    file: UploadedFileLike | undefined,
+  ): Promise<StoredFile> {
+    const { kind: imageKind, buffer } = assertValidImage(
+      file,
+      this.avatarMaxBytes,
+      {
+        errorCodePrefix: kind.toUpperCase(),
+        label: kind === 'logo' ? 'Logo' : 'Favicon',
+        multipartField: kind,
+      },
+    );
+    const suffix = randomBytes(8).toString('hex');
+
+    const stored = await this.driver.put({
+      key: `branding/${kind}-${suffix}.${imageKind.extension}`,
+      body: buffer,
+      contentType: imageKind.mime,
+    });
+
+    this.logger.log(
+      `Đã lưu ${kind} hệ thống qua driver=${stored.driver} (key=${stored.key})`,
     );
 
     return stored;

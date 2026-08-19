@@ -4,6 +4,8 @@ import {
   CalendarOutlined,
   FileProtectOutlined,
   IdcardOutlined,
+  MailOutlined,
+  PictureOutlined,
   SunOutlined,
 } from '@ant-design/icons';
 import type { ReactNode } from 'react';
@@ -11,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SETTINGS_SECTIONS } from '@/constants/settingsSections';
-import { useCanWriteMasterData } from '@/hooks/usePermissions';
+import { useCanManageSettings, useCanWriteMasterData } from '@/hooks/usePermissions';
 import styles from './SettingsIndexPage.module.css';
 
 /**
@@ -27,11 +29,17 @@ const SECTION_ICONS: Record<string, ReactNode> = {
   'contract-types': <FileProtectOutlined />,
   'leave-types': <SunOutlined />,
   holidays: <CalendarOutlined />,
+  branding: <PictureOutlined />,
+  mail: <MailOutlined />,
 };
 
 export function SettingsIndexPage() {
   const { t } = useTranslation();
   const canWrite = useCanWriteMasterData();
+  const canManageSettings = useCanManageSettings();
+  const visibleSections = SETTINGS_SECTIONS.filter(
+    (section) => !section.adminOnly || canManageSettings,
+  );
 
   return (
     <>
@@ -41,7 +49,7 @@ export function SettingsIndexPage() {
       />
 
       <div className={styles.grid}>
-        {SETTINGS_SECTIONS.map((section) => (
+        {visibleSections.map((section) => (
           <Link key={section.path} to={section.path} className={styles.cardLink}>
             <Card variant="borderless" className={styles.card} hoverable>
               <span className={styles.icon} aria-hidden="true">

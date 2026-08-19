@@ -11,6 +11,8 @@
 .mark {
   display: block;
   flex: none;
+  /* Applies to the custom-logo <img> case; a no-op for the default <svg>. */
+  object-fit: contain;
 }
 
 .stopFrom {

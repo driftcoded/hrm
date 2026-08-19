@@ -96,6 +96,16 @@ const LeaveTypesPage = lazy(() =>
 const HolidaysPage = lazy(() =>
   import('@/pages/settings/HolidaysPage').then((module) => ({ default: module.HolidaysPage })),
 );
+const BrandingSettingsPage = lazy(() =>
+  import('@/pages/settings/BrandingSettingsPage').then((module) => ({
+    default: module.BrandingSettingsPage,
+  })),
+);
+const MailSettingsPage = lazy(() =>
+  import('@/pages/settings/MailSettingsPage').then((module) => ({
+    default: module.MailSettingsPage,
+  })),
+);
 
 /**
  * Modules the sidebar links to whose feature ships in a later phase. They get
@@ -168,6 +178,8 @@ const router = createBrowserRouter([
               { path: 'contract-types', element: <ContractTypesPage /> },
               { path: 'leave-types', element: <LeaveTypesPage /> },
               { path: 'holidays', element: <HolidaysPage /> },
+              { path: 'branding', element: <BrandingSettingsPage /> },
+              { path: 'mail', element: <MailSettingsPage /> },
             ],
           },
           // Departments moved under /settings in Giai đoạn 2.2 — keep the old

@@ -28,11 +28,19 @@ export const envValidationSchema = Joi.object({
   AUTH_REFRESH_COOKIE_NAME: Joi.string().default('refresh_token'),
 
   // ---- Mail ----
-  MAIL_TRANSPORT: Joi.string().valid('dev', 'ses').default('dev'),
+  // 'smtp' reads host/port/credentials from system_mail_settings (DB), set by
+  // an admin via /settings/mail — never from env vars.
+  MAIL_TRANSPORT: Joi.string().valid('dev', 'smtp').default('dev'),
   MAIL_FROM: Joi.string().default('no-reply@company.local'),
   MAIL_FROM_NAME: Joi.string().default('HRM System'),
   MAIL_DEV_OUTPUT_DIR: Joi.string().default('logs/mail'),
   AWS_REGION: Joi.string().default('ap-southeast-1'),
+
+  // ---- Settings encryption ----
+  // 32-byte AES-256 key (64 hex chars) used ONLY to encrypt/decrypt secrets
+  // stored in system_mail_settings.smtp_password_encrypted. Generate with:
+  // node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  SETTINGS_ENCRYPTION_KEY: Joi.string().hex().length(64).required(),
 
   // ---- Storage (avatar, file đính kèm) ----
   STORAGE_DRIVER: Joi.string().valid('local', 's3').default('local'),

@@ -16,13 +16,15 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 import { BrandMark } from '@/components/common/BrandMark';
 import { SETTINGS_SECTIONS } from '@/constants/settingsSections';
-import { useCanWriteMasterData } from '@/hooks/usePermissions';
+import { useCanManageSettings, useCanWriteMasterData } from '@/hooks/usePermissions';
 import { useUiStore } from '@/store/uiStore';
 import styles from './Sidebar.module.css';
 
 interface NavChild {
   key: string;
   labelKey: string;
+  /** Mirrors `SettingsSection.adminOnly` — hidden unless `useCanManageSettings()`. */
+  adminOnly?: boolean;
 }
 
 interface NavItem {
@@ -58,6 +60,7 @@ const NAV_ITEMS: NavItem[] = [
     children: SETTINGS_SECTIONS.map((section) => ({
       key: section.path,
       labelKey: section.titleKey,
+      adminOnly: section.adminOnly,
     })),
   },
 ];
@@ -97,6 +100,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
    * actually refuses writes).
    */
   const canWriteMasterData = useCanWriteMasterData();
+  const canManageSettings = useCanManageSettings();
   const visibleItems = NAV_ITEMS.filter(
     (item) => item.key !== '/settings' || canWriteMasterData,
   );
@@ -109,7 +113,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     key,
     icon,
     label: t(labelKey),
-    children: children?.map((child) => ({ key: child.key, label: t(child.labelKey) })),
+    children: children
+      ?.filter((child) => !child.adminOnly || canManageSettings)
+      .map((child) => ({ key: child.key, label: t(child.labelKey) })),
   }));
 
   const allKeys = visibleItems.flatMap((item) => [

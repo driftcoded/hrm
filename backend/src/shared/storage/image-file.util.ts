@@ -103,3 +103,41 @@ export function assertValidAvatar(
 
   return { kind, buffer: file.buffer };
 }
+
+/**
+ * Bản tổng quát của `assertValidAvatar` cho các ảnh hệ thống khác (logo,
+ * favicon): cùng luật (magic bytes, JPEG/PNG/WEBP, giới hạn dung lượng) nhưng
+ * mã lỗi/tên field khác `AVATAR_*` cho đúng ngữ cảnh gọi.
+ */
+export function assertValidImage(
+  file: UploadedFileLike | undefined,
+  maxBytes: number,
+  options: { errorCodePrefix: string; label: string; multipartField: string },
+): ValidatedAvatar {
+  if (!file?.buffer || file.buffer.length === 0) {
+    throw new BadRequestException({
+      code: `${options.errorCodePrefix}_REQUIRED`,
+      message: `${options.label} file is required in multipart field "${options.multipartField}"`,
+    });
+  }
+
+  const size = Math.max(file.size ?? 0, file.buffer.length);
+
+  if (size > maxBytes) {
+    throw new BadRequestException({
+      code: `${options.errorCodePrefix}_TOO_LARGE`,
+      message: `${options.label} must be at most ${maxBytes} bytes, received ${size}`,
+    });
+  }
+
+  const kind = detectImageKind(file.buffer);
+
+  if (!kind || !ALLOWED_AVATAR_MIMES.includes(kind.mime)) {
+    throw new BadRequestException({
+      code: `${options.errorCodePrefix}_INVALID_TYPE`,
+      message: `${options.label} must be a JPEG, PNG or WEBP image (detected from file content, not from its extension)`,
+    });
+  }
+
+  return { kind, buffer: file.buffer };
+}

@@ -11,6 +11,12 @@ export interface SettingsSection {
   path: string;
   titleKey: string;
   descriptionKey: string;
+  /**
+   * `true` = only shown to `useCanManageSettings()` (admin), not the wider
+   * `useCanWriteMasterData()` group this list otherwise assumes. Absent =
+   * same visibility as every other section (the five master-data screens).
+   */
+  adminOnly?: boolean;
 }
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
@@ -43,5 +49,19 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     path: '/settings/holidays',
     titleKey: 'nav.holidays',
     descriptionKey: 'settings.index.holidays',
+  },
+  {
+    id: 'branding',
+    path: '/settings/branding',
+    titleKey: 'nav.branding',
+    descriptionKey: 'settings.index.branding',
+    adminOnly: true,
+  },
+  {
+    id: 'mail',
+    path: '/settings/mail',
+    titleKey: 'nav.mailSettings',
+    descriptionKey: 'settings.index.mail',
+    adminOnly: true,
   },
 ];

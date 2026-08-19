@@ -15,7 +15,7 @@ export class MailService {
   ) {}
 
   /** Transport đang dùng – hữu ích cho health check / test. */
-  get transportKind(): 'dev' | 'ses' {
+  get transportKind(): 'dev' | 'smtp' {
     return this.transport.kind;
   }
 
