@@ -98,8 +98,24 @@ export const OVERTIME_RATES = {
   WEEKEND: 2,
   /** Ngày lễ, ngày nghỉ có hưởng lương. */
   HOLIDAY: 3,
-  /** Ban đêm 22h–6h: CỘNG THÊM vào hệ số trên, không thay thế. */
+  /**
+   * Ban đêm 22h–6h: CỘNG THÊM vào hệ số trên, không thay thế.
+   * Điều 98 khoản 2 BLLĐ 2019 — áp dụng cho mọi giờ làm ban đêm.
+   */
   NIGHT_SURCHARGE: 0.3,
+  /**
+   * LÀM THÊM GIỜ vào ban đêm được cộng thêm 20% NỮA (Điều 98 khoản 3 BLLĐ 2019),
+   * ngoài hệ số làm thêm ở khoản 1 và phụ trội ca đêm ở khoản 2.
+   *
+   * Vì sao tách riêng khỏi `NIGHT_SURCHARGE`: 30% dành cho mọi giờ làm ban đêm
+   * (kể cả ca đêm bình thường, không phải làm thêm); 20% này CHỈ áp dụng khi giờ
+   * ban đêm đó đồng thời là giờ làm thêm. Gộp hai khoản thành một số sẽ trả thừa
+   * cho ca đêm chính thức và trả thiếu cho làm thêm ban đêm.
+   *
+   * Tổng làm thêm ban đêm ngày thường = 1.5 + 0.3 + 0.2 = 2.0 đơn giá ngày
+   * thường (không phải 1.8 như bảng cũ trong business-rules.md §7.1).
+   */
+  NIGHT_OVERTIME_SURCHARGE: 0.2,
 } as const;
 
 /** Khung giờ ban đêm theo Điều 106 BLLĐ 2019 — dùng cho phụ cấp ca đêm. */

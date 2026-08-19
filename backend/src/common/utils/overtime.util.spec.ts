@@ -94,7 +94,29 @@ describe('overtime.util', () => {
 
         expect(result.totalHours).toBe(5);
         expect(result.nightHours).toBe(1);
-        expect(result.nightRateSurcharge).toBe(OVERTIME_RATES.NIGHT_SURCHARGE);
+        // Điều 98 khoản 2 (30% cho giờ ban đêm) CỘNG khoản 3 (thêm 20% khi giờ
+        // ban đêm đó là giờ làm thêm — luôn đúng với hàm này).
+        expect(result.nightRateSurcharge).toBe(
+          OVERTIME_RATES.NIGHT_SURCHARGE +
+            OVERTIME_RATES.NIGHT_OVERTIME_SURCHARGE,
+        );
+      });
+
+      /**
+       * Chốt con số cuối cùng, vì đây là chỗ trước đây trả thiếu tiền: một giờ
+       * làm thêm ban đêm ngày thường phải là 2.0 đơn giá ngày thường
+       * (1.5 + 0.3 + 0.2), không phải 1.8.
+       */
+      it('totals 2.0x for a weekday night overtime hour', () => {
+        const result = calculateOvertimeSpan({
+          workDate: MONDAY,
+          startTime: '22:00',
+          endTime: '23:00',
+          isHoliday: false,
+        });
+
+        expect(result.nightHours).toBe(1);
+        expect(result.rate + result.nightRateSurcharge).toBe(2);
       });
 
       /*

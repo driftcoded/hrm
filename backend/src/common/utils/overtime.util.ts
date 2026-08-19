@@ -43,7 +43,14 @@ export interface OvertimeSpanResult {
   rateType: OvertimeRateType;
   /** Hệ số nền theo loại ngày (1.5 / 2 / 3). */
   rate: number;
-  /** Phụ trội ca đêm (0 hoặc 0.3), CỘNG vào `rate` cho riêng phần `nightHours`. */
+  /**
+   * Phụ trội áp cho riêng phần `nightHours`, CỘNG vào `rate`.
+   *
+   * Bằng 0 khi ca không chạm khung đêm; ngược lại là 0.5 = 0.3 (Điều 98 khoản 2,
+   * mọi giờ làm ban đêm) + 0.2 (Điều 98 khoản 3, chỉ khi giờ ban đêm đó là giờ
+   * LÀM THÊM — đúng trường hợp của hàm này). Trước đây chỉ có 0.3, tức trả thiếu
+   * 20% đơn giá cho mỗi giờ làm thêm ban đêm.
+   */
   nightRateSurcharge: number;
 }
 
@@ -105,7 +112,11 @@ export function calculateOvertimeSpan(
     nightHours: minutesToHours(nightMinutes),
     rateType,
     rate: RATE_BY_TYPE[rateType],
-    nightRateSurcharge: nightMinutes > 0 ? OVERTIME_RATES.NIGHT_SURCHARGE : 0,
+    nightRateSurcharge:
+      nightMinutes > 0
+        ? OVERTIME_RATES.NIGHT_SURCHARGE +
+          OVERTIME_RATES.NIGHT_OVERTIME_SURCHARGE
+        : 0,
   };
 }
 
