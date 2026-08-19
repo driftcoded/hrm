@@ -4,9 +4,16 @@
   gap: var(--hrm-grid-gap);
 }
 
-.filterCard {
-  /* Tighter than a content card: this is a control strip, not a panel. */
-  padding-bottom: 0;
+/*
+ * Thanh lọc nằm thẳng trên nền trang, KHÔNG bọc card.
+ *
+ * Nó là dải điều khiển của bảng ngay bên dưới, không phải một panel nội dung
+ * riêng — bọc card thì bảng trông như bị ngăn khỏi bộ lọc điều khiển chính nó.
+ */
+.filterBar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-3);
 }
 
 .filterRow,
@@ -18,7 +25,6 @@
 }
 
 .filterRowSecondary {
-  margin-top: var(--hrm-space-3);
   padding-top: var(--hrm-space-3);
   border-top: 1px solid var(--hrm-color-border-subtle);
 }
@@ -49,10 +55,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--hrm-grid-gap);
-}
-
-.tiles {
-  margin: 0;
 }
 
 .rail {

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 import {
   App,
   Button,
-  Card,
   Col,
   DatePicker,
   Dropdown,
@@ -72,9 +71,14 @@ const { Text } = Typography;
 /**
  * `/employees` — the module's list screen.
  *
- * Layout, top to bottom: page header + primary action, one filter bar, four
- * overview tiles, then the table with a context rail beside it. On tablet the
- * rail moves BELOW the table rather than squeezing it (see the module CSS §10).
+ * Layout, top to bottom: page header + primary action, the four overview
+ * tiles, then the filter bar sitting directly above the table it filters, with
+ * a context rail beside the table. On tablet the rail moves BELOW the table
+ * rather than squeezing it (see the module CSS §10).
+ *
+ * The filter bar is NOT in a card: it is the table's control strip, not a
+ * panel of its own, and boxing it made the table look fenced off from the
+ * controls that drive it.
  *
  * URL IS THE STATE. Page, page size, sort and every filter live in the query
  * string through `useTableQuery`, so F5 and a shared link land on the same rows.
@@ -465,8 +469,65 @@ export function EmployeesPage() {
         }
       />
 
+      {/* --------------------------------------------- overview tiles --- */}
+      {/* Lên trên cùng để bộ lọc đứng SÁT bảng nó lọc — trước đây bốn thẻ
+          chen vào giữa hai thứ vốn phải đi liền nhau. */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatTile
+            tone="blue"
+            icon={<TeamOutlined />}
+            label={t('employees.tiles.total')}
+            value={statsData ? String(statsData.total) : '—'}
+            caption={
+              statsData
+                ? t('employees.tiles.hiredRecently', { count: statsData.hiredLast30Days })
+                : ''
+            }
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatTile
+            tone="orange"
+            icon={<SolutionOutlined />}
+            label={t('employees.tiles.probation')}
+            value={statsData ? String(statsData.byStatus.probation) : '—'}
+            caption={
+              statsData
+                ? t('employees.tiles.probationEnding', {
+                    count: statsData.probationEndingSoon,
+                    days: statsData.windowDays,
+                  })
+                : ''
+            }
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatTile
+            tone="teal"
+            icon={<CalendarOutlined />}
+            label={t('employees.tiles.onLeave')}
+            value={statsData ? String(statsData.byStatus.on_leave) : '—'}
+            caption={t('employees.tiles.onLeaveCaption')}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatTile
+            tone="purple"
+            icon={<FileProtectOutlined />}
+            label={t('employees.tiles.expiring')}
+            value={statsData ? String(statsData.contractsExpiringSoon) : '—'}
+            caption={
+              statsData
+                ? t('employees.tiles.expiringCaption', { days: statsData.windowDays })
+                : ''
+            }
+          />
+        </Col>
+      </Row>
+
       {/* ------------------------------------------------- filter bar --- */}
-      <Card variant="borderless" className={styles.filterCard}>
+      <div className={styles.filterBar}>
         <div className={styles.filterRow}>
           <div className={styles.searchBox}>
             <TableSearch
@@ -565,65 +626,11 @@ export function EmployeesPage() {
             )}
           </div>
         )}
-      </Card>
+      </div>
 
       {/* ------------------------------------------------------- body --- */}
       <div className={styles.body}>
         <div className={styles.main}>
-          <Row gutter={[16, 16]} className={styles.tiles}>
-            <Col xs={24} sm={12} xl={6}>
-              <StatTile
-                tone="blue"
-                icon={<TeamOutlined />}
-                label={t('employees.tiles.total')}
-                value={statsData ? String(statsData.total) : '—'}
-                caption={
-                  statsData
-                    ? t('employees.tiles.hiredRecently', { count: statsData.hiredLast30Days })
-                    : ''
-                }
-              />
-            </Col>
-            <Col xs={24} sm={12} xl={6}>
-              <StatTile
-                tone="orange"
-                icon={<SolutionOutlined />}
-                label={t('employees.tiles.probation')}
-                value={statsData ? String(statsData.byStatus.probation) : '—'}
-                caption={
-                  statsData
-                    ? t('employees.tiles.probationEnding', {
-                        count: statsData.probationEndingSoon,
-                        days: statsData.windowDays,
-                      })
-                    : ''
-                }
-              />
-            </Col>
-            <Col xs={24} sm={12} xl={6}>
-              <StatTile
-                tone="teal"
-                icon={<CalendarOutlined />}
-                label={t('employees.tiles.onLeave')}
-                value={statsData ? String(statsData.byStatus.on_leave) : '—'}
-                caption={t('employees.tiles.onLeaveCaption')}
-              />
-            </Col>
-            <Col xs={24} sm={12} xl={6}>
-              <StatTile
-                tone="purple"
-                icon={<FileProtectOutlined />}
-                label={t('employees.tiles.expiring')}
-                value={statsData ? String(statsData.contractsExpiringSoon) : '—'}
-                caption={
-                  statsData
-                    ? t('employees.tiles.expiringCaption', { days: statsData.windowDays })
-                    : ''
-                }
-              />
-            </Col>
-          </Row>
-
           <DataTableCard<EmployeeListItem>
             columns={columns}
             rows={rows}
