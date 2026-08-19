@@ -44,7 +44,7 @@
 }
 
 .statIconFemale {
-  color: #eb2f96;
+  color: var(--hrm-color-magenta);
 }
 
 .statIconOther,

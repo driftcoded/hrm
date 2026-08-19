@@ -290,7 +290,10 @@
     "searchPlaceholder": "Search employees, departments, requests...",
     "notifications": "Notifications",
     "help": "Help",
-    "language": "Language"
+    "language": "Language",
+    "theme": "Appearance",
+    "themeToLight": "Switch to light theme",
+    "themeToDark": "Switch to dark theme"
   },
   "locale": {
     "vi": "Tiếng Việt",

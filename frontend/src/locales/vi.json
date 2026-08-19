@@ -290,7 +290,10 @@
     "searchPlaceholder": "Tìm kiếm nhân viên, phòng ban, đơn từ...",
     "notifications": "Thông báo",
     "help": "Trợ giúp",
-    "language": "Ngôn ngữ"
+    "language": "Ngôn ngữ",
+    "theme": "Giao diện",
+    "themeToLight": "Chuyển sang giao diện sáng",
+    "themeToDark": "Chuyển sang giao diện tối"
   },
   "locale": {
     "vi": "Tiếng Việt",

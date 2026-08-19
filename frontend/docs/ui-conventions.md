@@ -1,6 +1,6 @@
 # UI Conventions
 
-**Phiên bản:** 1.1  
+**Phiên bản:** 1.2  
 **Ngày cập nhật:** 19/08/2026  
 **Design System:** Ant Design **v6** + Custom Token (`src/styles/tokens.css`)
 
@@ -299,6 +299,64 @@ Dùng `useBreakpoint()` hook của AntD để điều chỉnh layout theo màn h
 - Focus ring không bị ẩn (không override `outline: none` toàn cục)
 - Keyboard navigation hoạt động với modal, dropdown, table row actions
 
+### Ngưỡng tương phản (BẮT BUỘC)
+
+| Loại | Ngưỡng | Chuẩn |
+|------|--------|-------|
+| Text thường (< 18px) | **4.5:1** | WCAG 1.4.3 AA |
+| Text lớn (≥ 18px hoặc ≥ 14px bold) | **3:1** | WCAG 1.4.3 AA |
+| Icon / glyph trên tile, đường viền của control | **3:1** | WCAG 1.4.11 |
+
+Áp dụng cho **cả hai theme**. Xem §12 để biết token nào dùng cho text và token nào dùng cho glyph.
+
 ---
+
+## 12. Dark Mode
+
+### Cách bật
+
+`useUiStore.theme` (`'light' | 'dark'`, persist ở localStorage `hrm-ui-store`) là nguồn sự thật duy nhất. Ba chỗ đọc nó, phải sửa cùng nhau nếu đổi tên key/attribute:
+
+1. `index.html` — script inline **chặn render**, chạy trước lần paint đầu tiên. Không có nó thì user dark mode bị chớp trắng toàn màn hình mỗi lần load, vì bundle React chỉ chạy sau khi trình duyệt đã vẽ xong body.
+2. `hooks/useThemeMode.ts` — gắn `data-theme` + `color-scheme` lên `<html>`.
+3. `App.tsx` — chọn `lightTheme` / `darkTheme` cho `ConfigProvider`.
+
+Attribute nằm trên `<html>` chứ **không phải** một `<div>` trong `#root`: token treo ở `:root`, và AntD render modal / dropdown / message qua portal ở cấp `<body>` — bọc bằng div sẽ để toàn bộ portal kẹt ở theme sáng.
+
+Mặc định theo OS (`prefers-color-scheme`). Cờ `hasChosenTheme` phân biệt "chưa từng chọn" với "cố ý chọn sáng dù OS đang tối" — thiếu nó thì lựa chọn của user bị OS ghi đè lúc trời tối.
+
+### Quy tắc token
+
+- Dark block ở `styles/tokens.css` **chỉ** khai báo lại token **màu và đổ bóng**. Spacing, radius, typography, kích thước layout là theme-independent — khai báo lại là bug vì nó âm thầm tách đôi hình học của hai theme.
+- Dark **không phải** light đảo ngược. Màu bão hoà đọc tốt trên nền trắng sẽ đục trên nền tối, nên mọi màu brand/status đi **lên** một bậc ramp (-6 → -4), vì các token này chủ yếu dùng làm `color:`/`fill:`.
+- Chiều sâu đến từ **bề mặt sáng hơn**, không phải bóng đậm hơn: sidebar → canvas → card → elevated. Tránh đen tuyệt đối (làm chữ trắng bị rung, và giấu mất bóng).
+
+### Ba bậc của một màu status
+
+Đây là lỗi dễ mắc nhất — dùng sai bậc là text không đọc được:
+
+| Bậc | Dùng cho | Ví dụ (light) |
+|-----|----------|---------------|
+| `--hrm-color-{name}-soft` | nền tile có tint | `#f6ffed` |
+| `--hrm-color-{name}` | chính accent đó (fill lớn, viền) | `#52c41a` |
+| `--hrm-color-{name}-strong` | **text và glyph** | `#237804` |
+
+`--hrm-color-success` trên chính `-soft` của nó chỉ **2.21:1**, `--hrm-color-warning` chỉ **1.83:1** — không đạt cả ngưỡng 3:1. **Text hoặc icon luôn dùng bậc `-strong`.**
+
+Tương tự, `--hrm-color-primary-solid` là bậc dành cho **nền có chữ trắng đè lên** (dòng nav đang chọn, avatar). `--hrm-color-primary` (`#1677ff`) dưới chữ trắng chỉ 4.10:1 — dưới AA. Không dùng `--hrm-color-primary` làm nền có chữ trắng.
+
+### Khi thêm màu mới
+
+1. Thêm cả cặp light + dark, cùng tên token.
+2. Kiểm tra tương phản theo bảng §11 trên **cả hai** bề mặt (card và canvas) của **cả hai** theme.
+3. Nếu là slot biểu đồ: kiểm tra thêm khoảng cách ΔE giữa các slot kề nhau dưới mô phỏng protan/deutan/tritan (sàn: 15 cho mắt thường, 8 cho CVD) — quy trình và số liệu ghi trong comment ở `tokens.css`.
+
+### In ấn
+
+Giấy không có dark mode. `index.css` reset `color-scheme: light` và ép body về đen-trên-trắng trong `@media print`; hai print sheet cố tình hardcode `#000`/`#fff` thay vì dùng token — **không** "sửa" chúng thành token.
+
+---
+
+*Cập nhật: 19/08/2026 – Version 1.2 – Thêm §12 Dark Mode và bảng ngưỡng tương phản ở §11; thêm bậc `-strong` (text/glyph) và `-solid` (nền có chữ trắng) cho màu status/primary*
 
 *Cập nhật: 19/08/2026 – Version 1.1 – Sửa phiên bản Design System: Ant Design v6 (không phải v5); token tuỳ biến nằm ở src/styles/tokens.css; sửa bảng màu trạng thái nhân viên về đúng 6 giá trị của `employees.status`; ConfigProvider nằm ở App.tsx chứ không phải main.tsx*

@@ -52,7 +52,7 @@
 
 .employee {
   background: var(--hrm-color-success-soft);
-  color: var(--hrm-color-success);
+  color: var(--hrm-color-success-strong);
 }
 
 .leave {
@@ -67,7 +67,7 @@
 
 .contract {
   background: var(--hrm-color-warning-soft);
-  color: var(--hrm-color-warning);
+  color: var(--hrm-color-warning-strong);
 }
 
 .text {

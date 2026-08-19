@@ -59,9 +59,11 @@
   color: var(--hrm-sidebar-text-strong);
 }
 
+/* `-solid`, not `-primary`: this fill carries white 14px/600 text, and the
+   plain accent is only 4.10:1 under white — below AA (§12). */
 .menu :global(.ant-menu-item-selected),
 .menu :global(.ant-menu-item-selected:hover) {
-  background: var(--hrm-color-primary);
+  background: var(--hrm-color-primary-solid);
   color: var(--hrm-sidebar-text-strong);
   font-weight: 600;
 }

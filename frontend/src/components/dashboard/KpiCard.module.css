@@ -25,14 +25,16 @@
   color: var(--hrm-color-primary);
 }
 
+/* The `-strong` step, not the plain one: #52c41a on its own soft tile is
+   2.21:1, which fails even the 3:1 floor for a glyph (§12). */
 .green {
   background: var(--hrm-color-success-soft);
-  color: var(--hrm-color-success);
+  color: var(--hrm-color-success-strong);
 }
 
 .cyan {
-  background: #e6fffb;
-  color: #13a8a8;
+  background: var(--hrm-color-teal-soft);
+  color: var(--hrm-color-teal);
 }
 
 .purple {
@@ -85,8 +87,9 @@
   font-size: var(--hrm-font-size-caption);
 }
 
+/* Reads as body text on the card, so it needs the AA-legible green. */
 .deltaUp {
-  color: var(--hrm-color-success);
+  color: var(--hrm-color-success-strong);
 }
 
 .deltaFlat {

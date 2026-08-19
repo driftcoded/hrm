@@ -10,6 +10,10 @@ body {
   margin: 0;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Painting the body means an over-scroll bounce, or the gap before the layout
+     mounts, shows the themed canvas instead of the browser's white default. */
+  background: var(--hrm-page-bg);
+  color: var(--hrm-color-text);
 }
 
 * {
@@ -32,6 +36,21 @@ body {
 @media print {
   @page {
     margin: 14mm;
+  }
+
+  /*
+   * Paper has no dark mode. The print sheets deliberately hardcode black on
+   * white rather than using the colour tokens, and this resets the inherited
+   * `color-scheme` so the browser does not try to "helpfully" re-tint the page
+   * when the user prints while the dark theme is on.
+   */
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
   }
 
   /*

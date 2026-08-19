@@ -6,32 +6,63 @@
  * RULE: CSS modules must never hardcode a hex value / raw px scale value —
  * always reference a token from this file. The same primitives are fed to
  * AntD's ConfigProvider theme in src/App.tsx, so the two stay in sync.
+ *
+ * THEMES (§12). `:root` below is the light theme. The dark theme at the bottom
+ * of this file re-declares ONLY the colour/elevation tokens under
+ * `:root[data-theme='dark']` — spacing, radius, typography and layout sizes are
+ * theme-independent and must never be duplicated there. `useThemeMode` stamps
+ * the attribute on <html>; index.html sets it before first paint.
+ *
+ * Every foreground/background pair below is contrast-checked: text ≥ 4.5:1
+ * (WCAG 1.4.3 AA) and icon/glyph-on-tile ≥ 3:1 (WCAG 1.4.11). A colour used as
+ * TEXT and a colour used as a GLYPH on a tinted tile are different tokens on
+ * purpose — see the `-strong` variants.
  */
 :root {
-  /* --- Brand / status colors (§1) --- */
+  /* --- Brand / status colors (§1) ---
+     The `-soft` step is a tinted TILE background; the plain step is the accent
+     itself; the `-strong` step is the darkened variant legible as TEXT. Status
+     colours are used as `color:`/`fill:` far more often than as `background:`,
+     so they are tuned as foregrounds first. */
   --hrm-color-primary: #1677ff;
   --hrm-color-primary-hover: #4096ff;
   --hrm-color-primary-active: #0958d9;
+  /* Solid fill that carries WHITE text (selected nav row, avatar). #1677ff is
+     only 4.10:1 under white — below AA for the 14px/600 nav label — so the
+     fill steps down to the -active blue at 6.16:1. Do NOT use --hrm-color-primary
+     for a surface with white text on it. */
+  --hrm-color-primary-solid: #0958d9;
   --hrm-color-primary-soft: #e6f4ff;
   --hrm-color-primary-softer: #f0f7ff;
   --hrm-color-success: #52c41a;
   --hrm-color-success-soft: #f6ffed;
-  /* A darker green for glyphs/text on white: #52c41a is only 2.3:1 there. */
-  --hrm-color-success-strong: #389e0d;
+  /* A darker green for glyphs/text on white: #52c41a is only 2.21:1 there and
+     #389e0d only 3.46:1 — neither clears AA for text. #237804 is 5.59:1 on
+     white and 5.44:1 on --hrm-color-success-soft. */
+  --hrm-color-success-strong: #237804;
   --hrm-color-warning: #faad14;
   --hrm-color-warning-soft: #fffbe6;
+  /* #faad14 is 1.83:1 on its own soft tile — unusable for a glyph. 5.01:1 on
+     white, 4.81:1 on the tile. */
+  --hrm-color-warning-strong: #a35f00;
   --hrm-color-error: #ff4d4f;
   /* Nền nhạt cho trạng thái lỗi/vắng mặt — cùng bậc -1 với success/warning-soft. */
   --hrm-color-error-soft: #fff1f0;
+  --hrm-color-error-strong: #cf1322;
   --hrm-color-accent: #722ed1;
   --hrm-color-accent-soft: #f9f0ff;
   --hrm-color-teal: #08979c;
   --hrm-color-teal-soft: #e6fffb;
+  /* Gender/category glyph that is not a status — kept out of the status ramp so
+     nobody reads it as an error state. 5.48:1 on white. */
+  --hrm-color-magenta: #c41d7f;
 
   /* --- Text --- */
   --hrm-color-text: rgba(0, 0, 0, 0.88);
   --hrm-color-text-secondary: rgba(0, 0, 0, 0.65);
-  --hrm-color-text-tertiary: rgba(0, 0, 0, 0.45);
+  /* 0.45 (AntD's default) is only 3.36:1 on white — below AA for the captions,
+     table meta and form hints that use this token ~70×. 0.55 is 4.74:1. */
+  --hrm-color-text-tertiary: rgba(0, 0, 0, 0.55);
   /* Dark navy used for the marketing headline on the auth brand panel */
   --hrm-color-heading: #0f2747;
   --hrm-color-muted: #5c7099;
@@ -39,6 +70,10 @@
   /* --- Surfaces --- */
   --hrm-color-bg: #ffffff;
   --hrm-color-bg-layout: #f0f2f5;
+  /* Card/table/input surface — mirrors AntD's `colorBgContainer`. */
+  --hrm-color-bg-container: #ffffff;
+  /* Floating surface (modal, dropdown, popover) — AntD's `colorBgElevated`. */
+  --hrm-color-bg-elevated: #ffffff;
   --hrm-color-border: #d9d9d9;
   --hrm-color-border-subtle: #eef2f7;
 
@@ -124,7 +159,8 @@
   --hrm-sidebar-border: rgba(255, 255, 255, 0.08);
   --hrm-sidebar-text: rgba(255, 255, 255, 0.75);
   --hrm-sidebar-text-strong: #ffffff;
-  --hrm-sidebar-text-muted: rgba(255, 255, 255, 0.45);
+  /* 0.45 is 4.16:1 on the navy — just under AA for the collapse-row label. */
+  --hrm-sidebar-text-muted: rgba(255, 255, 255, 0.55);
   --hrm-header-height: 64px;
   --hrm-page-bg: #f7f8fa;
   --hrm-card-bg: #ffffff;
@@ -147,4 +183,123 @@
   /* --- Breakpoints (§10) are duplicated in media queries because
          CSS custom properties can't be used inside @media conditions:
          mobile < 768px, tablet 768–1199px, desktop >= 1200px. --- */
+}
+
+/* ==========================================================================
+   DARK THEME (§12)
+   ==========================================================================
+
+   `:root[data-theme='dark']` — specificity (0,2,0) beats the `:root` block
+   above (0,1,0), so order in this file is not what makes it win. Only COLOUR
+   and ELEVATION tokens are redeclared: anything re-listed here that is not a
+   colour (a spacing step, a radius, a width) is a bug, because it silently
+   forks the two themes' geometry.
+
+   Dark mode is NOT the light palette inverted. Two rules drive every value:
+
+   1. Saturated mid-tones that read well on white go muddy on a dark surface.
+      Every brand/status colour therefore steps UP the AntD hue ramp (-6 -> -4)
+      instead of being reused, because these tokens are overwhelmingly used as
+      `color:`/`fill:`. Verified against the dark card surface: primary 7.08:1,
+      success-strong 9.80:1, warning-strong 11.43:1, error-strong 7.97:1,
+      accent 5.43:1, teal 8.43:1 — all clear AA for text.
+
+   2. Depth reads from a LIGHTER surface, not a heavier shadow. The ramp is
+      sidebar (#0b0f16) < canvas (#15181e) < card (#1e222a) < elevated
+      (#262b34), so a card looks raised against the page and a modal looks
+      raised against the card. Pure black is deliberately avoided: it makes the
+      white text vibrate and hides the shadows entirely. */
+:root[data-theme='dark'] {
+  /* --- Brand / status --- */
+  --hrm-color-primary: #69b1ff;
+  --hrm-color-primary-hover: #85c5ff;
+  --hrm-color-primary-active: #4096ff;
+  /* Fill under white text. Inverted from the light theme: there the fill has to
+     get DARKER than the accent to carry white, here it stays dark while the
+     accent gets lighter. 7.23:1 under white. */
+  --hrm-color-primary-solid: #1554ad;
+  --hrm-color-primary-soft: #111d2c;
+  --hrm-color-primary-softer: #0d1621;
+  --hrm-color-success: #73d13d;
+  --hrm-color-success-soft: #162312;
+  --hrm-color-success-strong: #95de64;
+  --hrm-color-warning: #ffc53d;
+  --hrm-color-warning-soft: #2b2111;
+  --hrm-color-warning-strong: #ffd666;
+  --hrm-color-error: #ff7875;
+  --hrm-color-error-soft: #2c1618;
+  --hrm-color-error-strong: #ff9c9e;
+  --hrm-color-accent: #b37feb;
+  --hrm-color-accent-soft: #1d1029;
+  --hrm-color-teal: #36cfc9;
+  --hrm-color-teal-soft: #0c2426;
+  --hrm-color-magenta: #ff85c0;
+
+  /* --- Text ---
+     0.88 rather than AntD's 0.85: this app runs long dense tables where the
+     extra step is the difference between scanning and squinting. */
+  --hrm-color-text: rgba(255, 255, 255, 0.88);
+  --hrm-color-text-secondary: rgba(255, 255, 255, 0.68);
+  /* 0.52 = 5.31:1 on the card. AntD's dark default (0.45) is 4.02:1 — under AA,
+     and this token carries ~70 captions and hints. */
+  --hrm-color-text-tertiary: rgba(255, 255, 255, 0.52);
+  /* The light theme's navy heading would disappear here — headings invert to a
+     faintly blue near-white so they still read as a distinct tier above body. */
+  --hrm-color-heading: #e8eef7;
+  --hrm-color-muted: #9fb3d1;
+
+  /* --- Surfaces --- */
+  --hrm-color-bg: #1e222a;
+  --hrm-color-bg-layout: #15181e;
+  --hrm-color-bg-container: #1e222a;
+  --hrm-color-bg-elevated: #262b34;
+  --hrm-color-border: #4b5567;
+  --hrm-color-border-subtle: #2a2f3a;
+
+  --hrm-auth-bg: linear-gradient(135deg, #10141f 0%, #151b2b 42%, #0e121c 100%);
+  --hrm-auth-footer-bg: rgba(11, 15, 22, 0.72);
+
+  /* --- Categorical chart palette ---
+     Re-derived for the dark card surface, NOT reused: the light slots are -6/-8
+     ramp steps chosen against white and drop to 1.3–2.0:1 here. These are the
+     -5 steps of the same seven hues, so the chart still reads as the same
+     chart. Re-validated with the same procedure as the light palette, against
+     the dark card surface (#1e222a):
+
+       contrast     every slot 5.29–10.10:1 (floor 3:1) — light palette: 3.31+
+       adjacent dE  normal 42.1 · protan 29.5 · deutan 32.6 · tritan 20.6
+                    (floors 15 / 8 / 8 / 8)
+       worst pair   3.3 under tritan (slots 2/7) — the light palette's own worst
+                    pair is 1.0, so this is no weaker than the shipped standard,
+                    and the same two mitigations apply: slot ORDER separates
+                    them, and every legend row names its series in text (§11).
+
+     Re-run that check before reordering or adding a slot. */
+  --hrm-chart-1: #4096ff;
+  --hrm-chart-2: #ff7a45;
+  --hrm-chart-3: #36cfc9;
+  --hrm-chart-4: #ffc53d;
+  --hrm-chart-5: #b37feb;
+  --hrm-chart-6: #95de64;
+  --hrm-chart-7: #f759ab;
+  /* De-emphasis grey for the folded "Khác" tail — 5.46:1 on the dark card. */
+  --hrm-chart-other: #8c98ab;
+  --hrm-chart-track: #2a2f3a;
+
+  /* --- Elevation ---
+     A soft navy shadow is invisible on a dark canvas, so the shadows go to near
+     black and lean harder; the surface step above does most of the work. */
+  --hrm-shadow-card: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --hrm-shadow-tile: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  /* --- Admin shell --- */
+  --hrm-sidebar-bg: #0b0f16;
+  --hrm-sidebar-bg-hover: #1a2130;
+  --hrm-sidebar-border: rgba(255, 255, 255, 0.1);
+  --hrm-sidebar-text: rgba(255, 255, 255, 0.75);
+  --hrm-sidebar-text-strong: #ffffff;
+  --hrm-sidebar-text-muted: rgba(255, 255, 255, 0.55);
+  --hrm-page-bg: #15181e;
+  --hrm-card-bg: #1e222a;
+  --hrm-card-border: 1px solid #2a2f3a;
 }

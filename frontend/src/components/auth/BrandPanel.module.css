@@ -92,7 +92,7 @@
 
 .tileSuccess {
   background: var(--hrm-color-success-soft);
-  color: var(--hrm-color-success);
+  color: var(--hrm-color-success-strong);
 }
 
 .tileAccent {

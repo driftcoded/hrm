@@ -32,19 +32,22 @@
 }
 
 /* Urgency of an upcoming deadline. Paired with spelled-out wording in the cell,
-   never carrying the meaning on its own. */
+   never carrying the meaning on its own.
+   All three are TEXT, so they take the `-strong` step: the plain accents are
+   3.05 / 1.83 / 2.21:1 on the card — the warning row in particular was close to
+   unreadable (§12). */
 .critical {
-  color: var(--hrm-color-error);
+  color: var(--hrm-color-error-strong);
   font-weight: 600;
 }
 
 .warning {
-  color: var(--hrm-color-warning);
+  color: var(--hrm-color-warning-strong);
   font-weight: 600;
 }
 
 .ok {
-  color: var(--hrm-color-success);
+  color: var(--hrm-color-success-strong);
 }
 
 .footer {

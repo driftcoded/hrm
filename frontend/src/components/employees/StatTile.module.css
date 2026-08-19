@@ -27,12 +27,12 @@
 
 .orange {
   background: var(--hrm-color-warning-soft);
-  color: #d48806;
+  color: var(--hrm-color-warning-strong);
 }
 
 .teal {
-  background: #e6fffb;
-  color: #13a8a8;
+  background: var(--hrm-color-teal-soft);
+  color: var(--hrm-color-teal);
 }
 
 .purple {

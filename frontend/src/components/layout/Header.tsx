@@ -15,8 +15,10 @@ import {
   DownOutlined,
   LogoutOutlined,
   MenuOutlined,
+  MoonOutlined,
   QuestionCircleOutlined,
   SearchOutlined,
+  SunOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -73,6 +75,8 @@ export function Header() {
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
   const locale = useUiStore((state) => state.locale);
   const setLocale = useUiStore((state) => state.setLocale);
+  const themeMode = useUiStore((state) => state.theme);
+  const toggleTheme = useUiStore((state) => state.toggleTheme);
   const user = useAuthStore((state) => state.user);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
@@ -106,6 +110,10 @@ export function Header() {
   }));
 
   const comingSoon = t('common.comingSoon');
+  // The label names the DESTINATION, not the current state — "Switch to dark"
+  // is unambiguous where "Dark mode" leaves a screen-reader user guessing
+  // whether it reports the theme or sets it.
+  const themeLabel = themeMode === 'dark' ? t('layout.themeToLight') : t('layout.themeToDark');
 
   return (
     <AntHeader className={styles.header}>
@@ -134,6 +142,19 @@ export function Header() {
       </div>
 
       <div className={styles.right}>
+        {/* A real control, unlike the two disabled placeholders below it, so it
+            sits first in the cluster where it is reachable rather than buried
+            behind them in the tab order. */}
+        <Tooltip title={themeLabel}>
+          <Button
+            type="text"
+            icon={themeMode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+            onClick={toggleTheme}
+            aria-label={themeLabel}
+            aria-pressed={themeMode === 'dark'}
+          />
+        </Tooltip>
+
         <Tooltip title={comingSoon}>
           {/* No notifications API until Giai đoạn 8: render the bell with no
               count rather than inventing an unread number. */}

@@ -5,6 +5,35 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HRM</title>
+    <!--
+      Theme, applied before first paint.
+
+      React cannot do this: the bundle only runs after the browser has already
+      painted the body, so a dark-mode user would get a full-screen white flash
+      on every load. This is deliberately a blocking inline script in <head> —
+      `defer`/`type="module"` would put it back after paint and defeat the point.
+
+      Reads the same localStorage key as the zustand `persist` middleware
+      ("hrm-ui-store") and the same attribute as useThemeMode; keep all three in
+      sync. Falls back to the OS preference, which is also the store's default
+      for a first-time visitor, so the two agree and nothing flips on hydration.
+    -->
+    <script>
+      (function () {
+        try {
+          var saved = JSON.parse(localStorage.getItem('hrm-ui-store') || '{}');
+          var theme = saved && saved.state && saved.state.theme;
+          if (theme !== 'dark' && theme !== 'light') {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.style.colorScheme = theme;
+        } catch (e) {
+          /* Private mode can throw on localStorage — light is the safe default. */
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -64,9 +64,11 @@
   height: 100%;
 }
 
+/* AntD paints the avatar's initials/icon white, so this is a fill under white
+   text and takes `-solid` rather than the plain accent (§12). */
 .avatar {
   flex: none;
-  background: var(--hrm-color-primary);
+  background: var(--hrm-color-primary-solid);
 }
 
 .tile {

@@ -38,7 +38,7 @@
 
 .green {
   background: var(--hrm-color-success-soft);
-  color: var(--hrm-color-success);
+  color: var(--hrm-color-success-strong);
 }
 
 .blue {
@@ -53,7 +53,7 @@
 
 .orange {
   background: var(--hrm-color-warning-soft);
-  color: #d48806;
+  color: var(--hrm-color-warning-strong);
 }
 
 .kpiBody {

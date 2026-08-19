@@ -19,10 +19,11 @@
   font-size: var(--hrm-font-size-caption);
 }
 
-/* Says out loud that what is on screen is not saved yet. */
+/* Says out loud that what is on screen is not saved yet. 12px text, so it takes
+   the `-strong` amber — #faad14 is 1.83:1 on the card (§12). */
 .previewNote {
   margin: 0;
-  color: var(--hrm-color-warning);
+  color: var(--hrm-color-warning-strong);
   font-size: var(--hrm-font-size-caption);
 }
 
