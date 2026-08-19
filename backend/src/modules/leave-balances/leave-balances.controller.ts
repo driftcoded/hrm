@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -109,5 +110,24 @@ export class LeaveBalancesController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<LeaveBalanceResponseDto> {
     return this.leaveBalancesService.adjust(id, dto, user);
+  }
+  @Delete(':id')
+  @Roles(...EMPLOYEE_WRITE_ROLES)
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Xoá một dòng quỹ phép cấp nhầm',
+    description:
+      'CHỈ khi dòng quỹ chưa bị tiêu ngày nào (`usedDays` và `pendingDays` đều bằng 0).\n\n' +
+      'Đã có đơn nghỉ trừ vào dòng này thì xoá là bỏ rơi những đơn đó — hạ quỹ bằng `PATCH /leave-balances/:id` thay vì xoá.',
+  })
+  @ApiOkResponse({ description: 'id + deleted' })
+  @ApiForbiddenResponse({ description: 'FORBIDDEN' })
+  @ApiNotFoundResponse({ description: 'LEAVE_BALANCE_NOT_FOUND' })
+  @ApiUnprocessableEntityResponse({ description: 'LEAVE_BALANCE_IN_USE' })
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<{ id: number; deleted: boolean }> {
+    return this.leaveBalancesService.remove(id, user);
   }
 }

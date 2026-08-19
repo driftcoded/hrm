@@ -126,3 +126,31 @@ export class ApproveLeaveRequestResultDto {
   })
   attendanceConflicts: string[];
 }
+
+/**
+ * Kết quả `DELETE /leave-requests/:id`.
+ *
+ * Xoá một đơn ĐÃ DUYỆT phải gỡ luôn những ngày `leave` mà lúc duyệt nó đã ghi
+ * vào bảng chấm công — hai con số dưới đây nói rõ đã gỡ được bao nhiêu và giữ
+ * lại bao nhiêu, để người xoá không phải tự đi dò bảng công.
+ */
+export class DeleteLeaveRequestResultDto {
+  @ApiProperty({ example: 12 })
+  id: number;
+
+  @ApiProperty({ example: true })
+  deleted: boolean;
+
+  @ApiProperty({
+    example: 3,
+    description: 'Số dòng chấm công `leave` do đơn này sinh ra và đã được gỡ.',
+  })
+  attendanceDaysRemoved: number;
+
+  @ApiProperty({
+    example: 1,
+    description:
+      'Số dòng chấm công của đơn này nhưng ĐÃ BỊ SỬA sang trạng thái khác (nhập tay hoặc nạp từ máy chấm công) nên được GIỮ LẠI. Đó là dữ liệu công thật, xoá đi là mất.',
+  })
+  attendanceDaysKept: number;
+}

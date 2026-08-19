@@ -211,6 +211,42 @@ export class LeaveBalancesService {
    * quỹ âm nghĩa là người đó đã nghỉ nhiều hơn số ngày họ có, mà việc đó phải
    * được xử lý bằng cách sửa đơn chứ không phải bằng một con số âm trong bảng.
    */
+  /**
+   * Xoá một dòng quỹ phép.
+   *
+   * CHỈ KHI CHƯA AI TIÊU NGÀY NÀO. `used_days` hay `pending_days` khác 0 nghĩa
+   * là đã có đơn nghỉ trừ vào dòng này; xoá đi thì những đơn đó mất chỗ dựa và
+   * không còn gì giải thích vì sao nhân viên đã nghỉ mấy ngày. Muốn hạ quỹ về
+   * đúng phần chưa dùng thì sửa (`PATCH`), không phải xoá.
+   *
+   * Dùng cho quỹ CẤP NHẦM: sai loại phép, sai người, cấp cho một năm không định
+   * cấp. Những trường hợp đó `used`/`pending` đều đang là 0.
+   */
+  async remove(
+    id: number,
+    user: AuthenticatedUser,
+  ): Promise<{ id: number; deleted: boolean }> {
+    await this.assertCanManage(user);
+
+    const balance = await this.getExistingOrThrow(id);
+    const committed = Number(balance.usedDays) + Number(balance.pendingDays);
+
+    if (committed > 0) {
+      throw new UnprocessableEntityException({
+        code: 'LEAVE_BALANCE_IN_USE',
+        message: `Leave balance ${id} has ${committed} day(s) already used or pending and cannot be deleted; adjust it instead`,
+      });
+    }
+
+    await this.leaveBalancesRepository.remove(id);
+
+    this.logger.log(
+      `Leave balance ${id} (employee ${balance.employeeId}, leave type ${balance.leaveTypeId}, ${balance.year}) deleted by user ${user.userId}`,
+    );
+
+    return { id, deleted: true };
+  }
+
   async adjust(
     id: number,
     dto: AdjustLeaveBalanceDto,

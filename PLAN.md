@@ -13,8 +13,8 @@
 | 1 | Auth & User | 43 / 43 | ✅ Hoàn thành (đã nghiệm thu) |
 | 2 | Master Data | 18 / 18 | ✅ Hoàn thành (đã nghiệm thu) |
 | 3 | Nhân viên | 29 / 29 | ✅ Hoàn thành |
-| 4 | Chấm công | 22 / 22 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
-| 5 | Phép | 25 / 25 | ✅ Hoàn thành |
+| 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
+| 5 | Phép | 37 / 37 | ✅ Hoàn thành |
 | 6 | Lương | 0 / 13 | ⬜ Chưa bắt đầu |
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
@@ -434,8 +434,11 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Kiểm tra: không trùng ngày, không quá số ngày còn lại
 - [x] API lịch: ai đang nghỉ trong khoảng ngày (`GET /leave-requests/calendar`)
 - [x] `GET /leave-balances` + `PATCH /leave-balances/:id` — nhân sự xem và điều chỉnh
+- [x] `PATCH /leave-requests/:id` — sửa đơn còn chờ duyệt (tính lại số ngày, dời chỗ giữ trên quỹ)
+- [x] `DELETE /leave-requests/:id` — xoá đơn, hoàn quỹ và gỡ ngày `leave` khỏi bảng chấm công
+- [x] `DELETE /leave-balances/:id` — xoá dòng quỹ cấp nhầm, chặn khi đã có ngày bị tiêu
 
-**Tests (5.1):** *(64 unit test: 35 `leave.util.spec` + 29 `leave-requests.service.spec`)*
+**Tests (5.1):** *(85 unit test: 35 `leave.util.spec` + 42 `leave-requests.service.spec` + 8 `leave-balances.service.spec`)*
 - [x] Ghi nhận đơn 3 ngày: `pending_days` tăng 3
 - [x] Duyệt: `pending_days` giảm 3, `used_days` tăng 3
 - [x] Từ chối: `pending_days` giảm 3, số ngày được hoàn lại
@@ -446,6 +449,12 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Nghỉ nửa ngày ở hai đầu; một ngày mà cả hai đầu nửa ngày vẫn là 0,5
 - [x] Người ghi ≠ người duyệt (`CANNOT_APPROVE_OWN_RECORD`); `manager` không duyệt
 - [x] Duyệt xong ghi ngày nghỉ vào bảng chấm công với `status = leave`
+- [x] Sửa đơn: trả chỗ cũ TRƯỚC khi giữ chỗ mới (3 → 4 ngày trên quỹ còn đúng 3 vẫn phải qua)
+- [x] Sửa đơn: chính nó không bị tính là trùng ngày với chính nó
+- [x] Xoá đơn đã duyệt: hoàn `used_days` và gỡ đúng những dòng chấm công còn `leave`
+- [x] Xoá đơn đã duyệt: GIỮ dòng chấm công đã bị sửa sang trạng thái khác
+- [x] Xoá đơn `rejected`/`cancelled` không đụng vào quỹ (đã hoàn từ trước)
+- [x] `manager` không xoá được đơn đã duyệt; xoá quỹ đã có ngày bị tiêu → 422 `LEAVE_BALANCE_IN_USE`
 
 ### 5.2 Frontend Leave
 - [x] Trang `/leave` — danh sách đơn, lọc trạng thái / phòng ban / loại phép / khoảng ngày
@@ -453,10 +462,16 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Duyệt ngay trên danh sách: lối tắt `?status=pending`, nút Duyệt / Từ chối
 - [x] Trang `/leave/balances` — quỹ phép theo năm, nút cấp quỹ đầu năm (có bước chạy thử)
 - [x] Trang `/leave/calendar` — ai đang nghỉ trong tháng
+- [x] Sửa / xoá đơn ngay trên bảng; xoá quỹ cấp nhầm trên bảng quỹ
 
 > **Duyệt nằm trong danh sách, không tách thành trang riêng.** Nhân sự vừa ghi
 > nhận vừa duyệt; tách hai địa chỉ cho cùng một loại giấy tờ chỉ khiến họ phải
 > nhớ thêm một đường dẫn. Nút Duyệt / Từ chối chỉ hiện với người có quyền duyệt.
+>
+> **Nút hiện đúng bằng ranh giới backend đang chặn.** Sửa chỉ mở với đơn còn chờ
+> duyệt; xoá mở với mọi trạng thái nhưng đơn đã qua tay người duyệt thì chỉ nhân
+> sự; nút xoá quỹ tắt sẵn khi dòng quỹ đã có ngày bị tiêu. Bày ra một nút rồi trả
+> về 403/422 là bắt người dùng học luật bằng cách vấp phải nó.
 
 **Tests (5.2):** *(kiểm chứng thủ công qua API đang chạy — frontend chưa có test runner)*
 - [x] Ghi nhận đơn 2 ngày → `pendingDays` 0 → 2, `remainingDays` 7 → 5 ngay trên bảng quỹ
@@ -464,6 +479,8 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
       `manager` không thấy nút duyệt và tự duyệt bị chặn 403 ở backend
 - [x] Cấp quỹ đầu năm: chạy thử 2027 báo `created 66 / skipped 0`, chạy lại 2026
       báo `created 0 / skipped 66` (không ghi đè quỹ đã có)
+- [x] Sửa đơn 2 → 5 ngày: số ngày và quỹ đổi theo ngay trên bảng
+- [x] Xoá đơn đã duyệt: quỹ trở lại như trước, ngày `leave` biến khỏi bảng chấm công
 
 ---
 

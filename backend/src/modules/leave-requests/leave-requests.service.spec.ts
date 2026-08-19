@@ -2,7 +2,10 @@ import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource, EntityManager } from 'typeorm';
 import { AuthenticatedUser } from '@/common/types/authenticated-user';
-import { Attendance } from '@/modules/attendances/entities/attendance.entity';
+import {
+  Attendance,
+  AttendanceStatus,
+} from '@/modules/attendances/entities/attendance.entity';
 import { EmployeesService } from '@/modules/employees/employees.service';
 import { Employee } from '@/modules/employees/entities/employee.entity';
 import { LeaveBalance } from '@/modules/leave-balances/entities/leave-balance.entity';
@@ -155,11 +158,20 @@ describe('LeaveRequestsService', () => {
    * riêng. Test vì thế cũng phải đọc ở đây.
    */
   let createdRequest: Record<string, unknown> | null;
+  /** Dòng chấm công đang mang `leave_request_id` của đơn — dùng khi xoá đơn. */
+  let attendanceRows: Attendance[];
+  /** Mọi lệnh `manager.delete()` mà service đã gọi. */
+  let deletions: { entity: unknown; criteria: unknown }[];
+  /** Đơn được ghi lại TRONG transaction (sửa đơn). */
+  let savedRequest: LeaveRequest | null;
 
   beforeEach(async () => {
     balance = makeBalance();
     attendanceWrites = [];
     createdRequest = null;
+    attendanceRows = [];
+    deletions = [];
+    savedRequest = null;
     existingAttendanceDates = new Set();
 
     /*
@@ -198,7 +210,17 @@ describe('LeaveRequestsService', () => {
         if ('pendingDays' in record) {
           balance = record as unknown as LeaveBalance;
         }
+        if ('totalDays' in record && 'startDate' in record) {
+          savedRequest = record as unknown as LeaveRequest;
+        }
         return Promise.resolve({ id: 33, ...record });
+      }),
+      find: jest.fn((entity: unknown) =>
+        Promise.resolve(entity === Attendance ? attendanceRows : []),
+      ),
+      delete: jest.fn((entity: unknown, criteria: unknown) => {
+        deletions.push({ entity, criteria });
+        return Promise.resolve({ affected: 1 });
       }),
     } as unknown as EntityManager;
 
@@ -570,6 +592,195 @@ describe('LeaveRequestsService', () => {
       const error = await captureError(() => service.cancel(33, hrUser));
 
       expect(error).toEqual({ status: 409, code: 'LEAVE_NOT_PENDING' });
+    });
+  });
+
+  describe('update', () => {
+    it('recomputes the deducted days from the new range', async () => {
+      // 04–08/05 (5 ngày) rút về 04–05/05 (2 ngày).
+      balance = makeBalance({ pendingDays: '5.0' });
+
+      await service.update(33, { endDate: '2026-05-05' }, hrUser);
+
+      expect(balance?.pendingDays).toBe('2.0');
+    });
+
+    it('releases the old hold before taking the new one', async () => {
+      /*
+       * Quỹ 12 ngày đang giữ 5 cho chính đơn này. Sửa thành 10 ngày CHỈ đủ chỗ
+       * nếu 5 ngày cũ được trả lại trước — giữ trước trả sau sẽ đòi 15/12 và
+       * ném INSUFFICIENT_LEAVE_BALANCE oan.
+       */
+      balance = makeBalance({ allocatedDays: '10.0', pendingDays: '5.0' });
+
+      await service.update(
+        33,
+        { startDate: '2026-05-04', endDate: '2026-05-15' },
+        hrUser,
+      );
+
+      expect(balance?.pendingDays).toBe('10.0');
+    });
+
+    it('does not count the request being edited as an overlap', async () => {
+      await service.update(33, { endDate: '2026-05-05' }, hrUser);
+
+      expect(repository.findActiveOverlapping).toHaveBeenCalledWith(
+        SUBJECT_EMPLOYEE_ID,
+        MONDAY,
+        '2026-05-05',
+        33,
+      );
+    });
+
+    it('leaves the fields the caller did not send alone', async () => {
+      await service.update(33, { reason: 'Đổi lý do cho rõ hơn' }, hrUser);
+
+      // PATCH một trường không được âm thầm kéo theo khoảng ngày hay số ngày.
+      expect(savedRequest?.reason).toBe('Đổi lý do cho rõ hơn');
+      expect(savedRequest?.startDate).toBe(MONDAY);
+      expect(savedRequest?.endDate).toBe(FRIDAY);
+      expect(savedRequest?.totalDays).toBe('5.0');
+    });
+
+    it('refuses to edit a request that is no longer pending', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+
+      const error = await captureError(() =>
+        service.update(33, { endDate: '2026-05-05' }, hrUser),
+      );
+
+      expect(error).toEqual({ status: 409, code: 'LEAVE_NOT_PENDING' });
+    });
+
+    it('refuses a manager editing a request they did not record', async () => {
+      employeesService.resolveScope.mockResolvedValue({
+        kind: 'department',
+        departmentIds: [2],
+      });
+      repository.findById.mockResolvedValue(makeRequest({ recordedBy: 99 }));
+
+      const error = await captureError(() =>
+        service.update(33, { endDate: '2026-05-05' }, managerUser),
+      );
+
+      expect(error).toEqual({ status: 403, code: 'FORBIDDEN' });
+    });
+  });
+
+  describe('remove', () => {
+    it('gives back the hold of a pending request', async () => {
+      balance = makeBalance({ pendingDays: '5.0' });
+
+      const result = await service.remove(33, hrUser);
+
+      expect(balance?.pendingDays).toBe('0.0');
+      expect(result.deleted).toBe(true);
+      expect(deletions).toContainEqual({
+        entity: LeaveRequest,
+        criteria: { id: 33 },
+      });
+    });
+
+    it('gives back the used days of an approved request', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+      balance = makeBalance({ usedDays: '5.0' });
+
+      await service.remove(33, hrUser);
+
+      expect(balance?.usedDays).toBe('0.0');
+    });
+
+    /*
+     * FK là ON DELETE SET NULL: xoá đơn suông sẽ để lại những dòng `leave` mồ
+     * côi, người xem bảng công thấy nghỉ phép mà không tra ra được theo đơn nào.
+     */
+    it('removes the attendance days the approval had written', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+      attendanceRows = [
+        { id: 1, status: AttendanceStatus.LEAVE } as Attendance,
+        { id: 2, status: AttendanceStatus.LEAVE } as Attendance,
+      ];
+
+      const result = await service.remove(33, hrUser);
+
+      expect(result.attendanceDaysRemoved).toBe(2);
+      expect(result.attendanceDaysKept).toBe(0);
+      expect(deletions).toContainEqual({
+        entity: Attendance,
+        criteria: [1, 2],
+      });
+    });
+
+    /*
+     * Dòng đã bị đổi khỏi `leave` là ngày công THẬT — nhập tay hoặc nạp từ máy
+     * chấm công đè lên. Xoá đi là mất dữ liệu không lấy lại được.
+     */
+    it('keeps attendance rows that were changed away from leave', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+      attendanceRows = [
+        { id: 1, status: AttendanceStatus.LEAVE } as Attendance,
+        { id: 2, status: AttendanceStatus.PRESENT } as Attendance,
+      ];
+
+      const result = await service.remove(33, hrUser);
+
+      expect(result.attendanceDaysRemoved).toBe(1);
+      expect(result.attendanceDaysKept).toBe(1);
+      expect(deletions).toContainEqual({ entity: Attendance, criteria: [1] });
+    });
+
+    /*
+     * Quỹ đã được trả lại lúc chuyển sang `rejected`. Trả lần nữa là cấp không
+     * cho nhân viên thêm mấy ngày phép.
+     */
+    it('does not touch the balance of a rejected request', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.REJECTED }),
+      );
+      balance = makeBalance({ pendingDays: '0.0', usedDays: '3.0' });
+
+      await service.remove(33, hrUser);
+
+      expect(balance?.pendingDays).toBe('0.0');
+      expect(balance?.usedDays).toBe('3.0');
+    });
+
+    it('lets the recorder delete their own pending request', async () => {
+      employeesService.resolveScope.mockResolvedValue({
+        kind: 'department',
+        departmentIds: [2],
+      });
+
+      const result = await service.remove(33, managerUser);
+
+      expect(result.deleted).toBe(true);
+    });
+
+    /*
+     * Xoá một đơn đã duyệt là đảo ngược quyết định của nhân sự, kèm hoàn quỹ
+     * phép. Quản lý ghi nhận không làm việc đó, kể cả với đơn chính mình nhập.
+     */
+    it('refuses a manager deleting an approved request', async () => {
+      employeesService.resolveScope.mockResolvedValue({
+        kind: 'department',
+        departmentIds: [2],
+      });
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+
+      const error = await captureError(() => service.remove(33, managerUser));
+
+      expect(error).toEqual({ status: 403, code: 'FORBIDDEN' });
     });
   });
 

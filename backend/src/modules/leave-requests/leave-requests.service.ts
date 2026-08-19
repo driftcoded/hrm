@@ -33,9 +33,11 @@ import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { FilterLeaveRequestDto } from './dto/filter-leave-request.dto';
 import {
   ApproveLeaveRequestResultDto,
+  DeleteLeaveRequestResultDto,
   LeaveRequestResponseDto,
 } from './dto/leave-request-response.dto';
 import { RejectLeaveRequestDto } from './dto/reject-leave-request.dto';
+import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
 import { LeaveRequestsRepository } from './leave-requests.repository';
 
 /**
@@ -87,59 +89,14 @@ export class LeaveRequestsService {
   ): Promise<LeaveRequestResponseDto> {
     const recordedBy = await this.assertCanRecordFor(dto.employeeId, user);
 
-    if (dto.endDate < dto.startDate) {
-      throw new UnprocessableEntityException({
-        code: 'INVALID_LEAVE_RANGE',
-        message: `end date (${dto.endDate}) is before start date (${dto.startDate})`,
-      });
-    }
-
-    /*
-     * Quỹ phép là một con số CỦA MỘT NĂM. Kỳ nghỉ bắc qua giao thừa rút từ hai
-     * quỹ khác nhau, và trừ hết vào một năm sẽ làm sai cả hai. Yêu cầu tách
-     * thành hai đơn — rõ ràng hơn là âm thầm chia đôi theo một quy tắc mà người
-     * dùng không nhìn thấy.
-     */
-    if (dto.startDate.slice(0, 4) !== dto.endDate.slice(0, 4)) {
-      throw new UnprocessableEntityException({
-        code: 'LEAVE_SPANS_TWO_YEARS',
-        message:
-          'A leave request cannot span two calendar years; split it into one request per year so each draws on its own balance',
-      });
-    }
-
-    const leaveType = await this.leaveTypesRepository.findById(dto.leaveTypeId);
-
-    if (!leaveType) {
-      throw new NotFoundException({
-        code: 'LEAVE_TYPE_NOT_FOUND',
-        message: `Leave type ${dto.leaveTypeId} not found`,
-      });
-    }
-
-    const holidays = await this.holidayDatesBetween(dto.startDate, dto.endDate);
-    const totalDays = countLeaveDays({
+    const totalDays = await this.validateAndCountDays({
+      employeeId: dto.employeeId,
+      leaveTypeId: dto.leaveTypeId,
       startDate: dto.startDate,
       endDate: dto.endDate,
       startHalf: dto.startHalf,
       endHalf: dto.endHalf,
-      holidays,
     });
-
-    /*
-     * Kỳ nghỉ rơi trọn vào cuối tuần hoặc ngày lễ thì không có ngày phép nào bị
-     * trừ — và một đơn trừ 0 ngày là một đơn không có nội dung. Báo lỗi để người
-     * ghi biết mình chọn nhầm khoảng ngày, thay vì tạo ra một dòng vô nghĩa.
-     */
-    if (totalDays <= 0) {
-      throw new UnprocessableEntityException({
-        code: 'LEAVE_NO_WORKING_DAYS',
-        message: `${dto.startDate}–${dto.endDate} contains no working day; nothing would be deducted`,
-      });
-    }
-
-    this.assertWithinLeaveTypeLimits(leaveType, totalDays);
-    await this.assertNoOverlap(dto.employeeId, dto.startDate, dto.endDate);
 
     const saved = await this.dataSource.transaction(async (manager) => {
       const request = await manager.save(
@@ -165,6 +122,67 @@ export class LeaveRequestsService {
     });
 
     return this.toResponse(await this.getExistingOrThrow(Number(saved.id)));
+  }
+
+  /**
+   * Sửa một đơn CÒN CHỜ DUYỆT.
+   *
+   * Chỉ `pending`. Đơn đã duyệt là một ngày nghỉ đã được cho phép và đã ghi vào
+   * bảng chấm công; sửa nó lặng lẽ sẽ đổi cả quỹ phép lẫn bảng công mà không đi
+   * qua bước duyệt nào. Sai ở đơn đã duyệt thì xoá rồi ghi lại — mỗi bước khi đó
+   * đều hiện ra và đều phải được duyệt lại.
+   *
+   * Quỹ phép: TRẢ chỗ cũ trước rồi mới GIỮ chỗ mới, trong cùng một transaction.
+   * Giữ trước trả sau sẽ làm một đơn 3 ngày sửa thành 4 ngày bị từ chối oan khi
+   * quỹ chỉ còn đúng 3 — vì trong khoảnh khắc đó nó đang giữ 7.
+   */
+  async update(
+    id: number,
+    dto: UpdateLeaveRequestDto,
+    user: AuthenticatedUser,
+  ): Promise<LeaveRequestResponseDto> {
+    const request = await this.getExistingOrThrow(id);
+
+    await this.assertCanAmend(request, user);
+    this.assertPending(request);
+
+    const next = {
+      leaveTypeId: dto.leaveTypeId ?? Number(request.leaveTypeId),
+      startDate: dto.startDate ?? toDateOnlyString(request.startDate),
+      endDate: dto.endDate ?? toDateOnlyString(request.endDate),
+      startHalf: dto.startHalf ?? request.startHalf,
+      endHalf: dto.endHalf ?? request.endHalf,
+    };
+
+    const totalDays = await this.validateAndCountDays({
+      ...next,
+      employeeId: Number(request.employeeId),
+      excludeId: Number(request.id),
+    });
+
+    await this.dataSource.transaction(async (manager) => {
+      // Đọc quỹ CŨ khi đơn còn nguyên loại phép và năm cũ — đổi hai thứ đó là
+      // đổi sang một dòng quỹ khác, trả nhầm chỗ thì cả hai quỹ cùng sai.
+      await this.moveBalance(manager, request, {
+        pending: -Number(request.totalDays),
+      });
+
+      request.leaveTypeId = next.leaveTypeId;
+      request.startDate = next.startDate;
+      request.endDate = next.endDate;
+      request.startHalf = next.startHalf;
+      request.endHalf = next.endHalf;
+      request.totalDays = totalDays.toFixed(1);
+
+      if (dto.reason !== undefined) {
+        request.reason = dto.reason.trim();
+      }
+
+      await manager.save(request);
+      await this.moveBalance(manager, request, { pending: totalDays });
+    });
+
+    return this.toResponse(await this.getExistingOrThrow(id));
   }
 
   // ------------------------------------------------------------ đọc ----
@@ -340,19 +358,8 @@ export class LeaveRequestsService {
     user: AuthenticatedUser,
   ): Promise<LeaveRequestResponseDto> {
     const request = await this.getExistingOrThrow(id);
-    const scope = await this.employeesService.resolveScope(user);
-    const actorId = this.employeeIdOf(user);
 
-    const isRecorder =
-      request.recordedBy !== null && Number(request.recordedBy) === actorId;
-
-    if (scope.kind !== 'all' && !isRecorder) {
-      throw new ForbiddenException({
-        code: 'FORBIDDEN',
-        message: `User ${user.userId} did not record leave request ${id} and cannot cancel it`,
-      });
-    }
-
+    await this.assertCanAmend(request, user);
     this.assertPending(request);
 
     await this.dataSource.transaction(async (manager) => {
@@ -365,6 +372,75 @@ export class LeaveRequestsService {
     });
 
     return this.toResponse(await this.getExistingOrThrow(id));
+  }
+
+  /**
+   * Xoá hẳn một đơn khỏi danh sách.
+   *
+   * XOÁ PHẢI GỠ SẠCH DẤU VẾT ĐƠN ĐÃ ĐỂ LẠI, nếu không nó để lại rác ở hai chỗ:
+   *
+   *   - Quỹ phép: đơn `pending` đang giữ chỗ, đơn `approved` đã tiêu. Không hoàn
+   *     lại thì quỹ của nhân viên hụt vĩnh viễn mà không còn đơn nào giải thích.
+   *   - Bảng chấm công: FK là `ON DELETE SET NULL`, nên xoá đơn suông sẽ để lại
+   *     những dòng `leave` mồ côi — người xem bảng công thấy nhân viên nghỉ phép
+   *     mà không tra ra được theo đơn nào.
+   *
+   * Dòng chấm công ĐÃ BỊ SỬA sang trạng thái khác thì GIỮ LẠI: nó không còn là
+   * hệ quả của đơn này nữa mà là dữ liệu công thật, nhập tay hoặc nạp từ máy
+   * chấm công. Số dòng giữ lại trả về cho người xoá biết.
+   */
+  async remove(
+    id: number,
+    user: AuthenticatedUser,
+  ): Promise<DeleteLeaveRequestResultDto> {
+    const request = await this.getExistingOrThrow(id);
+
+    if (request.status === LeaveRequestStatus.PENDING) {
+      await this.assertCanAmend(request, user);
+    } else if (!LEAVE_APPROVE_ROLES.includes(user.role)) {
+      /*
+       * Đơn đã qua tay người duyệt — xoá nó là đảo ngược một quyết định của
+       * nhân sự, kèm theo hoàn lại quỹ phép. Quản lý ghi nhận không làm việc đó.
+       */
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: `Role "${user.role}" cannot delete a "${request.status}" leave request; requires one of roles: ${LEAVE_APPROVE_ROLES.join(', ')}`,
+      });
+    }
+
+    let attendanceDaysRemoved = 0;
+    let attendanceDaysKept = 0;
+
+    await this.dataSource.transaction(async (manager) => {
+      if (request.status === LeaveRequestStatus.PENDING) {
+        await this.moveBalance(manager, request, {
+          pending: -Number(request.totalDays),
+        });
+      } else if (request.status === LeaveRequestStatus.APPROVED) {
+        await this.moveBalance(manager, request, {
+          used: -Number(request.totalDays),
+        });
+
+        const attendance = await this.removeAttendanceDays(manager, request);
+        attendanceDaysRemoved = attendance.removed;
+        attendanceDaysKept = attendance.kept;
+      }
+      // `rejected` / `cancelled`: quỹ đã được trả lại lúc chuyển trạng thái, và
+      // hai trạng thái đó chưa bao giờ ghi vào bảng chấm công.
+
+      await manager.delete(LeaveRequest, { id: Number(request.id) });
+    });
+
+    this.logger.log(
+      `Leave request ${id} ("${request.status}", ${request.totalDays} day(s)) deleted by user ${user.userId}`,
+    );
+
+    return {
+      id,
+      deleted: true,
+      attendanceDaysRemoved,
+      attendanceDaysKept,
+    };
   }
 
   // ------------------------------------------------------- quỹ phép ----
@@ -480,7 +556,154 @@ export class LeaveRequestsService {
     return conflicts;
   }
 
+  /**
+   * Gỡ những ngày `leave` mà lúc duyệt đơn này đã ghi vào bảng chấm công.
+   *
+   * Chỉ gỡ dòng CÒN NGUYÊN trạng thái `leave`. Một dòng mang `leave_request_id`
+   * của đơn này nhưng trạng thái đã khác nghĩa là sau đó có người nhập tay hoặc
+   * nạp dữ liệu từ máy chấm công đè lên — đó là ngày công thật, xoá đi là mất
+   * dữ liệu không lấy lại được. Giữ lại và báo số lượng ra ngoài.
+   */
+  private async removeAttendanceDays(
+    manager: EntityManager,
+    request: LeaveRequest,
+  ): Promise<{ removed: number; kept: number }> {
+    const rows = await manager.find(Attendance, {
+      where: { leaveRequestId: Number(request.id) },
+    });
+
+    const untouched = rows.filter(
+      (row) => row.status === AttendanceStatus.LEAVE,
+    );
+    const kept = rows.length - untouched.length;
+
+    if (untouched.length > 0) {
+      await manager.delete(
+        Attendance,
+        untouched.map((row) => Number(row.id)),
+      );
+    }
+
+    if (kept > 0) {
+      this.logger.warn(
+        `Leave request ${request.id}: ${kept} attendance row(s) had been changed away from "leave" and were kept`,
+      );
+    }
+
+    return { removed: untouched.length, kept };
+  }
+
   // ---------------------------------------------------- quy tắc khác ----
+
+  /**
+   * Ai được SỬA / RÚT LẠI / XOÁ một đơn còn chờ duyệt.
+   *
+   * Người ghi đơn sửa được đơn của mình; nhân sự (phạm vi `all`) sửa được của
+   * bất kỳ ai. Quản lý phòng khác không đụng vào đơn không phải mình nhập, kể cả
+   * khi nhân viên đó nằm trong phạm vi họ đọc được.
+   */
+  private async assertCanAmend(
+    request: LeaveRequest,
+    user: AuthenticatedUser,
+  ): Promise<void> {
+    const scope = await this.employeesService.resolveScope(user);
+    const actorId = this.employeeIdOf(user);
+
+    const isRecorder =
+      request.recordedBy !== null && Number(request.recordedBy) === actorId;
+
+    if (scope.kind !== 'all' && !isRecorder) {
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: `User ${user.userId} did not record leave request ${request.id} and cannot change it`,
+      });
+    }
+  }
+
+  /**
+   * Kiểm tra một kỳ nghỉ và trả về số ngày phép nó tiêu.
+   *
+   * Ghi nhận và sửa đơn phải chạy CÙNG một bộ quy tắc. Để hai đường tự kiểm tra
+   * lấy thì sớm muộn cũng lệch nhau một điều kiện, và cái lệch đó là một đơn sửa
+   * xong lọt qua được thứ mà lúc ghi nhận đã bị chặn.
+   *
+   * `excludeId` chỉ dùng khi sửa: một đơn luôn giao ngày với chính nó.
+   */
+  private async validateAndCountDays(input: {
+    employeeId: number;
+    leaveTypeId: number;
+    startDate: string;
+    endDate: string;
+    startHalf?: LeaveHalf;
+    endHalf?: LeaveHalf;
+    excludeId?: number;
+  }): Promise<number> {
+    if (input.endDate < input.startDate) {
+      throw new UnprocessableEntityException({
+        code: 'INVALID_LEAVE_RANGE',
+        message: `end date (${input.endDate}) is before start date (${input.startDate})`,
+      });
+    }
+
+    /*
+     * Quỹ phép là một con số CỦA MỘT NĂM. Kỳ nghỉ bắc qua giao thừa rút từ hai
+     * quỹ khác nhau, và trừ hết vào một năm sẽ làm sai cả hai. Yêu cầu tách
+     * thành hai đơn — rõ ràng hơn là âm thầm chia đôi theo một quy tắc mà người
+     * dùng không nhìn thấy.
+     */
+    if (input.startDate.slice(0, 4) !== input.endDate.slice(0, 4)) {
+      throw new UnprocessableEntityException({
+        code: 'LEAVE_SPANS_TWO_YEARS',
+        message:
+          'A leave request cannot span two calendar years; split it into one request per year so each draws on its own balance',
+      });
+    }
+
+    const leaveType = await this.leaveTypesRepository.findById(
+      input.leaveTypeId,
+    );
+
+    if (!leaveType) {
+      throw new NotFoundException({
+        code: 'LEAVE_TYPE_NOT_FOUND',
+        message: `Leave type ${input.leaveTypeId} not found`,
+      });
+    }
+
+    const holidays = await this.holidayDatesBetween(
+      input.startDate,
+      input.endDate,
+    );
+    const totalDays = countLeaveDays({
+      startDate: input.startDate,
+      endDate: input.endDate,
+      startHalf: input.startHalf,
+      endHalf: input.endHalf,
+      holidays,
+    });
+
+    /*
+     * Kỳ nghỉ rơi trọn vào cuối tuần hoặc ngày lễ thì không có ngày phép nào bị
+     * trừ — và một đơn trừ 0 ngày là một đơn không có nội dung. Báo lỗi để người
+     * ghi biết mình chọn nhầm khoảng ngày, thay vì tạo ra một dòng vô nghĩa.
+     */
+    if (totalDays <= 0) {
+      throw new UnprocessableEntityException({
+        code: 'LEAVE_NO_WORKING_DAYS',
+        message: `${input.startDate}–${input.endDate} contains no working day; nothing would be deducted`,
+      });
+    }
+
+    this.assertWithinLeaveTypeLimits(leaveType, totalDays);
+    await this.assertNoOverlap(
+      input.employeeId,
+      input.startDate,
+      input.endDate,
+      input.excludeId,
+    );
+
+    return totalDays;
+  }
 
   private assertPending(request: LeaveRequest): void {
     if (request.status !== LeaveRequestStatus.PENDING) {
@@ -526,11 +749,13 @@ export class LeaveRequestsService {
     employeeId: number,
     startDate: string,
     endDate: string,
+    excludeId?: number,
   ): Promise<void> {
     const existing = await this.leaveRequestsRepository.findActiveOverlapping(
       employeeId,
       startDate,
       endDate,
+      excludeId,
     );
 
     if (existing.length > 0) {

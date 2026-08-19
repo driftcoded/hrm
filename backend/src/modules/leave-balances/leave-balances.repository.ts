@@ -138,6 +138,10 @@ export class LeaveBalancesRepository {
     return this.repository.save(this.repository.create(balances));
   }
 
+  remove(id: number): Promise<unknown> {
+    return this.repository.delete(id);
+  }
+
   save(balance: LeaveBalance): Promise<LeaveBalance> {
     return this.repository.save(balance);
   }

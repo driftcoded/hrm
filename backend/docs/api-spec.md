@@ -1036,6 +1036,24 @@ quả của các đơn nghỉ — sai ở đâu thì sửa đơn ở đó. `reas
 
 ---
 
+### DELETE `/leave-balances/:id`
+> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
+
+Xoá một dòng quỹ **cấp nhầm** — nhầm loại phép, nhầm người, nhầm năm.
+
+Chỉ xoá được khi `usedDays` và `pendingDays` đều bằng 0. Đã có đơn trừ vào dòng
+này thì xoá là bỏ rơi chính những đơn đó: ngày nghỉ vẫn nằm trong bảng chấm công
+mà không còn gì giải thích chúng đến từ đâu. Muốn hạ quỹ về đúng phần chưa dùng
+thì `PATCH`, không phải xoá.
+
+```json
+{ "id": 88, "deleted": true }
+```
+
+**Errors:** `422 LEAVE_BALANCE_IN_USE` – đã có ngày bị tiêu
+
+---
+
 ### POST `/leave-requests`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`, `manager`
 
@@ -1122,8 +1140,64 @@ người xem, không phải thứ để phần mềm tự quyết.
 Trả lại chỗ đã giữ trên quỹ phép.
 
 ### PATCH `/leave-requests/:id/cancel`
-> 🔒 Người GHI NHẬN đơn, hoặc nhân sự. Chỉ đơn còn `pending` — đơn đã duyệt đã
-> ghi vào bảng chấm công nên phải do người duyệt từ chối.
+> 🔒 Người GHI NHẬN đơn, hoặc nhân sự. Chỉ đơn còn `pending`.
+
+Đơn chuyển sang `cancelled` và **vẫn nằm lại** trong danh sách. Muốn gỡ hẳn thì
+dùng `DELETE`.
+
+---
+
+### PATCH `/leave-requests/:id`
+> 🔒 Người GHI NHẬN đơn, hoặc nhân sự. Chỉ đơn còn `pending`.
+
+```json
+{ "leaveTypeId": 1, "startDate": "2026-05-04", "endDate": "2026-05-06",
+  "startHalf": "afternoon", "endHalf": "full", "reason": "Rút ngắn kỳ nghỉ" }
+```
+
+Mọi trường đều **tuỳ chọn**; trường không gửi thì giữ nguyên.
+
+**KHÔNG nhận `employeeId`.** Đổi người được nghỉ không phải là sửa đơn mà là một
+đơn khác: quỹ phép, phạm vi quản lý của người ghi và cả việc kiểm tra trùng ngày
+đều tính theo nhân viên. Nhập nhầm người thì xoá rồi ghi lại.
+
+**KHÔNG nhận `totalDays`** — server tính lại từ khoảng ngày mới, đúng như lúc ghi
+nhận. Quỹ phép **trả chỗ cũ trước rồi mới giữ chỗ mới**, trong cùng một
+transaction: làm ngược lại thì một đơn 3 ngày sửa thành 4 sẽ bị từ chối oan khi
+quỹ chỉ còn đúng 3.
+
+Đơn đã duyệt **không sửa được**: nó đã ghi vào bảng chấm công, và sửa lặng lẽ sẽ
+đổi cả quỹ phép lẫn bảng công mà không đi qua bước duyệt nào. Sai thì xoá và ghi
+lại — khi đó mỗi bước đều hiện ra và phải được duyệt lại.
+
+**Errors:** `409 LEAVE_NOT_PENDING` · `409 OVERLAPPING_LEAVE` · các mã 422 giống
+`POST /leave-requests`
+
+---
+
+### DELETE `/leave-requests/:id`
+> 🔒 Đơn `pending`: người GHI NHẬN hoặc nhân sự.
+> Đơn `approved` / `rejected` / `cancelled`: **chỉ nhân sự** — xoá nó là đảo
+> ngược một quyết định đã ra, kèm hoàn lại quỹ phép.
+
+Xoá **gỡ sạch dấu vết đơn để lại**, trong một transaction:
+
+| Trạng thái đơn | Quỹ phép | Bảng chấm công |
+|---|---|---|
+| `pending` | hoàn `pending_days` | – |
+| `approved` | hoàn `used_days` | gỡ những ngày `leave` do đơn ghi ra |
+| `rejected` · `cancelled` | không đổi (đã hoàn từ trước) | – |
+
+FK `attendances.leave_request_id` là `ON DELETE SET NULL`, nên xoá đơn suông sẽ
+để lại những dòng `leave` mồ côi — người xem bảng công thấy nhân viên nghỉ phép
+mà không tra ra được theo đơn nào. Vì thế service gỡ chúng tường minh.
+
+Dòng chấm công **đã bị sửa** sang trạng thái khác thì **giữ lại**: nó không còn
+là hệ quả của đơn nữa mà là ngày công thật, nhập tay hoặc nạp từ máy chấm công.
+
+```json
+{ "id": 12, "deleted": true, "attendanceDaysRemoved": 3, "attendanceDaysKept": 1 }
+```
 
 ---
 
@@ -1651,56 +1725,15 @@ Lấy thông báo theo đối tượng của người dùng hiện tại.
 
 ---
 
-## 18. Leave Balances – Quản lý ngày phép (Admin)
+## 18. Leave Balances – Quản lý ngày phép
 
-### GET `/leave-balances`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
-
-**Query:** `?year=2026&departmentId=2&employeeId=51`
-
-Xem số ngày phép của tất cả nhân viên.
-
----
-
-### POST `/leave-balances/init-year`
-> 🔒 Roles: `admin`, `hr_manager`
-
-Khởi tạo ngày phép năm mới cho toàn bộ nhân viên (chạy đầu năm).
-
-```json
-{
-  "year": 2027,
-  "carryOverLimit": 5
-}
-```
-
-**Logic:** Với mỗi nhân viên đang active:
-- `allocated_days` = 12 + (số năm làm việc trọn 5 năm)
-- `carried_over` = min(remaining_days của năm trước, `carryOverLimit`)
-
-**Response 200:**
-```json
-{
-  "data": {
-    "processed": 143,
-    "year": 2027
-  }
-}
-```
-
----
-
-### PATCH `/leave-balances/:id`
-> 🔒 Roles: `admin`, `hr_manager`
-
-Điều chỉnh thủ công số ngày phép (trường hợp đặc biệt).
-
-```json
-{
-  "allocatedDays": 15,
-  "note": "Cộng thêm 3 ngày theo quyết định HĐQT"
-}
-```
+> **Đã gộp vào [§8](#8-leaves--nghỉ-phép).** Mục này từng mô tả một API khác với
+> API thật — `POST /leave-balances/init-year` với `carryOverLimit`, `PATCH` với
+> `note`, response `{ processed }`. Không cái nào tồn tại: endpoint là
+> `POST /leave-balances/init` (`carryOver` là cờ bật/tắt, có `dryRun`), `PATCH`
+> nhận `reason`, và init trả về `employeesConsidered` / `created` / `skipped`.
+>
+> Xem §8 cho toàn bộ `/leave-types`, `/leave-balances`, `/leave-requests`.
 
 ---
 

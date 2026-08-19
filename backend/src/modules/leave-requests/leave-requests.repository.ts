@@ -123,13 +123,19 @@ export class LeaveRequestsRepository {
     });
   }
 
-  /** Các đơn còn hiệu lực của một nhân viên giao nhau với khoảng ngày. */
+  /**
+   * Các đơn còn hiệu lực của một nhân viên giao nhau với khoảng ngày.
+   *
+   * `excludeId` dùng khi SỬA đơn: một đơn luôn giao với chính nó, không loại ra
+   * thì không đơn nào sửa được khoảng ngày.
+   */
   findActiveOverlapping(
     employeeId: number,
     from: string,
     to: string,
+    excludeId?: number,
   ): Promise<LeaveRequest[]> {
-    return this.repository
+    const query = this.repository
       .createQueryBuilder('request')
       .where('request.employeeId = :employeeId', { employeeId })
       .andWhere('request.status IN (:...statuses)', {
@@ -139,8 +145,13 @@ export class LeaveRequestsRepository {
         from,
         to,
       })
-      .orderBy('request.startDate', 'ASC')
-      .getMany();
+      .orderBy('request.startDate', 'ASC');
+
+    if (excludeId !== undefined) {
+      query.andWhere('request.id != :excludeId', { excludeId });
+    }
+
+    return query.getMany();
   }
 
   /** Đơn ĐÃ DUYỆT giao nhau với khoảng ngày — dùng cho lịch "ai đang nghỉ". */

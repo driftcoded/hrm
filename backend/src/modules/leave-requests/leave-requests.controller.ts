@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -27,9 +28,11 @@ import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { FilterLeaveRequestDto } from './dto/filter-leave-request.dto';
 import {
   ApproveLeaveRequestResultDto,
+  DeleteLeaveRequestResultDto,
   LeaveRequestResponseDto,
 } from './dto/leave-request-response.dto';
 import { RejectLeaveRequestDto } from './dto/reject-leave-request.dto';
+import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
 import { LeaveRequestsService } from './leave-requests.service';
 
 /**
@@ -71,6 +74,35 @@ export class LeaveRequestsController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<LeaveRequestResponseDto> {
     return this.leaveRequestsService.create(dto, user);
+  }
+
+  @Patch(':id')
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Sửa đơn nghỉ phép còn chờ duyệt',
+    description:
+      'Người GHI NHẬN sửa đơn của mình, nhân sự sửa của bất kỳ ai. Chỉ đơn còn `pending`.\n\n' +
+      'KHÔNG đổi được `employeeId`: đổi người được nghỉ là một đơn khác, vì quỹ phép và kiểm tra trùng ngày đều tính theo nhân viên.\n\n' +
+      'Số ngày phép được tính LẠI từ khoảng ngày mới, và quỹ phép trả chỗ cũ trước khi giữ chỗ mới — cùng một transaction.',
+  })
+  @ApiOkResponse({ type: LeaveRequestResponseDto })
+  @ApiForbiddenResponse({ description: 'FORBIDDEN' })
+  @ApiNotFoundResponse({
+    description: 'LEAVE_NOT_FOUND / LEAVE_TYPE_NOT_FOUND',
+  })
+  @ApiConflictResponse({
+    description: 'LEAVE_NOT_PENDING · OVERLAPPING_LEAVE',
+  })
+  @ApiUnprocessableEntityResponse({
+    description:
+      'INVALID_LEAVE_RANGE · LEAVE_SPANS_TWO_YEARS · LEAVE_NO_WORKING_DAYS · LEAVE_BELOW_MINIMUM · LEAVE_ABOVE_MAX_CONSECUTIVE · INSUFFICIENT_LEAVE_BALANCE',
+  })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateLeaveRequestDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<LeaveRequestResponseDto> {
+    return this.leaveRequestsService.update(id, dto, user);
   }
 
   /*
@@ -165,7 +197,8 @@ export class LeaveRequestsController {
   @ApiOperation({
     summary: 'Rút lại đơn vừa ghi nhận',
     description:
-      'Người GHI NHẬN hoặc nhân sự. Chỉ đơn còn `pending` — đơn đã duyệt phải do người duyệt từ chối, vì nó đã ghi vào bảng chấm công.',
+      'Người GHI NHẬN hoặc nhân sự. Chỉ đơn còn `pending`, và đơn vẫn nằm lại trong danh sách với trạng thái `cancelled`.\n\n' +
+      'Muốn gỡ hẳn một đơn (kể cả đã duyệt) thì dùng `DELETE /leave-requests/:id`.',
   })
   @ApiOkResponse({ type: LeaveRequestResponseDto })
   @ApiForbiddenResponse({ description: 'FORBIDDEN' })
@@ -175,5 +208,24 @@ export class LeaveRequestsController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<LeaveRequestResponseDto> {
     return this.leaveRequestsService.cancel(id, user);
+  }
+
+  @Delete(':id')
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Xoá hẳn đơn nghỉ phép',
+    description:
+      'Đơn còn `pending`: người GHI NHẬN hoặc nhân sự xoá được. Đơn đã duyệt / từ chối / đã rút: CHỈ nhân sự — xoá nó là đảo ngược một quyết định đã ra.\n\n' +
+      'Xoá gỡ sạch dấu vết đơn để lại: hoàn `pending_days` (đơn chờ) hoặc `used_days` (đơn đã duyệt), và gỡ những ngày `leave` mà lúc duyệt nó đã ghi vào bảng chấm công.\n\n' +
+      'Dòng chấm công ĐÃ BỊ SỬA sang trạng thái khác thì GIỮ LẠI — đó là ngày công thật. Số dòng giữ lại trả về ở `attendanceDaysKept`.',
+  })
+  @ApiOkResponse({ type: DeleteLeaveRequestResultDto })
+  @ApiForbiddenResponse({ description: 'FORBIDDEN' })
+  @ApiNotFoundResponse({ description: 'LEAVE_NOT_FOUND' })
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<DeleteLeaveRequestResultDto> {
+    return this.leaveRequestsService.remove(id, user);
   }
 }
