@@ -1,0 +1,15 @@
+.wrapper {
+  padding: var(--hrm-space-6) 0;
+}
+
+.title {
+  margin: 0;
+  color: var(--hrm-color-text);
+  font-size: var(--hrm-font-size-base);
+}
+
+.detail {
+  margin: var(--hrm-space-1) 0 0;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}

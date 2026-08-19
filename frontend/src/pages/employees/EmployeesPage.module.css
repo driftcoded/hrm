@@ -1,0 +1,147 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+.filterCard {
+  /* Tighter than a content card: this is a control strip, not a panel. */
+  padding-bottom: 0;
+}
+
+.filterRow,
+.filterRowSecondary {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  flex-wrap: wrap;
+}
+
+.filterRowSecondary {
+  margin-top: var(--hrm-space-3);
+  padding-top: var(--hrm-space-3);
+  border-top: 1px solid var(--hrm-color-border-subtle);
+}
+
+.searchBox {
+  flex: 1 1 var(--hrm-search-width);
+  min-width: 220px;
+  max-width: 420px;
+}
+
+.filterSelect {
+  min-width: 170px;
+}
+
+/*
+ * Table beside a fixed-width context rail. The rail is last in the source order
+ * too, so a screen reader reaches the employee list before the summary.
+ */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--hrm-grid-gap);
+  align-items: start;
+}
+
+.main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+.tiles {
+  margin: 0;
+}
+
+.rail {
+  min-width: 0;
+}
+
+/* --- table cells --- */
+
+.codeLink {
+  padding: 0;
+  height: auto;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  min-width: 0;
+}
+
+.avatar,
+.avatarFallback {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--hrm-radius-pill);
+  object-fit: cover;
+}
+
+.avatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hrm-color-primary-soft);
+  color: var(--hrm-color-primary);
+}
+
+.personBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.personName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--hrm-color-text);
+}
+
+.personMeta {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.selectionCount {
+  color: var(--hrm-color-text-secondary);
+  font-size: var(--hrm-font-size-base);
+  white-space: nowrap;
+}
+
+.rangeText {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+  white-space: nowrap;
+}
+
+/*
+ * Tablet and below (§10): the rail drops beneath the table instead of
+ * squeezing an 8-column table into ~400px, where it would scroll horizontally
+ * for every single row.
+ */
+@media (max-width: 1199px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .searchBox {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .filterSelect {
+    flex: 1 1 140px;
+    min-width: 140px;
+  }
+}

@@ -6,6 +6,7 @@ import type {
   Contract,
   ContractFilters,
   CreateContractPayload,
+  CreateDependentPayload,
   CreateEmployeePayload,
   CreatedUser,
   CreateUserPayload,
@@ -14,6 +15,7 @@ import type {
   EmployeeListItem,
   EmployeePickerItem,
   EmployeeSearchFilters,
+  Dependent,
   EmployeeStats,
   FamilyMember,
   FamilyMemberPayload,
@@ -21,6 +23,7 @@ import type {
   RoleOption,
   TerminateContractPayload,
   UpdateContractPayload,
+  UpdateDependentPayload,
   UpdateEmployeePayload,
 } from '@/types/employee.types';
 
@@ -209,6 +212,41 @@ export function updateFamilyMember(
 
 export function deleteFamilyMember(employeeId: number, memberId: number): Promise<DeleteResult> {
   return del(`/employees/${employeeId}/family-members/${memberId}`);
+}
+
+
+// -------------------------------------------------------------------------
+// Dependents (nested under an employee) — tax deduction register
+// -------------------------------------------------------------------------
+
+export function listDependents(employeeId: number): Promise<Dependent[]> {
+  return get<Dependent[]>(`/employees/${employeeId}/dependents`);
+}
+
+export function createDependent(
+  employeeId: number,
+  payload: CreateDependentPayload,
+): Promise<Dependent> {
+  return post<Dependent>(`/employees/${employeeId}/dependents`, payload);
+}
+
+export function updateDependent(
+  employeeId: number,
+  dependentId: number,
+  payload: UpdateDependentPayload,
+): Promise<Dependent> {
+  return patch<Dependent>(`/employees/${employeeId}/dependents/${dependentId}`, payload);
+}
+
+/**
+ * Permanent — `dependents` has no soft-delete column. To STOP a deduction while
+ * keeping the history, PATCH `status: 'inactive'` with a reason instead.
+ */
+export function deleteDependent(
+  employeeId: number,
+  dependentId: number,
+): Promise<DeleteResult> {
+  return del(`/employees/${employeeId}/dependents/${dependentId}`);
 }
 
 // -------------------------------------------------------------------------

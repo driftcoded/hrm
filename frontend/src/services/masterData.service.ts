@@ -16,6 +16,8 @@ import type {
   Position,
   PositionFilters,
   PositionPayload,
+  Province,
+  Ward,
 } from '@/types/masterData.types';
 
 /**
@@ -174,4 +176,24 @@ export function updateHoliday(id: number, payload: Partial<HolidayPayload>): Pro
 
 export function deleteHoliday(id: number): Promise<DeleteResult> {
   return del(`/holidays/${id}`);
+}
+
+// -------------------------------------------------------------------------
+// Provinces (static reference data)
+// -------------------------------------------------------------------------
+
+/**
+ * The 34 provinces/cities. A plain array, not paginated, and immutable for the
+ * life of the server process — callers cache it aggressively.
+ */
+export function listProvinces(): Promise<Province[]> {
+  return get<Province[]>('/system/provinces');
+}
+
+/**
+ * Wards of one province. `provinceCode` is effectively required: omitting it
+ * returns all 3,321 units in the country, which no screen wants.
+ */
+export function listWards(provinceCode: string): Promise<Ward[]> {
+  return get<Ward[]>('/system/wards', { provinceCode });
 }

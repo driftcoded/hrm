@@ -2,6 +2,7 @@ import { Suspense, lazy, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { FullPageLoader } from '@/components/common/FullPageLoader';
+import { GuestRoute } from './GuestRoute';
 import { PrivateRoute } from './PrivateRoute';
 
 /**
@@ -38,6 +39,16 @@ const ComingSoonPage = lazy(() =>
   import('@/pages/ComingSoonPage').then((module) => ({ default: module.ComingSoonPage })),
 );
 
+// Employees module (Giai đoạn 3.2), each its own chunk.
+const EmployeesPage = lazy(() =>
+  import('@/pages/employees/EmployeesPage').then((module) => ({ default: module.EmployeesPage })),
+);
+const EmployeeDetailPage = lazy(() =>
+  import('@/pages/employees/EmployeeDetailPage').then((module) => ({
+    default: module.EmployeeDetailPage,
+  })),
+);
+
 // Master-data settings screens (Giai đoạn 2.2), each its own chunk.
 const SettingsIndexPage = lazy(() =>
   import('@/pages/settings/SettingsIndexPage').then((module) => ({
@@ -70,11 +81,10 @@ const HolidaysPage = lazy(() =>
  * a dead link or a redirect that looks like a bug.
  *
  * `departments` left this list in Giai đoạn 2.2: departments are master data and
- * now live at `/settings/departments`. The old top-level path is kept below as a
- * redirect so links and bookmarks to it still work.
+ * now live at `/settings/departments`. `employees` left it in Giai đoạn 3.2 —
+ * the module has real screens now.
  */
 const UPCOMING_MODULES: Array<{ path: string; titleKey: string; phase: string }> = [
-  { path: 'employees', titleKey: 'nav.employees', phase: '3' },
   { path: 'attendance', titleKey: 'nav.attendance', phase: '4' },
   { path: 'payroll', titleKey: 'nav.payroll', phase: '6' },
   { path: 'leave', titleKey: 'nav.leave', phase: '5' },
@@ -87,8 +97,12 @@ function fullPage(node: ReactNode) {
 
 const router = createBrowserRouter([
   {
-    path: '/login',
-    element: fullPage(<LoginPage />),
+    // GuestRoute lets a visitor with a still-valid refresh cookie straight
+    // through instead of asking for a password again. Only /login is wrapped:
+    // a signed-in user following a password-reset link from their inbox must
+    // still reach that screen.
+    element: <GuestRoute />,
+    children: [{ path: '/login', element: fullPage(<LoginPage />) }],
   },
   {
     path: '/forgot-password',
@@ -108,6 +122,13 @@ const router = createBrowserRouter([
           { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'profile', element: <ProfilePage /> },
+          {
+            path: 'employees',
+            children: [
+              { index: true, element: <EmployeesPage /> },
+              { path: ':id', element: <EmployeeDetailPage /> },
+            ],
+          },
           {
             path: 'settings',
             children: [

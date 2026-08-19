@@ -1,5 +1,11 @@
 import { useAuthStore } from '@/store/authStore';
-import { MASTER_DATA_WRITE_ROLES } from '@/constants/roles';
+import {
+  CONTRACT_WRITE_ROLES,
+  EMPLOYEE_DELETE_ROLES,
+  EMPLOYEE_WRITE_ROLES,
+  MASTER_DATA_WRITE_ROLES,
+  USER_WRITE_ROLES,
+} from '@/constants/roles';
 import type { UserRole } from '@/types/auth.types';
 
 /**
@@ -27,4 +33,34 @@ export function useHasRole(roles: readonly UserRole[]): boolean {
  */
 export function useCanWriteMasterData(): boolean {
   return useHasRole(MASTER_DATA_WRITE_ROLES);
+}
+
+/** May the user create/edit an employee record? (`admin`, `hr_manager`, `hr_staff`) */
+export function useCanWriteEmployees(): boolean {
+  return useHasRole(EMPLOYEE_WRITE_ROLES);
+}
+
+/**
+ * May the user soft-delete or restore an employee? (`admin`, `hr_manager`)
+ *
+ * Deliberately narrower than `useCanWriteEmployees`: `hr_staff` can create and
+ * correct records but not remove people, which is what the backend enforces.
+ */
+export function useCanDeleteEmployees(): boolean {
+  return useHasRole(EMPLOYEE_DELETE_ROLES);
+}
+
+/** May the user sign, edit or end a labour contract? (`admin`, `hr_manager`) */
+export function useCanWriteContracts(): boolean {
+  return useHasRole(CONTRACT_WRITE_ROLES);
+}
+
+/**
+ * May the user create a login account? (`admin` only)
+ *
+ * Drives whether the create wizard shows its account step at all — offering it
+ * to `hr_staff` would mean a wizard whose last step is guaranteed to 403.
+ */
+export function useCanCreateUsers(): boolean {
+  return useHasRole(USER_WRITE_ROLES);
 }

@@ -1,0 +1,87 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-4);
+}
+
+.chart {
+  position: relative;
+  align-self: center;
+  width: 160px;
+  height: 160px;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* The number in the hole. `pointer-events: none` so it never blocks the ring. */
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.centerValue {
+  font-size: var(--hrm-font-size-h2);
+  font-weight: 700;
+  color: var(--hrm-color-heading);
+  line-height: var(--hrm-line-height-tight);
+}
+
+.centerLabel {
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+.legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-2);
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.swatch {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* Long department names truncate rather than wrapping the value onto line 2. */
+.legendLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--hrm-color-text-secondary);
+}
+
+.legendValue {
+  flex: none;
+  color: var(--hrm-color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--hrm-space-5) 0;
+  text-align: center;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}

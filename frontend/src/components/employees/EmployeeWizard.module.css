@@ -1,0 +1,35 @@
+.steps {
+  margin-bottom: var(--hrm-space-5);
+}
+
+/*
+ * Inactive steps stay MOUNTED (hidden) so their Form.Item values survive going
+ * back and forth — see the note in EmployeeWizard.tsx.
+ */
+.pane {
+  display: block;
+}
+
+.paneHidden {
+  display: none;
+}
+
+.full {
+  width: 100%;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hrm-space-2);
+}
+
+.footerRight {
+  display: flex;
+  gap: var(--hrm-space-2);
+}
+
+.submitError {
+  margin-top: var(--hrm-space-4);
+}

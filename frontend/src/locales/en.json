@@ -226,7 +226,10 @@
       "AVATAR_TOO_LARGE": "The image exceeds the 2MB limit.",
       "AVATAR_INVALID_TYPE": "The uploaded file is not a JPEG/PNG/WEBP image.",
       "AVATAR_REQUIRED": "No image was selected.",
-      "PAYLOAD_TOO_LARGE": "The request payload is too large."
+      "PAYLOAD_TOO_LARGE": "The request payload is too large.",
+      "DEPENDENT_ALREADY_CLAIMED": "This person is already claimed by another employee. A dependent can only be claimed by a single taxpayer.",
+      "DEPENDENT_NOT_FOUND": "Dependent not found.",
+      "DEPENDENT_REASON_REQUIRED": "A reason is required when stopping a deduction."
     }
   },
   "layout": {
@@ -683,9 +686,7 @@
       "sameAsPermanent": "Same as permanent address",
       "provinceCode": "Province / city",
       "provincePlaceholder": "Select a province",
-      "districtCode": "District code",
-      "wardCode": "Ward code",
-      "areaCodeHint": "No district/ward catalogue in the system yet — enter the official code",
+      "wardCode": "Ward / Commune",
       "emergencyContact": "Emergency contact",
       "emergencyName": "Emergency contact name",
       "emergencyPhone": "Emergency contact phone",
@@ -724,7 +725,11 @@
       "accountEmail": "Login email",
       "accountEmailHint": "Leave empty to use the work email",
       "tempPassword": "Temporary password",
-      "role": "Role"
+      "role": "Role",
+      "wardPlaceholder": "Select a ward or commune",
+      "wardNeedsProvince": "Pick a province first",
+      "twoTierHint": "Since 01/07/2025 Vietnam has two tiers: province and ward/commune",
+      "legacyDistrict": "District (legacy record)"
     },
     "validation": {
       "required": "This field is required",
@@ -734,7 +739,8 @@
       "areaCode": "Digits only, at most 10 characters",
       "password": "Password must be at least 8 characters",
       "ageHint": "Valid age: 15 - 70",
-      "indefiniteNoEnd": "An indefinite-term contract has no end date"
+      "indefiniteNoEnd": "An indefinite-term contract has no end date",
+      "taxCode": "A tax code is 10 digits, optionally followed by -XXX"
     },
     "wizard": {
       "title": "Add a new employee",
@@ -839,7 +845,47 @@
       "created": "Family member added",
       "updated": "Family member updated",
       "deleted": "Family member removed",
-      "deleteTitle": "Remove this family member?"
+      "deleteTitle": "Remove this family member?",
+      "sectionMembers": "Family members",
+      "sectionDependents": "Dependents (family-circumstance deduction)",
+      "dependentsIntro": "Each active dependent lowers taxable income by 6,200,000 ₫ per month. One person can only be claimed by a single taxpayer."
+    },
+    "dependents": {
+      "add": "Add dependent",
+      "editTitle": "Edit dependent",
+      "name": "Full name",
+      "period": "Deduction period",
+      "ongoing": "Ongoing",
+      "registrationDate": "Deduction starts",
+      "registrationHint": "The date the tax office starts counting the deduction",
+      "endDate": "End date",
+      "identityHint": "An ID or tax code is needed for the duplicate check",
+      "deductible": "Deducting",
+      "deductibleYes": "Yes",
+      "deductibleNo": "No",
+      "notDeductibleHint": "Not started yet, or the deduction has ended",
+      "activeCount": "{{count}} currently deducted",
+      "empty": "No dependents registered yet.",
+      "loadError": "Could not load the dependents.",
+      "created": "Dependent registered",
+      "updated": "Dependent updated",
+      "deleted": "Dependent deleted",
+      "stop": "Stop the deduction",
+      "stopAria": "Stop the deduction for {{name}}",
+      "stopConfirm": "Stop deduction",
+      "stopBody": "\"{{name}}\" will stop counting towards the family-circumstance deduction. The record is kept in the history.",
+      "stopReason": "Reason",
+      "stopReasonHint": "e.g. Now has income / Over the age limit / Deceased",
+      "stopped": "Deduction stopped",
+      "deleteTitle": "Delete this dependent?",
+      "deleteBody": "\"{{name}}\" will be permanently removed from the deduction register. To stop the deduction but keep the history, use \"Stop the deduction\" instead."
+    },
+    "dependentRelationship": {
+      "child": "Child",
+      "spouse": "Spouse",
+      "parent": "Parent",
+      "sibling": "Sibling",
+      "other": "Other"
     }
   }
 }

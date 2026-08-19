@@ -226,7 +226,10 @@
       "AVATAR_TOO_LARGE": "Ảnh vượt quá dung lượng cho phép (2MB).",
       "AVATAR_INVALID_TYPE": "File tải lên không phải ảnh JPEG/PNG/WEBP.",
       "AVATAR_REQUIRED": "Chưa chọn ảnh để tải lên.",
-      "PAYLOAD_TOO_LARGE": "Dữ liệu gửi lên quá lớn."
+      "PAYLOAD_TOO_LARGE": "Dữ liệu gửi lên quá lớn.",
+      "DEPENDENT_ALREADY_CLAIMED": "Người này đã được một nhân viên khác đăng ký giảm trừ. Mỗi người phụ thuộc chỉ được khai cho một người nộp thuế.",
+      "DEPENDENT_NOT_FOUND": "Không tìm thấy người phụ thuộc.",
+      "DEPENDENT_REASON_REQUIRED": "Cần nhập lý do khi ngừng giảm trừ."
     }
   },
   "layout": {
@@ -683,9 +686,7 @@
       "sameAsPermanent": "Giống địa chỉ thường trú",
       "provinceCode": "Tỉnh/Thành phố",
       "provincePlaceholder": "Chọn tỉnh/thành phố",
-      "districtCode": "Mã quận/huyện",
-      "wardCode": "Mã phường/xã",
-      "areaCodeHint": "Hệ thống chưa có danh mục quận/huyện/xã — nhập mã theo Bộ Nội Vụ",
+      "wardCode": "Phường/Xã",
       "emergencyContact": "Liên hệ khẩn cấp",
       "emergencyName": "Tên người liên hệ khẩn",
       "emergencyPhone": "SĐT liên hệ khẩn",
@@ -724,7 +725,11 @@
       "accountEmail": "Email đăng nhập",
       "accountEmailHint": "Để trống sẽ dùng email công ty",
       "tempPassword": "Mật khẩu tạm",
-      "role": "Vai trò"
+      "role": "Vai trò",
+      "wardPlaceholder": "Chọn phường/xã/đặc khu",
+      "wardNeedsProvince": "Chọn tỉnh/thành phố trước",
+      "twoTierHint": "Từ 01/07/2025 cả nước còn 2 cấp: tỉnh/thành và phường/xã",
+      "legacyDistrict": "Quận/Huyện (hồ sơ cũ)"
     },
     "validation": {
       "required": "Trường này là bắt buộc",
@@ -734,7 +739,8 @@
       "areaCode": "Mã chỉ gồm chữ số, tối đa 10 ký tự",
       "password": "Mật khẩu tối thiểu 8 ký tự",
       "ageHint": "Tuổi hợp lệ: 15 - 70",
-      "indefiniteNoEnd": "HĐ không xác định thời hạn không có ngày kết thúc"
+      "indefiniteNoEnd": "HĐ không xác định thời hạn không có ngày kết thúc",
+      "taxCode": "MST phải là 10 chữ số, hoặc 10 chữ số + -XXX"
     },
     "wizard": {
       "title": "Thêm nhân viên mới",
@@ -839,7 +845,47 @@
       "created": "Đã thêm thành viên gia đình",
       "updated": "Đã cập nhật thành viên gia đình",
       "deleted": "Đã xóa thành viên gia đình",
-      "deleteTitle": "Xóa thành viên gia đình?"
+      "deleteTitle": "Xóa thành viên gia đình?",
+      "sectionMembers": "Thành viên gia đình",
+      "sectionDependents": "Người phụ thuộc (giảm trừ gia cảnh)",
+      "dependentsIntro": "Mỗi người phụ thuộc đang hiệu lực giảm 6.200.000 ₫ thu nhập chịu thuế mỗi tháng. Một người chỉ được khai cho một người nộp thuế."
+    },
+    "dependents": {
+      "add": "Thêm người phụ thuộc",
+      "editTitle": "Sửa người phụ thuộc",
+      "name": "Họ tên",
+      "period": "Thời gian giảm trừ",
+      "ongoing": "Đang áp dụng",
+      "registrationDate": "Ngày bắt đầu giảm trừ",
+      "registrationHint": "Ngày cơ quan thuế bắt đầu tính giảm trừ",
+      "endDate": "Ngày kết thúc",
+      "identityHint": "Cần CCCD hoặc MST để hệ thống kiểm tra trùng",
+      "deductible": "Đang giảm trừ",
+      "deductibleYes": "Có",
+      "deductibleNo": "Không",
+      "notDeductibleHint": "Chưa tới ngày bắt đầu hoặc đã hết hạn giảm trừ",
+      "activeCount": "{{count}} người đang được giảm trừ",
+      "empty": "Chưa đăng ký người phụ thuộc nào.",
+      "loadError": "Không tải được danh sách người phụ thuộc.",
+      "created": "Đã đăng ký người phụ thuộc",
+      "updated": "Đã cập nhật người phụ thuộc",
+      "deleted": "Đã xóa người phụ thuộc",
+      "stop": "Ngừng giảm trừ",
+      "stopAria": "Ngừng giảm trừ cho {{name}}",
+      "stopConfirm": "Ngừng giảm trừ",
+      "stopBody": "\"{{name}}\" sẽ thôi được tính giảm trừ gia cảnh. Bản ghi vẫn được giữ lại trong lịch sử.",
+      "stopReason": "Lý do ngừng",
+      "stopReasonHint": "Ví dụ: Đã có thu nhập / Quá tuổi / Qua đời",
+      "stopped": "Đã ngừng giảm trừ",
+      "deleteTitle": "Xóa người phụ thuộc?",
+      "deleteBody": "\"{{name}}\" sẽ bị xóa vĩnh viễn khỏi hồ sơ giảm trừ. Nếu chỉ muốn thôi giảm trừ mà vẫn giữ lịch sử, hãy dùng \"Ngừng giảm trừ\"."
+    },
+    "dependentRelationship": {
+      "child": "Con",
+      "spouse": "Vợ/Chồng",
+      "parent": "Bố/Mẹ",
+      "sibling": "Anh/Chị/Em",
+      "other": "Khác"
     }
   }
 }

@@ -290,12 +290,31 @@ export interface DeleteResult {
  * 26-table schema has no province/district/ward tables, and `employees` stores
  * the three codes as plain text (scope decision from Giai đoạn 0.1).
  *
- * There is deliberately no `District` / `Ward` type here: the project has no
- * source data for them yet, so those two codes are typed by hand in the
- * employee form. Add the types when the endpoints exist, not before.
+ * There is deliberately no `District` type and never will be: Vietnam abolished
+ * the district tier on 01/07/2025 (Law 72/2025/QH15).
  */
 export interface Province {
+  /** Mã BNV mới, "01"–"34" (sau sáp nhập 01/07/2025). */
   code: string;
   name: string;
   type: string;
+  /** Mã tỉnh trong hệ thống thuế, ví dụ "101". */
+  tmsCode: string;
+}
+
+/**
+ * Một phường/xã/đặc khu — cấp hành chính thứ hai và CUỐI CÙNG.
+ *
+ * Cấp huyện đã chấm dứt hoạt động từ 01/07/2025 (Luật 72/2025/QH15), nên không
+ * có `District` ở đây và sẽ không bao giờ có. `legacyDistrict*` chỉ để đọc/đối
+ * chiếu hồ sơ tuyển trước mốc đó.
+ */
+export interface Ward {
+  /** Mã hệ thống thuế (TMS), ví dụ "10105001". */
+  code: string;
+  name: string;
+  provinceCode: string;
+  type: 'phuong' | 'xa' | 'dac_khu';
+  legacyDistrictCode: string;
+  legacyDistrictName: string;
 }

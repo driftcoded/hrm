@@ -1,0 +1,84 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+.railLink {
+  padding: 0;
+  margin-top: var(--hrm-space-3);
+}
+
+.statList,
+.birthdayList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-3);
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  font-size: var(--hrm-font-size-base);
+}
+
+.statLabel {
+  flex: 1;
+  min-width: 0;
+  color: var(--hrm-color-text-secondary);
+}
+
+.statValue {
+  flex: none;
+  font-weight: 500;
+  color: var(--hrm-color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.statIconMale {
+  color: var(--hrm-color-primary);
+}
+
+.statIconFemale {
+  color: #eb2f96;
+}
+
+.statIconOther,
+.statIconNeutral {
+  color: var(--hrm-color-text-tertiary);
+}
+
+.birthdayRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+}
+
+.birthdayBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.birthdayName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--hrm-color-text);
+  font-size: var(--hrm-font-size-base);
+}
+
+.birthdayMeta {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.emptyText {
+  margin: 0;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}

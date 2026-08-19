@@ -59,6 +59,18 @@ export type ContractTypeValue = (typeof CONTRACT_TYPES)[number];
 export const CONTRACT_STATUSES = ['draft', 'active', 'expired', 'terminated'] as const;
 export type ContractStatus = (typeof CONTRACT_STATUSES)[number];
 
+export const DEPENDENT_RELATIONSHIPS = [
+  'child',
+  'spouse',
+  'parent',
+  'sibling',
+  'other',
+] as const;
+export type DependentRelationship = (typeof DEPENDENT_RELATIONSHIPS)[number];
+
+export const DEPENDENT_STATUSES = ['active', 'inactive'] as const;
+export type DependentStatus = (typeof DEPENDENT_STATUSES)[number];
+
 export const FAMILY_RELATIONSHIPS = [
   'spouse',
   'father',
@@ -135,7 +147,8 @@ export interface EmployeeDetail extends EmployeeListItem {
   permanentAddress: string;
   currentAddress: string | null;
   provinceCode: string;
-  districtCode: string;
+  /** `null` với hồ sơ tạo sau 01/07/2025 — cấp huyện đã bị bỏ. */
+  districtCode: string | null;
   wardCode: string;
   personalEmail: string | null;
   emergencyContactName: string | null;
@@ -203,8 +216,14 @@ export interface CreateEmployeePayload {
   healthInsuranceExp?: string | null;
   permanentAddress: string;
   currentAddress?: string | null;
+  /** Mã BNV "01"–"34". */
   provinceCode: string;
-  districtCode: string;
+  /**
+   * ⚠️ Cấp huyện đã bị bỏ từ 01/07/2025 (Luật 72/2025/QH15). Chỉ gửi khi nhập
+   * liệu hồ sơ CŨ; hồ sơ mới bỏ trống.
+   */
+  districtCode?: string | null;
+  /** Mã phường/xã/đặc khu theo hệ thống thuế, ví dụ "10105001". */
   wardCode: string;
   phone: string;
   email: string;
@@ -383,6 +402,63 @@ export interface FamilyMemberPayload {
   cccdNumber?: string | null;
   note?: string | null;
 }
+
+// ------------------------------------------------------------- dependents ---
+
+/**
+ * Người phụ thuộc — the family-circumstance tax deduction register
+ * (Article 19, Personal Income Tax Law).
+ *
+ * NOT the same thing as `FamilyMember`, despite the overlap in people. That one
+ * is an HR note about the household; this one has money attached — each active
+ * dependent lowers the employee's taxable income by 6.2M ₫/month (rate from
+ * 01/01/2026). Hence the extra fields: a registration date, an end date, and a
+ * reason when the deduction stops.
+ */
+export interface Dependent {
+  id: number;
+  employeeId: number;
+  fullName: string;
+  relationship: DependentRelationship;
+  dateOfBirth: string;
+  cccdNumber: string | null;
+  taxCode: string | null;
+  /** When the deduction starts counting. */
+  registrationDate: string;
+  endDate: string | null;
+  status: DependentStatus;
+  reasonInactive: string | null;
+  documentUrl: string | null;
+  note: string | null;
+  /**
+   * Whether the deduction applies TODAY (active + inside the date window).
+   *
+   * A convenience for the UI only. Payroll works month by month, so phase 6
+   * must compute eligibility for the month being paid rather than reading this.
+   */
+  isCurrentlyDeductible: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** `status` is absent: a dependent is always `active` when first registered. */
+export interface CreateDependentPayload {
+  fullName: string;
+  relationship: DependentRelationship;
+  dateOfBirth: string;
+  cccdNumber?: string | null;
+  taxCode?: string | null;
+  registrationDate: string;
+  endDate?: string | null;
+  documentUrl?: string | null;
+  note?: string | null;
+}
+
+/** Stopping the deduction requires a reason — the server enforces it. */
+export type UpdateDependentPayload = Partial<CreateDependentPayload> & {
+  status?: DependentStatus;
+  reasonInactive?: string | null;
+};
 
 // --------------------------------------------- login account (wizard step 4) ---
 

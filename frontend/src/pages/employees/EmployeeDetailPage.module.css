@@ -1,0 +1,59 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+.back {
+  align-self: flex-start;
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--hrm-space-5);
+  flex-wrap: wrap;
+}
+
+.identity {
+  flex: 1;
+  min-width: 240px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  flex-wrap: wrap;
+}
+
+.name {
+  margin: 0;
+  font-size: var(--hrm-font-size-h2);
+  font-weight: 600;
+  color: var(--hrm-color-heading);
+}
+
+.code {
+  margin: var(--hrm-space-1) 0 var(--hrm-space-4);
+  color: var(--hrm-color-text-tertiary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--hrm-font-size-caption);
+}
+
+.summary {
+  max-width: 900px;
+}
+
+.headerActions {
+  flex: none;
+}
+
+/* Mobile: the delete button drops under the identity block rather than
+   squeezing the name into two words per line (§10). */
+@media (max-width: 767px) {
+  .headerActions {
+    width: 100%;
+  }
+}
