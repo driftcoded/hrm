@@ -78,3 +78,42 @@ export const ATTENDANCE_WRITE_ROLES: readonly UserRole[] = [
 /** Vai trò xuất bảng chấm công — mirrors `AttendanceExportService.EXPORT_ROLES`. */
 export const ATTENDANCE_EXPORT_ROLES: readonly UserRole[] = ATTENDANCE_READ_ALL_ROLES;
 
+
+/**
+ * Vai trò được GHI NHẬN đơn nghỉ phép — mirrors backend `LEAVE_RECORD_ROLES`.
+ *
+ * Nhân viên không đăng nhập hệ thống này nên không ai tự nộp đơn: quản lý ghi
+ * cho phòng mình, nhân sự ghi cho bất kỳ ai.
+ */
+export const LEAVE_RECORD_ROLES: readonly UserRole[] = [
+  'admin',
+  'hr_manager',
+  'hr_staff',
+  'manager',
+];
+
+/**
+ * Vai trò được DUYỆT đơn nghỉ phép — mirrors backend `LEAVE_APPROVE_ROLES`.
+ *
+ * `manager` ghi nhận nhưng KHÔNG duyệt. Backend còn chặn thêm người vừa ghi vừa
+ * duyệt chính đơn đó — giao diện không đoán được điều này nên vẫn hiện nút, và
+ * lỗi trả về được dịch thành câu rõ ràng.
+ */
+export const LEAVE_APPROVE_ROLES: readonly UserRole[] = [
+  'admin',
+  'hr_manager',
+  'hr_staff',
+];
+
+/**
+ * Vai trò được CẤP và ĐIỀU CHỈNH quỹ phép — mirrors `EMPLOYEE_WRITE_ROLES` ở
+ * backend.
+ *
+ * `manager` xem được quỹ phép phòng mình nhưng không sửa: quỹ phép là quyền lợi
+ * của người lao động, và đây là lớp kiểm soát duy nhất của việc thay đổi nó.
+ */
+export const LEAVE_BALANCE_WRITE_ROLES: readonly UserRole[] = [
+  'admin',
+  'hr_manager',
+  'hr_staff',
+];

@@ -184,7 +184,7 @@
       "CODE_ALLOCATION_FAILED": "Hệ thống chưa cấp được mã cho bản ghi mới. Vui lòng thử lại.",
       "DEPARTMENT_NOT_FOUND": "Không tìm thấy phòng ban. Có thể phòng ban vừa bị xóa — vui lòng tải lại trang.",
       "POSITION_NOT_FOUND": "Không tìm thấy chức vụ. Có thể chức vụ vừa bị xóa — vui lòng tải lại trang.",
-      "LEAVE_TYPE_NOT_FOUND": "Không tìm thấy loại phép. Có thể loại phép vừa bị xóa — vui lòng tải lại trang.",
+      "LEAVE_TYPE_NOT_FOUND": "Không tìm thấy loại nghỉ phép.",
       "HOLIDAY_NOT_FOUND": "Không tìm thấy ngày lễ. Có thể ngày lễ vừa bị xóa — vui lòng tải lại trang.",
       "PARENT_DEPARTMENT_NOT_FOUND": "Không tìm thấy phòng ban cha đã chọn. Vui lòng tải lại trang và chọn lại.",
       "EMPLOYEE_NOT_FOUND": "Không tìm thấy nhân viên đã chọn. Có thể hồ sơ vừa bị xóa — vui lòng tải lại trang và chọn lại.",
@@ -251,7 +251,19 @@
       "PORTAL_ACCESS_DENIED": "Tài khoản này không được sử dụng hệ thống quản trị. Nhân viên tra cứu thông tin qua cổng riêng.",
       "ATTENDANCE_ALREADY_EXISTS": "Ngày này đã có dữ liệu chấm công. Hãy sửa bản ghi đang có thay vì thêm mới.",
       "CANNOT_APPROVE_OWN_RECORD": "Bạn là người ghi nhận đơn này nên không thể tự duyệt.",
-      "ATTENDANCE_STATUS_REQUIRED": "Không có giờ vào thì phải chọn trạng thái cho ngày công (nghỉ phép, ngày lễ, làm từ xa, vắng)."
+      "ATTENDANCE_STATUS_REQUIRED": "Không có giờ vào thì phải chọn trạng thái cho ngày công (nghỉ phép, ngày lễ, làm từ xa, vắng).",
+      "LEAVE_NOT_FOUND": "Không tìm thấy đơn nghỉ phép.",
+      "LEAVE_NOT_PENDING": "Đơn này không còn ở trạng thái chờ duyệt.",
+      "INSUFFICIENT_LEAVE_BALANCE": "Nhân viên không còn đủ ngày phép cho kỳ nghỉ này.",
+      "OVERLAPPING_LEAVE": "Trùng ngày với một đơn nghỉ khác còn hiệu lực.",
+      "INVALID_LEAVE_RANGE": "Ngày kết thúc phải sau ngày bắt đầu.",
+      "LEAVE_SPANS_TWO_YEARS": "Kỳ nghỉ bắc qua giao thừa. Quỹ phép tính theo từng năm, hãy tách thành hai đơn.",
+      "LEAVE_NO_WORKING_DAYS": "Khoảng ngày đã chọn không có ngày làm việc nào — không có ngày phép nào bị trừ.",
+      "LEAVE_BELOW_MINIMUM": "Ít hơn số ngày tối thiểu của loại phép này.",
+      "LEAVE_ABOVE_MAX_CONSECUTIVE": "Vượt số ngày nghỉ liên tiếp tối đa của loại phép này.",
+      "ANNUAL_LEAVE_TYPE_MISSING": "Chưa có loại phép năm trong danh mục. Hãy kiểm tra Cài đặt → Loại nghỉ phép.",
+      "LEAVE_BALANCE_NOT_FOUND": "Không tìm thấy quỹ phép.",
+      "LEAVE_BALANCE_BELOW_COMMITTED": "Không thể hạ quỹ xuống dưới số ngày đã dùng và đang chờ duyệt."
     }
   },
   "layout": {
@@ -1088,6 +1100,126 @@
       "dateRequired": "Vui lòng chọn ngày",
       "success": "Đã thêm ngày công.",
       "statusRequired": "Không có giờ vào thì phải chọn trạng thái"
+    }
+  },
+  "leave": {
+    "title": "Nghỉ phép",
+    "subtitle": "Ghi nhận đơn nghỉ, duyệt và theo dõi quỹ phép năm.",
+    "tabs": {
+      "requests": "Đơn nghỉ phép",
+      "balances": "Quỹ phép",
+      "calendar": "Lịch nghỉ"
+    },
+    "status": {
+      "pending": "Chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối",
+      "cancelled": "Đã rút"
+    },
+    "half": {
+      "full": "Cả ngày",
+      "morning": "Buổi sáng",
+      "afternoon": "Buổi chiều"
+    },
+    "requests": {
+      "create": "Ghi nhận đơn nghỉ",
+      "submit": "Lưu",
+      "createSuccess": "Đã ghi nhận đơn nghỉ phép.",
+      "approve": "Duyệt",
+      "approveSuccess": "Đã duyệt. Ghi {{days}} ngày nghỉ vào bảng chấm công.",
+      "approveConflictTitle": "Đã duyệt, nhưng {{count}} ngày đã có dữ liệu chấm công",
+      "approveConflictDetail": "Những ngày này KHÔNG bị ghi đè: {{dates}}. Nhân viên vừa có giờ chấm công vừa được duyệt nghỉ trong cùng ngày — hãy kiểm tra lại bảng chấm công.",
+      "reject": "Từ chối",
+      "rejectTitle": "Từ chối đơn của {{name}} — {{from}} đến {{to}}",
+      "rejectReason": "Lý do từ chối",
+      "rejectReasonHint": "Người ghi nhận cần biết vì sao để sửa và ghi lại.",
+      "rejectReasonRequired": "Vui lòng nhập lý do từ chối",
+      "rejectSuccess": "Đã từ chối đơn. Số ngày phép được hoàn lại.",
+      "cancel": "Rút lại",
+      "cancelConfirm": "Rút lại đơn vừa ghi nhận?",
+      "cancelSuccess": "Đã rút lại đơn.",
+      "reasonTooShort": "Lý do quá ngắn",
+      "loadError": "Không tải được danh sách đơn nghỉ phép.",
+      "estimate": "Số ngày phép ước tính: {{days}} (chưa trừ ngày lễ — hệ thống tính lại khi lưu)",
+      "columns": {
+        "employee": "Nhân viên",
+        "leaveType": "Loại phép",
+        "range": "Từ ngày – đến ngày",
+        "totalDays": "Số ngày",
+        "recordedBy": "Người ghi",
+        "status": "Trạng thái"
+      },
+      "filters": {
+        "status": "Trạng thái",
+        "department": "Phòng ban",
+        "leaveType": "Loại phép",
+        "reset": "Đặt lại",
+        "pendingShortcut": "Chỉ xem đơn chờ duyệt"
+      },
+      "fields": {
+        "employee": "Nhân viên",
+        "employeePlaceholder": "Tìm theo tên hoặc mã nhân viên",
+        "leaveType": "Loại nghỉ phép",
+        "range": "Từ ngày – đến ngày",
+        "startHalf": "Ngày đầu",
+        "endHalf": "Ngày cuối",
+        "reason": "Lý do nghỉ"
+      },
+      "errors": {
+        "employee": "Vui lòng chọn nhân viên",
+        "leaveType": "Vui lòng chọn loại nghỉ phép",
+        "range": "Vui lòng chọn khoảng ngày nghỉ",
+        "reason": "Vui lòng nhập lý do"
+      }
+    },
+    "balances": {
+      "init": "Cấp quỹ phép năm",
+      "initTitle": "Cấp quỹ phép năm cho toàn công ty",
+      "initHint": "Số ngày tính theo Điều 113 BLLĐ 2019: 12 ngày, cộng 1 ngày mỗi 5 năm thâm niên. Năm đầu tiên tính theo tỉ lệ tháng đã làm.",
+      "initSuccess": "Đã cấp quỹ phép: {{created}} người mới, {{skipped}} người đã có sẵn.",
+      "preview": "Tính thử",
+      "commit": "Cấp quỹ",
+      "commitWithCount": "Cấp cho {{count}} người",
+      "carryOver": "Cộng ngày phép còn lại của năm trước",
+      "carryOverHint": "Chuyển phép sang năm sau là quy định nội bộ của công ty, không phải quy định của luật — nên phải chọn tường minh.",
+      "employeesConsidered": "Nhân viên đang làm việc",
+      "willCreate": "Sẽ cấp mới",
+      "willSkip": "Đã có, bỏ qua",
+      "skipTitle": "{{count}} người đã có quỹ phép năm này",
+      "skipDetail": "Quỹ đã có KHÔNG bị ghi đè — chạy lại chỉ cấp cho những người còn thiếu. Muốn sửa riêng một người thì dùng nút chỉnh sửa trên dòng của họ.",
+      "allDone": "Toàn bộ nhân viên đã có quỹ phép của năm này.",
+      "adjustTitle": "Điều chỉnh quỹ phép — {{name}}, năm {{year}}",
+      "adjustFor": "Điều chỉnh quỹ phép của {{name}}",
+      "adjustReason": "Lý do điều chỉnh",
+      "adjustReasonHint": "Quỹ phép là quyền lợi của người lao động — mọi thay đổi thủ công phải nói được vì sao.",
+      "adjustSuccess": "Đã cập nhật quỹ phép.",
+      "committedHint": "Đã dùng {{used}} ngày, đang chờ duyệt {{pending}} ngày. Không thể hạ tổng quỹ xuống dưới {{total}} ngày.",
+      "loadError": "Không tải được quỹ phép.",
+      "columns": {
+        "employee": "Nhân viên",
+        "leaveType": "Loại phép",
+        "allocated": "Được cấp",
+        "carriedOver": "Chuyển sang",
+        "used": "Đã dùng",
+        "pending": "Đang chờ",
+        "remaining": "Còn lại"
+      },
+      "filters": {
+        "department": "Phòng ban",
+        "leaveType": "Loại phép",
+        "reset": "Đặt lại"
+      },
+      "errors": {
+        "allocated": "Vui lòng nhập số ngày được cấp",
+        "carriedOver": "Vui lòng nhập số ngày chuyển sang",
+        "reason": "Vui lòng nhập lý do điều chỉnh"
+      }
+    },
+    "calendar": {
+      "title": "Ai đang nghỉ",
+      "days": "ngày",
+      "empty": "Không có ai nghỉ phép trong tháng này.",
+      "loadError": "Không tải được lịch nghỉ phép."
     }
   }
 }

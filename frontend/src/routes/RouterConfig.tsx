@@ -61,6 +61,26 @@ const AttendanceTablePage = lazy(() =>
   })),
 );
 
+// Leave module (Giai đoạn 5.2), each its own chunk.
+const LeaveLayout = lazy(() =>
+  import('@/pages/leave/LeaveLayout').then((module) => ({ default: module.LeaveLayout })),
+);
+const LeaveRequestsPage = lazy(() =>
+  import('@/pages/leave/LeaveRequestsPage').then((module) => ({
+    default: module.LeaveRequestsPage,
+  })),
+);
+const LeaveBalancesPage = lazy(() =>
+  import('@/pages/leave/LeaveBalancesPage').then((module) => ({
+    default: module.LeaveBalancesPage,
+  })),
+);
+const LeaveCalendarPage = lazy(() =>
+  import('@/pages/leave/LeaveCalendarPage').then((module) => ({
+    default: module.LeaveCalendarPage,
+  })),
+);
+
 // Master-data settings screens (Giai đoạn 2.2), each its own chunk.
 const SettingsIndexPage = lazy(() =>
   import('@/pages/settings/SettingsIndexPage').then((module) => ({
@@ -108,7 +128,6 @@ const MailSettingsPage = lazy(() =>
  */
 const UPCOMING_MODULES: Array<{ path: string; titleKey: string; phase: string }> = [
   { path: 'payroll', titleKey: 'nav.payroll', phase: '6' },
-  { path: 'leave', titleKey: 'nav.leave', phase: '5' },
   { path: 'reports', titleKey: 'nav.reports', phase: '8' },
 ];
 
@@ -169,6 +188,15 @@ const router = createBrowserRouter([
               { index: true, element: <AttendanceTablePage /> },
               { path: 'table', element: <Navigate to="/attendance" replace /> },
               { path: 'overtime', element: <Navigate to="/attendance" replace /> },
+            ],
+          },
+          {
+            path: 'leave',
+            element: <LeaveLayout />,
+            children: [
+              { index: true, element: <LeaveRequestsPage /> },
+              { path: 'balances', element: <LeaveBalancesPage /> },
+              { path: 'calendar', element: <LeaveCalendarPage /> },
             ],
           },
           {

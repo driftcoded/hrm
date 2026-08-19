@@ -1,0 +1,123 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+/*
+ * Một dòng một người, dải ngang trên trục ngày. Câu hỏi thật của người xem là
+ * "tuần này ai vắng, từ hôm nào tới hôm nào" — dải ngang trả lời ngay, lưới 30
+ * ô thì bắt họ tự ghép.
+ */
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-2);
+  /* Tháng 31 ngày cần chỗ; hẹp hơn thì cuộn ngang thay vì bóp dải xuống 6px. */
+  min-width: 720px;
+}
+
+.axis,
+.track {
+  display: grid;
+  gap: 2px;
+}
+
+/* Trục ngày thẳng hàng với dải: cùng chừa chỗ cho cột tên bên trái. */
+.axis {
+  grid-template-columns: repeat(31, minmax(0, 1fr));
+  margin-left: var(--hrm-leave-label-width);
+  padding-bottom: var(--hrm-space-1);
+  border-bottom: 1px solid var(--hrm-color-border-subtle);
+}
+
+.axisDay,
+.axisWeekend {
+  text-align: center;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.axisDay {
+  color: var(--hrm-color-text-tertiary);
+}
+
+/* Cuối tuần nhạt hơn hẳn — nó là nền, không phải dữ liệu. */
+.axisWeekend {
+  color: var(--hrm-color-border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.rowLabel {
+  flex: none;
+  width: var(--hrm-leave-label-width);
+  padding-right: var(--hrm-space-3);
+  min-width: 0;
+}
+
+.rowName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--hrm-color-text);
+}
+
+.rowMeta {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+}
+
+.track {
+  flex: 1;
+  min-width: 0;
+  min-height: 28px;
+  align-items: center;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  border-radius: var(--hrm-radius);
+  background: var(--hrm-color-primary-soft);
+  border: 1px solid var(--hrm-color-primary);
+  cursor: default;
+  overflow: hidden;
+}
+
+/*
+ * Kỳ nghỉ kéo dài ra ngoài tháng đang xem: bỏ bo góc và viền ở mép đó để dải
+ * đọc được là "còn tiếp", thay vì trông như kết thúc đúng ngày 1 hoặc ngày cuối.
+ */
+.openStart {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+}
+
+.openEnd {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+
+.barLabel {
+  font-size: var(--hrm-font-size-caption);
+  white-space: nowrap;
+}
+
+@media (max-width: 991px) {
+  .chart {
+    min-width: 640px;
+  }
+}

@@ -1,0 +1,23 @@
+.numberRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--hrm-space-4);
+}
+
+/*
+ * Số ngày đã dùng + đang chờ. Chỉ đọc, nhưng phải hiện: đó là ngưỡng sàn mà
+ * backend dùng để từ chối, và không thấy nó thì người sửa chỉ biết mình sai sau
+ * khi bấm Lưu.
+ */
+.committed {
+  margin: calc(var(--hrm-space-2) * -1) 0 var(--hrm-space-4);
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-secondary);
+}
+
+@media (max-width: 575px) {
+  .numberRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

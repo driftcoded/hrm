@@ -1,0 +1,23 @@
+.halfRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--hrm-space-4);
+}
+
+/*
+ * Số ngày phép ước tính. Nhỏ và nhạt vì là thông tin phái sinh, nhưng phải có:
+ * người ghi cần biết mình đang trừ của nhân viên bao nhiêu ngày TRƯỚC khi bấm
+ * gửi, chứ không phải đọc lại từ bảng sau khi đơn đã đi.
+ */
+.estimate {
+  margin: calc(var(--hrm-space-2) * -1) 0 var(--hrm-space-4);
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-secondary);
+}
+
+@media (max-width: 575px) {
+  .halfRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

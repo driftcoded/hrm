@@ -14,7 +14,7 @@
 | 2 | Master Data | 18 / 18 | ✅ Hoàn thành (đã nghiệm thu) |
 | 3 | Nhân viên | 29 / 29 | ✅ Hoàn thành |
 | 4 | Chấm công | 22 / 22 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
-| 5 | Phép | 17 / 25 | 🟡 5.1 backend xong; 5.2 frontend chưa |
+| 5 | Phép | 25 / 25 | ✅ Hoàn thành |
 | 6 | Lương | 0 / 13 | ⬜ Chưa bắt đầu |
 | 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
 | 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
@@ -447,17 +447,23 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Người ghi ≠ người duyệt (`CANNOT_APPROVE_OWN_RECORD`); `manager` không duyệt
 - [x] Duyệt xong ghi ngày nghỉ vào bảng chấm công với `status = leave`
 
-### 5.2 Frontend Leave *(chưa bắt đầu)*
-- [ ] Trang `/leave` — danh sách đơn, lọc trạng thái / phòng ban / khoảng ngày
-- [ ] Form ghi nhận đơn cho nhân viên (chọn NV, loại phép, khoảng ngày, nửa ngày, lý do)
-- [ ] Trang duyệt: lọc `?status=pending`, nút Duyệt / Từ chối
-- [ ] Trang `/leave/balances` — quỹ phép theo năm, nút cấp quỹ đầu năm (có bước chạy thử)
-- [ ] Lịch phép: ai đang nghỉ trong tháng
+### 5.2 Frontend Leave
+- [x] Trang `/leave` — danh sách đơn, lọc trạng thái / phòng ban / loại phép / khoảng ngày
+- [x] Form ghi nhận đơn cho nhân viên (chọn NV, loại phép, khoảng ngày, nửa ngày, lý do)
+- [x] Duyệt ngay trên danh sách: lối tắt `?status=pending`, nút Duyệt / Từ chối
+- [x] Trang `/leave/balances` — quỹ phép theo năm, nút cấp quỹ đầu năm (có bước chạy thử)
+- [x] Trang `/leave/calendar` — ai đang nghỉ trong tháng
 
-**Tests (5.2):**
-- [ ] Ghi nhận đơn → số ngày phép còn lại cập nhật ngay
-- [ ] Nhân sự duyệt → trạng thái đổi sang `approved`; `manager` không thấy nút duyệt
-- [ ] Cấp quỹ đầu năm: bước chạy thử báo đúng số sẽ tạo / bỏ qua
+> **Duyệt nằm trong danh sách, không tách thành trang riêng.** Nhân sự vừa ghi
+> nhận vừa duyệt; tách hai địa chỉ cho cùng một loại giấy tờ chỉ khiến họ phải
+> nhớ thêm một đường dẫn. Nút Duyệt / Từ chối chỉ hiện với người có quyền duyệt.
+
+**Tests (5.2):** *(kiểm chứng thủ công qua API đang chạy — frontend chưa có test runner)*
+- [x] Ghi nhận đơn 2 ngày → `pendingDays` 0 → 2, `remainingDays` 7 → 5 ngay trên bảng quỹ
+- [x] Nhân sự duyệt → `approved`, `usedDays` +2, ghi 2 dòng chấm công `leave`;
+      `manager` không thấy nút duyệt và tự duyệt bị chặn 403 ở backend
+- [x] Cấp quỹ đầu năm: chạy thử 2027 báo `created 66 / skipped 0`, chạy lại 2026
+      báo `created 0 / skipped 66` (không ghi đè quỹ đã có)
 
 ---
 

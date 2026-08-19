@@ -1,0 +1,67 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  flex-wrap: wrap;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.yearPicker {
+  min-width: 110px;
+}
+
+.filterSelect {
+  min-width: 180px;
+}
+
+/* --- ô trong bảng --- */
+
+.person {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.personMeta {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Giá trị bằng 0 / phần phụ — nhạt hơn để mắt lướt qua được. */
+.muted {
+  color: var(--hrm-color-text-tertiary);
+}
+
+/*
+ * Cột "còn lại": con số trước, thanh tiến độ sau. Thanh đọc theo phần ĐÃ TIÊU
+ * chứ không phải phần còn lại — câu hỏi người xem có là "đã dùng bao nhiêu".
+ */
+.remaining {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+@media (max-width: 767px) {
+  .spacer {
+    flex-basis: 100%;
+  }
+
+  .filterSelect {
+    flex: 1 1 150px;
+    min-width: 150px;
+  }
+}

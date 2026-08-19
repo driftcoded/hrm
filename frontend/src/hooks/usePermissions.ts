@@ -4,6 +4,9 @@ import {
   ATTENDANCE_READ_ALL_ROLES,
   ATTENDANCE_WRITE_ROLES,
   CONTRACT_WRITE_ROLES,
+  LEAVE_APPROVE_ROLES,
+  LEAVE_BALANCE_WRITE_ROLES,
+  LEAVE_RECORD_ROLES,
   EMPLOYEE_EXPORT_ROLES,
   EMPLOYEE_DELETE_ROLES,
   EMPLOYEE_WRITE_ROLES,
@@ -117,3 +120,21 @@ export function useCanExportAttendance(): boolean {
   return useHasRole(ATTENDANCE_EXPORT_ROLES);
 }
 
+/** May the user record a leave request for an employee? */
+export function useCanRecordLeave(): boolean {
+  return useHasRole(LEAVE_RECORD_ROLES);
+}
+
+/**
+ * May the user approve or reject leave? (`admin`, `hr_manager`, `hr_staff`)
+ *
+ * `manager` records but does not approve — see `LEAVE_APPROVE_ROLES`.
+ */
+export function useCanApproveLeave(): boolean {
+  return useHasRole(LEAVE_APPROVE_ROLES);
+}
+
+/** May the user allocate or adjust leave balances? */
+export function useCanWriteLeaveBalance(): boolean {
+  return useHasRole(LEAVE_BALANCE_WRITE_ROLES);
+}

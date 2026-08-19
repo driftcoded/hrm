@@ -184,7 +184,7 @@
       "CODE_ALLOCATION_FAILED": "The system could not allocate a code for the new record. Please try again.",
       "DEPARTMENT_NOT_FOUND": "Department not found. It may have just been deleted — please reload the page.",
       "POSITION_NOT_FOUND": "Position not found. It may have just been deleted — please reload the page.",
-      "LEAVE_TYPE_NOT_FOUND": "Leave type not found. It may have just been deleted — please reload the page.",
+      "LEAVE_TYPE_NOT_FOUND": "Leave type not found.",
       "HOLIDAY_NOT_FOUND": "Holiday not found. It may have just been deleted — please reload the page.",
       "PARENT_DEPARTMENT_NOT_FOUND": "The selected parent department no longer exists. Please reload the page and choose again.",
       "EMPLOYEE_NOT_FOUND": "The selected employee no longer exists. Their record may have just been deleted — please reload the page and pick again.",
@@ -251,7 +251,19 @@
       "PORTAL_ACCESS_DENIED": "This account cannot use the admin system. Employees look up their own details through a separate portal.",
       "ATTENDANCE_ALREADY_EXISTS": "This day already has attendance data. Edit the existing record instead of adding a new one.",
       "CANNOT_APPROVE_OWN_RECORD": "You recorded this entry, so you cannot approve it yourself.",
-      "ATTENDANCE_STATUS_REQUIRED": "A day with no check-in time needs a status (leave, holiday, work from home, absent)."
+      "ATTENDANCE_STATUS_REQUIRED": "A day with no check-in time needs a status (leave, holiday, work from home, absent).",
+      "LEAVE_NOT_FOUND": "Leave request not found.",
+      "LEAVE_NOT_PENDING": "This request is no longer pending.",
+      "INSUFFICIENT_LEAVE_BALANCE": "The employee does not have enough leave days left for this request.",
+      "OVERLAPPING_LEAVE": "This overlaps another active leave request.",
+      "INVALID_LEAVE_RANGE": "The end date must be on or after the start date.",
+      "LEAVE_SPANS_TWO_YEARS": "The request spans two calendar years. Balances are per year, so split it into two requests.",
+      "LEAVE_NO_WORKING_DAYS": "The chosen range has no working day in it — nothing would be deducted.",
+      "LEAVE_BELOW_MINIMUM": "Below the minimum days for this leave type.",
+      "LEAVE_ABOVE_MAX_CONSECUTIVE": "Above the maximum consecutive days for this leave type.",
+      "ANNUAL_LEAVE_TYPE_MISSING": "There is no annual leave type in the catalogue. Check Settings → Leave types.",
+      "LEAVE_BALANCE_NOT_FOUND": "Leave balance not found.",
+      "LEAVE_BALANCE_BELOW_COMMITTED": "The balance cannot go below the days already used and pending."
     }
   },
   "layout": {
@@ -1088,6 +1100,126 @@
       "dateRequired": "Please pick a date",
       "success": "Working day added.",
       "statusRequired": "Pick a status when there is no check-in time"
+    }
+  },
+  "leave": {
+    "title": "Leave",
+    "subtitle": "Record leave requests, approve them, and track the yearly balance.",
+    "tabs": {
+      "requests": "Requests",
+      "balances": "Balances",
+      "calendar": "Who is off"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Withdrawn"
+    },
+    "half": {
+      "full": "Full day",
+      "morning": "Morning",
+      "afternoon": "Afternoon"
+    },
+    "requests": {
+      "create": "Record a request",
+      "submit": "Save",
+      "createSuccess": "Leave request recorded.",
+      "approve": "Approve",
+      "approveSuccess": "Approved. {{days}} leave days written to the timesheet.",
+      "approveConflictTitle": "Approved, but {{count}} days already had attendance data",
+      "approveConflictDetail": "These days were NOT overwritten: {{dates}}. Someone with both clock times and approved leave on one day needs a look at the timesheet.",
+      "reject": "Reject",
+      "rejectTitle": "Reject {{name}}'s request — {{from}} to {{to}}",
+      "rejectReason": "Reason for rejection",
+      "rejectReasonHint": "Whoever recorded it needs to know what to fix before recording it again.",
+      "rejectReasonRequired": "Please give a reason for rejecting",
+      "rejectSuccess": "Request rejected. The days were returned to the balance.",
+      "cancel": "Withdraw",
+      "cancelConfirm": "Withdraw this request?",
+      "cancelSuccess": "Request withdrawn.",
+      "reasonTooShort": "Reason is too short",
+      "loadError": "Could not load leave requests.",
+      "estimate": "Estimated leave days: {{days}} (public holidays not deducted here — the server recalculates on save)",
+      "columns": {
+        "employee": "Employee",
+        "leaveType": "Type",
+        "range": "From – to",
+        "totalDays": "Days",
+        "recordedBy": "Recorded by",
+        "status": "Status"
+      },
+      "filters": {
+        "status": "Status",
+        "department": "Department",
+        "leaveType": "Type",
+        "reset": "Reset",
+        "pendingShortcut": "Pending only"
+      },
+      "fields": {
+        "employee": "Employee",
+        "employeePlaceholder": "Search by name or code",
+        "leaveType": "Leave type",
+        "range": "From – to",
+        "startHalf": "First day",
+        "endHalf": "Last day",
+        "reason": "Reason"
+      },
+      "errors": {
+        "employee": "Please pick an employee",
+        "leaveType": "Please pick a leave type",
+        "range": "Please pick the dates",
+        "reason": "Please give a reason"
+      }
+    },
+    "balances": {
+      "init": "Allocate the year",
+      "initTitle": "Allocate this year's leave for everyone",
+      "initHint": "Days follow Article 113 of the Labour Code 2019: 12 days plus one per five years of service. The first year is prorated by months worked.",
+      "initSuccess": "Allocated: {{created}} new, {{skipped}} already had one.",
+      "preview": "Dry run",
+      "commit": "Allocate",
+      "commitWithCount": "Allocate for {{count}}",
+      "carryOver": "Carry over last year's remaining days",
+      "carryOverHint": "Carrying leave into the next year is a company rule, not a legal one — so it has to be chosen explicitly.",
+      "employeesConsidered": "Active employees",
+      "willCreate": "Will create",
+      "willSkip": "Already have one",
+      "skipTitle": "{{count}} people already have a balance for this year",
+      "skipDetail": "Existing balances are NOT overwritten — a rerun only fills the gaps. To change one person, use the edit button on their row.",
+      "allDone": "Everyone already has a balance for this year.",
+      "adjustTitle": "Adjust balance — {{name}}, {{year}}",
+      "adjustFor": "Adjust {{name}}'s leave balance",
+      "adjustReason": "Reason for the adjustment",
+      "adjustReasonHint": "A leave balance is an entitlement — every manual change has to say why.",
+      "adjustSuccess": "Leave balance updated.",
+      "committedHint": "{{used}} days used, {{pending}} pending. The total cannot go below {{total}} days.",
+      "loadError": "Could not load leave balances.",
+      "columns": {
+        "employee": "Employee",
+        "leaveType": "Type",
+        "allocated": "Allocated",
+        "carriedOver": "Carried over",
+        "used": "Used",
+        "pending": "Pending",
+        "remaining": "Remaining"
+      },
+      "filters": {
+        "department": "Department",
+        "leaveType": "Type",
+        "reset": "Reset"
+      },
+      "errors": {
+        "allocated": "Please enter the allocated days",
+        "carriedOver": "Please enter the carried-over days",
+        "reason": "Please give a reason"
+      }
+    },
+    "calendar": {
+      "title": "Who is off",
+      "days": "days",
+      "empty": "Nobody is on leave this month.",
+      "loadError": "Could not load the leave calendar."
     }
   }
 }

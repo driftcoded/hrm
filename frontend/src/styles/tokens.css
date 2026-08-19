@@ -111,6 +111,8 @@
      Sidebar 240px / collapsed 80px and header 64px come from
      docs/ui-conventions.md §3. The page canvas is deliberately a tinted
      neutral (not white) so white cards read as raised against it. --- */
+  /* Cột tên người ở lịch phép — trục ngày phải chừa đúng bằng chỗ này để thẳng hàng. */
+  --hrm-leave-label-width: 180px;
   --hrm-sidebar-width: 240px;
   --hrm-sidebar-width-collapsed: 80px;
   /* Dark sidebar: a deep navy from the same family as --hrm-color-heading, so
