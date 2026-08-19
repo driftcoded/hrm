@@ -38,8 +38,11 @@ function makeUser(overrides: Partial<User> = {}): User {
     username: 'an.hoang',
     email: 'an.hoang@hrm.local',
     password: '$2b$10$hashed',
-    roleId: 5,
-    role: { id: 5, name: 'employee' },
+    // `hr_staff` chứ không phải `employee`: vai trò `employee` KHÔNG đăng nhập
+    // được vào hệ thống này nữa (`PORTAL_LOGIN_ROLES`) — dùng nó làm fixture
+    // mặc định thì mọi bài test đăng nhập đều đỏ vì đúng một lý do.
+    roleId: 3,
+    role: { id: 3, name: 'hr_staff' },
     employeeId: 5,
     employee: { id: 5, fullName: 'Hoàng Thị An', avatarUrl: null },
     status: UserStatus.ACTIVE,
@@ -157,7 +160,7 @@ describe('AuthService', () => {
         id: 5,
         username: 'an.hoang',
         email: 'an.hoang@hrm.local',
-        role: 'employee',
+        role: 'hr_staff',
         employee: { id: 5, fullName: 'Hoàng Thị An', avatarUrl: null },
       });
       expect(result.refresh.persistent).toBe(false);
@@ -265,6 +268,51 @@ describe('AuthService', () => {
 
       await expect(
         service.login({ username: 'locked.user', password: 'wrong' }, CONTEXT),
+      ).rejects.toMatchObject({
+        response: { code: 'INVALID_CREDENTIALS' },
+      });
+    });
+
+    /*
+     * Nhân viên thường không dùng hệ thống quản trị này; họ sẽ có cổng riêng
+     * ("MyPage") xây sau. Chặn ở tầng đăng nhập chứ không chỉ ẩn menu — một tài
+     * khoản không được phép vào thì không nên cầm access token của hệ thống này.
+     */
+    it('role `employee` → 403 PORTAL_ACCESS_DENIED, không phát token', async () => {
+      usersService.findByUsernameOrEmailWithPassword.mockResolvedValue(
+        makeUser({ roleId: 5, role: { id: 5, name: 'employee' } } as never),
+      );
+      // Mật khẩu ĐÚNG — bài test này nói về vai trò, không phải mật khẩu.
+      usersService.comparePassword.mockResolvedValue(true);
+
+      await expect(
+        service.login(
+          { username: 'an.hoang', password: 'correct-password' },
+          CONTEXT,
+        ),
+      ).rejects.toMatchObject({
+        response: { code: 'PORTAL_ACCESS_DENIED' },
+      });
+
+      expect(refreshTokens.create).not.toHaveBeenCalled();
+    });
+
+    /*
+     * Kiểm SAU bước mật khẩu. Trả lời "vai trò này không được vào" trước khi
+     * biết mật khẩu đúng hay sai sẽ biến form đăng nhập thành công cụ dò xem
+     * một tài khoản mang vai trò gì.
+     */
+    it('sai mật khẩu + role `employee` → vẫn báo INVALID_CREDENTIALS, không lộ vai trò', async () => {
+      usersService.findByUsernameOrEmailWithPassword.mockResolvedValue(
+        makeUser({ roleId: 5, role: { id: 5, name: 'employee' } } as never),
+      );
+      usersService.comparePassword.mockResolvedValue(false);
+
+      await expect(
+        service.login(
+          { username: 'an.hoang', password: 'correct-password' },
+          CONTEXT,
+        ),
       ).rejects.toMatchObject({
         response: { code: 'INVALID_CREDENTIALS' },
       });
@@ -771,7 +819,7 @@ describe('AuthService', () => {
         id: 5,
         username: 'an.hoang',
         email: 'an.hoang@hrm.local',
-        role: 'employee',
+        role: 'hr_staff',
         employee: { id: 5, fullName: 'Hoàng Thị An', avatarUrl: null },
       });
     });

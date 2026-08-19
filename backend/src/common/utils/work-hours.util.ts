@@ -5,7 +5,7 @@ import {
   STANDARD_WORK_HOURS_PER_DAY,
   WORK_END_TIME,
   WORK_START_TIME,
-} from '@/common/constants/attendance.constant';
+} from '../constants/attendance.constant';
 
 /**
  * Tính giờ công từ giờ vào/ra (business-rules.md §12.2 và §12.3).

@@ -2,7 +2,7 @@ import {
   NIGHT_SHIFT_END_TIME,
   NIGHT_SHIFT_START_TIME,
   OVERTIME_RATES,
-} from '@/common/constants/attendance.constant';
+} from '../constants/attendance.constant';
 import { minutesToHours, parseTimeToMinutes } from './work-hours.util';
 
 /**

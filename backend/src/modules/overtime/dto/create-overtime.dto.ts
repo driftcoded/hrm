@@ -1,20 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsString, MaxLength, Min, MinLength } from 'class-validator';
 import { IsCalendarDate } from '@/common/validators/is-calendar-date.validator';
 import { IsClockTime } from '@/common/validators/is-clock-time.validator';
 
 /**
- * Body của `POST /overtime-requests` — nhân viên đăng ký làm thêm giờ.
+ * Body của `POST /overtime-requests` — quản lý/nhân sự GHI NHẬN giờ làm thêm
+ * cho một nhân viên.
  *
- * KHÔNG nhận `employeeId`: người ta đăng ký cho chính mình. HR muốn đăng ký hộ
- * thì đó là một nghiệp vụ khác (và cần một endpoint khác có phân quyền riêng),
- * không phải một trường tuỳ chọn trong body mà ai gửi cũng được.
+ * `employeeId` là BẮT BUỘC và là người ĐƯỢC hưởng giờ làm thêm, không phải
+ * người gửi request: nhân viên không đăng nhập hệ thống này. Người gửi được
+ * ghi vào `recorded_by` từ token, không lấy từ body — để không ai ghi hộ dưới
+ * tên người khác.
  *
  * KHÔNG nhận số giờ, hệ số hay loại ngày: cả ba đều SUY RA từ ngày và khung giờ
- * (`overtime.util.ts`). Cho client gửi lên là cho phép tự khai 8 giờ cho một ca
+ * (`overtime.util.ts`). Cho client gửi lên là cho phép khai 8 giờ cho một ca
  * 2 tiếng, hoặc tự chọn hệ số ngày lễ cho một ngày thường.
  */
 export class CreateOvertimeDto {
+  @ApiProperty({
+    example: 51,
+    description: 'Nhân viên được hưởng giờ làm thêm.',
+  })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  employeeId: number;
+
   @ApiProperty({
     example: '2026-05-25',
     description: 'Ngày làm thêm, YYYY-MM-DD',

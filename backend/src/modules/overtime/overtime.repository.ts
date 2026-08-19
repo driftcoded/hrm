@@ -54,6 +54,7 @@ export class OvertimeRepository {
       .innerJoinAndSelect('request.employee', 'employee')
       .leftJoinAndSelect('employee.department', 'department')
       .leftJoinAndSelect('request.approver', 'approver')
+      .leftJoinAndSelect('request.recorder', 'recorder')
       .orderBy(SORT_COLUMNS[options.sort], options.order)
       .addOrderBy('request.id', 'DESC')
       .skip(options.skip)
@@ -100,7 +101,11 @@ export class OvertimeRepository {
   findById(id: number): Promise<OvertimeRequest | null> {
     return this.repository.findOne({
       where: { id },
-      relations: { employee: { department: true }, approver: true },
+      relations: {
+        employee: { department: true },
+        approver: true,
+        recorder: true,
+      },
     });
   }
 

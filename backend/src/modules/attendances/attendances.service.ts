@@ -6,11 +6,7 @@ import {
 } from '@nestjs/common';
 import { PaginatedResponseDto } from '@/common/dto/pagination-response.dto';
 import { AuthenticatedUser } from '@/common/types/authenticated-user';
-import {
-  toDateOnlyString,
-  toIsoString,
-  vietnamDateTime,
-} from '@/common/utils/date.util';
+import { toDateOnlyString, toIsoString } from '@/common/utils/date.util';
 import { resolvePagination } from '@/common/utils/pagination.util';
 import {
   calculateWorkHours,
@@ -21,34 +17,37 @@ import { EmployeesService } from '@/modules/employees/employees.service';
 import { HolidaysService } from '@/modules/system/holidays.service';
 import { OvertimeService } from '@/modules/overtime/overtime.service';
 import { AttendancesRepository } from './attendances.repository';
-import { CheckInDto } from './dto/check-in.dto';
-import { CheckOutDto } from './dto/check-out.dto';
-import {
-  AttendanceResponseDto,
-  AttendanceSummaryDto,
-  MyAttendanceResponseDto,
-} from './dto/attendance-response.dto';
+import { AttendanceResponseDto } from './dto/attendance-response.dto';
+import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { FilterAttendanceDto } from './dto/filter-attendance.dto';
-import { MonthQueryDto } from './dto/month-query.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { Attendance, AttendanceStatus } from './entities/attendance.entity';
 
 /**
- * Nghiệp vụ chấm công (PLAN 4.1, api-spec.md §7, business-rules.md §12).
+ * Nghiệp vụ chấm công (PLAN 4.1, business-rules.md §12).
  *
- * BA NGUYÊN TẮC CHI PHỐI CẢ FILE:
+ * ========== HỆ THỐNG NÀY KHÔNG CÓ CHỨC NĂNG CHẤM CÔNG ==========
+ * Không ai bấm "chấm vào"/"chấm ra" ở đây. Việc chấm công diễn ra trên NỀN
+ * TẢNG NGOÀI (máy chấm công / ứng dụng riêng của công ty); dữ liệu được đưa
+ * vào bằng hai đường, cả hai đều do người của bộ phận nhân sự thực hiện:
  *
- * 1. GIỜ DO SERVER ĐỌC, KHÔNG DO CLIENT GỬI. `checkIn`/`checkOut` không nhận
- *    tham số thời gian. Nhận giờ từ client là để nhân viên tự khai giờ vào.
- *    Muốn sửa giờ thì đi qua `update()` — có phân quyền HR và bắt buộc ghi lý do.
+ *   1. `POST /attendances/bulk-import` — nạp file Excel xuất từ nền tảng đó.
+ *      Đây là đường chính, dùng cho cả tháng.
+ *   2. `POST /attendances` — gõ tay từng dòng, cho những ca lẻ mà file không
+ *      có: quên chấm, đi công tác, làm tại nhà.
  *
- * 2. THỜI GIAN LÀ GIỜ VIỆT NAM, không phải giờ server (`vietnamDateTime`).
+ * Nhân viên thường KHÔNG đăng nhập hệ thống này (xem `PORTAL_LOGIN_ROLES`), nên
+ * ở đây không có endpoint nào "của tôi". Cổng tra cứu cá nhân là một ứng dụng
+ * riêng sẽ xây sau.
  *
- * 3. `attendances.overtime_hours` KHÔNG PHẢI CĂN CỨ TRẢ TIỀN. Nó là số giờ đã
- *    ở lại làm, suy ra từ giờ chấm. Tiền làm thêm trả theo đơn đã duyệt ở
- *    `OvertimeService` — Điều 107 BLLĐ 2019 đòi làm thêm giờ phải có thoả
- *    thuận. Bản tổng hợp tháng trả về CẢ HAI con số, đặt cạnh nhau để HR đối
- *    chiếu chứ không để ai nhầm cái này thành cái kia.
+ * HAI NGUYÊN TẮC CÒN LẠI:
+ *
+ * - MỌI DÒNG ĐỀU PHẢI GHI NGUỒN. `note` bắt buộc ở cả tạo tay lẫn sửa: một
+ *   dòng không đến từ máy chấm công thì phải tự nói được nó đến từ đâu, nếu
+ *   không tới kỳ đối chiếu lương sẽ không ai bảo vệ được con số đó.
+ *
+ * - `attendances.overtime_hours` KHÔNG PHẢI CĂN CỨ TRẢ TIỀN. Nó là số giờ suy
+ *   ra từ giờ vào/ra. Tiền làm thêm trả theo đơn đã duyệt ở `OvertimeService`.
  */
 @Injectable()
 export class AttendancesService {
@@ -59,93 +58,83 @@ export class AttendancesService {
     private readonly overtimeService: OvertimeService,
   ) {}
 
-  // ------------------------------------------------------- chấm công ----
+  // --------------------------------------------------------- nhập tay ----
 
   /**
-   * Chấm công vào cho CHÍNH người đang đăng nhập.
+   * `POST /attendances` — nhập tay MỘT ngày công.
    *
-   * Chấm lần thứ hai trong ngày trả 409 chứ không ghi đè: PLAN 4.1 quy định
-   * "check-in 2 lần trong ngày → chỉ tính lần đầu". Ghi đè sẽ cho phép một
-   * người đến muộn chấm lại lúc về để xoá dấu vết đi muộn.
+   * Dành cho những ca lẻ mà file từ nền tảng ngoài không có: quên chấm, đi công
+   * tác, làm tại nhà. Đường chính vẫn là nạp Excel.
+   *
+   * TRÙNG NGÀY THÌ TỪ CHỐI, không ghi đè. Cột UNIQUE (employee_id, work_date)
+   * sẽ chặn ở DB, nhưng bắt sớm ở đây thì người nhập nhận được câu trả lời có
+   * nghĩa thay vì lỗi driver — và quan trọng hơn, họ được biết là ngày đó ĐÃ
+   * CÓ dữ liệu để chuyển sang sửa thay vì tạo mới.
    */
-  async checkIn(
+  async create(
+    dto: CreateAttendanceDto,
     user: AuthenticatedUser,
-    dto: CheckInDto,
   ): Promise<AttendanceResponseDto> {
-    const employeeId = this.requireOwnEmployeeId(user);
-    const { date, time } = vietnamDateTime();
+    await this.assertCanManageEmployee(dto.employeeId, user);
 
     const existing = await this.attendancesRepository.findByEmployeeAndDate(
-      employeeId,
-      date,
+      dto.employeeId,
+      dto.workDate,
     );
 
-    if (existing?.checkIn) {
+    if (existing) {
       throw new ConflictException({
-        code: 'ALREADY_CHECKED_IN',
-        message: `Employee ${employeeId} already checked in at ${existing.checkIn} on ${date}`,
+        code: 'ATTENDANCE_ALREADY_EXISTS',
+        message: `Employee ${dto.employeeId} already has an attendance record on ${dto.workDate}; edit record ${existing.id} instead`,
       });
     }
 
-    const isLate = this.isLateArrival(time);
+    if (
+      dto.checkIn &&
+      dto.checkOut &&
+      parseTimeToMinutes(dto.checkOut) < parseTimeToMinutes(dto.checkIn)
+    ) {
+      throw new ConflictException({
+        code: 'INVALID_ATTENDANCE_TIMES',
+        message: `check-out (${dto.checkOut}) is earlier than check-in (${dto.checkIn})`,
+      });
+    }
+
+    const record = newAttendance();
+    record.employeeId = dto.employeeId;
+    record.workDate = dto.workDate;
+
+    if (dto.checkIn && dto.checkOut) {
+      this.applyTimes(record, dto.checkIn, dto.checkOut);
+    } else if (dto.checkIn) {
+      // Chỉ có giờ vào: giờ công để `null`, KHÔNG phải 0 — hai thứ khác hẳn nhau.
+      const arrival = calculateWorkHours({
+        checkIn: dto.checkIn,
+        checkOut: dto.checkIn,
+      });
+      record.checkIn = normaliseTime(dto.checkIn);
+      record.isLate = arrival.isLate;
+      record.lateMinutes = arrival.lateMinutes;
+      record.status = arrival.isLate
+        ? AttendanceStatus.LATE
+        : AttendanceStatus.PRESENT;
+    }
 
     /*
-     * Bản ghi có thể đã tồn tại mà chưa có giờ vào (HR tạo trước, hoặc ngày lễ
-     * đã được đánh dấu sẵn) — khi đó cập nhật chứ không tạo mới, nếu không sẽ
-     * đụng UNIQUE (employee_id, work_date).
+     * Trạng thái do người nhập chỉ định thắng kết quả tính tự động: một ngày
+     * nghỉ phép hay ngày làm tại nhà không có giờ vào/ra nào để suy ra.
      */
-    const record = existing ?? newAttendance();
-    record.employeeId = employeeId;
-    record.workDate = date;
-    record.checkIn = time;
-    record.isLate = isLate;
-    record.lateMinutes = this.minutesLate(time);
-    record.status = isLate ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
-    record.note = dto.note?.trim() || record.note || null;
+    if (dto.status) {
+      record.status = dto.status;
+    }
 
-    const saved = existing
-      ? await this.attendancesRepository.save(record)
-      : await this.attendancesRepository.create(record);
+    record.note = dto.note.trim();
 
-    return this.toResponse(saved);
-  }
+    const saved = await this.attendancesRepository.create(record);
 
-  /**
-   * Chấm công ra và tính giờ công.
-   *
-   * Chưa chấm vào thì KHÔNG tự suy ra giờ vào từ giờ chuẩn — trả 404
-   * NOT_CHECKED_IN. Đoán hộ giờ vào là bịa ra một dữ kiện dùng để trả lương.
-   */
-  async checkOut(
-    user: AuthenticatedUser,
-    dto: CheckOutDto,
-  ): Promise<AttendanceResponseDto> {
-    const employeeId = this.requireOwnEmployeeId(user);
-    const { date, time } = vietnamDateTime();
-
-    const record = await this.attendancesRepository.findByEmployeeAndDate(
-      employeeId,
-      date,
+    return this.toResponse(
+      (await this.attendancesRepository.findById(Number(saved.id))) ?? saved,
     );
-
-    if (!record?.checkIn) {
-      throw new NotFoundException({
-        code: 'NOT_CHECKED_IN',
-        message: `Employee ${employeeId} has not checked in on ${date}`,
-      });
-    }
-
-    if (record.checkOut) {
-      throw new ConflictException({
-        code: 'ALREADY_CHECKED_OUT',
-        message: `Employee ${employeeId} already checked out at ${record.checkOut} on ${date}`,
-      });
-    }
-
-    this.applyTimes(record, record.checkIn, time);
-    record.note = dto.note?.trim() || record.note || null;
-
-    return this.toResponse(await this.attendancesRepository.save(record));
   }
 
   // ------------------------------------------------------------ đọc ----
@@ -185,31 +174,6 @@ export class AttendancesService {
       page,
       limit,
     );
-  }
-
-  /** `GET /attendances/me` — bảng công tháng của chính người đang đăng nhập. */
-  async findMine(
-    user: AuthenticatedUser,
-    query: MonthQueryDto,
-  ): Promise<MyAttendanceResponseDto> {
-    const employeeId = this.requireOwnEmployeeId(user);
-    const today = vietnamDateTime().date;
-    const month = query.month ?? Number(today.slice(5, 7));
-    const year = query.year ?? Number(today.slice(0, 4));
-    const range = this.monthRange(month, year);
-
-    const records = await this.attendancesRepository.findByEmployeeInRange(
-      employeeId,
-      range.from,
-      range.to,
-    );
-
-    return {
-      month,
-      year,
-      summary: await this.buildSummary(employeeId, month, year, records, today),
-      records: records.map((record) => this.toResponse(record)),
-    };
   }
 
   // -------------------------------------------------------- điều chỉnh ----
@@ -330,118 +294,6 @@ export class AttendancesService {
     return calculateWorkHours({ checkIn: time, checkOut: time }).lateMinutes;
   }
 
-  /**
-   * Tổng hợp một tháng.
-   *
-   * `absentDays` chỉ đếm tới NGÀY HÔM NAY: những ngày còn lại của tháng chưa
-   * xảy ra, đếm chúng là vắng sẽ biến bảng công đầu tháng thành một bản báo
-   * cáo kỷ luật sai sự thật.
-   */
-  private async buildSummary(
-    employeeId: number,
-    month: number,
-    year: number,
-    records: Attendance[],
-    today: string,
-  ): Promise<AttendanceSummaryDto> {
-    const range = this.monthRange(month, year);
-    const holidays = await this.holidayDates(year);
-    const workingDays = this.countWorkingDays(range.from, range.to, holidays);
-
-    // Ngày làm việc đã trôi qua tính tới hôm nay (tháng tương lai → rỗng).
-    const elapsedTo =
-      today < range.from ? null : today < range.to ? today : range.to;
-    const elapsedWorkingDates =
-      elapsedTo === null
-        ? []
-        : this.workingDaysBetween(range.from, elapsedTo, holidays);
-
-    const recordedDates = new Set(
-      records.map((record) => toDateOnlyString(record.workDate)),
-    );
-    const counted = records.reduce(
-      (totals, record) => ({
-        present: totals.present + (record.checkIn ? 1 : 0),
-        late: totals.late + (record.isLate ? 1 : 0),
-        earlyLeave: totals.earlyLeave + (record.isEarlyLeave ? 1 : 0),
-        leave:
-          totals.leave + (record.status === AttendanceStatus.LEAVE ? 1 : 0),
-        workHours: totals.workHours + Number(record.workHours ?? 0),
-        overtimeHours: totals.overtimeHours + Number(record.overtimeHours ?? 0),
-      }),
-      {
-        present: 0,
-        late: 0,
-        earlyLeave: 0,
-        leave: 0,
-        workHours: 0,
-        overtimeHours: 0,
-      },
-    );
-
-    /*
-     * Vắng = ngày làm việc đã qua mà KHÔNG có bản ghi nào. Ngày nghỉ phép đã
-     * duyệt sẽ có bản ghi `status = leave` (Giai đoạn 5 ghi vào đây), nên nó tự
-     * rơi ra khỏi phép trừ này mà không cần đọc bảng `leave_requests`.
-     */
-    const absentDays = elapsedWorkingDates.filter(
-      (date) => !recordedDates.has(date),
-    ).length;
-
-    return {
-      workingDays,
-      presentDays: counted.present,
-      absentDays,
-      lateDays: counted.late,
-      earlyLeaveDays: counted.earlyLeave,
-      leaveDays: counted.leave,
-      totalWorkHours: round2(counted.workHours),
-      overtimeHours: round2(counted.overtimeHours),
-      approvedOvertimeHours: await this.overtimeService.sumApprovedHours(
-        employeeId,
-        range.from,
-        range.to,
-      ),
-    };
-  }
-
-  private async holidayDates(year: number): Promise<Set<string>> {
-    const holidays = await this.holidaysService.findByYear(year);
-    return new Set(holidays.map((holiday) => holiday.holidayDate));
-  }
-
-  /** Ngày làm việc = Thứ Hai–Thứ Sáu và không phải ngày lễ. */
-  private workingDaysBetween(
-    from: string,
-    to: string,
-    holidays: Set<string>,
-  ): string[] {
-    const days: string[] = [];
-    const cursor = new Date(`${from}T00:00:00Z`);
-    const end = new Date(`${to}T00:00:00Z`);
-
-    while (cursor <= end) {
-      const date = cursor.toISOString().slice(0, 10);
-      const dayOfWeek = cursor.getUTCDay();
-
-      if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidays.has(date)) {
-        days.push(date);
-      }
-
-      cursor.setUTCDate(cursor.getUTCDate() + 1);
-    }
-
-    return days;
-  }
-
-  private countWorkingDays(
-    from: string,
-    to: string,
-    holidays: Set<string>,
-  ): number {
-    return this.workingDaysBetween(from, to, holidays).length;
-  }
-
   /** `month`/`year` → khoảng ngày `YYYY-MM-DD` của cả tháng. */
   private monthRange(
     month: number,
@@ -478,17 +330,6 @@ export class AttendancesService {
     }
 
     return this.monthRange(month, year);
-  }
-
-  private requireOwnEmployeeId(user: AuthenticatedUser): number {
-    if (user.employeeId === null || user.employeeId === undefined) {
-      throw new ForbiddenException({
-        code: 'FORBIDDEN',
-        message: `User ${user.userId} has no employee profile and cannot record attendance`,
-      });
-    }
-
-    return Number(user.employeeId);
   }
 
   private async getExistingOrThrow(id: number): Promise<Attendance> {
@@ -545,6 +386,33 @@ export class AttendancesService {
    * sửa căn cứ trả lương, để trưởng phòng tự sửa giờ cho nhân viên phòng mình
    * là bỏ luôn lớp kiểm soát duy nhất của việc đó.
    */
+  /**
+   * Ai được TẠO một dòng chấm công cho nhân viên nào.
+   *
+   * Chỉ nhóm HR (`scope.kind === 'all'`), giống `assertCanManage`. Trưởng phòng
+   * đọc được bảng công phòng mình nhưng không nhập, không sửa — nhập tay là
+   * tạo ra một căn cứ trả lương không có bằng chứng từ máy chấm công, và đó là
+   * lớp kiểm soát duy nhất của việc đó.
+   *
+   * `employeeId` được kiểm luôn ở đây: nhập cho một hồ sơ không tồn tại sẽ chỉ
+   * nhận lỗi khoá ngoại từ driver, không nói được là sai ở đâu.
+   */
+  private async assertCanManageEmployee(
+    employeeId: number,
+    user: AuthenticatedUser,
+  ): Promise<void> {
+    const scope = await this.employeesService.resolveScope(user);
+
+    if (scope.kind !== 'all') {
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: `Role "${user.role}" cannot create attendance records`,
+      });
+    }
+
+    await this.employeesService.findOne(employeeId, user);
+  }
+
   private async assertCanManage(
     record: Attendance,
     user: AuthenticatedUser,
@@ -629,8 +497,4 @@ function normaliseTime(time: string): string {
 /** `HH:mm:ss` từ DB → `HH:mm` cho response (api-spec.md §7 dùng `"08:05"`). */
 function shortTime(time: string): string {
   return formatMinutesToTime(parseTimeToMinutes(time));
-}
-
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
 }

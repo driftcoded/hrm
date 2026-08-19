@@ -22,9 +22,10 @@ async function makeWorkbookFile(
   return {
     buffer: Buffer.from(await workbook.xlsx.writeBuffer()),
     originalname: 'cham-cong.xlsx',
-    mimetype: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    mimetype:
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     size: 0,
-  } as UploadedFileLike;
+  };
 }
 
 const HEADERS = ['Mã NV', 'Ngày', 'Giờ vào', 'Giờ ra', 'Ghi chú'];
@@ -63,9 +64,12 @@ describe('AttendanceImportService', () => {
         {
           provide: EmployeesRepository,
           useValue: {
-            findIdsByEmployeeCodes: jest
-              .fn()
-              .mockResolvedValue(new Map([['NV0001', 1], ['NV0002', 2]])),
+            findIdsByEmployeeCodes: jest.fn().mockResolvedValue(
+              new Map([
+                ['NV0001', 1],
+                ['NV0002', 2],
+              ]),
+            ),
           },
         },
       ],
@@ -207,7 +211,7 @@ describe('AttendanceImportService', () => {
             mimetype:
               'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             size: 25,
-          } as UploadedFileLike,
+          },
           { dryRun: false },
         ),
       );
@@ -363,9 +367,7 @@ describe('AttendanceImportService', () => {
     it('counts overwrites separately from new records', async () => {
       attendances.findByEmployeeAndDate.mockImplementation(
         (employeeId: number) =>
-          Promise.resolve(
-            employeeId === 1 ? ({ id: 5 } as Attendance) : null,
-          ),
+          Promise.resolve(employeeId === 1 ? ({ id: 5 } as Attendance) : null),
       );
 
       const file = await makeWorkbookFile(HEADERS, [
@@ -382,7 +384,9 @@ describe('AttendanceImportService', () => {
     });
 
     it('reports overwrites during a dry run too, before anything is written', async () => {
-      attendances.findByEmployeeAndDate.mockResolvedValue({ id: 5 } as Attendance);
+      attendances.findByEmployeeAndDate.mockResolvedValue({
+        id: 5,
+      } as Attendance);
 
       const file = await makeWorkbookFile(HEADERS, [
         ['NV0001', '2026-05-04', '08:00', '17:00', ''],

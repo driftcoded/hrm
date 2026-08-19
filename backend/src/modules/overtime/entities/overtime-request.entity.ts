@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { OvertimeRateType } from '@/common/utils/overtime.util';
+import { OvertimeRateType } from '../../../common/utils/overtime.util';
 import { Employee } from '../../employees/entities/employee.entity';
 
 /**
@@ -19,7 +19,7 @@ import { Employee } from '../../employees/entities/employee.entity';
  * song cùng giá trị buộc service phải ép kiểu hai lần giữa chúng, và ngày ai đó
  * thêm một loại ngày vào một bên thì phép ép kiểu đó im lặng nói dối.
  */
-export { OvertimeRateType } from '@/common/utils/overtime.util';
+export { OvertimeRateType } from '../../../common/utils/overtime.util';
 
 /** Dùng chung 4 giá trị với `leave_requests.status` — cùng một vòng đời đơn từ. */
 export enum OvertimeRequestStatus {
@@ -98,6 +98,28 @@ export class OvertimeRequest {
 
   @Column({ type: 'text' })
   reason: string;
+
+  /**
+   * `employees.id` của người GHI NHẬN đơn (quản lý / nhân sự nhập hộ).
+   *
+   * Nhân viên không đăng nhập hệ thống này nên `employeeId` là người ĐƯỢC
+   * hưởng giờ làm thêm, không phải người nhập. Cột này giữ nguyên tắc người
+   * ghi ≠ người duyệt — xem migration `AddRecordedByToOvertime`.
+   *
+   * `null` với các đơn tạo trước khi có cột này: "không rõ", không phải "không
+   * có ai".
+   */
+  @Column({
+    name: 'recorded_by',
+    type: 'bigint',
+    unsigned: true,
+    nullable: true,
+  })
+  recordedBy: number | null;
+
+  @ManyToOne(() => Employee, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'recorded_by' })
+  recorder: Employee | null;
 
   @Column({
     type: 'enum',

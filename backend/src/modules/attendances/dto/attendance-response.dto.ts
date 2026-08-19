@@ -55,7 +55,7 @@ export class AttendanceResponseDto {
   @ApiProperty({
     example: 0.5,
     description:
-      'Số giờ đã làm VƯỢT ngày công chuẩn. Đây là dữ kiện thực tế, KHÔNG phải căn cứ trả tiền làm thêm — tiền tính theo đơn tại `/overtime-requests` đã duyệt.',
+      'Số giờ VƯỢT ngày công chuẩn, suy ra từ giờ vào/ra. KHÔNG phải căn cứ trả tiền làm thêm — tiền tính theo đơn đã duyệt tại `/overtime-requests`.',
   })
   overtimeHours: number;
 
@@ -82,65 +82,4 @@ export class AttendanceResponseDto {
 
   @ApiProperty({ example: '2026-05-25T10:30:00.000Z' })
   updatedAt: string;
-}
-
-/** Tổng hợp chấm công một tháng (api-spec.md §7 – `GET /attendances/me`). */
-export class AttendanceSummaryDto {
-  @ApiProperty({
-    example: 22,
-    description:
-      'Số ngày làm việc theo lịch trong tháng: trừ Thứ Bảy, Chủ nhật và ngày lễ chính thức.',
-  })
-  workingDays: number;
-
-  @ApiProperty({ example: 20, description: 'Số ngày có chấm công đi làm.' })
-  presentDays: number;
-
-  @ApiProperty({
-    example: 1,
-    description:
-      'Số ngày làm việc KHÔNG có bản ghi chấm công và cũng không có đơn nghỉ. Chỉ đếm tới hôm nay — những ngày còn lại của tháng chưa xảy ra nên không thể vắng.',
-  })
-  absentDays: number;
-
-  @ApiProperty({ example: 1 })
-  lateDays: number;
-
-  @ApiProperty({ example: 0 })
-  earlyLeaveDays: number;
-
-  @ApiProperty({ example: 1, description: 'Số ngày nghỉ có đơn đã duyệt.' })
-  leaveDays: number;
-
-  @ApiProperty({ example: 168.5, description: 'Tổng giờ công trong tháng.' })
-  totalWorkHours: number;
-
-  @ApiProperty({
-    example: 4.5,
-    description:
-      'Tổng giờ đã làm vượt ngày công chuẩn — dữ kiện thực tế, không phải giờ được trả tiền làm thêm.',
-  })
-  overtimeHours: number;
-
-  @ApiProperty({
-    example: 4,
-    description:
-      'Tổng giờ làm thêm ĐÃ ĐƯỢC DUYỆT — đây mới là căn cứ trả tiền.',
-  })
-  approvedOvertimeHours: number;
-}
-
-/** Response của `GET /attendances/me`. */
-export class MyAttendanceResponseDto {
-  @ApiProperty({ example: 5 })
-  month: number;
-
-  @ApiProperty({ example: 2026 })
-  year: number;
-
-  @ApiProperty({ type: AttendanceSummaryDto })
-  summary: AttendanceSummaryDto;
-
-  @ApiProperty({ type: [AttendanceResponseDto] })
-  records: AttendanceResponseDto[];
 }

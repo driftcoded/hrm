@@ -53,3 +53,50 @@ export const EMPLOYEE_READ_ROLES: string[] = [
  */
 export const CONTRACT_READ_ROLES: string[] = EMPLOYEE_READ_ROLES;
 export const CONTRACT_WRITE_ROLES: string[] = [ROLE_ADMIN, ROLE_HR_MANAGER];
+
+/**
+ * Vai trò được ĐĂNG NHẬP vào hệ thống quản trị này.
+ *
+ * `employee` KHÔNG có mặt: đây là công cụ vận hành của bộ phận quản lý, nhân
+ * sự, kế toán và IT. Nhân viên thường sẽ có một cổng riêng ("MyPage") để tra
+ * cứu thông tin của mình — cổng đó là một ứng dụng khác, chưa xây.
+ *
+ * Chặn ngay tại bước đăng nhập chứ không chỉ ẩn menu: một tài khoản không được
+ * phép vào thì không nên có phiên làm việc, access token, hay bản ghi
+ * `refresh_tokens` trong hệ thống này. Ẩn giao diện mà vẫn phát token là để
+ * quyền truy cập thật nằm sau một lớp trang trí.
+ */
+export const PORTAL_LOGIN_ROLES: string[] = [
+  ROLE_ADMIN,
+  ROLE_HR_MANAGER,
+  ROLE_HR_STAFF,
+  ROLE_MANAGER,
+];
+
+/**
+ * Vai trò được GHI NHẬN giờ làm thêm cho nhân viên.
+ *
+ * Nhân viên không đăng nhập hệ thống này nên không ai tự đăng ký: quản lý ghi
+ * nhận cho phòng mình (`resolveScope` giới hạn phạm vi), nhân sự ghi cho bất kỳ
+ * ai.
+ */
+export const OVERTIME_RECORD_ROLES: string[] = [
+  ROLE_ADMIN,
+  ROLE_HR_MANAGER,
+  ROLE_HR_STAFF,
+  ROLE_MANAGER,
+];
+
+/**
+ * Vai trò được DUYỆT giờ làm thêm — kế toán / nhân sự.
+ *
+ * Hẹp hơn `OVERTIME_RECORD_ROLES`: `manager` ghi nhận nhưng KHÔNG duyệt. Giờ
+ * làm thêm là tiền ra khỏi công ty, và bước duyệt là lớp kiểm soát duy nhất
+ * trước khi nó vào bảng lương. Ngoài danh sách này, service còn chặn người vừa
+ * ghi vừa duyệt chính đơn đó.
+ */
+export const OVERTIME_APPROVE_ROLES: string[] = [
+  ROLE_ADMIN,
+  ROLE_HR_MANAGER,
+  ROLE_HR_STAFF,
+];

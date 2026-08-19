@@ -9,6 +9,10 @@ import {
   OVERTIME_LIMITS,
   STANDARD_WORK_HOURS_PER_DAY,
 } from '@/common/constants/attendance.constant';
+import {
+  OVERTIME_APPROVE_ROLES,
+  OVERTIME_RECORD_ROLES,
+} from '@/common/constants/roles.constant';
 import { PaginatedResponseDto } from '@/common/dto/pagination-response.dto';
 import { AuthenticatedUser } from '@/common/types/authenticated-user';
 import { toDateOnlyString, toIsoString } from '@/common/utils/date.util';
@@ -33,16 +37,28 @@ import { OvertimeRepository } from './overtime.repository';
 const MINUTES_PER_DAY = 24 * 60;
 
 /**
- * Đăng ký và duyệt làm thêm giờ (PLAN 4.1).
+ * Ghi nhận và duyệt giờ làm thêm (PLAN 4.1).
  *
- * ĐÂY LÀ CĂN CỨ DUY NHẤT ĐỂ TRẢ TIỀN LÀM THÊM. Điều 107 BLLĐ 2019 quy định làm
- * thêm giờ phải "được sự đồng ý của người lao động", nên nó là một thoả thuận
- * có đăng ký và có người duyệt. `attendances.overtime_hours` là số giờ đã ở lại
- * làm trên thực tế — hai con số đặt cạnh nhau để đối chiếu, không thay nhau.
+ * AI LÀM GÌ. Nhân viên không đăng nhập hệ thống này, nên không có ai "tự đăng
+ * ký". Luồng thật:
  *
- * BA TRẦN CỦA ĐIỀU 107 ĐỀU ĐƯỢC KIỂM NGAY LÚC TẠO ĐƠN chứ không đợi tới lúc
- * duyệt: một đơn vượt trần mà vẫn nằm chờ trong danh sách là một cái bẫy — người
- * duyệt bấm đồng ý rồi mới biết công ty vừa vi phạm luật lao động.
+ *   1. Thoả thuận làm thêm giờ diễn ra NGOÀI hệ thống (Điều 107 BLLĐ 2019 đòi
+ *      phải có sự đồng ý của NLĐ). `reason` là chỗ duy nhất ghi lại việc đó.
+ *   2. QUẢN LÝ ghi nhận vào đây cho nhân viên phòng mình; nhân sự ghi cho bất
+ *      kỳ ai. Người ghi được lưu ở `recorded_by`, lấy từ token.
+ *   3. KẾ TOÁN / NHÂN SỰ duyệt trước khi tính lương.
+ *
+ * NGƯỜI GHI ≠ NGƯỜI DUYỆT. Bước duyệt là lớp kiểm soát duy nhất trước khi tiền
+ * làm thêm vào bảng lương; để một người vừa nhập vừa duyệt thì lớp đó chỉ còn
+ * là một cái nút. `manager` vì thế ghi được nhưng không duyệt được.
+ *
+ * ĐÂY LÀ CĂN CỨ DUY NHẤT ĐỂ TRẢ TIỀN LÀM THÊM (Giai đoạn 6 đọc bảng này).
+ * `attendances.overtime_hours` là số giờ suy ra từ giờ vào/ra của bảng chấm
+ * công — dữ kiện để đối chiếu, không phải để chi trả.
+ *
+ * BA TRẦN CỦA ĐIỀU 107 ĐỀU ĐƯỢC KIỂM NGAY LÚC GHI NHẬN chứ không đợi lúc duyệt:
+ * một đơn vượt trần mà vẫn nằm chờ trong danh sách là một cái bẫy — người duyệt
+ * bấm đồng ý rồi mới biết công ty vừa vi phạm luật lao động.
  */
 @Injectable()
 export class OvertimeService {
@@ -67,7 +83,7 @@ export class OvertimeService {
     user: AuthenticatedUser,
     dto: CreateOvertimeDto,
   ): Promise<OvertimeResponseDto> {
-    const employeeId = this.requireOwnEmployeeId(user);
+    const recordedBy = await this.assertCanRecordFor(dto.employeeId, user);
     const isHoliday = await this.isHoliday(dto.workDate);
 
     const span = calculateOvertimeSpan({
@@ -77,16 +93,16 @@ export class OvertimeService {
       isHoliday,
     });
 
-    await this.assertNoOverlap(employeeId, dto);
+    await this.assertNoOverlap(dto.employeeId, dto);
     await this.assertWithinLegalLimits(
-      employeeId,
+      dto.employeeId,
       dto.workDate,
       span.totalHours,
       span.rateType,
     );
 
     const saved = await this.overtimeRepository.create({
-      employeeId,
+      employeeId: dto.employeeId,
       workDate: dto.workDate,
       startTime: normaliseTime(dto.startTime),
       endTime: normaliseTime(dto.endTime),
@@ -96,6 +112,7 @@ export class OvertimeService {
       rate: span.rate.toFixed(1),
       nightRateSurcharge: span.nightRateSurcharge.toFixed(1),
       reason: dto.reason.trim(),
+      recordedBy,
       status: OvertimeRequestStatus.PENDING,
     });
 
@@ -166,7 +183,7 @@ export class OvertimeService {
     user: AuthenticatedUser,
   ): Promise<OvertimeResponseDto> {
     const request = await this.getExistingOrThrow(id);
-    const approverId = await this.assertCanApprove(request, user);
+    const approverId = this.assertCanApprove(request, user);
 
     this.assertPending(request);
     await this.assertWithinLegalLimits(
@@ -193,7 +210,7 @@ export class OvertimeService {
     user: AuthenticatedUser,
   ): Promise<OvertimeResponseDto> {
     const request = await this.getExistingOrThrow(id);
-    const approverId = await this.assertCanApprove(request, user);
+    const approverId = this.assertCanApprove(request, user);
 
     this.assertPending(request);
 
@@ -208,23 +225,31 @@ export class OvertimeService {
   }
 
   /**
-   * Người nộp tự huỷ đơn của mình.
+   * Người GHI NHẬN rút lại đơn mình vừa nhập.
    *
-   * Chỉ huỷ được đơn CÒN CHỜ. Đơn đã duyệt là một thoả thuận hai bên — rút lại
-   * một mình thì phần công việc đã làm theo đơn đó biến mất khỏi hồ sơ. Muốn
-   * huỷ đơn đã duyệt thì người duyệt phải từ chối, và việc đó có ghi lý do.
+   * Chủ thể là người NHẬP, không phải người hưởng: nhân viên không đăng nhập
+   * nên không tự rút được. Nhân sự rút được mọi đơn còn chờ — họ là người phải
+   * dọn dẹp khi một quản lý nhập nhầm rồi nghỉ phép.
+   *
+   * Chỉ rút được đơn CÒN CHỜ. Đơn đã duyệt là một khoản đã vào diện chi trả;
+   * gỡ nó đi lặng lẽ thì không còn dấu vết ai đã duyệt cái gì. Muốn bỏ đơn đã
+   * duyệt thì người duyệt phải từ chối, và việc đó có ghi lý do.
    */
   async cancel(
     id: number,
     user: AuthenticatedUser,
   ): Promise<OvertimeResponseDto> {
     const request = await this.getExistingOrThrow(id);
-    const employeeId = this.requireOwnEmployeeId(user);
+    const scope = await this.employeesService.resolveScope(user);
+    const actorId = this.employeeIdOf(user);
 
-    if (Number(request.employeeId) !== employeeId) {
+    const isRecorder =
+      request.recordedBy !== null && Number(request.recordedBy) === actorId;
+
+    if (scope.kind !== 'all' && !isRecorder) {
       throw new ForbiddenException({
         code: 'FORBIDDEN',
-        message: `User ${user.userId} cannot cancel an overtime request belonging to employee ${request.employeeId}`,
+        message: `User ${user.userId} did not record overtime request ${id} and cannot cancel it`,
       });
     }
 
@@ -358,15 +383,19 @@ export class OvertimeService {
     return holidays.some((holiday) => holiday.holidayDate === workDate);
   }
 
-  private requireOwnEmployeeId(user: AuthenticatedUser): number {
-    if (user.employeeId === null || user.employeeId === undefined) {
-      throw new ForbiddenException({
-        code: 'FORBIDDEN',
-        message: `User ${user.userId} has no employee profile and cannot register overtime`,
-      });
-    }
-
-    return Number(user.employeeId);
+  /**
+   * `employees.id` của người đang thao tác, hoặc `null`.
+   *
+   * `null` là hợp lệ ở đây: tài khoản `admin` được seed sẵn không gắn với hồ sơ
+   * nhân viên nào. Trước đây hàm này ném 403 vì giả định người thao tác chính
+   * là người hưởng giờ làm thêm — nay họ là người NHẬP hoặc DUYỆT, và việc đó
+   * không đòi phải có hồ sơ nhân viên. Cột `recorded_by`/`approved_by` khi đó
+   * ghi `null`, đọc đúng là "không gắn được với hồ sơ nào".
+   */
+  private employeeIdOf(user: AuthenticatedUser): number | null {
+    return user.employeeId === null || user.employeeId === undefined
+      ? null
+      : Number(user.employeeId);
   }
 
   private async getExistingOrThrow(id: number): Promise<OvertimeRequest> {
@@ -416,46 +445,73 @@ export class OvertimeService {
   }
 
   /**
-   * Ai được duyệt: nhóm HR duyệt tất cả, `manager` duyệt người trong phòng mình.
+   * Ai được GHI NHẬN giờ làm thêm cho nhân viên nào.
    *
-   * KHÔNG AI TỰ DUYỆT ĐƠN CỦA CHÍNH MÌNH, kể cả admin. Trưởng phòng cũng là nhân
-   * viên và cũng đăng ký làm thêm; cho tự duyệt thì cả cơ chế phê duyệt chỉ còn
-   * là một cái nút. Trả về `employees.id` của người duyệt để ghi vào `approved_by`.
+   * Nhân sự ghi cho bất kỳ ai; `manager` chỉ ghi cho người trong phòng mình —
+   * `resolveScope` là nguồn duy nhất trả lời "phòng mình gồm những ai", cùng
+   * cái mà màn hình danh sách nhân viên dùng, nên hai chỗ không bao giờ lệch.
+   *
+   * Trả về `employees.id` của người ghi để lưu vào `recorded_by`.
    */
-  private async assertCanApprove(
-    request: OvertimeRequest,
+  private async assertCanRecordFor(
+    employeeId: number,
     user: AuthenticatedUser,
-  ): Promise<number> {
-    const approverId = this.requireOwnEmployeeId(user);
-
-    if (Number(request.employeeId) === approverId) {
+  ): Promise<number | null> {
+    if (!OVERTIME_RECORD_ROLES.includes(user.role)) {
       throw new ForbiddenException({
-        code: 'CANNOT_APPROVE_OWN_OVERTIME',
-        message: `Employee ${approverId} cannot approve or reject their own overtime request`,
+        code: 'FORBIDDEN',
+        message: `Role "${user.role}" cannot record overtime; requires one of roles: ${OVERTIME_RECORD_ROLES.join(', ')}`,
       });
     }
 
-    const scope = await this.employeesService.resolveScope(user);
+    // Ném EMPLOYEE_NOT_FOUND / FORBIDDEN theo đúng phạm vi của người gọi.
+    await this.employeesService.findOne(employeeId, user);
 
-    if (scope.kind === 'all') {
-      return approverId;
+    return this.employeeIdOf(user);
+  }
+
+  /**
+   * Ai được DUYỆT.
+   *
+   * Hai điều kiện, cả hai đều cần:
+   *
+   *   1. Vai trò thuộc `OVERTIME_APPROVE_ROLES` (kế toán / nhân sự). `manager`
+   *      ghi nhận nhưng KHÔNG duyệt — nếu không, cả quy trình phê duyệt nằm
+   *      gọn trong tay một người.
+   *   2. Không phải người đã GHI NHẬN chính đơn này. Nhân sự vừa nhập vừa
+   *      duyệt thì bước duyệt không kiểm tra được gì.
+   *
+   * Đơn cũ có `recorded_by` là `null` (tạo trước khi có cột này) thì bỏ qua
+   * điều kiện 2: không biết ai nhập, và chặn tất cả sẽ khiến dữ liệu cũ kẹt
+   * vĩnh viễn ở trạng thái chờ.
+   *
+   * Trả về `employees.id` của người duyệt để lưu vào `approved_by`.
+   */
+  private assertCanApprove(
+    request: OvertimeRequest,
+    user: AuthenticatedUser,
+  ): number | null {
+    if (!OVERTIME_APPROVE_ROLES.includes(user.role)) {
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: `Role "${user.role}" cannot approve overtime; requires one of roles: ${OVERTIME_APPROVE_ROLES.join(', ')}`,
+      });
     }
 
-    if (scope.kind === 'department') {
-      const departmentId = request.employee?.departmentId;
+    const approverId = this.employeeIdOf(user);
 
-      if (
-        departmentId !== undefined &&
-        scope.departmentIds.includes(Number(departmentId))
-      ) {
-        return approverId;
-      }
+    if (
+      request.recordedBy !== null &&
+      approverId !== null &&
+      Number(request.recordedBy) === approverId
+    ) {
+      throw new ForbiddenException({
+        code: 'CANNOT_APPROVE_OWN_RECORD',
+        message: `Employee ${approverId} recorded overtime request ${request.id} and cannot also approve it`,
+      });
     }
 
-    throw new ForbiddenException({
-      code: 'FORBIDDEN',
-      message: `Role "${user.role}" cannot approve overtime request ${request.id}`,
-    });
+    return approverId;
   }
 
   private resolveDateRange(
@@ -484,6 +540,7 @@ export class OvertimeService {
   private toResponse(request: OvertimeRequest): OvertimeResponseDto {
     const employee = request.employee;
     const approver = request.approver;
+    const recorder = request.recorder;
 
     return {
       id: Number(request.id),
@@ -505,6 +562,9 @@ export class OvertimeService {
       rate: Number(request.rate),
       nightRateSurcharge: Number(request.nightRateSurcharge),
       reason: request.reason,
+      recordedBy:
+        request.recordedBy === null ? null : Number(request.recordedBy),
+      recorderName: recorder?.fullName ?? null,
       status: request.status,
       approvedBy:
         request.approvedBy === null ? null : Number(request.approvedBy),

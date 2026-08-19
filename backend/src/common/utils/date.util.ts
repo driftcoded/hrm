@@ -87,27 +87,3 @@ export function calculateAge(
 
   return age;
 }
-
-/**
- * Ngày và giờ HIỆN TẠI theo giờ Việt Nam (UTC+7), bất kể server chạy múi nào.
- *
- * VÌ SAO KHÔNG DÙNG `new Date()` TRỰC TIẾP: container thường chạy UTC. Lúc 06:00
- * sáng ở Việt Nam thì UTC mới 23:00 của NGÀY HÔM TRƯỚC — người đi ca sáng sẽ bị
- * ghi công vào ngày hôm qua, đè lên bản ghi hôm qua (cột UNIQUE
- * `employee_id + work_date`) hoặc tạo ra một ngày công ma. Cộng thẳng offset
- * rồi đọc bằng các hàm `getUTC*` nên kết quả không phụ thuộc `process.env.TZ`.
- *
- * Việt Nam không có quy ước giờ mùa hè nên offset cố định +07:00 là đủ.
- */
-export function vietnamDateTime(now: Date = new Date()): {
-  date: string;
-  time: string;
-} {
-  const shifted = new Date(now.getTime() + VN_UTC_OFFSET_MS);
-  const pad = (value: number): string => `${value}`.padStart(2, '0');
-
-  return {
-    date: `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}-${pad(shifted.getUTCDate())}`,
-    time: `${pad(shifted.getUTCHours())}:${pad(shifted.getUTCMinutes())}`,
-  };
-}

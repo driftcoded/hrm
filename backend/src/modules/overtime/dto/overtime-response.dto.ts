@@ -64,6 +64,18 @@ export class OvertimeResponseDto {
   @ApiProperty({ example: 'Xử lý sự cố hệ thống thanh toán' })
   reason: string;
 
+  @ApiProperty({
+    example: 12,
+    nullable: true,
+    type: Number,
+    description:
+      'Người GHI NHẬN đơn (quản lý/nhân sự nhập hộ). `null` với các đơn tạo trước khi có cột này.',
+  })
+  recordedBy: number | null;
+
+  @ApiProperty({ example: 'Lê Văn Trưởng Nhóm', nullable: true, type: String })
+  recorderName: string | null;
+
   @ApiProperty({ enum: OvertimeRequestStatus })
   status: OvertimeRequestStatus;
 

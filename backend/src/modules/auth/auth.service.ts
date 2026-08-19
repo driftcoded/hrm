@@ -1,3 +1,4 @@
+import { PORTAL_LOGIN_ROLES } from '@/common/constants/roles.constant';
 import {
   BadRequestException,
   ForbiddenException,
@@ -206,7 +207,17 @@ export class AuthService {
 
     const user = await this.usersService.findById(userId);
 
-    if (!user || user.status !== UserStatus.ACTIVE) {
+    /*
+     * Kiểm CẢ vai trò, không chỉ `status`. Một tài khoản bị chuyển sang vai trò
+     * `employee` sau khi đã đăng nhập vẫn còn refresh token hợp lệ trong tay;
+     * chỉ kiểm `status` thì phiên đó sống tới khi token hết hạn, tức là quyền
+     * đã bị thu hồi trên giấy nhưng chưa có hiệu lực thật.
+     */
+    const roleAllowed =
+      user?.role?.name === undefined ||
+      PORTAL_LOGIN_ROLES.includes(user.role.name);
+
+    if (!user || user.status !== UserStatus.ACTIVE || !roleAllowed) {
       await this.refreshTokensRepository.revokeAllByUserId(userId);
       throw new UnauthorizedException({
         code: 'TOKEN_INVALID',
@@ -427,6 +438,25 @@ export class AuthService {
       throw new ForbiddenException({
         code: 'ACCOUNT_INACTIVE',
         message: `Account status is "${user.status}" and cannot login`,
+      });
+    }
+
+    /*
+     * Nhân viên thường không dùng hệ thống quản trị này; họ sẽ có cổng riêng
+     * ("MyPage") được xây sau. Chặn Ở ĐÂY, sau khi mật khẩu đã đúng, để không
+     * phát access token và không tạo bản ghi `refresh_tokens` cho một tài khoản
+     * không được phép vào.
+     *
+     * Đặt SAU bước kiểm mật khẩu là có chủ ý: trả lời "vai trò này không được
+     * vào" trước khi biết mật khẩu có đúng hay không sẽ biến form đăng nhập
+     * thành công cụ dò xem một tài khoản mang vai trò gì.
+     */
+    const roleName = user.role?.name;
+
+    if (roleName !== undefined && !PORTAL_LOGIN_ROLES.includes(roleName)) {
+      throw new ForbiddenException({
+        code: 'PORTAL_ACCESS_DENIED',
+        message: `Role "${roleName}" cannot sign in to the admin portal; requires one of roles: ${PORTAL_LOGIN_ROLES.join(', ')}`,
       });
     }
   }

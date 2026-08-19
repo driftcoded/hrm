@@ -18,14 +18,17 @@ import { OvertimeService } from './overtime.service';
 const MONDAY = '2026-05-25';
 const SATURDAY = '2026-05-30';
 
+/** Nhân viên được hưởng giờ làm thêm — người này KHÔNG đăng nhập hệ thống. */
+const SUBJECT_EMPLOYEE_ID = 51;
+
 function makeRequest(
   overrides: Partial<OvertimeRequest> = {},
 ): OvertimeRequest {
   return {
     id: 77,
-    employeeId: 51,
+    employeeId: SUBJECT_EMPLOYEE_ID,
     employee: {
-      id: 51,
+      id: SUBJECT_EMPLOYEE_ID,
       employeeCode: 'NV0051',
       fullName: 'Nguyễn Văn Bình',
       departmentId: 2,
@@ -39,6 +42,8 @@ function makeRequest(
     rate: '1.5',
     nightRateSurcharge: '0.0',
     reason: 'Xử lý sự cố hệ thống thanh toán',
+    recordedBy: 12,
+    recorder: null,
     status: OvertimeRequestStatus.PENDING,
     approvedBy: null,
     approver: null,
@@ -54,6 +59,7 @@ function makeDto(
   overrides: Partial<CreateOvertimeDto> = {},
 ): CreateOvertimeDto {
   return {
+    employeeId: SUBJECT_EMPLOYEE_ID,
     workDate: MONDAY,
     startTime: '18:00',
     endTime: '21:00',
@@ -62,14 +68,7 @@ function makeDto(
   };
 }
 
-const employeeUser: AuthenticatedUser = {
-  userId: 9,
-  username: 'an.hoang',
-  role: 'employee',
-  employeeId: 51,
-  sessionId: 1,
-};
-
+/** Trưởng phòng — GHI NHẬN giờ làm thêm cho nhân viên phòng mình. */
 const managerUser: AuthenticatedUser = {
   userId: 4,
   username: 'manager',
@@ -78,6 +77,7 @@ const managerUser: AuthenticatedUser = {
   sessionId: 1,
 };
 
+/** Nhân sự / kế toán — DUYỆT. */
 const hrUser: AuthenticatedUser = {
   userId: 2,
   username: 'hr.manager',
@@ -128,6 +128,7 @@ describe('OvertimeService', () => {
           provide: EmployeesService,
           useValue: {
             resolveScope: jest.fn().mockResolvedValue({ kind: 'all' }),
+            findOne: jest.fn().mockResolvedValue({ id: SUBJECT_EMPLOYEE_ID }),
           },
         },
         {
@@ -142,26 +143,39 @@ describe('OvertimeService', () => {
     employeesService = module.get(EmployeesService);
   });
 
-  describe('create', () => {
+  describe('create – quản lý ghi nhận cho nhân viên', () => {
     /*
-     * Số giờ và hệ số phải do SERVER suy ra. Nhận từ client là cho phép khai 8
-     * giờ cho một ca 2 tiếng, hoặc chọn hệ số ngày lễ cho một ngày thường.
+     * Nhân viên không đăng nhập hệ thống này, nên đơn luôn được ghi CHO một
+     * người khác. `recorded_by` lấy từ token của người ghi, không lấy từ body —
+     * nếu không thì ai cũng ghi hộ dưới tên người khác được.
      */
+    it('stores the recorder from the token, not from the payload', async () => {
+      await service.create(managerUser, makeDto());
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          employeeId: SUBJECT_EMPLOYEE_ID,
+          recordedBy: managerUser.employeeId,
+          status: OvertimeRequestStatus.PENDING,
+        }),
+      );
+    });
+
+    /* Số giờ và hệ số do SERVER suy ra — client không gửi lên được. */
     it('derives hours and the Article 98 rate from the date and time span', async () => {
-      await service.create(employeeUser, makeDto());
+      await service.create(managerUser, makeDto());
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           totalHours: '3.00',
           rateType: OvertimeRateType.WEEKDAY,
           rate: '1.5',
-          status: OvertimeRequestStatus.PENDING,
         }),
       );
     });
 
     it('uses the weekend rate on a Saturday', async () => {
-      await service.create(employeeUser, makeDto({ workDate: SATURDAY }));
+      await service.create(managerUser, makeDto({ workDate: SATURDAY }));
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -179,7 +193,7 @@ describe('OvertimeService', () => {
           ReturnType<HolidaysService['findByYear']>
         >);
 
-      await service.create(employeeUser, makeDto());
+      await service.create(managerUser, makeDto());
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -191,7 +205,7 @@ describe('OvertimeService', () => {
 
     it('records the night portion of a shift running past 22:00', async () => {
       await service.create(
-        employeeUser,
+        managerUser,
         makeDto({ startTime: '20:00', endTime: '23:00' }),
       );
 
@@ -203,6 +217,29 @@ describe('OvertimeService', () => {
       );
     });
 
+    /*
+     * Trưởng phòng chỉ ghi được cho người trong phòng mình. `resolveScope` là
+     * nguồn duy nhất trả lời "phòng mình gồm những ai", nên nó được uỷ quyền
+     * qua `EmployeesService.findOne` thay vì so sánh phòng ban tại chỗ.
+     */
+    it('checks the subject is within the recorder scope', async () => {
+      await service.create(managerUser, makeDto());
+
+      expect(employeesService.findOne).toHaveBeenCalledWith(
+        SUBJECT_EMPLOYEE_ID,
+        managerUser,
+      );
+    });
+
+    it('refuses a role that cannot record overtime at all', async () => {
+      const error = await captureError(() =>
+        service.create({ ...managerUser, role: 'employee' }, makeDto()),
+      );
+
+      expect(error).toEqual({ status: 403, code: 'FORBIDDEN' });
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
     /* Hai đơn chồng giờ nghĩa là cùng một giờ đồng hồ được trả tiền hai lần. */
     it('rejects a span overlapping an active request', async () => {
       repository.findActiveByEmployeeAndDate.mockResolvedValue([
@@ -210,7 +247,7 @@ describe('OvertimeService', () => {
       ]);
 
       const error = await captureError(() =>
-        service.create(employeeUser, makeDto()),
+        service.create(managerUser, makeDto()),
       );
 
       expect(error).toEqual({ status: 409, code: 'OVERLAPPING_OVERTIME' });
@@ -222,7 +259,7 @@ describe('OvertimeService', () => {
       ]);
 
       await expect(
-        service.create(employeeUser, makeDto()),
+        service.create(managerUser, makeDto()),
       ).resolves.toBeDefined();
     });
 
@@ -235,7 +272,7 @@ describe('OvertimeService', () => {
       it('caps a weekday at 4 overtime hours on top of the standard 8', async () => {
         const error = await captureError(() =>
           service.create(
-            employeeUser,
+            managerUser,
             makeDto({ startTime: '17:00', endTime: '22:00' }),
           ),
         );
@@ -249,7 +286,7 @@ describe('OvertimeService', () => {
       it('accepts exactly 4 overtime hours on a weekday', async () => {
         await expect(
           service.create(
-            employeeUser,
+            managerUser,
             makeDto({ startTime: '17:00', endTime: '21:00' }),
           ),
         ).resolves.toBeDefined();
@@ -259,7 +296,7 @@ describe('OvertimeService', () => {
       it('allows up to 12 hours on a Saturday, which has no standard shift', async () => {
         await expect(
           service.create(
-            employeeUser,
+            managerUser,
             makeDto({
               workDate: SATURDAY,
               startTime: '08:00',
@@ -272,7 +309,7 @@ describe('OvertimeService', () => {
       it('rejects more than 12 hours even on a Saturday', async () => {
         const error = await captureError(() =>
           service.create(
-            employeeUser,
+            managerUser,
             makeDto({
               workDate: SATURDAY,
               startTime: '08:00',
@@ -299,7 +336,7 @@ describe('OvertimeService', () => {
         );
 
         const error = await captureError(() =>
-          service.create(employeeUser, makeDto()),
+          service.create(managerUser, makeDto()),
         );
 
         expect(error).toEqual({
@@ -319,7 +356,7 @@ describe('OvertimeService', () => {
         );
 
         const error = await captureError(() =>
-          service.create(employeeUser, makeDto()),
+          service.create(managerUser, makeDto()),
         );
 
         expect(error).toEqual({
@@ -336,52 +373,50 @@ describe('OvertimeService', () => {
     });
   });
 
-  /* PLAN 4.1: "OT: manager duyệt → trạng thái `approved`". */
-  describe('approve', () => {
-    beforeEach(() => {
-      employeesService.resolveScope.mockResolvedValue({
-        kind: 'department',
-        departmentIds: [2],
-      });
-    });
-
-    it('lets a manager approve a request from their own department', async () => {
-      const result = await service.approve(77, managerUser);
+  describe('approve – kế toán/nhân sự duyệt', () => {
+    it('lets HR approve a request recorded by someone else', async () => {
+      const result = await service.approve(77, hrUser);
 
       expect(result.status).toBe(OvertimeRequestStatus.APPROVED);
       expect(repository.save).toHaveBeenCalledWith(
         expect.objectContaining({
           status: OvertimeRequestStatus.APPROVED,
-          approvedBy: managerUser.employeeId,
+          approvedBy: hrUser.employeeId,
         }),
       );
     });
 
-    it('refuses a manager from another department', async () => {
-      employeesService.resolveScope.mockResolvedValue({
-        kind: 'department',
-        departmentIds: [9],
-      });
-
+    /*
+     * Trưởng phòng GHI NHẬN nhưng KHÔNG duyệt. Giờ làm thêm là tiền ra khỏi
+     * công ty, và bước duyệt là lớp kiểm soát duy nhất trước bảng lương — để
+     * cùng một người vừa nhập vừa duyệt thì lớp đó chỉ còn là một cái nút.
+     */
+    it('refuses a manager, who records but does not approve', async () => {
       const error = await captureError(() => service.approve(77, managerUser));
 
       expect(error).toEqual({ status: 403, code: 'FORBIDDEN' });
+      expect(repository.save).not.toHaveBeenCalled();
     });
 
-    /*
-     * Trưởng phòng cũng là nhân viên và cũng đăng ký làm thêm. Cho tự duyệt thì
-     * cả cơ chế phê duyệt chỉ còn là một cái nút.
-     */
-    it('refuses anyone approving their own request, including HR', async () => {
-      employeesService.resolveScope.mockResolvedValue({ kind: 'all' });
-      repository.findById.mockResolvedValue(makeRequest({ employeeId: 2 }));
+    /* Nhân sự tự nhập rồi tự duyệt thì bước duyệt không kiểm tra được gì. */
+    it('refuses the person who recorded the request, even though HR may approve', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ recordedBy: hrUser.employeeId }),
+      );
 
       const error = await captureError(() => service.approve(77, hrUser));
 
-      expect(error).toEqual({
-        status: 403,
-        code: 'CANNOT_APPROVE_OWN_OVERTIME',
-      });
+      expect(error).toEqual({ status: 403, code: 'CANNOT_APPROVE_OWN_RECORD' });
+    });
+
+    /*
+     * Đơn cũ (tạo trước khi có cột `recorded_by`) không biết ai nhập. Chặn tất
+     * cả sẽ khiến dữ liệu cũ kẹt vĩnh viễn ở trạng thái chờ.
+     */
+    it('allows approval when the recorder is unknown on a legacy row', async () => {
+      repository.findById.mockResolvedValue(makeRequest({ recordedBy: null }));
+
+      await expect(service.approve(77, hrUser)).resolves.toBeDefined();
     });
 
     it('refuses to approve a request that is no longer pending', async () => {
@@ -389,7 +424,7 @@ describe('OvertimeService', () => {
         makeRequest({ status: OvertimeRequestStatus.APPROVED }),
       );
 
-      const error = await captureError(() => service.approve(77, managerUser));
+      const error = await captureError(() => service.approve(77, hrUser));
 
       expect(error).toEqual({ status: 409, code: 'OVERTIME_NOT_PENDING' });
     });
@@ -403,7 +438,7 @@ describe('OvertimeService', () => {
         makeRequest({ id: 77, totalHours: '3.00' }),
       ]);
 
-      await expect(service.approve(77, managerUser)).resolves.toBeDefined();
+      await expect(service.approve(77, hrUser)).resolves.toBeDefined();
     });
 
     it('blocks approval when other requests have since filled the monthly cap', async () => {
@@ -419,7 +454,7 @@ describe('OvertimeService', () => {
           ),
       );
 
-      const error = await captureError(() => service.approve(77, managerUser));
+      const error = await captureError(() => service.approve(77, hrUser));
 
       expect(error).toEqual({
         status: 422,
@@ -429,18 +464,11 @@ describe('OvertimeService', () => {
   });
 
   describe('reject', () => {
-    beforeEach(() => {
-      employeesService.resolveScope.mockResolvedValue({
-        kind: 'department',
-        departmentIds: [2],
-      });
-    });
-
-    it('stores the reason so the applicant knows what to fix', async () => {
+    it('stores the reason so the recorder knows what to fix', async () => {
       const result = await service.reject(
         77,
         { reason: 'Đã vượt trần 40 giờ trong tháng' },
-        managerUser,
+        hrUser,
       );
 
       expect(result.status).toBe(OvertimeRequestStatus.REJECTED);
@@ -450,53 +478,71 @@ describe('OvertimeService', () => {
         }),
       );
     });
+
+    it('refuses a manager here too', async () => {
+      const error = await captureError(() =>
+        service.reject(77, { reason: 'Không duyệt' }, managerUser),
+      );
+
+      expect(error).toEqual({ status: 403, code: 'FORBIDDEN' });
+    });
   });
 
-  describe('cancel', () => {
-    it('lets the applicant withdraw their own pending request', async () => {
-      const result = await service.cancel(77, employeeUser);
+  describe('cancel – người ghi rút lại đơn mình nhập', () => {
+    it('lets the recorder withdraw their own pending entry', async () => {
+      employeesService.resolveScope.mockResolvedValue({
+        kind: 'department',
+        departmentIds: [2],
+      });
+
+      const result = await service.cancel(77, managerUser);
 
       expect(result.status).toBe(OvertimeRequestStatus.CANCELLED);
     });
 
-    it("refuses to cancel someone else's request", async () => {
-      repository.findById.mockResolvedValue(makeRequest({ employeeId: 99 }));
+    /* Nhân sự dọn được đơn của người khác — quản lý nhập nhầm rồi đi nghỉ phép. */
+    it('lets HR withdraw an entry recorded by someone else', async () => {
+      await expect(service.cancel(77, hrUser)).resolves.toBeDefined();
+    });
 
-      const error = await captureError(() => service.cancel(77, employeeUser));
+    it('refuses a manager who did not record the entry', async () => {
+      employeesService.resolveScope.mockResolvedValue({
+        kind: 'department',
+        departmentIds: [2],
+      });
+      repository.findById.mockResolvedValue(makeRequest({ recordedBy: 999 }));
+
+      const error = await captureError(() => service.cancel(77, managerUser));
 
       expect(error).toEqual({ status: 403, code: 'FORBIDDEN' });
     });
 
     /*
-     * Đơn đã duyệt là thoả thuận hai bên. Rút lại một mình thì phần việc đã làm
-     * theo đơn đó biến mất khỏi hồ sơ.
+     * Đơn đã duyệt là một khoản đã vào diện chi trả; gỡ nó lặng lẽ thì không
+     * còn dấu vết ai đã duyệt cái gì.
      */
-    it('refuses to cancel a request that was already approved', async () => {
+    it('refuses to withdraw an entry that was already approved', async () => {
       repository.findById.mockResolvedValue(
         makeRequest({ status: OvertimeRequestStatus.APPROVED }),
       );
 
-      const error = await captureError(() => service.cancel(77, employeeUser));
+      const error = await captureError(() => service.cancel(77, hrUser));
 
       expect(error).toEqual({ status: 409, code: 'OVERTIME_NOT_PENDING' });
     });
   });
 
   describe('findAll', () => {
-    /*
-     * Tin `?employeeId=` do client gửi thì bất kỳ ai cũng đọc được đơn của
-     * người khác bằng cách đổi một con số trên URL.
-     */
-    it('pins a plain employee to their own id, ignoring the query parameter', async () => {
+    it('limits a manager to their own departments', async () => {
       employeesService.resolveScope.mockResolvedValue({
-        kind: 'self',
-        employeeId: 51,
+        kind: 'department',
+        departmentIds: [2, 3],
       });
 
-      await service.findAll({ employeeId: 999 }, employeeUser);
+      await service.findAll({}, managerUser);
 
       expect(repository.findPaginated).toHaveBeenCalledWith(
-        expect.objectContaining({ employeeId: 51 }),
+        expect.objectContaining({ departmentScope: [2, 3] }),
       );
     });
 

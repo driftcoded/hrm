@@ -41,16 +41,11 @@ import { UploadedFileLike } from '@/shared/storage/image-file.util';
 import { AttendanceImportService } from './attendance-import.service';
 import { buildImportTemplate } from './attendance-template.util';
 import { AttendancesService } from './attendances.service';
-import {
-  AttendanceResponseDto,
-  MyAttendanceResponseDto,
-} from './dto/attendance-response.dto';
-import { CheckInDto } from './dto/check-in.dto';
-import { CheckOutDto } from './dto/check-out.dto';
+import { AttendanceResponseDto } from './dto/attendance-response.dto';
+import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { FilterAttendanceDto } from './dto/filter-attendance.dto';
 import { ImportQueryDto } from './dto/import-query.dto';
 import { AttendanceImportResultDto } from './dto/import-attendance.dto';
-import { MonthQueryDto } from './dto/month-query.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 
 /**
@@ -66,11 +61,14 @@ export const IMPORT_MULTER_HARD_LIMIT_BYTES = 15 * 1024 * 1024;
 /**
  * Controller CHỈ nhận request / trả response (CLAUDE.md §Kiến trúc module).
  *
- * `check-in`, `check-out` và `/me` KHÔNG khai báo `@Roles()`: mọi vai trò đều
- * tự chấm công và xem bảng công của mình. `GET /attendances` cũng không khai
- * báo — phạm vi dữ liệu do service quyết định theo hồ sơ nhân viên
- * (`resolveScope`), giống `/contracts`. Chỉ `PATCH` mới có `@Roles()` vì sửa
- * bảng chấm công là sửa căn cứ trả lương.
+ * KHÔNG có endpoint tự chấm công: việc chấm công diễn ra trên nền tảng ngoài,
+ * dữ liệu vào đây bằng file Excel hoặc nhập tay — xem ghi chú đầu
+ * `AttendancesService`.
+ *
+ * `GET` không khai báo `@Roles()`: phạm vi dữ liệu do service quyết định theo
+ * hồ sơ nhân viên (`resolveScope`), giống `/contracts` — trưởng phòng chỉ thấy
+ * phòng mình. Mọi endpoint GHI đều có `@Roles()` vì chúng tạo ra hoặc sửa căn
+ * cứ trả lương.
  */
 @ApiTags('Attendances')
 @Controller('attendances')
@@ -79,57 +77,6 @@ export class AttendancesController {
     private readonly attendancesService: AttendancesService,
     private readonly attendanceImportService: AttendanceImportService,
   ) {}
-
-  @Post('check-in')
-  @ApiAuth()
-  @ApiOperation({
-    summary: 'Chấm công vào',
-    description:
-      'Ghi giờ vào cho CHÍNH người đang đăng nhập, giờ do server đọc theo múi giờ Việt Nam. ' +
-      'Chấm lần thứ hai trong ngày trả 409 — lần đầu là lần được tính (PLAN 4.1).',
-  })
-  @ApiCreatedResponse({ type: AttendanceResponseDto })
-  @ApiConflictResponse({ description: 'ALREADY_CHECKED_IN' })
-  checkIn(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: CheckInDto,
-  ): Promise<AttendanceResponseDto> {
-    return this.attendancesService.checkIn(user, dto);
-  }
-
-  @Post('check-out')
-  @ApiAuth()
-  @ApiOperation({
-    summary: 'Chấm công ra',
-    description:
-      'Ghi giờ ra và tính giờ công (đã trừ 60 phút nghỉ trưa), đi muộn, về sớm. ' +
-      'Chưa chấm vào thì trả 404 NOT_CHECKED_IN chứ không đoán hộ giờ vào.',
-  })
-  @ApiOkResponse({ type: AttendanceResponseDto })
-  @ApiNotFoundResponse({ description: 'NOT_CHECKED_IN' })
-  @ApiConflictResponse({ description: 'ALREADY_CHECKED_OUT' })
-  checkOut(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: CheckOutDto,
-  ): Promise<AttendanceResponseDto> {
-    return this.attendancesService.checkOut(user, dto);
-  }
-
-  @Get('me')
-  @ApiAuth()
-  @ApiOperation({
-    summary: 'Bảng chấm công tháng của chính mình',
-    description:
-      'Mặc định là tháng hiện tại. Trả về `summary` (ngày công, đi muộn, vắng, giờ làm thêm) và `records`.\n\n' +
-      '`summary.overtimeHours` là số giờ đã ở lại làm THỰC TẾ; `summary.approvedOvertimeHours` mới là số giờ được trả tiền.',
-  })
-  @ApiOkResponse({ type: MyAttendanceResponseDto })
-  findMine(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query() query: MonthQueryDto,
-  ): Promise<MyAttendanceResponseDto> {
-    return this.attendancesService.findMine(user, query);
-  }
 
   /*
    * Khai báo TRƯỚC `@Get(':id')`. Nest so khớp theo thứ tự khai báo, nên đặt
@@ -202,17 +149,41 @@ export class AttendancesController {
     });
   }
 
+  @Post()
+  @Roles(...EMPLOYEE_WRITE_ROLES)
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Nhập tay một ngày công',
+    description:
+      'Dành cho những ca lẻ mà file từ nền tảng ngoài không có: quên chấm, đi công tác, làm tại nhà. ' +
+      'Đường chính để đưa dữ liệu vào là `POST /attendances/bulk-import`.\n\n' +
+      '`note` BẮT BUỘC — một dòng nhập tay không có bằng chứng từ máy chấm công nên phải tự nói được nó đến từ đâu.\n\n' +
+      'Ngày đó đã có dữ liệu thì trả 409 chứ không ghi đè; sửa bằng `PATCH /attendances/:id`.',
+  })
+  @ApiCreatedResponse({ type: AttendanceResponseDto })
+  @ApiNotFoundResponse({ description: 'EMPLOYEE_NOT_FOUND' })
+  @ApiConflictResponse({
+    description:
+      'ATTENDANCE_ALREADY_EXISTS – ngày đó đã có bản ghi; INVALID_ATTENDANCE_TIMES – giờ ra sớm hơn giờ vào',
+  })
+  create(
+    @Body() dto: CreateAttendanceDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<AttendanceResponseDto> {
+    return this.attendancesService.create(dto, user);
+  }
+
   @Get()
   @ApiAuth()
   @ApiOperation({
     summary: 'Danh sách chấm công toàn công ty',
     description:
       'Lọc theo `employeeId`, `departmentId`, `month`+`year`, `status`. ' +
-      '`manager` chỉ thấy phòng ban mình quản; nhân viên thường nhận 403 và phải dùng `/attendances/me`.',
+      '`manager` chỉ thấy phòng ban mình quản.',
   })
   @ApiOkResponse({ type: PaginatedResponseDto })
   @ApiForbiddenResponse({
-    description: 'FORBIDDEN – nhân viên thường không xem được danh sách chung',
+    description: 'FORBIDDEN – role không có phạm vi đọc bảng chấm công',
   })
   findAll(
     @Query() filter: FilterAttendanceDto,
