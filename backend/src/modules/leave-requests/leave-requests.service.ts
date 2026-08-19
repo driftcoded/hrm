@@ -35,6 +35,7 @@ import {
   ApproveLeaveRequestResultDto,
   DeleteLeaveRequestResultDto,
   LeaveRequestResponseDto,
+  UpdateLeaveRequestResultDto,
 } from './dto/leave-request-response.dto';
 import { RejectLeaveRequestDto } from './dto/reject-leave-request.dto';
 import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
@@ -125,26 +126,48 @@ export class LeaveRequestsService {
   }
 
   /**
-   * Sửa một đơn CÒN CHỜ DUYỆT.
+   * Sửa một đơn CÒN HIỆU LỰC — `pending` hoặc `approved`.
    *
-   * Chỉ `pending`. Đơn đã duyệt là một ngày nghỉ đã được cho phép và đã ghi vào
-   * bảng chấm công; sửa nó lặng lẽ sẽ đổi cả quỹ phép lẫn bảng công mà không đi
-   * qua bước duyệt nào. Sai ở đơn đã duyệt thì xoá rồi ghi lại — mỗi bước khi đó
-   * đều hiện ra và đều phải được duyệt lại.
+   * SỬA ĐƠN ĐÃ DUYỆT KÉO THEO HAI THỨ, và cả hai đi cùng một transaction với
+   * đơn:
    *
-   * Quỹ phép: TRẢ chỗ cũ trước rồi mới GIỮ chỗ mới, trong cùng một transaction.
-   * Giữ trước trả sau sẽ làm một đơn 3 ngày sửa thành 4 ngày bị từ chối oan khi
-   * quỹ chỉ còn đúng 3 — vì trong khoảnh khắc đó nó đang giữ 7.
+   *   1. Quỹ phép: đơn chờ giữ chỗ ở `pending_days`, đơn đã duyệt đã tiêu vào
+   *      `used_days`. Trả về đúng cột nó đang chiếm, rồi lấy lại cũng ở cột đó.
+   *   2. Bảng chấm công: đơn đã duyệt đã ghi những ngày `leave` ra bảng công.
+   *      Đổi khoảng ngày mà không ghi lại thì bảng công còn nguyên kỳ nghỉ cũ.
+   *
+   * TRẢ CHỖ CŨ TRƯỚC RỒI MỚI GIỮ CHỖ MỚI. Giữ trước trả sau sẽ làm một đơn 3
+   * ngày sửa thành 4 ngày bị từ chối oan khi quỹ chỉ còn đúng 3 — vì trong
+   * khoảnh khắc đó nó đang chiếm 7.
+   *
+   * Đơn `rejected` / `cancelled` KHÔNG sửa được: nó không giữ ngày nào và không
+   * có dòng chấm công nào: sửa ngày trên một đơn đã bị từ chối chỉ khiến lý do
+   * từ chối nói về một kỳ nghỉ chưa từng tồn tại. Cần lại thì ghi đơn mới.
    */
   async update(
     id: number,
     dto: UpdateLeaveRequestDto,
     user: AuthenticatedUser,
-  ): Promise<LeaveRequestResponseDto> {
+  ): Promise<UpdateLeaveRequestResultDto> {
     const request = await this.getExistingOrThrow(id);
+    const wasApproved = request.status === LeaveRequestStatus.APPROVED;
 
-    await this.assertCanAmend(request, user);
-    this.assertPending(request);
+    if (wasApproved) {
+      /*
+       * Sửa đơn đã duyệt là viết lại một quyết định đã ra, kèm dời ngày công đã
+       * ghi. Cùng ranh giới với việc xoá đơn đã duyệt: quản lý ghi nhận không
+       * làm, dù là đơn chính mình nhập.
+       */
+      if (!LEAVE_APPROVE_ROLES.includes(user.role)) {
+        throw new ForbiddenException({
+          code: 'FORBIDDEN',
+          message: `Role "${user.role}" cannot edit an approved leave request; requires one of roles: ${LEAVE_APPROVE_ROLES.join(', ')}`,
+        });
+      }
+    } else {
+      await this.assertCanAmend(request, user);
+      this.assertActive(request);
+    }
 
     const next = {
       leaveTypeId: dto.leaveTypeId ?? Number(request.leaveTypeId),
@@ -160,12 +183,26 @@ export class LeaveRequestsService {
       excludeId: Number(request.id),
     });
 
+    const previousTotal = Number(request.totalDays);
+    let attendanceDaysWritten = 0;
+    let attendanceConflicts: string[] = [];
+    let attendanceDaysKept = 0;
+
     await this.dataSource.transaction(async (manager) => {
       // Đọc quỹ CŨ khi đơn còn nguyên loại phép và năm cũ — đổi hai thứ đó là
       // đổi sang một dòng quỹ khác, trả nhầm chỗ thì cả hai quỹ cùng sai.
-      await this.moveBalance(manager, request, {
-        pending: -Number(request.totalDays),
-      });
+      await this.moveBalance(
+        manager,
+        request,
+        wasApproved ? { used: -previousTotal } : { pending: -previousTotal },
+      );
+
+      // Gỡ ngày công của kỳ nghỉ CŨ trước khi đơn mang ngày mới, để còn tìm
+      // được chúng theo `leave_request_id`.
+      if (wasApproved) {
+        attendanceDaysKept = (await this.removeAttendanceDays(manager, request))
+          .kept;
+      }
 
       request.leaveTypeId = next.leaveTypeId;
       request.startDate = next.startDate;
@@ -179,10 +216,43 @@ export class LeaveRequestsService {
       }
 
       await manager.save(request);
-      await this.moveBalance(manager, request, { pending: totalDays });
+
+      await this.moveBalance(
+        manager,
+        request,
+        wasApproved ? { used: totalDays } : { pending: totalDays },
+      );
+
+      if (wasApproved) {
+        const holidays = await this.holidayDatesBetween(
+          next.startDate,
+          next.endDate,
+        );
+        const leaveDates = workingDaysBetween(
+          next.startDate,
+          next.endDate,
+          holidays,
+        );
+
+        attendanceConflicts = await this.writeAttendanceDays(
+          manager,
+          request,
+          leaveDates,
+        );
+        attendanceDaysWritten = leaveDates.length - attendanceConflicts.length;
+      }
     });
 
-    return this.toResponse(await this.getExistingOrThrow(id));
+    this.logger.log(
+      `Leave request ${id} ("${request.status}") edited by user ${user.userId}: ${previousTotal} -> ${totalDays} day(s)`,
+    );
+
+    return {
+      request: this.toResponse(await this.getExistingOrThrow(id)),
+      attendanceDaysWritten,
+      attendanceConflicts,
+      attendanceDaysKept,
+    };
   }
 
   // ------------------------------------------------------------ đọc ----
@@ -479,17 +549,25 @@ export class LeaveRequestsService {
     const pending = Number(balance.pendingDays) + (delta.pending ?? 0);
     const used = Number(balance.usedDays) + (delta.used ?? 0);
 
-    if (delta.pending !== undefined && delta.pending > 0) {
+    /*
+     * Chặn theo TỔNG hai cột, không riêng `pending`. Duyệt đơn chuyển
+     * pending → used (tổng bằng 0) nên không vướng; còn sửa một đơn ĐÃ DUYỆT
+     * cho dài thêm thì chỉ chạm vào `used`, và nếu chỉ soi `pending` thì nó đi
+     * lọt và đẩy `remaining_days` xuống số âm.
+     */
+    const claimed = (delta.pending ?? 0) + (delta.used ?? 0);
+
+    if (claimed > 0) {
       const remaining =
         Number(balance.allocatedDays) +
         Number(balance.carriedOver) -
         Number(balance.usedDays) -
         Number(balance.pendingDays);
 
-      if (delta.pending > remaining) {
+      if (claimed > remaining) {
         throw new UnprocessableEntityException({
           code: 'INSUFFICIENT_LEAVE_BALANCE',
-          message: `Employee ${request.employeeId} has ${remaining} day(s) left for ${year} but the request asks for ${delta.pending}`,
+          message: `Employee ${request.employeeId} has ${remaining} day(s) left for ${year} but the request asks for ${claimed}`,
         });
       }
     }
@@ -703,6 +781,22 @@ export class LeaveRequestsService {
     );
 
     return totalDays;
+  }
+
+  /**
+   * Đơn CÒN HIỆU LỰC: `pending` hoặc `approved` — hai trạng thái còn chiếm ngày
+   * trên quỹ phép. `rejected`/`cancelled` đã trả hết và đã đóng.
+   */
+  private assertActive(request: LeaveRequest): void {
+    if (
+      request.status !== LeaveRequestStatus.PENDING &&
+      request.status !== LeaveRequestStatus.APPROVED
+    ) {
+      throw new ConflictException({
+        code: 'LEAVE_NOT_ACTIVE',
+        message: `Leave request ${request.id} is "${request.status}" and is closed; record a new request instead`,
+      });
+    }
   }
 
   private assertPending(request: LeaveRequest): void {

@@ -643,16 +643,120 @@ describe('LeaveRequestsService', () => {
       expect(savedRequest?.totalDays).toBe('5.0');
     });
 
-    it('refuses to edit a request that is no longer pending', async () => {
+    /*
+     * Đơn ĐÃ DUYỆT chiếm `used_days` chứ không phải `pending_days`. Trả nhầm cột
+     * sẽ để quỹ nói một đằng còn danh sách đơn một nẻo.
+     */
+    it('moves the used days when an approved request is edited', async () => {
       repository.findById.mockResolvedValue(
         makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+      balance = makeBalance({ usedDays: '5.0' });
+
+      await service.update(33, { endDate: '2026-05-05' }, hrUser);
+
+      expect(balance?.usedDays).toBe('2.0');
+      expect(balance?.pendingDays).toBe('0.0');
+    });
+
+    /*
+     * Đổi khoảng ngày mà không ghi lại bảng công thì bảng công còn nguyên kỳ
+     * nghỉ CŨ — nhân viên hiện là nghỉ những ngày đã không còn trong đơn.
+     */
+    it('rewrites the attendance days of an approved request', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+      attendanceRows = [
+        { id: 1, status: AttendanceStatus.LEAVE } as Attendance,
+        { id: 2, status: AttendanceStatus.LEAVE } as Attendance,
+      ];
+
+      const result = await service.update(
+        33,
+        { endDate: '2026-05-05' },
+        hrUser,
+      );
+
+      // Gỡ hai ngày của kỳ nghỉ cũ...
+      expect(deletions).toContainEqual({
+        entity: Attendance,
+        criteria: [1, 2],
+      });
+      // ...rồi ghi hai ngày của kỳ nghỉ mới (04 và 05/05, đều là ngày làm việc).
+      expect(result.attendanceDaysWritten).toBe(2);
+      expect(attendanceWrites.map((row) => row.workDate)).toEqual([
+        '2026-05-04',
+        '2026-05-05',
+      ]);
+    });
+
+    it('keeps attendance rows that were changed away from leave', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+      attendanceRows = [
+        { id: 1, status: AttendanceStatus.LEAVE } as Attendance,
+        { id: 2, status: AttendanceStatus.PRESENT } as Attendance,
+      ];
+
+      const result = await service.update(
+        33,
+        { endDate: '2026-05-05' },
+        hrUser,
+      );
+
+      expect(result.attendanceDaysKept).toBe(1);
+      expect(deletions).toContainEqual({ entity: Attendance, criteria: [1] });
+    });
+
+    /*
+     * `used_days` cũng phải bị chặn theo quỹ còn lại. Chỉ soi `pending` thì kéo
+     * dài một đơn ĐÃ DUYỆT sẽ đi lọt và đẩy `remaining_days` xuống số âm.
+     */
+    it('refuses to grow an approved request past the remaining balance', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+      // Quỹ 6 ngày, đơn này đang tiêu 5 ⇒ trả lại rồi vẫn chỉ có 6 để lấy.
+      balance = makeBalance({ allocatedDays: '6.0', usedDays: '5.0' });
+
+      const error = await captureError(() =>
+        service.update(33, { endDate: '2026-05-15' }, hrUser),
+      );
+
+      expect(error).toEqual({
+        status: 422,
+        code: 'INSUFFICIENT_LEAVE_BALANCE',
+      });
+    });
+
+    it('refuses a manager editing an approved request', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.APPROVED }),
+      );
+
+      const error = await captureError(() =>
+        service.update(33, { endDate: '2026-05-05' }, managerUser),
+      );
+
+      expect(error).toEqual({ status: 403, code: 'FORBIDDEN' });
+    });
+
+    /*
+     * Đơn đã đóng không giữ ngày nào và không có dòng chấm công nào; sửa ngày
+     * trên đó chỉ khiến lý do từ chối nói về một kỳ nghỉ chưa từng tồn tại.
+     */
+    it('refuses to edit a closed request', async () => {
+      repository.findById.mockResolvedValue(
+        makeRequest({ status: LeaveRequestStatus.REJECTED }),
       );
 
       const error = await captureError(() =>
         service.update(33, { endDate: '2026-05-05' }, hrUser),
       );
 
-      expect(error).toEqual({ status: 409, code: 'LEAVE_NOT_PENDING' });
+      expect(error).toEqual({ status: 409, code: 'LEAVE_NOT_ACTIVE' });
     });
 
     it('refuses a manager editing a request they did not record', async () => {

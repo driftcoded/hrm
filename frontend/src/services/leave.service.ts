@@ -12,6 +12,7 @@ import type {
   LeaveRequest,
   LeaveRequestFilters,
   UpdateLeaveRequestPayload,
+  UpdateLeaveResult,
 } from '@/types/leave.types';
 
 /**
@@ -122,8 +123,8 @@ export async function createLeaveRequest(
 export async function updateLeaveRequest(
   id: number,
   payload: UpdateLeaveRequestPayload,
-): Promise<LeaveRequest> {
-  const { data } = await apiClient.patch<ApiSuccessResponse<LeaveRequest>>(
+): Promise<UpdateLeaveResult> {
+  const { data } = await apiClient.patch<ApiSuccessResponse<UpdateLeaveResult>>(
     `/leave-requests/${id}`,
     payload,
   );

@@ -267,12 +267,16 @@ export function LeaveRequestsPage() {
         const isPending = record.status === 'pending';
 
         /*
-         * Sửa CHỈ khi còn chờ duyệt. Xoá thì mọi trạng thái, nhưng đơn đã qua
-         * tay người duyệt thì chỉ nhân sự — cùng ranh giới backend đang chặn,
-         * để nút không bày ra rồi trả về 403.
+         * Sửa được cả đơn CÒN CHỜ lẫn đơn ĐÃ DUYỆT; đơn đã đóng (từ chối / đã
+         * rút) thì không — nó không giữ ngày nào để mà sửa. Xoá thì mọi trạng
+         * thái. Cả hai việc trên đơn đã qua tay người duyệt đều chỉ dành cho
+         * nhân sự — đúng ranh giới backend đang chặn, để nút không bày ra rồi
+         * trả về 403.
          */
-        const canAmend = isPending && (canApprove || isMyRecord);
-        const canDelete = isPending ? canAmend : canApprove;
+        const isMine = canApprove || isMyRecord;
+        const canAmend =
+          record.status === 'approved' ? canApprove : isPending && isMine;
+        const canDelete = isPending ? isMine : canApprove;
 
         return (
           <Space size={4}>

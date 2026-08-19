@@ -28,6 +28,10 @@ import styles from './LeaveRequestFormModal.module.css';
  * không nhận `employeeId` trong PATCH, nên bày ra một ô chọn không bấm được chỉ
  * khiến người dùng đi tìm cách mở khoá nó.
  *
+ * SỬA ĐƠN ĐÃ DUYỆT ĐƯỢC BÁO TRƯỚC, ngay trong form: nó tính lại ngày phép đã trừ
+ * và ghi lại những ngày nghỉ trong bảng chấm công. Người sửa cần biết điều đó
+ * trước khi gõ, chứ không phải đọc lại hậu quả sau khi đã ghi.
+ *
  * SỐ NGÀY PHÉP KHÔNG PHẢI MỘT Ô NHẬP — server tính từ khoảng ngày, nửa ngày ở
  * hai đầu và lịch nghỉ lễ. Cho nhập là cho khai 1 ngày cho một kỳ nghỉ hai tuần.
  * Con số ước tính vẫn được hiện ngay dưới form vì người ghi cần biết mình đang
@@ -56,7 +60,7 @@ export function LeaveRequestFormModal({
   request = null,
 }: LeaveRequestFormModalProps) {
   const { t } = useTranslation();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const resolveError = useApiErrorMessage();
   const [form] = Form.useForm<FormValues>();
   const { createRequest, updateRequest, isCreating, isUpdating } =
@@ -64,6 +68,7 @@ export function LeaveRequestFormModal({
   const [error, setError] = useState<string | null>(null);
 
   const isEdit = request !== null;
+  const isApproved = request?.status === 'approved';
   const isSaving = isCreating || isUpdating;
 
   // Danh mục loại phép chỉ có chục dòng — không phân trang, `data` là mảng.
@@ -114,15 +119,35 @@ export function LeaveRequestFormModal({
 
       try {
         if (request) {
-          await updateRequest({ id: request.id, payload });
-        } else {
-          await createRequest({ ...payload, employeeId: values.employeeId });
+          const result = await updateRequest({ id: request.id, payload });
+          onClose();
+
+          /*
+           * Ngày của kỳ nghỉ MỚI đã có sẵn dữ liệu chấm công thì không bị ghi
+           * đè. Người sửa phải biết mình vừa để lại một khoảng trống trong bảng
+           * công — đó không phải thứ nói bằng toast ba giây.
+           */
+          if (result.attendanceConflicts.length > 0) {
+            modal.warning({
+              title: t('leave.requests.updateConflictTitle', {
+                count: result.attendanceConflicts.length,
+              }),
+              content: t('leave.requests.updateConflictDetail', {
+                dates: result.attendanceConflicts
+                  .map((date) => dayjs(date).format('DD/MM'))
+                  .join(', '),
+              }),
+            });
+            return;
+          }
+
+          message.success(t('leave.requests.updateSuccess'));
+          return;
         }
 
+        await createRequest({ ...payload, employeeId: values.employeeId });
         onClose();
-        message.success(
-          t(isEdit ? 'leave.requests.updateSuccess' : 'leave.requests.createSuccess'),
-        );
+        message.success(t('leave.requests.createSuccess'));
       } catch (submitError) {
         setError(resolveError(submitError));
       }
@@ -147,6 +172,19 @@ export function LeaveRequestFormModal({
     >
       {error && (
         <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />
+      )}
+
+      {/*
+        Sửa đơn đã duyệt chạm vào quỹ phép VÀ bảng chấm công. Nói trước khi họ
+        gõ, chứ không phải báo lại sau khi đã ghi.
+      */}
+      {isApproved && (
+        <Alert
+          type="warning"
+          showIcon
+          message={t('leave.requests.editApprovedNotice')}
+          style={{ marginBottom: 16 }}
+        />
       )}
 
       <Form form={form} layout="vertical" onFinish={handleSubmit} disabled={isSaving}>

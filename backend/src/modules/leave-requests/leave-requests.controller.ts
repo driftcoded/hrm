@@ -30,6 +30,7 @@ import {
   ApproveLeaveRequestResultDto,
   DeleteLeaveRequestResultDto,
   LeaveRequestResponseDto,
+  UpdateLeaveRequestResultDto,
 } from './dto/leave-request-response.dto';
 import { RejectLeaveRequestDto } from './dto/reject-leave-request.dto';
 import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
@@ -79,19 +80,21 @@ export class LeaveRequestsController {
   @Patch(':id')
   @ApiAuth()
   @ApiOperation({
-    summary: 'Sửa đơn nghỉ phép còn chờ duyệt',
+    summary: 'Sửa đơn nghỉ phép',
     description:
-      'Người GHI NHẬN sửa đơn của mình, nhân sự sửa của bất kỳ ai. Chỉ đơn còn `pending`.\n\n' +
+      'Đơn `pending`: người GHI NHẬN hoặc nhân sự. Đơn `approved`: CHỈ nhân sự — sửa nó là viết lại một quyết định đã ra.\n\n' +
       'KHÔNG đổi được `employeeId`: đổi người được nghỉ là một đơn khác, vì quỹ phép và kiểm tra trùng ngày đều tính theo nhân viên.\n\n' +
-      'Số ngày phép được tính LẠI từ khoảng ngày mới, và quỹ phép trả chỗ cũ trước khi giữ chỗ mới — cùng một transaction.',
+      'Số ngày phép được tính LẠI từ khoảng ngày mới; quỹ phép trả chỗ cũ trước khi giữ chỗ mới, đúng cột đơn đang chiếm (`pending_days` hay `used_days`).\n\n' +
+      'Sửa đơn ĐÃ DUYỆT còn ghi lại bảng chấm công: gỡ ngày công của kỳ nghỉ cũ rồi ghi ngày công của kỳ nghỉ mới. Dòng đã bị sửa sang trạng thái khác thì giữ lại (`attendanceDaysKept`).\n\n' +
+      'Đơn `rejected`/`cancelled` đã đóng, không sửa — ghi đơn mới.',
   })
-  @ApiOkResponse({ type: LeaveRequestResponseDto })
+  @ApiOkResponse({ type: UpdateLeaveRequestResultDto })
   @ApiForbiddenResponse({ description: 'FORBIDDEN' })
   @ApiNotFoundResponse({
     description: 'LEAVE_NOT_FOUND / LEAVE_TYPE_NOT_FOUND',
   })
   @ApiConflictResponse({
-    description: 'LEAVE_NOT_PENDING · OVERLAPPING_LEAVE',
+    description: 'LEAVE_NOT_ACTIVE · OVERLAPPING_LEAVE',
   })
   @ApiUnprocessableEntityResponse({
     description:
@@ -101,7 +104,7 @@ export class LeaveRequestsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateLeaveRequestDto,
     @CurrentUser() user: AuthenticatedUser,
-  ): Promise<LeaveRequestResponseDto> {
+  ): Promise<UpdateLeaveRequestResultDto> {
     return this.leaveRequestsService.update(id, dto, user);
   }
 

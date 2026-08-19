@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthenticatedUser } from '@/common/types/authenticated-user';
 import { EmployeesRepository } from '@/modules/employees/employees.repository';
 import { EmployeesService } from '@/modules/employees/employees.service';
-import { LeaveType } from '@/modules/leaves/entities/leave-type.entity';
 import { LeaveTypesRepository } from '@/modules/leaves/leave-types.repository';
 import { LeaveBalance } from './entities/leave-balance.entity';
 import { LeaveBalancesRepository } from './leave-balances.repository';
@@ -80,7 +79,9 @@ describe('LeaveBalancesService', () => {
         },
         {
           provide: EmployeesRepository,
-          useValue: { findActiveForAllocation: jest.fn().mockResolvedValue([]) },
+          useValue: {
+            findActiveForAllocation: jest.fn().mockResolvedValue([]),
+          },
         },
         {
           provide: EmployeesService,
@@ -91,9 +92,7 @@ describe('LeaveBalancesService', () => {
         {
           provide: LeaveTypesRepository,
           useValue: {
-            findByCode: jest
-              .fn()
-              .mockResolvedValue({ id: 1, code: 'ANNUAL' } as LeaveType),
+            findByCode: jest.fn().mockResolvedValue({ id: 1, code: 'ANNUAL' }),
           },
         },
       ],
@@ -130,7 +129,9 @@ describe('LeaveBalancesService', () => {
     });
 
     it('refuses to delete a balance holding pending days', async () => {
-      repository.findById.mockResolvedValue(makeBalance({ pendingDays: '0.5' }));
+      repository.findById.mockResolvedValue(
+        makeBalance({ pendingDays: '0.5' }),
+      );
 
       const error = await captureError(() => service.remove(88, hrUser));
 
@@ -183,7 +184,11 @@ describe('LeaveBalancesService', () => {
         makeBalance({ usedDays: '5.0', pendingDays: '2.0' }),
       );
 
-      await service.adjust(88, { allocatedDays: 7, reason: 'Cấp nhầm' }, hrUser);
+      await service.adjust(
+        88,
+        { allocatedDays: 7, reason: 'Cấp nhầm' },
+        hrUser,
+      );
 
       expect(repository.save).toHaveBeenCalled();
     });

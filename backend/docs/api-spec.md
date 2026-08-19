@@ -1148,7 +1148,8 @@ dùng `DELETE`.
 ---
 
 ### PATCH `/leave-requests/:id`
-> 🔒 Người GHI NHẬN đơn, hoặc nhân sự. Chỉ đơn còn `pending`.
+> 🔒 Đơn `pending`: người GHI NHẬN đơn, hoặc nhân sự.
+> Đơn `approved`: **chỉ nhân sự** — sửa nó là viết lại một quyết định đã ra.
 
 ```json
 { "leaveTypeId": 1, "startDate": "2026-05-04", "endDate": "2026-05-06",
@@ -1166,12 +1167,31 @@ nhận. Quỹ phép **trả chỗ cũ trước rồi mới giữ chỗ mới**, 
 transaction: làm ngược lại thì một đơn 3 ngày sửa thành 4 sẽ bị từ chối oan khi
 quỹ chỉ còn đúng 3.
 
-Đơn đã duyệt **không sửa được**: nó đã ghi vào bảng chấm công, và sửa lặng lẽ sẽ
-đổi cả quỹ phép lẫn bảng công mà không đi qua bước duyệt nào. Sai thì xoá và ghi
-lại — khi đó mỗi bước đều hiện ra và phải được duyệt lại.
+**Sửa đơn ĐÃ DUYỆT kéo theo hai thứ**, cả hai đi cùng transaction với đơn:
 
-**Errors:** `409 LEAVE_NOT_PENDING` · `409 OVERLAPPING_LEAVE` · các mã 422 giống
-`POST /leave-requests`
+| | Đơn `pending` | Đơn `approved` |
+|---|---|---|
+| Cột quỹ bị đụng | `pending_days` | `used_days` |
+| Bảng chấm công | – | gỡ ngày công kỳ nghỉ **cũ**, ghi ngày công kỳ nghỉ **mới** |
+
+Dòng chấm công của kỳ nghỉ cũ **đã bị sửa** sang trạng thái khác thì giữ lại
+(`attendanceDaysKept`); ngày của kỳ nghỉ mới **đã có sẵn** dữ liệu chấm công thì
+không bị ghi đè (`attendanceConflicts`). Đơn vẫn ở trạng thái `approved` —
+không phải duyệt lại.
+
+Đơn `rejected` / `cancelled` **không sửa được**: nó không giữ ngày nào và không
+có dòng chấm công nào, nên sửa ngày trên đó chỉ khiến lý do từ chối nói về một kỳ
+nghỉ chưa từng tồn tại. Cần lại thì ghi đơn mới.
+
+**Response 200:**
+```json
+{ "request": { "...": "đơn sau khi sửa" },
+  "attendanceDaysWritten": 2, "attendanceConflicts": [], "attendanceDaysKept": 0 }
+```
+
+**Errors:** `409 LEAVE_NOT_ACTIVE` · `409 OVERLAPPING_LEAVE` · các mã 422 giống
+`POST /leave-requests` (kể cả `INSUFFICIENT_LEAVE_BALANCE` khi kéo dài một đơn đã
+duyệt quá quỹ còn lại)
 
 ---
 

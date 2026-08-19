@@ -160,6 +160,20 @@ export type UpdateLeaveRequestPayload = Partial<
 >;
 
 /**
+ * Kết quả sửa đơn.
+ *
+ * Sửa đơn ĐÃ DUYỆT phải ghi lại bảng chấm công: gỡ ngày công của kỳ nghỉ cũ rồi
+ * ghi ngày công của kỳ nghỉ mới. Sửa đơn còn chờ duyệt thì cả ba số đều bằng 0 —
+ * đơn chờ chưa ghi ngày công nào.
+ */
+export interface UpdateLeaveResult {
+  request: LeaveRequest;
+  attendanceDaysWritten: number;
+  attendanceConflicts: string[];
+  attendanceDaysKept: number;
+}
+
+/**
  * Kết quả xoá đơn.
  *
  * `attendanceDaysKept` là những dòng chấm công của đơn này nhưng ĐÃ BỊ SỬA sang

@@ -154,3 +154,37 @@ export class DeleteLeaveRequestResultDto {
   })
   attendanceDaysKept: number;
 }
+
+/**
+ * Kết quả `PATCH /leave-requests/:id`.
+ *
+ * Sửa một đơn ĐÃ DUYỆT phải ghi lại cả bảng chấm công: gỡ ngày công của kỳ nghỉ
+ * cũ rồi ghi ngày công của kỳ nghỉ mới. Ba con số dưới đây nói rõ việc đó đã đi
+ * đến đâu. Sửa đơn còn chờ duyệt thì cả ba đều bằng 0 — đơn chờ chưa ghi ngày
+ * công nào.
+ */
+export class UpdateLeaveRequestResultDto {
+  @ApiProperty({ type: LeaveRequestResponseDto })
+  request: LeaveRequestResponseDto;
+
+  @ApiProperty({
+    example: 3,
+    description: 'Số ngày công của kỳ nghỉ MỚI đã được ghi vào bảng chấm công.',
+  })
+  attendanceDaysWritten: number;
+
+  @ApiProperty({
+    example: ['2026-05-06'],
+    type: [String],
+    description:
+      'Ngày của kỳ nghỉ MỚI đã có sẵn dữ liệu chấm công nên không bị ghi đè.',
+  })
+  attendanceConflicts: string[];
+
+  @ApiProperty({
+    example: 1,
+    description:
+      'Số ngày công của kỳ nghỉ CŨ được giữ lại vì đã bị sửa sang trạng thái khác — dữ liệu công thật, không phải hệ quả của đơn nữa.',
+  })
+  attendanceDaysKept: number;
+}

@@ -228,6 +228,7 @@
       "LEAVE_BALANCE_IN_USE": "Quỹ này đã có ngày nghỉ trừ vào nên không xoá được. Hãy điều chỉnh số ngày thay vì xoá.",
       "LEAVE_BALANCE_NOT_FOUND": "Không tìm thấy quỹ phép.",
       "LEAVE_BELOW_MINIMUM": "Ít hơn số ngày tối thiểu của loại phép này.",
+      "LEAVE_NOT_ACTIVE": "Đơn này đã đóng nên không sửa được. Hãy ghi một đơn mới.",
       "LEAVE_NOT_FOUND": "Không tìm thấy đơn nghỉ phép.",
       "LEAVE_NOT_PENDING": "Đơn này không còn ở trạng thái chờ duyệt.",
       "LEAVE_NO_WORKING_DAYS": "Khoảng ngày đã chọn không có ngày làm việc nào — không có ngày phép nào bị trừ.",
@@ -1149,6 +1150,7 @@
       "deleteKeptTitle": "Giữ lại {{count}} ngày công",
       "deleteSuccess": "Đã xoá đơn nghỉ phép.",
       "edit": "Sửa đơn",
+      "editApprovedNotice": "Đơn này đã được duyệt. Sửa sẽ tính lại ngày phép đã trừ và ghi lại những ngày nghỉ tương ứng trong bảng chấm công.",
       "errors": {
         "employee": "Vui lòng chọn nhân viên",
         "leaveType": "Vui lòng chọn loại nghỉ phép",
@@ -1181,6 +1183,8 @@
       "rejectSuccess": "Đã từ chối đơn. Số ngày phép được hoàn lại.",
       "rejectTitle": "Từ chối đơn của {{name}} — {{from}} đến {{to}}",
       "submit": "Lưu",
+      "updateConflictDetail": "Những ngày này đã có sẵn dữ liệu chấm công nên không bị ghi đè: {{dates}}.",
+      "updateConflictTitle": "Cập nhật xong, {{count}} ngày không ghi được",
       "updateSuccess": "Đã cập nhật đơn nghỉ phép."
     },
     "balances": {

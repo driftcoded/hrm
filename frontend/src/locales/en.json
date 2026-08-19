@@ -228,6 +228,7 @@
       "LEAVE_BALANCE_IN_USE": "This balance already has leave drawn against it and cannot be deleted. Adjust the number of days instead.",
       "LEAVE_BALANCE_NOT_FOUND": "Leave balance not found.",
       "LEAVE_BELOW_MINIMUM": "Below the minimum days for this leave type.",
+      "LEAVE_NOT_ACTIVE": "This request is closed and cannot be edited. Record a new one instead.",
       "LEAVE_NOT_FOUND": "Leave request not found.",
       "LEAVE_NOT_PENDING": "This request is no longer pending.",
       "LEAVE_NO_WORKING_DAYS": "The chosen range has no working day in it — nothing would be deducted.",
@@ -1149,6 +1150,7 @@
       "deleteKeptTitle": "{{count}} timesheet day(s) kept",
       "deleteSuccess": "Leave request deleted.",
       "edit": "Edit request",
+      "editApprovedNotice": "This request is already approved. Editing it recalculates the leave deducted and rewrites the matching days on the timesheet.",
       "errors": {
         "employee": "Please pick an employee",
         "leaveType": "Please pick a leave type",
@@ -1181,6 +1183,8 @@
       "rejectSuccess": "Request rejected. The days were returned to the balance.",
       "rejectTitle": "Reject {{name}}'s request — {{from}} to {{to}}",
       "submit": "Save",
+      "updateConflictDetail": "These days already held attendance data and were not overwritten: {{dates}}.",
+      "updateConflictTitle": "Updated, {{count}} day(s) could not be written",
       "updateSuccess": "Leave request updated."
     },
     "balances": {
