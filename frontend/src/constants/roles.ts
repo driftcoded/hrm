@@ -28,3 +28,15 @@ export const CONTRACT_WRITE_ROLES: readonly UserRole[] = ['admin', 'hr_manager']
 
 /** Tạo tài khoản đăng nhập (`POST /users`) — admin only. */
 export const USER_WRITE_ROLES: readonly UserRole[] = ['admin'];
+
+/**
+ * Vai trò được XUẤT danh sách nhân viên ra Excel — mirrors the backend's
+ * `EMPLOYEE_EXPORT_ROLES` in `modules/reports/employee-export.service.ts`.
+ *
+ * `manager` KHÔNG có mặt dù trưởng phòng vẫn xem được danh sách phòng mình
+ * trên màn hình: xem từng dòng và rút cả bảng ra một file rời khỏi hệ thống là
+ * hai việc khác nhau. Đây là một hằng riêng chứ không dùng lại
+ * `EMPLOYEE_WRITE_ROLES` — nới quyền xem sau này không được phép âm thầm nới
+ * luôn quyền xuất file.
+ */
+export const EMPLOYEE_EXPORT_ROLES: readonly UserRole[] = ['admin', 'hr_manager', 'hr_staff'];

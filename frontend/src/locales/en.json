@@ -229,7 +229,9 @@
       "PAYLOAD_TOO_LARGE": "The request payload is too large.",
       "DEPENDENT_ALREADY_CLAIMED": "This person is already claimed by another employee. A dependent can only be claimed by a single taxpayer.",
       "DEPENDENT_NOT_FOUND": "Dependent not found.",
-      "DEPENDENT_REASON_REQUIRED": "A reason is required when stopping a deduction."
+      "DEPENDENT_REASON_REQUIRED": "A reason is required when stopping a deduction.",
+      "EXPORT_TOO_MANY_ROWS": "The current filter matches too many employees to export at once. Narrow it down and try again.",
+      "SENSITIVE_EXPORT_FORBIDDEN": "You don't have permission to export sensitive columns."
     }
   },
   "layout": {
@@ -584,7 +586,10 @@
       "selected": "{{count}} selected",
       "email": "Send email",
       "export": "Export Excel",
-      "department": "Change department"
+      "department": "Change department",
+      "exportHint": "Export the filtered list to Excel",
+      "exportSelected": "Export selected",
+      "exportSuccess": "Employee list downloaded."
     },
     "pagination": {
       "range": "Showing {{from}} - {{to}} of {{total}} results"
@@ -909,7 +914,6 @@
     "print": {
       "title": "Employee profile",
       "code": "Employee code",
-      "notice": "Abridged printout. Sensitive details (ID number, bank account, tax code, insurance numbers, salary, emergency contact, HR notes) are deliberately left out of this sheet.",
       "printedAt": "Printed {{at}}"
     }
   }

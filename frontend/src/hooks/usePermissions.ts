@@ -1,6 +1,7 @@
 import { useAuthStore } from '@/store/authStore';
 import {
   CONTRACT_WRITE_ROLES,
+  EMPLOYEE_EXPORT_ROLES,
   EMPLOYEE_DELETE_ROLES,
   EMPLOYEE_WRITE_ROLES,
   MASTER_DATA_WRITE_ROLES,
@@ -63,4 +64,15 @@ export function useCanWriteContracts(): boolean {
  */
 export function useCanCreateUsers(): boolean {
   return useHasRole(USER_WRITE_ROLES);
+}
+
+/**
+ * May the user export the employee list to Excel? (`admin`, `hr_manager`,
+ * `hr_staff`)
+ *
+ * `manager` sees the list on screen but cannot export it — see
+ * `EMPLOYEE_EXPORT_ROLES` for why the two differ.
+ */
+export function useCanExportEmployees(): boolean {
+  return useHasRole(EMPLOYEE_EXPORT_ROLES);
 }

@@ -44,7 +44,13 @@ import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { useAllDepartments } from '@/hooks/useDepartments';
 import { useEmployees, useEmployeeMutations, useEmployeeStats } from '@/hooks/useEmployees';
 import { usePositions } from '@/hooks/usePositions';
-import { useCanDeleteEmployees, useCanCreateUsers, useCanWriteEmployees } from '@/hooks/usePermissions';
+import { useExportEmployees } from '@/hooks/useReports';
+import {
+  useCanCreateUsers,
+  useCanDeleteEmployees,
+  useCanExportEmployees,
+  useCanWriteEmployees,
+} from '@/hooks/usePermissions';
 import {
   parseBoolParam,
   parseEnumParam,
@@ -94,7 +100,7 @@ const { Text } = Typography;
 /** How many rows a selection has to reach before the bulk bar means anything. */
 const BULK_ACTIONS = [
   { key: 'email', icon: <MailOutlined />, labelKey: 'employees.bulk.email' },
-  { key: 'export', icon: <ExportOutlined />, labelKey: 'employees.bulk.export' },
+  { key: 'export', icon: <ExportOutlined />, labelKey: 'employees.bulk.exportSelected' },
   { key: 'department', icon: <SwapOutlined />, labelKey: 'employees.bulk.department' },
 ] as const;
 
@@ -106,6 +112,7 @@ export function EmployeesPage() {
 
   const canWrite = useCanWriteEmployees();
   const canDelete = useCanDeleteEmployees();
+  const canExport = useCanExportEmployees();
   const canCreateAccount = useCanCreateUsers();
 
   const table = useTableQuery({ sort: 'employeeCode', order: 'asc' });
@@ -151,6 +158,7 @@ export function EmployeesPage() {
   };
 
   const list = useEmployees(filters);
+  const { exportEmployees, isExporting } = useExportEmployees();
   const stats = useEmployeeStats();
   const mutations = useEmployeeMutations();
 
@@ -167,6 +175,22 @@ export function EmployeesPage() {
 
   const rows = list.data?.items ?? [];
   const total = list.data?.meta.total ?? 0;
+
+  /**
+   * Xuất đúng những dòng đang lọc, KHÔNG phải trang đang xem: `filters` bỏ
+   * `page`/`limit` ở tầng service. Một file chỉ có 20 dòng của trang hiện tại
+   * là thứ gần như không ai muốn, và tệ hơn là trông y hệt file đầy đủ.
+   */
+  const handleExport = () => {
+    void (async () => {
+      try {
+        await exportEmployees(filters);
+        message.success(t('employees.bulk.exportSuccess'));
+      } catch (exportError) {
+        message.error(resolveError(exportError));
+      }
+    })();
+  };
 
   const resetFilters = () => {
     for (const key of [
@@ -446,9 +470,16 @@ export function EmployeesPage() {
                 {t('employees.actions.create')}
               </Button>
             )}
-            <Tooltip title={t('common.comingSoon')}>
-              <Button icon={<ExportOutlined />} disabled aria-label={t('employees.bulk.export')} />
-            </Tooltip>
+            {canExport && (
+              <Tooltip title={t('employees.bulk.exportHint')}>
+                <Button
+                  icon={<ExportOutlined />}
+                  loading={isExporting}
+                  onClick={handleExport}
+                  aria-label={t('employees.bulk.export')}
+                />
+              </Tooltip>
+            )}
             <Dropdown
               menu={{
                 items: [

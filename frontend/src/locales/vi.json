@@ -229,7 +229,9 @@
       "PAYLOAD_TOO_LARGE": "Dữ liệu gửi lên quá lớn.",
       "DEPENDENT_ALREADY_CLAIMED": "Người này đã được một nhân viên khác đăng ký giảm trừ. Mỗi người phụ thuộc chỉ được khai cho một người nộp thuế.",
       "DEPENDENT_NOT_FOUND": "Không tìm thấy người phụ thuộc.",
-      "DEPENDENT_REASON_REQUIRED": "Cần nhập lý do khi ngừng giảm trừ."
+      "DEPENDENT_REASON_REQUIRED": "Cần nhập lý do khi ngừng giảm trừ.",
+      "EXPORT_TOO_MANY_ROWS": "Bộ lọc hiện tại khớp quá nhiều nhân viên để xuất một lần. Hãy thu hẹp bộ lọc rồi xuất lại.",
+      "SENSITIVE_EXPORT_FORBIDDEN": "Bạn không có quyền xuất các cột thông tin nhạy cảm."
     }
   },
   "layout": {
@@ -584,7 +586,10 @@
       "selected": "Đã chọn {{count}}",
       "email": "Gửi email",
       "export": "Xuất Excel",
-      "department": "Thay đổi phòng ban"
+      "department": "Thay đổi phòng ban",
+      "exportHint": "Xuất Excel danh sách đang lọc",
+      "exportSelected": "Xuất mục đã chọn",
+      "exportSuccess": "Đã tải file danh sách nhân viên."
     },
     "pagination": {
       "range": "Hiển thị {{from}} - {{to}} của {{total}} kết quả"
@@ -909,7 +914,6 @@
     "print": {
       "title": "Hồ sơ nhân viên",
       "code": "Mã nhân viên",
-      "notice": "Bản in rút gọn. Các thông tin nhạy cảm (CCCD, tài khoản ngân hàng, mã số thuế, số sổ BHXH/BHYT, lương, người liên hệ khẩn cấp, ghi chú nhân sự) KHÔNG được đưa vào bản in này.",
       "printedAt": "In lúc {{at}}"
     }
   }
