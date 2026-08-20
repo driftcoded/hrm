@@ -1562,8 +1562,9 @@ Tạo tài khoản đăng nhập cho một nhân viên. Hồ sơ nhân viên (`e
 
 ## 14. Disciplines & Rewards – Khen thưởng & Kỷ luật
 
-> **Kỷ luật không được kèm tiền.** Điều 128 BLLĐ 2019 cấm phạt tiền và cấm trừ
-> lương thay cho kỷ luật. Cột `amount` chỉ dùng cho khen thưởng.
+> **Bản ghi này không mang tiền.** Điều 128 BLLĐ 2019 cấm phạt tiền và cấm trừ
+> lương thay cho kỷ luật; còn tiền thưởng thực trả đi qua `performanceBonus` của
+> bảng lương (§9). Cột `amount` đã bị bỏ khỏi bảng.
 
 ### GET `/employees/:employeeId/disciplines-rewards`
 > 🔒 Auth required — phạm vi theo hồ sơ nhân viên (`manager` chỉ xem phòng mình).
@@ -1581,7 +1582,6 @@ Mới nhất trước, theo ngày ký quyết định. Không phân trang.
     "description": "Vượt KPI 120%",
     "decisionNumber": "QD-2026-001",
     "decisionDate": "2026-04-01", "effectiveDate": "2026-04-01",
-    "amount": 5000000,
     "issuedBy": { "id": 3, "fullName": "Trần Thị Giám Đốc" },
     "documentUrl": null, "note": null,
     "createdAt": "2026-04-01T02:00:00.000Z"
@@ -1606,13 +1606,12 @@ Mới nhất trước, theo ngày ký quyết định. Không phân trang.
 `decisionDate` là ngày ký, `effectiveDate` là ngày có hiệu lực — hai mốc khác
 nhau, cả hai bắt buộc, và hiệu lực không được đứng trước ngày ký.
 
-**Errors:** `422 DISCIPLINE_CANNOT_CARRY_AMOUNT` · `422 EFFECTIVE_BEFORE_DECISION`
+**Errors:** `422 EFFECTIVE_BEFORE_DECISION`
 
 ### PATCH `/employees/:employeeId/disciplines-rewards/:recordId`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
 
-Mọi trường tuỳ chọn, kể cả `type`. Ràng buộc kỷ luật–số tiền kiểm trên bản đã
-ghép giữa bản ghi cũ và phần sửa; gửi `amount: 0` hoặc `null` để xoá số tiền.
+Mọi trường tuỳ chọn, kể cả `type`. Hiệu lực vẫn không được đứng trước ngày ký.
 
 ### DELETE `/employees/:employeeId/disciplines-rewards/:recordId`
 > 🔒 Roles: `admin`, `hr_manager` — hẹp hơn quyền ghi.

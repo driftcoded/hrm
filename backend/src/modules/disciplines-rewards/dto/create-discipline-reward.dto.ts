@@ -3,7 +3,6 @@ import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsInt,
-  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
@@ -64,18 +63,6 @@ export class CreateDisciplineRewardDto {
   })
   @IsCalendarDate()
   effectiveDate: string;
-
-  @ApiPropertyOptional({
-    example: 5000000,
-    description:
-      'CHỈ dùng cho khen thưởng. Điều 128 BLLĐ 2019 CẤM phạt tiền và cấm trừ lương thay cho kỷ luật, nên gửi kèm `type = discipline` sẽ bị từ chối.',
-    minimum: 0,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  amount?: number;
 
   @ApiPropertyOptional({
     example: 3,

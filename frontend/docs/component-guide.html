@@ -121,6 +121,7 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h2"><a href="#6-zustand-stores">6. Zustand Stores</a></li>
 <li class="h3"><a href="#authstore">authStore</a></li>
 <li class="h3"><a href="#uistore">uiStore</a></li>
+<li class="h3"><a href="#tabsstore">tabsStore</a></li>
 <li class="h2"><a href="#7-naming-conventions">7. Naming Conventions</a></li>
 <li class="h3"><a href="#files">Files</a></li>
 <li class="h3"><a href="#types-interfaces">Types / Interfaces</a></li>
@@ -132,17 +133,20 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 
 <main id="content">
 <h1 id="component-guide">Component Guide</h1>
-<p><strong>Phiên bản:</strong> 1.0  </p>
-<p><strong>Ngày cập nhật:</strong> 19/06/2026</p>
+<p><strong>Phiên bản:</strong> 1.1  </p>
+<p><strong>Ngày cập nhật:</strong> 19/08/2026</p>
+<blockquote>
+<p><strong>Cách đọc tài liệu này.</strong> Phần lớn nội dung là <strong>thiết kế dự kiến</strong> viết trước khi code, và nhiều tên component/hook/page ở đây chưa từng tồn tại. Ở mỗi mục lệch đã có một khối ⚠️ đối chiếu với code thật. Khi hai bên mâu thuẫn, <strong>code là đúng</strong>; hãy sửa tài liệu chứ đừng đổi tên trong code cho khớp tài liệu.</p>
+</blockquote>
 <hr>
 <h2 id="1-phân-loại-components">1. Phân loại Components</h2>
 <table><thead>
 <tr><th>Loại</th><th>Thư mục</th><th>Mô tả</th></tr>
 </thead><tbody>
 <tr><td><strong>Layout</strong></td><td><code>components/layout/</code></td><td>Khung sườn app (không fetch API)</td></tr>
-<tr><td><strong>Shared UI</strong></td><td><code>components/ui/</code></td><td>Tái sử dụng nhiều nơi (không fetch API)</td></tr>
+<tr><td><strong>Shared UI</strong></td><td><code>components/crud/</code>, <code>components/common/</code>, <code>components/charts/</code></td><td>Tái sử dụng nhiều nơi (không fetch API). <strong>Không có <code>components/ui/</code></strong></td></tr>
 <tr><td><strong>Page</strong></td><td><code>pages/</code></td><td>Route-level, fetch qua hooks</td></tr>
-<tr><td><strong>Feature</strong></td><td><code>pages/<module>/components/</code></td><td>Component của một module cụ thể</td></tr>
+<tr><td><strong>Feature</strong></td><td><code>components/<module>/</code> — vd <code>components/employees/</code>, <code>components/departments/</code>, <code>components/dashboard/</code>, <code>components/auth/</code></td><td>Component của một module cụ thể. Tab của trang chi tiết nhân viên nằm ở <code>pages/employees/tabs/</code></td></tr>
 </tbody></table>
 <p><strong>Quy tắc vàng:</strong> Component trong <code>components/</code> KHÔNG được fetch API. Chỉ nhận data qua props.</p>
 <hr>
@@ -152,29 +156,35 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <p>Props: không có — đọc state từ <code>authStore</code> và <code>uiStore</code>.</p>
 <h3 id="sidebar">Sidebar</h3>
 <p>Menu điều hướng trái. Thu gọn/mở rộng theo <code>uiStore.sidebarCollapsed</code>.</p>
+<p>Menu <strong>thật</strong> hiện tại (<code>Sidebar.tsx</code>):</p>
 <table><thead>
-<tr><th>Menu item</th><th>Icon</th><th>Route</th><th>Quyền</th></tr>
+<tr><th>Menu item</th><th>Icon</th><th>Route</th><th>Trạng thái</th></tr>
 </thead><tbody>
-<tr><td>Tổng quan</td><td>Dashboard</td><td><code>/dashboard</code></td><td>Tất cả</td></tr>
-<tr><td>Nhân viên</td><td>Team</td><td><code>/employees</code></td><td>HR, Admin</td></tr>
-<tr><td>Chấm công</td><td>Clock</td><td><code>/attendance</code></td><td>HR, Manager, Admin</td></tr>
-<tr><td>Phép</td><td>Calendar</td><td><code>/leave</code></td><td>Tất cả</td></tr>
-<tr><td>Lương</td><td>Money</td><td><code>/payroll</code></td><td>HR, Admin</td></tr>
-<tr><td>Khen thưởng / Kỷ luật</td><td>Award</td><td><code>/rewards-disciplines</code></td><td>HR, Admin</td></tr>
-<tr><td>Đánh giá</td><td>Star</td><td><code>/performance</code></td><td>Manager, HR, Admin</td></tr>
-<tr><td>Đào tạo</td><td>Book</td><td><code>/trainings</code></td><td>HR, Admin</td></tr>
-<tr><td>Thông báo</td><td>Bell</td><td><code>/announcements</code></td><td>Tất cả</td></tr>
-<tr><td>Cài đặt</td><td>Settings</td><td><code>/settings</code></td><td>Admin</td></tr>
+<tr><td>Tổng quan</td><td><code>HomeOutlined</code></td><td><code>/dashboard</code></td><td>✅</td></tr>
+<tr><td>Nhân viên</td><td><code>TeamOutlined</code></td><td><code>/employees</code></td><td>✅</td></tr>
+<tr><td>Chấm công</td><td><code>ClockCircleOutlined</code></td><td><code>/attendance</code></td><td>⏳ ComingSoonPage</td></tr>
+<tr><td>Lương</td><td><code>DollarCircleOutlined</code></td><td><code>/payroll</code></td><td>⏳ ComingSoonPage</td></tr>
+<tr><td>Phép</td><td><code>FileTextOutlined</code></td><td><code>/leave</code></td><td>⏳ ComingSoonPage</td></tr>
+<tr><td>Báo cáo</td><td><code>BarChartOutlined</code></td><td><code>/reports</code></td><td>⏳ ComingSoonPage</td></tr>
+<tr><td>Cài đặt</td><td><code>SettingOutlined</code></td><td><code>/settings</code> (+ submenu từ <code>constants/settingsSections.ts</code>)</td><td>✅</td></tr>
 </tbody></table>
-<p>Menu item được ẩn nếu user không có quyền (không disable — ẩn hẳn).</p>
+<blockquote>
+<p>⚠️ <strong>Menu hiện KHÔNG ẩn theo quyền</strong> — mọi role đã đăng nhập đều thấy đủ các mục trên. Việc ẩn/hiện theo quyền mới chỉ áp dụng cho <strong>nút thao tác</strong> bên trong từng trang (<code>hooks/usePermissions.ts</code>). Các mục "Khen thưởng / Kỷ luật", "Đánh giá", "Đào tạo", "Thông báo" ở phiên bản trước của bảng này chưa tồn tại ở bất kỳ dạng nào.</p>
+<p></p>
+<p>Ngoài Sidebar còn có <code>NavTabs</code> — thanh tab các trang đang mở, lấy state từ <code>tabsStore</code>.</p>
+</blockquote>
 <h3 id="header">Header</h3>
 <p>Thanh trên cùng. Gồm:</p>
 <ul>
-<li>Logo công ty + tên HRM (trái)</li>
-<li>Tìm kiếm nhanh (giữa)</li>
-<li>Icon thông báo + badge số chưa đọc</li>
-<li>Avatar + dropdown user (tên, xem profile, đổi mật khẩu, đăng xuất)</li>
+<li>Nút thu gọn sidebar (trái)</li>
+<li>Ô tìm kiếm nhanh — <strong>render <code>disabled</code> kèm tooltip "Sắp có"</strong>: chưa có API tìm kiếm toàn cục</li>
+<li>Icon chuông thông báo — <strong>cũng <code>disabled</code></strong>, badge luôn <code>count={0}</code>: chưa có API thông báo</li>
+<li>Nút trợ giúp, công tắc đổi ngôn ngữ</li>
+<li>Avatar + dropdown user (xem profile, đăng xuất)</li>
 </ul>
+<blockquote>
+<p>Hai control chưa có backend được để <strong>disabled kèm tooltip</strong> thay vì ẩn đi — người dùng thấy tính năng đang tới, và không bấm vào một nút chắc chắn không phản hồi.</p>
+</blockquote>
 <h3 id="pageheader">PageHeader</h3>
 <p>Component dùng lại ở đầu mỗi trang. Props:</p>
 <table><thead>
@@ -187,6 +197,23 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 </tbody></table>
 <hr>
 <h2 id="3-shared-ui-components">3. Shared UI Components</h2>
+<blockquote>
+<p>⚠️ <strong>Mục §3 đã lệch so với code.</strong> Không component nào dưới đây tồn tại đúng tên như mô tả. Bảng đối chiếu với thực tế (<code>src/components/</code>):</p>
+<p></p>
+<p>| Mô tả ở §3 | Thực tế trong code |</p>
+<p>|------------|--------------------|</p>
+<p>| <code>DataTable</code> | <code>components/crud/DataTableCard</code> |</p>
+<p>| <code>SearchFilter</code> | <code>components/crud/TableSearch</code> (chỉ ô tìm kiếm; filter select do từng page tự dựng) |</p>
+<p>| <code>StatusBadge</code> | <code>components/employees/EmployeeStatusTag</code> (AntD <code>Tag</code>) và <code>components/crud/BooleanTag</code> |</p>
+<p>| <code>UploadAvatar</code> | <code>components/employees/AvatarUploader</code> |</p>
+<p>| <code>ConfirmButton</code> | <code>components/crud/RowActions</code> (Popconfirm của AntD) |</p>
+<p>| <code>CurrencyDisplay</code> · <code>DateDisplay</code> | <strong>Không phải component</strong> – là hàm trong <code>utils/format.ts</code>: <code>formatCurrency</code>, <code>formatNumber</code>, <code>formatPercent</code>, <code>formatDate</code>, <code>formatDateTime</code>, <code>formatPhone</code>, <code>maskCccd</code> |</p>
+<p>| – | Còn có: <code>crud/CrudFormModal</code>, <code>crud/GeneratedCodeField</code>, <code>common/FullPageLoader</code>, <code>common/StatCard</code>, <code>common/BrandMark</code>, <code>charts/DonutChart</code> |</p>
+<p></p>
+<p><strong>Trạng thái nhân viên đúng là 6 giá trị</strong> của <code>employees.status</code>: <code>probation</code> · <code>active</code> · <code>on_leave</code> · <code>suspended</code> · <code>resigned</code> · <code>terminated</code>. Bảng ở phần <code>StatusBadge</code> bên dưới liệt kê <code>maternity_leave</code> / <code>retired</code> — hai giá trị <strong>không tồn tại</strong> — và trộn lẫn trạng thái đơn nghỉ (<code>pending</code>/<code>approved</code>/<code>rejected</code>) vào cùng một component.</p>
+<p></p>
+<p><strong>Avatar:</strong> upload qua <code>POST /employees/:id/avatar</code> (multipart, field <code>avatar</code>), <strong>không</strong> phải <code>POST /upload/avatar</code>, và mặc định file được lưu bằng driver <code>local</code> xuống <code>uploads/</code> chứ không phải S3 (S3 chưa từng chạy — xem <code>backend/docs/architecture.md</code> §9).</p>
+</blockquote>
 <h3 id="datatable">DataTable</h3>
 <p>Bảng dữ liệu chuẩn, wrap AntD <code>Table</code> với thêm:</p>
 <ul>
@@ -240,41 +267,42 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <p>Hiển thị ngày theo định dạng VN. Props: <code>value</code> (ISO string), <code>format</code> (mặc định <code>DD/MM/YYYY</code>).</p>
 <hr>
 <h2 id="4-page-components-theo-module">4. Page Components theo Module</h2>
+<blockquote>
+<p>⚠️ <strong>Chỉ §4.1 và §4.5 có code; §4.2 (Chấm công), §4.3 (Phép), §4.4 (Lương) chưa tồn tại</strong> — các route <code>/attendance</code>, <code>/leave</code>, <code>/payroll</code>, <code>/reports</code> hiện trỏ tới <code>ComingSoonPage</code>.</p>
+<p></p>
+<p>Page thật đang có: <code>pages/auth/{LoginPage, ForgotPasswordPage, ResetPasswordPage}</code>, <code>pages/dashboard/DashboardPage</code>, <code>pages/profile/ProfilePage</code>, <code>pages/employees/{EmployeesPage, EmployeeDetailPage, tabs/}</code>, <code>pages/settings/{SettingsIndexPage, DepartmentsPage, PositionsPage, ContractTypesPage, LeaveTypesPage, HolidaysPage}</code>, <code>pages/ComingSoonPage</code>.</p>
+</blockquote>
 <h3 id="41-employees-nhân-viên">4.1 Employees (Nhân viên)</h3>
 <table><thead>
-<tr><th>File</th><th>Mô tả</th></tr>
+<tr><th>File</th><th>Trạng thái</th><th>Mô tả</th></tr>
 </thead><tbody>
-<tr><td><code>EmployeeListPage</code></td><td>Danh sách + filter + phân trang</td></tr>
-<tr><td><code>EmployeeDetailPage</code></td><td>Xem chi tiết, tabs thông tin</td></tr>
-<tr><td><code>EmployeeCreatePage</code></td><td>Form tạo mới nhiều bước (wizard)</td></tr>
-<tr><td><code>EmployeeEditPage</code></td><td>Form sửa thông tin</td></tr>
+<tr><td><code>EmployeesPage</code></td><td>✅</td><td>Danh sách + filter + phân trang (tên thật, không phải <code>EmployeeListPage</code>)</td></tr>
+<tr><td><code>EmployeeDetailPage</code></td><td>✅</td><td>Xem chi tiết, tabs thông tin</td></tr>
+<tr><td><code>components/employees/EmployeeWizard</code></td><td>✅</td><td>Tạo/sửa dạng wizard <strong>ngay trên <code>/employees</code></strong> — <strong>không</strong> có route <code>/employees/new</code> và không có <code>EmployeeCreatePage</code> / <code>EmployeeEditPage</code> riêng</td></tr>
 </tbody></table>
-<p><strong>EmployeeCreatePage</strong> dùng wizard 4 bước:</p>
+<p><strong>EmployeeWizard</strong> dùng 4 bước:</p>
 <ol>
 <li>Thông tin cơ bản (họ tên, ngày sinh, giới tính, CCCD)</li>
 <li>Thông tin công việc (phòng ban, chức vụ, loại hợp đồng, ngày vào làm)</li>
 <li>Thông tin lương (lương cơ bản, phụ cấp)</li>
-<li>Tài khoản đăng nhập (email, mật khẩu tạm)</li>
+<li>Tài khoản đăng nhập (email, mật khẩu tạm) — <strong>chỉ hiện với <code>admin</code></strong>; role khác chỉ thấy 3 bước, vì <code>POST /users</code> là endpoint admin-only</li>
 </ol>
-<p><strong>EmployeeDetailPage</strong> dùng Tabs:</p>
-<ul>
-<li>Thông tin cá nhân</li>
-<li>Hợp đồng</li>
-<li>Lương & Phụ cấp</li>
-<li>Phép năm</li>
-<li>Chấm công</li>
-<li>Lịch sử khen thưởng / kỷ luật</li>
-<li>Đánh giá hiệu suất</li>
-<li>Thành viên gia đình</li>
-</ul>
+<p>Wizard dùng <strong>một</strong> instance <code>Form</code> cho cả 4 bước (ẩn pane không hoạt động thay vì unmount) nên không mất dữ liệu người dùng đã gõ; nút "Tiếp" chỉ validate field của <strong>bước hiện tại</strong>.</p>
+<p><strong>EmployeeDetailPage</strong> dùng Tabs — hiện có <code>PersonalTab</code>, <code>ContractsTab</code>, <code>FamilyTab</code> (kèm <code>DependentsSection</code>); các tab còn lại (Lương & Phụ cấp, Phép năm, Chấm công, Khen thưởng/Kỷ luật, Đánh giá hiệu suất) render <code>ComingSoonTab</code> cho tới khi module tương ứng ra đời.</p>
 <h3 id="42-attendance-chấm-công">4.2 Attendance (Chấm công)</h3>
 <table><thead>
 <tr><th>File</th><th>Mô tả</th></tr>
 </thead><tbody>
-<tr><td><code>AttendanceListPage</code></td><td>Xem lịch chấm công theo tháng (calendar view)</td></tr>
-<tr><td><code>AttendanceManagePage</code></td><td>HR xem bảng chấm công toàn công ty</td></tr>
-<tr><td><code>OvertimeRequestPage</code></td><td>Đăng ký / duyệt làm thêm giờ</td></tr>
+<tr><td><code>AttendanceLayout</code></td><td>Vỏ của module: tiêu đề + <code>Outlet</code>. Không còn tabbar (chỉ còn một màn hình)</td></tr>
+<tr><td><code>AttendanceTablePage</code></td><td>Màn hình chính: bảng công toàn công ty, lọc phòng ban + tháng</td></tr>
+<tr><td><code>AddAttendanceModal</code> / <code>AdjustAttendanceModal</code></td><td>Nhập một ngày công / sửa ngày công đã có (bắt buộc ghi lý do)</td></tr>
+<tr><td><code>ImportAttendanceModal</code></td><td>Nạp Excel 2 bước: chạy thử → ghi thật</td></tr>
+<tr><td><code>AttendanceStatusTag</code></td><td>Tag trạng thái ngày công</td></tr>
 </tbody></table>
+<blockquote>
+<p>KHÔNG có trang đăng ký/duyệt làm thêm giờ. Giờ làm thêm là một cột của bảng</p>
+<p>công, suy ra từ giờ vào/ra — xem PLAN.md Giai đoạn 4.</p>
+</blockquote>
 <h3 id="43-leave-phép">4.3 Leave (Phép)</h3>
 <table><thead>
 <tr><th>File</th><th>Mô tả</th></tr>
@@ -296,18 +324,42 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 </tbody></table>
 <h3 id="45-settings-cài-đặt">4.5 Settings (Cài đặt)</h3>
 <table><thead>
-<tr><th>File</th><th>Mô tả</th></tr>
+<tr><th>File thật</th><th>Route</th><th>Trạng thái</th></tr>
 </thead><tbody>
-<tr><td><code>DepartmentSettingsPage</code></td><td>Quản lý phòng ban</td></tr>
-<tr><td><code>PositionSettingsPage</code></td><td>Quản lý chức vụ</td></tr>
-<tr><td><code>HolidaySettingsPage</code></td><td>Cấu hình ngày lễ trong năm</td></tr>
-<tr><td><code>LeaveTypeSettingsPage</code></td><td>Loại phép và số ngày được hưởng</td></tr>
-<tr><td><code>UserManagePage</code></td><td>Quản lý tài khoản hệ thống</td></tr>
-<tr><td><code>RolePermissionPage</code></td><td>Phân quyền theo role</td></tr>
+<tr><td><code>SettingsIndexPage</code></td><td><code>/settings</code></td><td>✅ Trang chỉ mục</td></tr>
+<tr><td><code>DepartmentsPage</code></td><td><code>/settings/departments</code></td><td>✅ Quản lý phòng ban (kèm <code>DepartmentOrgChart</code>)</td></tr>
+<tr><td><code>PositionsPage</code></td><td><code>/settings/positions</code></td><td>✅ Quản lý chức vụ</td></tr>
+<tr><td><code>ContractTypesPage</code></td><td><code>/settings/contract-types</code></td><td>✅ <strong>Chỉ đọc</strong> – 4 loại hợp đồng là enum theo BLLĐ 2019, không thêm/sửa/xoá được</td></tr>
+<tr><td><code>LeaveTypesPage</code></td><td><code>/settings/leave-types</code></td><td>✅ Loại phép và số ngày được hưởng</td></tr>
+<tr><td><code>HolidaysPage</code></td><td><code>/settings/holidays</code></td><td>✅ Cấu hình ngày lễ trong năm</td></tr>
+<tr><td><code>UserManagePage</code></td><td>–</td><td>⏳ chưa có (backend mới có <code>POST /users</code>, chưa có <code>GET /users</code>)</td></tr>
+<tr><td><code>RolePermissionPage</code></td><td>–</td><td>⏳ chưa có</td></tr>
 </tbody></table>
+<blockquote>
+<p><strong>Mã phòng ban / chức vụ / loại phép do server sinh</strong> (<code>PB0001</code>, <code>CV0001</code>, <code>NP0001</code>) — form không có ô nhập <code>code</code>; <code>components/crud/GeneratedCodeField</code> hiển thị mã ở chế độ chỉ đọc.</p>
+</blockquote>
 <hr>
 <h2 id="5-custom-hooks">5. Custom Hooks</h2>
 <p>Tất cả hooks đặt trong <code>hooks/</code>. Convention đặt tên: <code>use<Entity></code> hoặc <code>use<Action></code>.</p>
+<blockquote>
+<p>⚠️ <strong>Danh sách bên dưới là thiết kế dự kiến, không khớp code.</strong> Hook thật đang có trong <code>src/hooks/</code>:</p>
+<p></p>
+<p>| File | Export |</p>
+<p>|------|--------|</p>
+<p>| <code>useAuth.ts</code> | <code>useSessionRestore</code>, <code>useCurrentUser</code>, <code>useLogin</code>, <code>useLogout</code>, <code>useChangePassword</code>, <code>useForgotPassword</code>, <code>useResetPassword</code>, <code>AUTH_QUERY_KEYS</code> |</p>
+<p>| <code>useEmployees.ts</code> | <code>useEmployees</code>, <code>useEmployee</code>, <code>useEmployeeStats</code>, <code>useEmployeeSummary</code>, <code>useEmployeeMutations</code>, <code>useContracts</code>, <code>useFamilyMembers</code>, <code>useDependents</code>, <code>useRoles</code> |</p>
+<p>| <code>useEmployeeSearch.ts</code> | <code>useEmployeeSearch</code> (debounce 300ms) |</p>
+<p>| <code>useDepartments.ts</code> | <code>useDepartments</code>, <code>useDepartmentTree</code>, <code>useAllDepartments</code> |</p>
+<p>| <code>usePositions.ts</code> · <code>useLeaveTypes.ts</code> · <code>useHolidays.ts</code> · <code>useContractTypes.ts</code> | <code>usePositions</code>, <code>useLeaveTypes</code>, <code>useHolidays</code>, <code>useContractTypes</code> |</p>
+<p>| <code>useProvinces.ts</code> | <code>useProvinces</code>, <code>useWards</code> (<strong>không có</strong> <code>useDistricts</code> — cấp huyện đã bị bỏ) |</p>
+<p>| <code>useReports.ts</code> | <code>useExportEmployees</code> |</p>
+<p>| <code>usePermissions.ts</code> | <code>useHasRole</code> + <code>useCanWriteMasterData</code> / <code>useCanWriteEmployees</code> / <code>useCanDeleteEmployees</code> / <code>useCanWriteContracts</code> / <code>useCanCreateUsers</code> / <code>useCanExportEmployees</code> |</p>
+<p>| <code>useCrudResource.ts</code> · <code>useCrudScreen.ts</code> | Bộ khung dùng chung cho màn hình master data |</p>
+<p>| <code>useTableQuery.ts</code> | Đọc/ghi <code>page</code>, <code>pageSize</code>, filter vào URL (<code>DEFAULT_PAGE_SIZE = 20</code>) |</p>
+<p>| <code>useApiErrorMessage.ts</code> | <code>useApiErrorMessage</code>, <code>useLoginErrorMessage</code> |</p>
+<p></p>
+<p>Khác biệt đáng chú ý: <strong>mutation gộp trong <code>useEmployeeMutations()</code></strong> chứ không tách <code>useCreateEmployee</code> / <code>useUpdateEmployee</code> / <code>useDeleteEmployee</code>; backend dùng <strong><code>PATCH</code></strong>, không phải <code>PUT</code>; và các hook nghỉ phép / lương (<code>useLeaveRequests</code>, <code>usePayrolls</code>…) <strong>chưa tồn tại</strong> vì module tương ứng thuộc giai đoạn sau.</p>
+</blockquote>
 <h3 id="hooks-lấy-dữ-liệu-usequery">Hooks lấy dữ liệu (useQuery)</h3>
 <table><thead>
 <tr><th>Hook</th><th>Endpoint</th><th>Mô tả</th></tr>
@@ -349,10 +401,14 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <tr><th>State</th><th>Kiểu</th><th>Mô tả</th></tr>
 </thead><tbody>
 <tr><td><code>accessToken</code></td><td>`string \</td><td>null`</td><td>JWT access token trong memory</td></tr>
-<tr><td><code>user</code></td><td>`UserProfile \</td><td>null`</td><td>Thông tin user đang đăng nhập</td></tr>
-<tr><td><code>isAuthenticated</code></td><td><code>boolean</code></td><td>Computed từ accessToken</td></tr>
+<tr><td><code>user</code></td><td>`AuthUser \</td><td>null`</td><td>Thông tin user đang đăng nhập</td></tr>
+<tr><td><code>isAuthenticated</code></td><td><code>boolean</code></td><td>Đặt cùng lúc với token/user</td></tr>
+<tr><td><code>sessionChecked</code></td><td><code>boolean</code></td><td>Đã thử khôi phục phiên ngầm trong vòng đời trang này chưa</td></tr>
 </tbody></table>
-<p>Actions: <code>setAuth(token, user)</code>, <code>clearAuth()</code>, <code>updateToken(token)</code>.</p>
+<p>Actions: <code>setAuth(token, user)</code>, <code>setAccessToken(token)</code>, <code>setUser(user)</code>, <code>markSessionChecked()</code>, <code>clearAuth()</code>.</p>
+<blockquote>
+<p><code>setAccessToken</code> <strong>không</strong> đụng tới <code>user</code>: <code>POST /auth/refresh</code> không chắc trả về user, ghi đè <code>undefined</code> sẽ đăng xuất người dùng ở mỗi lần refresh ngầm. <code>authStore</code> <strong>không</strong> dùng <code>persist</code> (token chỉ nằm trong memory).</p>
+</blockquote>
 <h3 id="uistore">uiStore</h3>
 <table><thead>
 <tr><th>State</th><th>Kiểu</th><th>Mô tả</th></tr>
@@ -361,8 +417,11 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <tr><td><code>locale</code></td><td>`'vi' \</td><td>'en'`</td><td>Ngôn ngữ hiển thị</td></tr>
 <tr><td><code>theme</code></td><td>`'light' \</td><td>'dark'`</td><td>Giao diện</td></tr>
 </tbody></table>
-<p>Actions: <code>toggleSidebar()</code>, <code>setLocale(locale)</code>, <code>setTheme(theme)</code>.</p>
-<p><code>locale</code> và <code>theme</code> được persist vào localStorage qua <code>zustand/middleware/persist</code>.</p>
+<p>Actions: <code>toggleSidebar()</code>, <code>setSidebarCollapsed(collapsed)</code>, <code>setLocale(locale)</code>, <code>setTheme(theme)</code>.</p>
+<p><strong>Toàn bộ</strong> <code>uiStore</code> (gồm cả <code>sidebarCollapsed</code>) được persist vào localStorage qua <code>zustand/middleware/persist</code>, key <code>hrm-ui-store</code>.</p>
+<h3 id="tabsstore">tabsStore</h3>
+<p>State thanh tab đang mở: <code>tabs: OpenTab[]</code> với các action <code>openTab</code>, <code>closeTab</code>, <code>closeOthers</code>, <code>closeAll</code>.</p>
+<p><strong>Cố ý KHÔNG persist:</strong> tab mô tả "việc đang làm ngay lúc này"; khôi phục lại một mớ tab cũ sau một ngày vắng mặt là nhiễu chứ không phải trợ giúp.</p>
 <hr>
 <h2 id="7-naming-conventions">7. Naming Conventions</h2>
 <h3 id="files">Files</h3>
@@ -421,6 +480,8 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li>Không inline CSS style — dùng AntD token hoặc CSS module</li>
 <li>Không gọi trực tiếp <code>queryClient</code> trong component — dùng hook</li>
 </ul>
+<hr>
+<p><em>Cập nhật: 19/08/2026 – Version 1.1 – Đối chiếu với code sau Giai đoạn 0–3: §3 map tên component thật (crud/DataTableCard, TableSearch, RowActions, employees/AvatarUploader, EmployeeStatusTag; CurrencyDisplay/DateDisplay là hàm trong utils/format.ts), sửa 6 giá trị employees.status và endpoint avatar; §4 đánh dấu module chưa có + page/tab thật; §5 liệt kê hook thật (useEmployeeMutations gộp, PATCH không phải PUT, không có useDistricts); §6 bổ sung sessionChecked, tabsStore, phạm vi persist</em></p>
 
 </main>
 <script>

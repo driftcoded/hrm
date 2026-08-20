@@ -101,10 +101,13 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#13-authentication-header">1.3. Authentication Header</a></li>
 <li class="h3"><a href="#14-date-format">1.4. Date Format</a></li>
 <li class="h3"><a href="#15-tiền-tệ">1.5. Tiền tệ</a></li>
+<li class="h3"><a href="#16-trạng-thái-triển-khai-tính-đến-hết-giai-đoạn-3">1.6. Trạng thái triển khai (tính đến hết Giai đoạn 3)</a></li>
 <li class="h2"><a href="#2-authentication">2. Authentication</a></li>
+<li class="h3"><a href="#cookie-refresh-token">Cookie refresh token</a></li>
 <li class="h3"><a href="#post-authlogin">POST `/auth/login`</a></li>
 <li class="h3"><a href="#post-authrefresh">POST `/auth/refresh`</a></li>
 <li class="h3"><a href="#post-authlogout">POST `/auth/logout`</a></li>
+<li class="h3"><a href="#get-authme">GET `/auth/me`</a></li>
 <li class="h3"><a href="#post-authchange-password">POST `/auth/change-password`</a></li>
 <li class="h3"><a href="#post-authforgot-password">POST `/auth/forgot-password`</a></li>
 <li class="h3"><a href="#post-authreset-password">POST `/auth/reset-password`</a></li>
@@ -114,43 +117,62 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#get-employeesid">GET `/employees/:id`</a></li>
 <li class="h3"><a href="#patch-employeesid">PATCH `/employees/:id`</a></li>
 <li class="h3"><a href="#delete-employeesid">DELETE `/employees/:id`</a></li>
+<li class="h3"><a href="#post-employeesidrestore">POST `/employees/:id/restore`</a></li>
+<li class="h3"><a href="#get-employeesstats">GET `/employees/stats`</a></li>
+<li class="h3"><a href="#get-employeesidsummary">GET `/employees/:id/summary`</a></li>
 <li class="h3"><a href="#post-employeesidavatar">POST `/employees/:id/avatar`</a></li>
 <li class="h3"><a href="#get-employeesidwork-history">GET `/employees/:id/work-history`</a></li>
 <li class="h3"><a href="#get-employeesme">GET `/employees/me`</a></li>
 <li class="h2"><a href="#4-departments-phòng-ban">4. Departments – Phòng ban</a></li>
 <li class="h3"><a href="#get-departments">GET `/departments`</a></li>
+<li class="h3"><a href="#get-departmentstree">GET `/departments/tree`</a></li>
 <li class="h3"><a href="#post-departments">POST `/departments`</a></li>
 <li class="h3"><a href="#patch-departmentsid-delete-departmentsid">PATCH `/departments/:id` | DELETE `/departments/:id`</a></li>
 <li class="h2"><a href="#5-positions-chức-vụ">5. Positions – Chức vụ</a></li>
 <li class="h3"><a href="#get-positions">GET `/positions`</a></li>
 <li class="h3"><a href="#post-patch-delete-positions-positionsid">POST | PATCH | DELETE `/positions` | `/positions/:id`</a></li>
 <li class="h2"><a href="#6-contracts-hợp-đồng">6. Contracts – Hợp đồng</a></li>
+<li class="h3"><a href="#get-contract-types">GET `/contract-types`</a></li>
 <li class="h3"><a href="#get-contracts">GET `/contracts`</a></li>
+<li class="h3"><a href="#get-contractsid">GET `/contracts/:id`</a></li>
 <li class="h3"><a href="#post-contracts">POST `/contracts`</a></li>
+<li class="h3"><a href="#patch-contractsid">PATCH `/contracts/:id`</a></li>
 <li class="h3"><a href="#patch-contractsidterminate">PATCH `/contracts/:id/terminate`</a></li>
+<li class="h3"><a href="#delete-contractsid">DELETE `/contracts/:id`</a></li>
 <li class="h2"><a href="#7-attendances-chấm-công">7. Attendances – Chấm công</a></li>
-<li class="h3"><a href="#post-attendancescheck-in">POST `/attendances/check-in`</a></li>
-<li class="h3"><a href="#post-attendancescheck-out">POST `/attendances/check-out`</a></li>
+<li class="h3"><a href="#post-attendances">POST `/attendances`</a></li>
 <li class="h3"><a href="#get-attendances">GET `/attendances`</a></li>
-<li class="h3"><a href="#get-attendancesme">GET `/attendances/me`</a></li>
 <li class="h3"><a href="#patch-attendancesid">PATCH `/attendances/:id`</a></li>
 <li class="h3"><a href="#post-attendancesbulk-import">POST `/attendances/bulk-import`</a></li>
+<li class="h3"><a href="#get-attendancesimport-template">GET `/attendances/import-template`</a></li>
 <li class="h2"><a href="#8-leaves-nghỉ-phép">8. Leaves – Nghỉ phép</a></li>
 <li class="h3"><a href="#get-leave-types">GET `/leave-types`</a></li>
-<li class="h3"><a href="#get-leavesbalance">GET `/leaves/balance`</a></li>
-<li class="h3"><a href="#post-leaves">POST `/leaves`</a></li>
-<li class="h3"><a href="#get-leaves">GET `/leaves`</a></li>
-<li class="h3"><a href="#get-leavesme">GET `/leaves/me`</a></li>
-<li class="h3"><a href="#patch-leavesidapprove">PATCH `/leaves/:id/approve`</a></li>
-<li class="h3"><a href="#patch-leavesidreject">PATCH `/leaves/:id/reject`</a></li>
-<li class="h3"><a href="#delete-leavesid">DELETE `/leaves/:id`</a></li>
+<li class="h3"><a href="#post-leave-balancesinit">POST `/leave-balances/init`</a></li>
+<li class="h3"><a href="#get-leave-balances">GET `/leave-balances`</a></li>
+<li class="h3"><a href="#patch-leave-balancesid">PATCH `/leave-balances/:id`</a></li>
+<li class="h3"><a href="#delete-leave-balancesid">DELETE `/leave-balances/:id`</a></li>
+<li class="h3"><a href="#post-leave-requests">POST `/leave-requests`</a></li>
+<li class="h3"><a href="#get-leave-requests">GET `/leave-requests`</a></li>
+<li class="h3"><a href="#get-leave-requestscalendar">GET `/leave-requests/calendar`</a></li>
+<li class="h3"><a href="#patch-leave-requestsidapprove">PATCH `/leave-requests/:id/approve`</a></li>
+<li class="h3"><a href="#patch-leave-requestsidreject">PATCH `/leave-requests/:id/reject`</a></li>
+<li class="h3"><a href="#patch-leave-requestsidcancel">PATCH `/leave-requests/:id/cancel`</a></li>
+<li class="h3"><a href="#patch-leave-requestsid">PATCH `/leave-requests/:id`</a></li>
+<li class="h3"><a href="#delete-leave-requestsid">DELETE `/leave-requests/:id`</a></li>
 <li class="h2"><a href="#9-salaries-lương">9. Salaries – Lương</a></li>
 <li class="h3"><a href="#post-salariescalculate">POST `/salaries/calculate`</a></li>
+<li class="h3"><a href="#get-salariessummaryyear2026month8">GET `/salaries/summary?year=2026&month=8`</a></li>
+<li class="h3"><a href="#get-salariesperiods">GET `/salaries/periods`</a></li>
 <li class="h3"><a href="#get-salaries">GET `/salaries`</a></li>
-<li class="h3"><a href="#get-salariesmeyearmonth">GET `/salaries/me/:year/:month`</a></li>
-<li class="h3"><a href="#patch-salariesidapprove">PATCH `/salaries/:id/approve`</a></li>
-<li class="h3"><a href="#patch-salariesidmark-paid">PATCH `/salaries/:id/mark-paid`</a></li>
-<li class="h3"><a href="#get-salariesidpayslip">GET `/salaries/:id/payslip`</a></li>
+<li class="h3"><a href="#get-salariesid">GET `/salaries/:id`</a></li>
+<li class="h3"><a href="#patch-salariesid">PATCH `/salaries/:id`</a></li>
+<li class="h3"><a href="#patch-salariesidapprove-mark-paid-cancel">PATCH `/salaries/:id/approve` · `/mark-paid` · `/cancel`</a></li>
+<li class="h2"><a href="#9b-salary-advances-tạm-ứng-lương">9b. Salary Advances – Tạm ứng lương</a></li>
+<li class="h3"><a href="#post-salary-advances">POST `/salary-advances`</a></li>
+<li class="h3"><a href="#get-salary-advances">GET `/salary-advances`</a></li>
+<li class="h3"><a href="#patch-salary-advancesidapprove-reject-cancel">PATCH `/salary-advances/:id/approve` · `/reject` · `/cancel`</a></li>
+<li class="h2"><a href="#9c-payroll-settings-cấu-hình-lương">9c. Payroll Settings – Cấu hình lương</a></li>
+<li class="h3"><a href="#get-payroll-settings-patch-payroll-settings">GET `/payroll-settings` | PATCH `/payroll-settings`</a></li>
 <li class="h2"><a href="#10-family-members-thành-viên-gia-đình">10. Family Members – Thành viên gia đình</a></li>
 <li class="h3"><a href="#get-employeesidfamily-members">GET `/employees/:id/family-members`</a></li>
 <li class="h3"><a href="#post-employeesidfamily-members">POST `/employees/:id/family-members`</a></li>
@@ -166,38 +188,35 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#post-employeesiddocuments">POST `/employees/:id/documents`</a></li>
 <li class="h3"><a href="#delete-employeesiddocumentsdocid">DELETE `/employees/:id/documents/:docId`</a></li>
 <li class="h2"><a href="#13-users-tài-khoản">13. Users – Tài khoản</a></li>
-<li class="h3"><a href="#get-users">GET `/users`</a></li>
+<li class="h3"><a href="#get-roles">GET `/roles`</a></li>
 <li class="h3"><a href="#post-users">POST `/users`</a></li>
-<li class="h3"><a href="#patch-usersid">PATCH `/users/:id`</a></li>
-<li class="h3"><a href="#patch-usersidreset-password">PATCH `/users/:id/reset-password`</a></li>
+<li class="h3"><a href="#get-users-patch-usersid-patch-usersidreset-password">GET `/users` · PATCH `/users/:id` · PATCH `/users/:id/reset-password`</a></li>
 <li class="h2"><a href="#14-disciplines-rewards-khen-thưởng-kỷ-luật">14. Disciplines & Rewards – Khen thưởng & Kỷ luật</a></li>
-<li class="h3"><a href="#get-employeesiddisciplines-rewards">GET `/employees/:id/disciplines-rewards`</a></li>
-<li class="h3"><a href="#post-employeesiddisciplines-rewards">POST `/employees/:id/disciplines-rewards`</a></li>
-<li class="h3"><a href="#patch-employeesiddisciplines-rewardsrecordid">PATCH `/employees/:id/disciplines-rewards/:recordId`</a></li>
-<li class="h3"><a href="#delete-employeesiddisciplines-rewardsrecordid">DELETE `/employees/:id/disciplines-rewards/:recordId`</a></li>
+<li class="h3"><a href="#get-employeesemployeeiddisciplines-rewards">GET `/employees/:employeeId/disciplines-rewards`</a></li>
+<li class="h3"><a href="#post-employeesemployeeiddisciplines-rewards">POST `/employees/:employeeId/disciplines-rewards`</a></li>
+<li class="h3"><a href="#patch-employeesemployeeiddisciplines-rewardsrecordid">PATCH `/employees/:employeeId/disciplines-rewards/:recordId`</a></li>
+<li class="h3"><a href="#delete-employeesemployeeiddisciplines-rewardsrecordid">DELETE `/employees/:employeeId/disciplines-rewards/:recordId`</a></li>
 <li class="h2"><a href="#15-performance-reviews-đánh-giá-hiệu-suất">15. Performance Reviews – Đánh giá hiệu suất</a></li>
-<li class="h3"><a href="#get-performance-reviews">GET `/performance-reviews`</a></li>
-<li class="h3"><a href="#get-performance-reviewsme">GET `/performance-reviews/me`</a></li>
 <li class="h3"><a href="#post-performance-reviews">POST `/performance-reviews`</a></li>
+<li class="h3"><a href="#get-performance-reviews">GET `/performance-reviews`</a></li>
+<li class="h3"><a href="#get-performance-reviewsid">GET `/performance-reviews/:id`</a></li>
 <li class="h3"><a href="#patch-performance-reviewsid">PATCH `/performance-reviews/:id`</a></li>
 <li class="h3"><a href="#patch-performance-reviewsidsubmit">PATCH `/performance-reviews/:id/submit`</a></li>
 <li class="h3"><a href="#patch-performance-reviewsidacknowledge">PATCH `/performance-reviews/:id/acknowledge`</a></li>
+<li class="h3"><a href="#delete-performance-reviewsid">DELETE `/performance-reviews/:id`</a></li>
 <li class="h2"><a href="#16-trainings-đào-tạo">16. Trainings – Đào tạo</a></li>
 <li class="h3"><a href="#get-trainings">GET `/trainings`</a></li>
-<li class="h3"><a href="#post-trainings">POST `/trainings`</a></li>
-<li class="h3"><a href="#patch-trainingsid-delete-trainingsid">PATCH `/trainings/:id` | DELETE `/trainings/:id`</a></li>
-<li class="h3"><a href="#get-trainingsidparticipants">GET `/trainings/:id/participants`</a></li>
-<li class="h3"><a href="#post-trainingsidenroll">POST `/trainings/:id/enroll`</a></li>
+<li class="h3"><a href="#get-trainingsid-post-trainings-patch-trainingsid-delete-trainingsid">GET `/trainings/:id` | POST `/trainings` | PATCH `/trainings/:id` | DELETE `/trainings/:id`</a></li>
+<li class="h3"><a href="#get-trainingsidparticipants-post-trainingsidparticipants">GET `/trainings/:id/participants` | POST `/trainings/:id/participants`</a></li>
 <li class="h3"><a href="#patch-trainingsidparticipantsemployeeid">PATCH `/trainings/:id/participants/:employeeId`</a></li>
+<li class="h3"><a href="#delete-trainingsidparticipantsemployeeid">DELETE `/trainings/:id/participants/:employeeId`</a></li>
+<li class="h3"><a href="#get-employeesemployeeidtrainings">GET `/employees/:employeeId/trainings`</a></li>
 <li class="h2"><a href="#17-announcements-thông-báo-nội-bộ">17. Announcements – Thông báo nội bộ</a></li>
 <li class="h3"><a href="#get-announcements">GET `/announcements`</a></li>
 <li class="h3"><a href="#get-announcementsid">GET `/announcements/:id`</a></li>
 <li class="h3"><a href="#post-announcements">POST `/announcements`</a></li>
 <li class="h3"><a href="#patch-announcementsid-delete-announcementsid">PATCH `/announcements/:id` | DELETE `/announcements/:id`</a></li>
-<li class="h2"><a href="#18-leave-balances-quản-lý-ngày-phép-admin">18. Leave Balances – Quản lý ngày phép (Admin)</a></li>
-<li class="h3"><a href="#get-leave-balances">GET `/leave-balances`</a></li>
-<li class="h3"><a href="#post-leave-balancesinit-year">POST `/leave-balances/init-year`</a></li>
-<li class="h3"><a href="#patch-leave-balancesid">PATCH `/leave-balances/:id`</a></li>
+<li class="h2"><a href="#18-leave-balances-quản-lý-ngày-phép">18. Leave Balances – Quản lý ngày phép</a></li>
 <li class="h2"><a href="#19-reports-báo-cáo">19. Reports – Báo cáo</a></li>
 <li class="h3"><a href="#get-reportsdashboardstats">GET `/reports/dashboard/stats`</a></li>
 <li class="h3"><a href="#get-reportsemployeesexport">GET `/reports/employees/export`</a></li>
@@ -205,11 +224,12 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#get-reportsattendancesexport">GET `/reports/attendances/export`</a></li>
 <li class="h3"><a href="#get-reportsleavessummary">GET `/reports/leaves/summary`</a></li>
 <li class="h2"><a href="#20-system-dữ-liệu-hệ-thống">20. System – Dữ liệu hệ thống</a></li>
+<li class="h3"><a href="#địa-giới-hành-chính-chỉ-còn-2-cấp">Địa giới hành chính – chỉ còn 2 cấp</a></li>
 <li class="h3"><a href="#get-systemprovinces">GET `/system/provinces`</a></li>
-<li class="h3"><a href="#get-systemdistrictsprovincecode">GET `/system/districts/:provinceCode`</a></li>
-<li class="h3"><a href="#get-systemwardsdistrictcode">GET `/system/wards/:districtCode`</a></li>
+<li class="h3"><a href="#get-systemwards">GET `/system/wards`</a></li>
 <li class="h3"><a href="#get-systemholidays">GET `/system/holidays`</a></li>
 <li class="h3"><a href="#get-systemleave-types">GET `/system/leave-types`</a></li>
+<li class="h3"><a href="#holidays-crud-holidays">Holidays – CRUD (`/holidays`)</a></li>
 <li class="h2"><a href="#21-error-codes">21. Error Codes</a></li>
 <li class="h3"><a href="#http-status-codes">HTTP Status Codes</a></li>
 <li class="h3"><a href="#application-error-codes">Application Error Codes</a></li>
@@ -221,8 +241,11 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <blockquote>
 <p><strong>Base URL:</strong> <code>https://api.yourdomain.com/api/v1</code>  </p>
 <p><strong>Format:</strong> JSON, UTF-8  </p>
-<p><strong>Auth:</strong> Bearer JWT (Access Token)  </p>
-<p><strong>Docs:</strong> Swagger tại <code>/api/docs</code> (chỉ môi trường dev/staging)</p>
+<p><strong>Auth:</strong> Bearer JWT (Access Token) trong header; refresh token trong cookie HttpOnly (§2)  </p>
+<p><strong>Docs:</strong> Swagger tại <code>/api/docs</code></p>
+<p></p>
+<p>⚠️ Swagger hiện được mount ở <strong>mọi</strong> môi trường (<code>main.ts</code> không kiểm tra <code>NODE_ENV</code>).</p>
+<p>Ý định ban đầu là chỉ bật ở dev/staging — cần chặn lại trước khi lên production.</p>
 </blockquote>
 <hr>
 <h2 id="mục-lục">Mục lục</h2>
@@ -321,22 +344,86 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 - API response: number (đơn vị VNĐ, không có thập phân thực tế)
 - Ví dụ: 25000000 (không phải "25,000,000" hay 25000000.00)
 </code></pre>
+<h3 id="16-trạng-thái-triển-khai-tính-đến-hết-giai-đoạn-3">1.6. Trạng thái triển khai (tính đến hết Giai đoạn 3)</h3>
+<p>Tài liệu này mô tả <strong>toàn bộ</strong> API dự kiến của hệ thống. Phần dưới đây là danh sách route <strong>đã tồn tại trong code</strong> — mọi endpoint không có trong bảng này là kế hoạch của các giai đoạn sau, chưa gọi được:</p>
+<pre><code class="language-">GET  /health
+POST /auth/login  /auth/refresh  /auth/logout  /auth/change-password
+     /auth/forgot-password  /auth/reset-password
+GET  /auth/me
+
+GET    /employees          POST   /employees
+GET    /employees/me       GET    /employees/stats
+GET    /employees/:id      PATCH  /employees/:id      DELETE /employees/:id
+GET    /employees/:id/summary
+POST   /employees/:id/restore   POST /employees/:id/avatar
+GET/POST      /employees/:employeeId/family-members
+PATCH/DELETE  /employees/:employeeId/family-members/:memberId
+GET/POST      /employees/:employeeId/dependents
+PATCH/DELETE  /employees/:employeeId/dependents/:dependentId
+
+GET/POST      /contracts        GET/PATCH/DELETE /contracts/:id
+PATCH         /contracts/:id/terminate
+GET           /contract-types                (read-only, xem §6)
+
+GET/POST      /departments      GET /departments/tree
+GET/PATCH/DELETE /departments/:id
+GET/POST      /positions        GET/PATCH/DELETE /positions/:id
+GET/POST      /leave-types      GET/PATCH/DELETE /leave-types/:id
+GET/POST      /holidays         GET/PATCH/DELETE /holidays/:id
+
+GET  /system/provinces  /system/wards  /system/holidays  /system/leave-types
+GET  /reports/employees/export
+GET  /roles             POST /users
+</code></pre>
+<p>Các endpoint được mô tả trong tài liệu nhưng <strong>chưa hiện thực</strong>: §12 (Documents), §17 (Announcements), <code>GET /employees/:id/work-history</code> (§3), <code>GET /users</code> · <code>PATCH /users/:id</code> · <code>PATCH /users/:id/reset-password</code> (§13), và mọi report ngoài <code>GET /reports/employees/export</code> (§19).</p>
+<p>Đã hiện thực từ khi dòng này được viết: §7 (Attendances, giai đoạn 4), §8 (Leaves, giai đoạn 5), §9 (Salaries, giai đoạn 6), §14–§16 (Khen thưởng/kỷ luật, Đánh giá, Đào tạo — giai đoạn 7).</p>
 <hr>
 <h2 id="2-authentication">2. Authentication</h2>
+<blockquote>
+<p><strong>Refresh token KHÔNG BAO GIỜ nằm trong response body.</strong> Nó chỉ được giao qua cookie HttpOnly.</p>
+<p>Tài liệu này trước đây mô tả <code>refreshToken</code> trong body login và trong body <code>/auth/refresh</code>;</p>
+<p>điều đó đã sai từ khi Giai đoạn 1 hiện thực hoá <code>RefreshCookieService</code> — JS đọc được token</p>
+<p>nghĩa là một lỗ XSS đọc được luôn phiên đăng nhập 7 ngày, nên token được đưa ra khỏi tầm với</p>
+<p>của JS hoàn toàn.</p>
+</blockquote>
+<h3 id="cookie-refresh-token">Cookie refresh token</h3>
+<p><code>POST /auth/login</code> và <code>POST /auth/refresh</code> đều trả header:</p>
+<pre><code class="language-">Set-Cookie: refresh_token=&lt;opaque&gt;; Path=/api/v1/auth/refresh; HttpOnly; SameSite=Strict
+</code></pre>
+<table><thead>
+<tr><th>Thuộc tính</th><th>Giá trị</th><th>Lý do</th></tr>
+</thead><tbody>
+<tr><td><code>HttpOnly</code></td><td>luôn bật</td><td>JS không đọc được → XSS không lấy được refresh token</td></tr>
+<tr><td><code>SameSite=Strict</code></td><td>luôn bật</td><td>Chống CSRF</td></tr>
+<tr><td><code>Path</code></td><td><code>/<API_PREFIX>/auth/refresh</code> (mặc định <code>/api/v1/auth/refresh</code>)</td><td>Refresh token CHỈ cần ở đúng endpoint đó. Với <code>Path=/</code> browser sẽ đính kèm token vào <strong>mọi</strong> request tới origin (kể cả tải ảnh) — mở rộng bề mặt bị lộ mà không được gì. Path được tính từ config <code>API_PREFIX</code>, không hardcode</td></tr>
+<tr><td><code>Secure</code></td><td><strong>chỉ ở production</strong></td><td><code>Secure: true</code> trên <code>http://localhost</code> khiến browser <strong>âm thầm bỏ cookie</strong> (không báo lỗi) → dev sẽ không bao giờ refresh được. Vì vậy production = <code>true</code>, dev/test = <code>false</code></td></tr>
+<tr><td><code>Max-Age</code></td><td>chỉ khi <code>rememberMe: true</code></td><td>Xem <code>rememberMe</code> bên dưới</td></tr>
+</tbody></table>
+<blockquote>
+<p><strong>Client:</strong> chỉ 2 request được phép gửi/nhận cookie này (<code>withCredentials</code>): <code>POST /auth/login</code> (nhận <code>Set-Cookie</code>) và <code>POST /auth/refresh</code> (gửi cookie + được rotate). Mọi endpoint khác — kể cả <code>/auth/logout</code> — chỉ dùng Bearer access token.</p>
+</blockquote>
+<hr>
 <h3 id="post-authlogin">POST <code>/auth/login</code></h3>
-<p>Đăng nhập, nhận Access Token + Refresh Token.</p>
+<p>Đăng nhập bằng <strong>username HOẶC email</strong> (email không phân biệt hoa/thường), nhận Access Token trong body + Refresh Token trong cookie.</p>
 <p><strong>Request:</strong></p>
 <pre><code class="language-json">{
   "username": "admin",
-  "password": "Abc@12345"
+  "password": "Abc@12345",
+  "rememberMe": false
 }
 </code></pre>
+<table><thead>
+<tr><th>Field</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>username</code></td><td>✅</td><td>Tên đăng nhập <strong>hoặc</strong> email</td></tr>
+<tr><td><code>password</code></td><td>✅</td><td>–</td></tr>
+<tr><td><code>rememberMe</code></td><td>❌ (mặc định <code>false</code>)</td><td>CHỈ ảnh hưởng tuổi thọ <strong>cookie</strong>: <code>true</code> → cookie có <code>Max-Age</code> = tuổi thọ refresh token (7 ngày, còn sau khi đóng browser); <code>false</code> → session cookie (mất khi đóng browser). Bản ghi <code>refresh_tokens.expires_at</code> trong DB <strong>luôn</strong> là 7 ngày trong cả hai trường hợp</td></tr>
+</tbody></table>
 <p><strong>Response 200:</strong></p>
 <pre><code class="language-json">{
   "success": true,
   "data": {
     "accessToken": "eyJhbGci...",
-    "refreshToken": "eyJhbGci...",
     "expiresIn": 900,
     "user": {
       "id": 1,
@@ -352,21 +439,81 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
   }
 }
 </code></pre>
-<p><strong>Errors:</strong> <code>401 INVALID_CREDENTIALS</code>, <code>423 ACCOUNT_LOCKED</code></p>
+<p>Kèm header <code>Set-Cookie</code> như mô tả ở trên. <code>expiresIn</code> = số giây access token còn hiệu lực (mặc định 900 = 15 phút). <code>user.employee</code> = <code>null</code> nếu tài khoản chưa gắn hồ sơ nhân viên.</p>
+<p><strong>Errors:</strong></p>
+<table><thead>
+<tr><th>Status</th><th>Code</th><th>Khi nào</th></tr>
+</thead><tbody>
+<tr><td>401</td><td><code>INVALID_CREDENTIALS</code></td><td>Sai định danh hoặc mật khẩu (lần sai thứ 1–4)</td></tr>
+<tr><td>429</td><td><code>ACCOUNT_LOCKED</code></td><td><strong>Lần sai thứ 5</strong> — chính lần này làm khoá tài khoản 15 phút</td></tr>
+<tr><td>423</td><td><code>ACCOUNT_LOCKED</code></td><td>Các lần thử <strong>sau đó</strong>, khi khoá còn hiệu lực</td></tr>
+<tr><td>423</td><td><code>ACCOUNT_LOCKED</code></td><td><code>users.status = 'locked'</code> (khoá thủ công, không tự mở)</td></tr>
+<tr><td>403</td><td><code>ACCOUNT_INACTIVE</code></td><td><code>users.status</code> khác <code>active</code> (ví dụ <code>inactive</code>) — chỉ kiểm tra <strong>sau khi</strong> mật khẩu đúng, để không tiết lộ trạng thái tài khoản cho người không biết mật khẩu</td></tr>
+</tbody></table>
+<blockquote>
+<p><strong>Thời gian còn lại của khoá nằm ở header <code>Retry-After</code> (số giây), KHÔNG nằm trong JSON body.</strong></p>
+<p><code>error.message</code> là văn bản tiếng Anh dành cho developer/log — UI <strong>không được</strong> hiển thị nó và</p>
+<p>không được parse nó để lấy số phút.</p>
+<p></p>
+<p><code>Retry-After</code> có mặt ở <strong>khoá tự động do đăng nhập sai</strong> (cả 429 và 423). Trường hợp</p>
+<p><code>users.status = 'locked'</code> (khoá thủ công) cũng trả 423 <code>ACCOUNT_LOCKED</code> nhưng <strong>không</strong> có</p>
+<p><code>Retry-After</code> — khoá này không tự hết hạn, phải liên hệ HR/quản trị. UI phải xử lý được</p>
+<p>cả hai: có header thì hiện số phút, không có thì hiện thông điệp chung.</p>
+<p></p>
+<p>Ngưỡng khoá (<code>AUTH_MAX_FAILED_LOGIN_ATTEMPTS</code>, mặc định 5) và thời gian khoá</p>
+<p>(<code>AUTH_LOCKOUT_MINUTES</code>, mặc định 15) đọc từ config.</p>
+</blockquote>
 <hr>
 <h3 id="post-authrefresh">POST <code>/auth/refresh</code></h3>
-<p>Lấy Access Token mới bằng Refresh Token.</p>
-<p><strong>Request:</strong></p>
-<pre><code class="language-json">{ "refreshToken": "eyJhbGci..." }
+<p>Cấp Access Token mới từ cookie refresh token, kèm <strong>rotation</strong>.</p>
+<p><strong>Request:</strong> <strong>KHÔNG có body.</strong> Token đọc từ cookie HttpOnly; client chỉ cần gửi request kèm credentials.</p>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGci...",
+    "expiresIn": 900
+  }
+}
 </code></pre>
-<p><strong>Response 200:</strong> Trả về <code>accessToken</code> mới + <code>refreshToken</code> mới (rotation).</p>
+<p>Refresh token <strong>mới</strong> được set lại qua <code>Set-Cookie</code> (cùng thuộc tính như login). Token cũ bị revoke ngay.</p>
+<p><strong>Errors:</strong> <code>401 TOKEN_INVALID</code> (thiếu cookie / token không tồn tại / token đã dùng lại), <code>401 REFRESH_TOKEN_EXPIRED</code>.</p>
+<blockquote>
+<p><strong>Phát hiện dùng lại token:</strong> gửi một refresh token đã bị revoke sẽ revoke <strong>toàn bộ</strong> session của user đó (dấu hiệu token bị đánh cắp) — xem architecture.md §7.4.</p>
+</blockquote>
 <hr>
 <h3 id="post-authlogout">POST <code>/auth/logout</code></h3>
 <blockquote>
 <p>🔒 Auth required</p>
 </blockquote>
-<p>Vô hiệu hóa Refresh Token hiện tại.</p>
-<p><strong>Request:</strong> <code>{}</code> (token lấy từ header)</p>
+<p>Revoke refresh token trong DB + xoá cookie.</p>
+<p><strong>Request:</strong> không có body.</p>
+<p>Session được xác định qua claim <code>sid</code> của <strong>access token</strong>, KHÔNG qua cookie: cookie refresh token có <code>Path</code> hẹp nên browser không gửi nó tới <code>/auth/logout</code>.</p>
+<p><strong>Response 200:</strong> <code>{ "success": true, "data": { "ok": true }, "timestamp": "..." }</code></p>
+<hr>
+<h3 id="get-authme">GET <code>/auth/me</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p>Thông tin user đang đăng nhập. Trả về <strong>đúng object <code>user</code></strong> của response login.</p>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@company.com",
+    "role": "admin",
+    "employee": {
+      "id": 1,
+      "fullName": "Nguyễn Văn Admin",
+      "avatarUrl": null
+    }
+  }
+}
+</code></pre>
+<p><strong>Vì sao endpoint này tồn tại:</strong> frontend giữ access token trong memory (không localStorage), nên sau F5 store rỗng. Luồng khôi phục phiên là <code>POST /auth/refresh</code> → <code>GET /auth/me</code>. Không có endpoint này thì mỗi lần tải lại trang người dùng phải đăng nhập lại.</p>
+<p><strong>Errors:</strong> <code>401 TOKEN_INVALID</code> (user đã bị xoá), <code>401 TOKEN_EXPIRED</code>.</p>
 <hr>
 <h3 id="post-authchange-password">POST <code>/auth/change-password</code></h3>
 <blockquote>
@@ -398,7 +545,9 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <h2 id="3-employees-nhân-viên">3. Employees – Nhân viên</h2>
 <h3 id="get-employees">GET <code>/employees</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+<p>🔒 Auth required. <code>admin</code> · <code>hr_manager</code> · <code>hr_staff</code> xem toàn công ty; <code>manager</code> chỉ xem phòng ban mình quản lý; <code>employee</code> nhận <code>403 FORBIDDEN</code> và phải dùng <code>GET /employees/me</code>.</p>
+<p></p>
+<p>Endpoint <strong>không</strong> khai báo <code>@Roles()</code>: phạm vi dữ liệu do service quyết định theo role, không phải chặn/không chặn.</p>
 </blockquote>
 <p><strong>Query params:</strong></p>
 <pre><code class="language-">?search=nguyen     Tìm theo tên, mã NV, email, CCCD
@@ -408,6 +557,7 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 ?gender=male
 ?hireFrom=2024-01-01
 ?hireTo=2024-12-31
+?onlyDeleted=true  Chỉ hồ sơ đã xoá mềm (để khôi phục)
 </code></pre>
 <p><strong>Response 200:</strong></p>
 <pre><code class="language-json">{
@@ -458,10 +608,9 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
   "socialInsuranceNo": "0123456789",
   "healthInsuranceNo": "DN4010000123456",
 
-  "permanentAddress": "Số 10, Ngõ 20, Phố Huế, Hai Bà Trưng, Hà Nội",
+  "permanentAddress": "Số 10, Ngõ 20, Phố Huế, Hà Nội",
   "provinceCode": "01",
-  "districtCode": "007",
-  "wardCode": "00193",
+  "wardCode": "10105001",
 
   "phone": "0912345678",
   "email": "binh.nguyen@company.com",
@@ -496,7 +645,16 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
   }
 }
 </code></pre>
-<p><strong>Errors:</strong> <code>409 DUPLICATE_CCCD</code>, <code>409 DUPLICATE_EMAIL</code>, <code>409 DUPLICATE_TAX_CODE</code>, <code>400 VALIDATION_ERROR</code></p>
+<blockquote>
+<p><strong>Địa chỉ – chỉ còn 2 cấp.</strong> Từ <strong>01/07/2025</strong> (Luật 72/2025/QH15) cấp huyện chấm dứt hoạt động:</p>
+<p>cả nước còn <strong>34 tỉnh/thành</strong> và <strong>3.321 phường/xã/đặc khu</strong>, không có gì ở giữa.</p>
+<p>- <code>provinceCode</code> (bắt buộc): mã tỉnh Bộ Nội Vụ, <code>01</code>–<code>34</code> — lấy từ <code>GET /system/provinces</code>.</p>
+<p>- <code>wardCode</code> (bắt buộc): mã phường/xã/đặc khu theo danh mục <strong>cơ quan thuế (TMS)</strong>, ví dụ <code>10105001</code> — lấy từ <code>GET /system/wards?provinceCode=01</code>.</p>
+<p>- <code>districtCode</code>: <strong>ĐÃ LỖI THỜI</strong>, nullable, tuỳ chọn. Giữ lại chỉ để nhập/đọc hồ sơ tạo trước 01/07/2025; hồ sơ mới bỏ trống. Không có endpoint danh mục quận/huyện.</p>
+<p></p>
+<p><code>employeeCode</code> do <strong>server sinh</strong> (<code>NV0001</code>, <code>NV0002</code>…), client không gửi.</p>
+</blockquote>
+<p><strong>Errors:</strong> <code>409 DUPLICATE_CCCD</code>, <code>409 DUPLICATE_EMAIL</code>, <code>409 DUPLICATE_TAX_CODE</code>, <code>409 DUPLICATE_SI_NUMBER</code>, <code>409 DUPLICATE_HI_NUMBER</code>, <code>400 VALIDATION_ERROR</code></p>
 <hr>
 <h3 id="get-employeesid">GET <code>/employees/:id</code></h3>
 <blockquote>
@@ -514,7 +672,27 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <blockquote>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
 </blockquote>
-<p>Soft delete – set <code>deletedAt</code>, không xoá khỏi DB.</p>
+<p>Soft delete – set <code>deletedAt</code>, không xoá khỏi DB. Hợp đồng/chấm công/lương giữ nguyên để còn tra cứu lịch sử.</p>
+<hr>
+<h3 id="post-employeesidrestore">POST <code>/employees/:id/restore</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p>Khôi phục hồ sơ đã xoá mềm. Tìm hồ sơ đã xoá qua <code>GET /employees?onlyDeleted=true</code>.</p>
+<p><strong>Errors:</strong> <code>404 EMPLOYEE_NOT_FOUND</code>, <code>422 EMPLOYEE_NOT_DELETED</code> (hồ sơ đang bình thường).</p>
+<hr>
+<h3 id="get-employeesstats">GET <code>/employees/stats</code></h3>
+<blockquote>
+<p>🔒 Auth required (<code>employee</code> → <code>403 FORBIDDEN</code>)</p>
+</blockquote>
+<p>Gộp mọi con số của các thẻ tổng quan màn hình danh sách vào <strong>một</strong> request: tổng số, phân bổ theo trạng thái/giới tính/phòng ban, số hợp đồng sắp hết hạn, số người mới tuyển và số người sắp hết thử việc trong cửa sổ gần đây, sinh nhật.</p>
+<p>Tính trong <strong>đúng phạm vi</strong> của role gọi nó (manager chỉ thấy phòng ban mình). <strong>Không</strong> có số liệu "so với tháng trước": bảng <code>employees</code> chỉ lưu trạng thái hiện tại.</p>
+<hr>
+<h3 id="get-employeesidsummary">GET <code>/employees/:id/summary</code></h3>
+<blockquote>
+<p>🔒 Auth required (cùng phạm vi với <code>GET /employees/:id</code>)</p>
+</blockquote>
+<p>Tóm tắt hồ sơ dùng cho phiếu lương: phòng ban/chức vụ, MST, số BHXH, tài khoản ngân hàng, số người phụ thuộc đang hiệu lực và hợp đồng đang <code>active</code>.</p>
 <hr>
 <h3 id="post-employeesidavatar">POST <code>/employees/:id/avatar</code></h3>
 <blockquote>
@@ -522,11 +700,19 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 </blockquote>
 <p><strong>Content-Type:</strong> <code>multipart/form-data</code>  </p>
 <p><strong>Field:</strong> <code>avatar</code> (file, max 2MB, JPEG/PNG/WEBP)</p>
+<p>Kiểu file được xác định bằng <strong>magic bytes</strong>, không tin phần mở rộng.</p>
 <p><strong>Response 200:</strong></p>
-<pre><code class="language-json">{ "data": { "avatarUrl": "https://s3.amazonaws.com/..." } }
+<pre><code class="language-json">{ "data": { "avatarUrl": "/api/v1/uploads/avatars/51/9f3c1b7a2d4e6f80.jpg" } }
 </code></pre>
+<blockquote>
+<p><code>avatarUrl</code> phụ thuộc driver lưu trữ. Mặc định hiện tại là driver <code>local</code> → đường dẫn <strong>tương đối</strong> dưới <code>/<API_PREFIX>/uploads/…</code> (đặt dưới <code>API_PREFIX</code> để frontend lấy được ảnh qua đúng Vite proxy <code>/api</code> đã có sẵn). Driver <code>s3</code> (chưa được kích hoạt) sẽ trả URL tuyệt đối. Phần tên file là ngẫu nhiên: URL mới khác URL cũ nên browser/CDN không trả ảnh cũ từ cache, và người ngoài không đoán được đường dẫn ảnh của nhân viên khác. Xem architecture.md §9.</p>
+</blockquote>
+<p><strong>Errors:</strong> <code>400 AVATAR_REQUIRED</code>, <code>400 AVATAR_TOO_LARGE</code>, <code>400 AVATAR_INVALID_TYPE</code> (cả ba là 400 chứ không phải VALIDATION_ERROR: lỗi nằm ở phần multipart nên không dựng được <code>details[].field</code>), <code>404 EMPLOYEE_NOT_FOUND</code>, <code>403 FORBIDDEN</code> (không phải ảnh của mình và không thuộc nhóm HR).</p>
 <hr>
 <h3 id="get-employeesidwork-history">GET <code>/employees/:id/work-history</code></h3>
+<blockquote>
+<p>⏳ <strong>Chưa hiện thực</strong> (bảng <code>work_history</code> đã có trong schema, chưa có module/route).</p>
+</blockquote>
 <p>Lịch sử công tác của nhân viên.</p>
 <p><strong>Response 200:</strong></p>
 <pre><code class="language-json">{
@@ -551,25 +737,46 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <p>Nhân viên xem hồ sơ cá nhân của chính mình.</p>
 <hr>
 <h2 id="4-departments-phòng-ban">4. Departments – Phòng ban</h2>
+<blockquote>
+<p><strong>Mã phòng ban do server sinh.</strong> <code>departments.code</code> là <code>PB0001</code>, <code>PB0002</code>… — client <strong>không</strong> gửi</p>
+<p><code>code</code> khi tạo và <strong>không</strong> sửa được nó. Trước đây mã do người dùng tự nhập; đổi vì bắt người dùng</p>
+<p>nghĩ ra một định danh duy nhất trước khi lưu được là một cái giá vô lý, và mã nhập tay thì trôi</p>
+<p>dạt trong thực tế (<code>IT</code>, <code>it</code>, <code>CNTT</code>, <code>IT_DEPT</code> cùng chỉ một phòng). Mã **không bao giờ được</p>
+<p>dùng lại<strong>: số kế tiếp tính từ mã lớn nhất từng cấp, </strong>kể cả bản ghi đã xoá mềm**.</p>
+<p><code>ValidationPipe</code> chạy với <code>whitelist: true</code> nên client nào vẫn gửi <code>code</code> sẽ bị <strong>strip</strong> chứ</p>
+<p>không báo lỗi. Cùng quy tắc áp dụng cho <code>positions</code> (<code>CV0001</code>) và <code>leave_types</code> (<code>NP0001</code>);</p>
+<p><code>employees</code> đã dùng <code>NV0001</code> từ trước.</p>
+</blockquote>
 <h3 id="get-departments">GET <code>/departments</code></h3>
 <blockquote>
-<p>🔒 Auth required</p>
+<p>🔒 Auth required (mọi role đã đăng nhập đều đọc được)</p>
 </blockquote>
-<p><strong>Query:</strong> <code>?tree=true</code> để trả về dạng cây thay vì flat list.</p>
+<p><strong>Query:</strong></p>
+<pre><code class="language-">?tree=true      Trả về mảng lồng nhau (bỏ qua phân trang) thay vì flat list
+?parentId=1     Lọc theo phòng ban cha
+?isActive=true  Lọc theo trạng thái
+?sort=          code | name | sortOrder (mặc định) | createdAt
+</code></pre>
 <p><strong>Response (flat):</strong></p>
 <pre><code class="language-json">{
   "data": {
     "items": [
       {
         "id": 1,
-        "code": "HR",
+        "code": "PB0001",
         "name": "Phòng Nhân sự",
+        "description": null,
         "parentId": null,
         "manager": { "id": 5, "fullName": "Trần Thị Mai" },
         "employeeCount": 5,
-        "isActive": true
+        "positionCount": 4,
+        "sortOrder": 1,
+        "isActive": true,
+        "createdAt": "2026-08-19T02:00:00.000Z",
+        "updatedAt": "2026-08-19T02:00:00.000Z"
       }
-    ]
+    ],
+    "meta": { "total": 8, "page": 1, "limit": 20, "totalPages": 1 }
   }
 }
 </code></pre>
@@ -587,55 +794,114 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 }
 </code></pre>
 <hr>
+<h3 id="get-departmentstree">GET <code>/departments/tree</code></h3>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p>Alias của <code>GET /departments?tree=true</code>, trả thẳng mảng <code>DepartmentTreeNodeDto</code> lồng nhau (mỗi node là <code>DepartmentResponseDto</code> + <code>children[]</code>, sắp xếp theo <code>sortOrder</code> rồi <code>name</code>).</p>
+<hr>
 <h3 id="post-departments">POST <code>/departments</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
 <pre><code class="language-json">{
-  "code": "FIN",
   "name": "Phòng Tài chính",
+  "description": "Quản lý thu chi, kế toán",
   "parentId": null,
   "managerId": 10,
-  "description": ""
+  "sortOrder": 0,
+  "isActive": true
 }
 </code></pre>
+<blockquote>
+<p><strong>Không gửi <code>code</code></strong> – server sinh <code>PB####</code> và trả về trong response.</p>
+</blockquote>
+<p><strong>Errors:</strong> <code>404 DEPARTMENT_NOT_FOUND</code> / <code>422 PARENT_DEPARTMENT_NOT_FOUND</code>, <code>422 EMPLOYEE_NOT_FOUND</code> (managerId không tồn tại), <code>409 CODE_ALLOCATION_FAILED</code> (không cấp được mã duy nhất sau số lần thử tối đa).</p>
 <hr>
 <h3 id="patch-departmentsid-delete-departmentsid">PATCH <code>/departments/:id</code> | DELETE <code>/departments/:id</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
+<p>PATCH nhận đúng các field của POST (đều tuỳ chọn); <code>parentId: null</code> / <code>managerId: null</code> để gỡ liên kết. <strong>Không</strong> sửa được <code>code</code>.</p>
+<p><strong>Errors (PATCH):</strong> <code>422 DEPARTMENT_CYCLE</code> (đặt cha thành chính nó hoặc thành con cháu của nó).</p>
+<p><strong>Errors (DELETE):</strong> <code>422 DEPARTMENT_HAS_EMPLOYEES</code>, <code>422 DEPARTMENT_HAS_CHILDREN</code>, <code>422 DEPARTMENT_HAS_POSITIONS</code>.</p>
 <hr>
 <h2 id="5-positions-chức-vụ">5. Positions – Chức vụ</h2>
+<blockquote>
+<p><code>positions.code</code> do server sinh: <code>CV0001</code>, <code>CV0002</code>… — xem ghi chú ở §4.</p>
+</blockquote>
 <h3 id="get-positions">GET <code>/positions</code></h3>
-<p><strong>Query:</strong> <code>?departmentId=2</code></p>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p><strong>Query:</strong> <code>?departmentId=2</code>, <code>?level=2</code>, <code>?isActive=true</code>, <code>?sort=</code> (<code>code</code> mặc định · <code>name</code> · <code>level</code> · <code>createdAt</code>), phân trang chuẩn §1.2.</p>
 <p><strong>Response:</strong></p>
 <pre><code class="language-json">{
   "data": {
     "items": [
       {
         "id": 3,
-        "code": "DEV_SENIOR",
+        "code": "CV0003",
         "name": "Developer Senior",
         "department": { "id": 2, "name": "Phòng Kỹ thuật" },
         "level": 2,
         "minSalary": 20000000,
         "maxSalary": 35000000
       }
-    ]
+    ],
+    "meta": { "total": 12, "page": 1, "limit": 20, "totalPages": 1 }
   }
 }
 </code></pre>
 <h3 id="post-patch-delete-positions-positionsid">POST | PATCH | DELETE <code>/positions</code> | <code>/positions/:id</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
-</blockquote>
-<hr>
-<h2 id="6-contracts-hợp-đồng">6. Contracts – Hợp đồng</h2>
-<h3 id="get-contracts">GET <code>/contracts</code></h3>
-<blockquote>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<p><strong>Query:</strong> <code>?employeeId=1</code>, <code>?status=active</code>, <code>?expiringDays=30</code> (hợp đồng sắp hết hạn)</p>
+<pre><code class="language-json">{
+  "name": "Developer Senior",
+  "departmentId": 2,
+  "level": 2,
+  "minSalary": 20000000,
+  "maxSalary": 35000000,
+  "description": null,
+  "isActive": true
+}
+</code></pre>
+<p><code>level</code>: 1 Staff · 2 Senior · 3 Lead · 4 Manager · 5 Director. <strong>Không gửi <code>code</code>.</strong></p>
+<p><strong>Errors:</strong> <code>404 POSITION_NOT_FOUND</code>, <code>422 DEPARTMENT_NOT_FOUND</code>, <code>422 INVALID_SALARY_RANGE</code> (<code>minSalary > maxSalary</code>), <code>422 POSITION_HAS_EMPLOYEES</code> (khi xoá), <code>409 CODE_ALLOCATION_FAILED</code>.</p>
+<hr>
+<h2 id="6-contracts-hợp-đồng">6. Contracts – Hợp đồng</h2>
+<h3 id="get-contract-types">GET <code>/contract-types</code></h3>
+<blockquote>
+<p>🔒 Auth required — <strong>read-only, không có POST/PATCH/DELETE</strong></p>
+</blockquote>
+<p>Trả về mảng phẳng 4 giá trị của enum <code>contracts.contract_type</code> kèm nhãn tiếng Việt và căn cứ pháp lý:</p>
+<pre><code class="language-json">{
+  "data": [
+    { "value": "probation",  "label": "Hợp đồng thử việc", "description": "Thoả thuận thử việc – Điều 24÷27 BLLĐ 2019 …" },
+    { "value": "fixed_term", "label": "Hợp đồng lao động xác định thời hạn", "description": "Điều 20.1.b BLLĐ 2019 – tối đa 36 tháng …" },
+    { "value": "indefinite", "label": "Hợp đồng lao động không xác định thời hạn", "description": "Điều 20.1.a BLLĐ 2019 …" },
+    { "value": "seasonal",   "label": "Hợp đồng theo mùa vụ / công việc nhất định", "description": "BLLĐ 2012 (Điều 22.1.c), đã bị BLLĐ 2019 bãi bỏ – chỉ đọc dữ liệu lịch sử" }
+  ]
+}
+</code></pre>
+<blockquote>
+<p><strong>Vì sao không phải master data.</strong> Không có bảng <code>contract_types</code> trong schema 26 bảng và <strong>không có endpoint ghi</strong>. Bốn loại này do <strong>BLLĐ 2019</strong> định nghĩa, và mỗi loại kéo theo hệ quả pháp lý khác nhau về <strong>bảo hiểm xã hội</strong>, <strong>trần thời gian thử việc</strong> và <strong>thời hạn báo trước khi chấm dứt</strong>. Nếu HR tự thêm được loại thứ 5 thì logic hợp đồng và tính lương sẽ không biết xử lý nó ra sao — nên đây là enum, không phải danh mục công ty tự cấu hình.</p>
+<p></p>
+<p>Lưu ý pháp lý: Điều 20 BLLĐ 2019 chỉ công nhận <strong>2</strong> loại hợp đồng lao động (không xác định thời hạn / xác định thời hạn ≤ 36 tháng). <code>probation</code> là <strong>thoả thuận thử việc</strong> (Điều 24–27) và <code>seasonal</code> là loại của BLLĐ 2012 đã bị bãi bỏ; cả hai vẫn nằm trong enum để đọc được dữ liệu cũ.</p>
+</blockquote>
+<hr>
+<h3 id="get-contracts">GET <code>/contracts</code></h3>
+<blockquote>
+<p>🔒 Auth required. Phạm vi theo hồ sơ: nhân viên chỉ thấy hợp đồng của chính mình, manager thấy phòng ban mình, nhóm HR thấy toàn công ty.</p>
+</blockquote>
+<p><strong>Query:</strong> <code>?employeeId=1</code>, <code>?status=active</code>, <code>?contractType=fixed_term</code>, <code>?expiringDays=30</code> (hợp đồng có <code>end_date</code>, chưa quá hạn, hết hạn trong N ngày tới), phân trang chuẩn §1.2.</p>
+<hr>
+<h3 id="get-contractsid">GET <code>/contracts/:id</code></h3>
+<blockquote>
+<p>🔒 Auth required (cùng phạm vi với <code>GET /contracts</code>)</p>
+</blockquote>
+<p><strong>Errors:</strong> <code>404 CONTRACT_NOT_FOUND</code>, <code>403 FORBIDDEN</code>.</p>
 <hr>
 <h3 id="post-contracts">POST <code>/contracts</code></h3>
 <blockquote>
@@ -656,6 +922,14 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
   "fileUrl": "https://s3.../contracts/hdld-2026-051.pdf"
 }
 </code></pre>
+<p>Kiểm tra quy tắc BLLĐ 2019: HĐ không xác định thời hạn không có <code>endDate</code>; HĐ xác định thời hạn ≤ 36 tháng và tối đa 2 lần liên tiếp; thử việc ≤ 180 ngày.</p>
+<p><strong>Errors:</strong> <code>409 DUPLICATE_CONTRACT_NUMBER</code>, <code>409 CONTRACT_ALREADY_ACTIVE</code>, <code>422 EMPLOYEE_NOT_FOUND</code>, <code>422 INVALID_CONTRACT_PERIOD</code>, <code>422 INVALID_SIGN_DATE</code>, <code>422 INVALID_CONTRACT_STATUS</code>, <code>422 CONTRACT_TYPE_LIMIT</code>.</p>
+<hr>
+<h3 id="patch-contractsid">PATCH <code>/contracts/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p>Partial update. <strong>Errors:</strong> <code>404 CONTRACT_NOT_FOUND</code>, <code>409 DUPLICATE_CONTRACT_NUMBER</code>, <code>409 CONTRACT_ALREADY_ACTIVE</code>, <code>422 CONTRACT_ALREADY_TERMINATED</code>, <code>422 INVALID_CONTRACT_PERIOD</code>.</p>
 <hr>
 <h3 id="patch-contractsidterminate">PATCH <code>/contracts/:id/terminate</code></h3>
 <blockquote>
@@ -666,37 +940,55 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
   "terminatedReason": "Nhân viên xin thôi việc"
 }
 </code></pre>
+<p><strong>Errors:</strong> <code>404 CONTRACT_NOT_FOUND</code>, <code>422 CONTRACT_ALREADY_TERMINATED</code>, <code>422 CONTRACT_NOT_SIGNED</code>, <code>422 INVALID_DATE_RANGE</code>.</p>
+<hr>
+<h3 id="delete-contractsid">DELETE <code>/contracts/:id</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<p><strong>Chỉ xoá được hợp đồng <code>status = draft</code>.</strong> Bảng <code>contracts</code> không có <code>deleted_at</code> nên đây là <strong>xoá vật lý</strong>; hợp đồng đã ký phải dùng <code>/terminate</code> để giữ lại lịch sử.</p>
+<p><strong>Errors:</strong> <code>404 CONTRACT_NOT_FOUND</code>, <code>422 CONTRACT_NOT_DELETABLE</code> (hợp đồng đã ký).</p>
 <hr>
 <h2 id="7-attendances-chấm-công">7. Attendances – Chấm công</h2>
-<h3 id="post-attendancescheck-in">POST <code>/attendances/check-in</code></h3>
 <blockquote>
-<p>🔒 Auth required (employee tự chấm)</p>
+<p>⚠️ <strong>KHÔNG có endpoint tự chấm công.</strong> Nhân viên thường không đăng nhập hệ</p>
+<p>thống này (<code>403 PORTAL_ACCESS_DENIED</code> ngay ở <code>POST /auth/login</code>). Việc chấm</p>
+<p>công diễn ra trên nền tảng bên ngoài; dữ liệu vào hệ thống bằng <strong>file Excel</strong></p>
+<p>(<code>POST /attendances/bulk-import</code>, đường chính) hoặc <strong>nhập tay từng dòng</strong></p>
+<p>(<code>POST /attendances</code>, cho các ca lẻ).</p>
+<p></p>
+<p>Các endpoint <code>POST /attendances/check-in</code>, <code>POST /attendances/check-out</code> và</p>
+<p><code>GET /attendances/me</code> của bản thiết kế trước đã bị <strong>gỡ bỏ</strong>.</p>
 </blockquote>
+<h3 id="post-attendances">POST <code>/attendances</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p>Nhập tay MỘT ngày công — dùng cho ca lẻ mà file từ nền tảng ngoài không có:</p>
+<p>quên chấm, đi công tác, làm tại nhà, hoặc một ngày nghỉ phép.</p>
 <pre><code class="language-json">{
-  "note": ""
+  "employeeId": 51,
+  "workDate": "2026-05-25",
+  "checkIn": "08:00",
+  "checkOut": "17:30",
+  "breakStart": "12:00",
+  "breakEnd": "13:00",
+  "status": "present",
+  "note": "Nhân viên quên chấm, trưởng phòng xác nhận"
 }
 </code></pre>
-<p><strong>Response 201:</strong></p>
-<pre><code class="language-json">{
-  "data": {
-    "id": 1001,
-    "employeeId": 51,
-    "workDate": "2026-05-25",
-    "checkIn": "08:05",
-    "isLate": false,
-    "lateMinutes": 0
-  }
-}
-</code></pre>
-<p><strong>Errors:</strong> <code>409 ALREADY_CHECKED_IN</code></p>
-<hr>
-<h3 id="post-attendancescheck-out">POST <code>/attendances/check-out</code></h3>
-<blockquote>
-<p>🔒 Auth required</p>
-</blockquote>
-<pre><code class="language-json">{ "note": "" }
-</code></pre>
-<p><strong>Response 200:</strong> Trả về record đầy đủ bao gồm <code>workHours</code>, <code>overtimeHours</code>.</p>
+<table><thead>
+<tr><th>Trường</th><th>Bắt buộc</th><th>Ghi chú</th></tr>
+</thead><tbody>
+<tr><td><code>employeeId</code></td><td>✅</td><td>Trong phạm vi của người gọi</td></tr>
+<tr><td><code>workDate</code></td><td>✅</td><td><code>YYYY-MM-DD</code></td></tr>
+<tr><td><code>checkIn</code> / <code>checkOut</code></td><td>❌</td><td>Ngày nghỉ phép/ngày lễ không có giờ nào</td></tr>
+<tr><td><code>breakStart</code> / <code>breakEnd</code></td><td>❌</td><td>Giờ nghỉ thực tế; trừ đúng khoảng này. Bỏ trống ⇒ trừ theo khung nghỉ chuẩn 12:00–13:00. Phải có đủ cả hai đầu</td></tr>
+<tr><td><code>status</code></td><td>❌</td><td>Bỏ trống ⇒ tính từ giờ vào/ra. Đặt tường minh cho <code>wfh</code>, <code>leave</code>, <code>holiday</code></td></tr>
+<tr><td><code>note</code></td><td>✅</td><td>Dòng nhập tay không có bằng chứng từ máy chấm công nên phải nói được nguồn</td></tr>
+</tbody></table>
+<p><strong>Errors:</strong> <code>409 ATTENDANCE_ALREADY_EXISTS</code> (ngày đó đã có bản ghi — sửa bằng</p>
+<p><code>PATCH</code> thay vì tạo mới), <code>409 INVALID_ATTENDANCE_TIMES</code>, <code>404 EMPLOYEE_NOT_FOUND</code></p>
 <hr>
 <h3 id="get-attendances">GET <code>/attendances</code></h3>
 <blockquote>
@@ -708,250 +1000,452 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 ?month=5&amp;year=2026
 ?status=absent
 </code></pre>
-<hr>
-<h3 id="get-attendancesme">GET <code>/attendances/me</code></h3>
-<blockquote>
-<p>🔒 Auth required (employee)</p>
-</blockquote>
-<p><strong>Query:</strong> <code>?month=5&year=2026</code></p>
-<p><strong>Response:</strong></p>
-<pre><code class="language-json">{
-  "data": {
-    "summary": {
-      "workingDays": 22,
-      "presentDays": 20,
-      "absentDays": 1,
-      "lateDays": 1,
-      "overtimeHours": 4.5
-    },
-    "records": [ ... ]
-  }
-}
-</code></pre>
+<p><code>month</code> một mình bị <strong>bỏ qua</strong> (tháng 5 của năm nào?). <code>manager</code> chỉ nhận được</p>
+<p>phòng ban mình quản.</p>
 <hr>
 <h3 id="patch-attendancesid">PATCH <code>/attendances/:id</code></h3>
 <blockquote>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<p>Điều chỉnh chấm công (khi máy lỗi, quên chấm...).</p>
+<p>Điều chỉnh chấm công (máy lỗi, quên chấm...). <code>manager</code> <strong>không</strong> sửa được dù</p>
+<p>đọc được phòng mình.</p>
 <pre><code class="language-json">{
   "checkIn": "08:00",
   "checkOut": "17:30",
+  "breakStart": "12:00",
+  "breakEnd": "12:30",
   "note": "Điều chỉnh do máy chấm công lỗi"
 }
 </code></pre>
+<p><code>note</code> là <strong>bắt buộc</strong>: bản ghi sau khi sửa phải tự nói được vì sao nó khác thứ</p>
+<p>máy đã ghi. Sửa giờ thì giờ công, đi muộn, về sớm được <strong>tính lại</strong>.</p>
 <hr>
 <h3 id="post-attendancesbulk-import">POST <code>/attendances/bulk-import</code></h3>
 <blockquote>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<p>Import chấm công từ file Excel.</p>
+<p>Nhập chấm công từ file Excel xuất từ nền tảng ngoài.</p>
 <p><strong>Content-Type:</strong> <code>multipart/form-data</code>, field: <code>file</code> (.xlsx)</p>
+<p><strong>Query:</strong> <code>?dryRun=true</code> — chỉ kiểm tra, KHÔNG ghi gì.</p>
+<p><strong>Cột file</strong> (tiêu đề khớp không phân biệt hoa thường và dấu):</p>
+<table><thead>
+<tr><th>Cột</th><th>Bắt buộc</th><th>Bí danh chấp nhận</th></tr>
+</thead><tbody>
+<tr><td>Mã NV</td><td>✅</td><td><code>ma nhan vien</code>, <code>employee code</code></td></tr>
+<tr><td>Ngày</td><td>✅</td><td><code>ngay cong</code>, <code>date</code></td></tr>
+<tr><td>Giờ vào</td><td>✅</td><td><code>check in</code>, <code>gio den</code></td></tr>
+<tr><td>Giờ ra</td><td>❌</td><td><code>check out</code>, <code>gio ve</code></td></tr>
+<tr><td>Giờ nghỉ từ</td><td>❌</td><td><code>bat dau nghi</code>, <code>break start</code></td></tr>
+<tr><td>Giờ nghỉ đến</td><td>❌</td><td><code>ket thuc nghi</code>, <code>break end</code></td></tr>
+<tr><td>Ghi chú</td><td>❌</td><td><code>note</code></td></tr>
+</tbody></table>
+<blockquote>
+<p><strong>TẤT CẢ HOẶC KHÔNG GÌ CẢ.</strong> Chỉ cần một dòng sai là KHÔNG dòng nào được ghi,</p>
+<p>và toàn bộ lỗi được trả về kèm <strong>số dòng trong file Excel</strong>. Nhập một phần sẽ</p>
+<p>để lại một tháng công nửa vời mà không ai biết thiếu ngày nào — và bảng công</p>
+<p>thiếu ngày trông y hệt bảng công đủ.</p>
+</blockquote>
+<p><strong>Response 201:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "dryRun": false,
+    "totalRows": 120,
+    "created": 98,
+    "updated": 22,
+    "errors": []
+  }
+}
+</code></pre>
+<p><code>updated</code> = số ngày công <strong>bị ghi đè</strong>. Luôn được trả về (kể cả khi <code>dryRun</code>) để</p>
+<p>không ai vô tình thay đổi dữ liệu đã chốt mà không biết.</p>
+<p><strong>Errors:</strong> <code>400 IMPORT_FILE_REQUIRED</code>, <code>400 IMPORT_INVALID_FILE_TYPE</code> (kiểm</p>
+<p>magic bytes, không tin phần mở rộng), <code>400 IMPORT_MISSING_COLUMNS</code>,</p>
+<p><code>400 IMPORT_TOO_MANY_ROWS</code></p>
+<hr>
+<h3 id="get-attendancesimport-template">GET <code>/attendances/import-template</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p>File .xlsx mẫu, có sẵn các dòng ví dụ cho định dạng mong đợi.</p>
 <hr>
 <h2 id="8-leaves-nghỉ-phép">8. Leaves – Nghỉ phép</h2>
+<blockquote>
+<p>⚠️ <strong>Nhân viên KHÔNG tự nộp đơn</strong> — họ không đăng nhập hệ thống này.</p>
+<p><strong>Quản lý ghi nhận</strong> đơn cho nhân viên phòng mình (nhân sự ghi cho bất kỳ ai),</p>
+<p><strong>nhân sự duyệt</strong>. Người ghi lưu ở <code>recorded_by</code> lấy từ token, và người đã ghi</p>
+<p>một đơn KHÔNG duyệt được chính đơn đó.</p>
+</blockquote>
 <h3 id="get-leave-types">GET <code>/leave-types</code></h3>
 <blockquote>
 <p>🔒 Auth required</p>
 </blockquote>
-<p><strong>Response:</strong></p>
-<pre><code class="language-json">{
-  "data": [
-    {
-      "id": 1,
-      "code": "ANNUAL",
-      "name": "Nghỉ phép năm",
-      "daysPerYear": 12,
-      "isPaid": true,
-      "requireApproval": true
-    }
-  ]
-}
-</code></pre>
+<p>Danh mục loại nghỉ phép (Giai đoạn 2.2). Ghi ở <code>Cài đặt → Loại nghỉ phép</code>.</p>
 <hr>
-<h3 id="get-leavesbalance">GET <code>/leaves/balance</code></h3>
+<h3 id="post-leave-balancesinit">POST <code>/leave-balances/init</code></h3>
 <blockquote>
-<p>🔒 Auth required (employee xem balance của mình)</p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<p><strong>Query:</strong> <code>?year=2026</code></p>
-<p><strong>Response:</strong></p>
-<pre><code class="language-json">{
-  "data": [
-    {
-      "leaveType": { "id": 1, "name": "Nghỉ phép năm" },
-      "year": 2026,
-      "allocatedDays": 12,
-      "usedDays": 3,
-      "pendingDays": 1,
-      "carriedOver": 0,
-      "remainingDays": 8
-    }
-  ]
-}
+<p>Cấp quỹ phép năm cho toàn bộ nhân viên đang làm việc (<code>probation</code>, <code>active</code>,</p>
+<p><code>on_leave</code>).</p>
+<pre><code class="language-json">{ "year": 2026, "dryRun": false, "carryOver": false }
 </code></pre>
-<hr>
-<h3 id="post-leaves">POST <code>/leaves</code></h3>
-<blockquote>
-<p>🔒 Auth required (employee tạo đơn)</p>
-</blockquote>
-<pre><code class="language-json">{
-  "leaveTypeId": 1,
-  "startDate": "2026-06-02",
-  "endDate": "2026-06-04",
-  "startHalf": "full",
-  "endHalf": "full",
-  "reason": "Về quê thăm gia đình",
-  "attachmentUrl": null
-}
-</code></pre>
+<p>Số ngày theo <strong>Điều 113 BLLĐ 2019</strong>: 12 + ⌊thâm niên ÷ 5⌋, đếm theo mốc kỷ niệm</p>
+<p>ngày vào làm. Năm đầu tiên tính theo tỉ lệ tháng đã làm, <strong>làm tròn xuống</strong> 0,5</p>
+<p>ngày; vào làm sau ngày 15 thì tháng đó không tính.</p>
+<p>Chỉ cấp cho loại phép <code>ANNUAL</code>. <strong>KHÔNG ghi đè</strong> quỹ đã có — chạy lại chỉ tạo</p>
+<p>cho người còn thiếu.</p>
 <p><strong>Response 201:</strong></p>
 <pre><code class="language-json">{
   "data": {
-    "id": 201,
-    "totalDays": 3,
-    "status": "pending",
-    ...
+    "dryRun": false,
+    "year": 2026,
+    "employeesConsidered": 66,
+    "created": 62,
+    "skipped": 4
   }
 }
 </code></pre>
-<p><strong>Errors:</strong> <code>400 INSUFFICIENT_LEAVE_BALANCE</code>, <code>400 OVERLAPPING_LEAVE</code></p>
+<p><strong>Errors:</strong> <code>422 ANNUAL_LEAVE_TYPE_MISSING</code> – chưa seed loại phép năm</p>
 <hr>
-<h3 id="get-leaves">GET <code>/leaves</code></h3>
+<h3 id="get-leave-balances">GET <code>/leave-balances</code></h3>
 <blockquote>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code></p>
 </blockquote>
-<p><strong>Query:</strong> <code>?status=pending</code>, <code>?employeeId=51</code>, <code>?departmentId=2</code></p>
+<p><strong>Query:</strong> <code>?employeeId=</code>, <code>?departmentId=</code>, <code>?leaveTypeId=</code>, <code>?year=</code></p>
+<p>Bỏ trống <code>year</code> thì lấy năm hiện tại — quỹ phép luôn thuộc về một năm cụ thể.</p>
+<p><code>manager</code> chỉ nhận được phòng ban mình quản.</p>
+<p><code>remainingDays</code> là cột <strong>VIRTUAL</strong> của DB: `allocated + carriedOver − used −</p>
+<p>pending`. Chỉ đọc.</p>
 <hr>
-<h3 id="get-leavesme">GET <code>/leaves/me</code></h3>
+<h3 id="patch-leave-balancesid">PATCH <code>/leave-balances/:id</code></h3>
 <blockquote>
-<p>🔒 Auth required</p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<p>Lịch sử đơn nghỉ của nhân viên.</p>
-<hr>
-<h3 id="patch-leavesidapprove">PATCH <code>/leaves/:id/approve</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
-</blockquote>
-<pre><code class="language-json">{ "note": "Đã duyệt" }
+<pre><code class="language-json">{ "allocatedDays": 14, "carriedOver": 2, "reason": "Bổ sung theo thoả thuận" }
 </code></pre>
+<p>Chỉ sửa được <code>allocatedDays</code> và <code>carriedOver</code>. <code>usedDays</code>/<code>pendingDays</code> là hệ</p>
+<p>quả của các đơn nghỉ — sai ở đâu thì sửa đơn ở đó. <code>reason</code> <strong>bắt buộc</strong>.</p>
+<p><strong>Errors:</strong> <code>422 LEAVE_BALANCE_BELOW_COMMITTED</code> – hạ quỹ xuống dưới số đã dùng +</p>
+<p>đang chờ</p>
 <hr>
-<h3 id="patch-leavesidreject">PATCH <code>/leaves/:id/reject</code></h3>
+<h3 id="delete-leave-balancesid">DELETE <code>/leave-balances/:id</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<pre><code class="language-json">{ "reason": "Phòng ban đang bận dự án, vui lòng dời sang tháng sau" }
+<p>Xoá một dòng quỹ <strong>cấp nhầm</strong> — nhầm loại phép, nhầm người, nhầm năm.</p>
+<p>Chỉ xoá được khi <code>usedDays</code> và <code>pendingDays</code> đều bằng 0. Đã có đơn trừ vào dòng</p>
+<p>này thì xoá là bỏ rơi chính những đơn đó: ngày nghỉ vẫn nằm trong bảng chấm công</p>
+<p>mà không còn gì giải thích chúng đến từ đâu. Muốn hạ quỹ về đúng phần chưa dùng</p>
+<p>thì <code>PATCH</code>, không phải xoá.</p>
+<pre><code class="language-json">{ "id": 88, "deleted": true }
 </code></pre>
+<p><strong>Errors:</strong> <code>422 LEAVE_BALANCE_IN_USE</code> – đã có ngày bị tiêu</p>
 <hr>
-<h3 id="delete-leavesid">DELETE <code>/leaves/:id</code></h3>
+<h3 id="post-leave-requests">POST <code>/leave-requests</code></h3>
 <blockquote>
-<p>🔒 Auth required (chỉ NV tự huỷ đơn của mình, khi status=pending)</p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code></p>
 </blockquote>
+<pre><code class="language-json">{
+  "employeeId": 51,
+  "leaveTypeId": 1,
+  "startDate": "2026-05-04",
+  "endDate": "2026-05-08",
+  "startHalf": "afternoon",
+  "endHalf": "full",
+  "reason": "Nghỉ phép năm về quê"
+}
+</code></pre>
+<p><code>totalDays</code> do <strong>SERVER</strong> tính, client không gửi: chỉ đếm ngày làm việc (bỏ</p>
+<p>T7/CN và ngày lễ), hỗ trợ nửa ngày ở hai đầu. Nghỉ thứ Sáu → thứ Hai là **2</p>
+<p>ngày**, không phải 4.</p>
+<p>Quỹ phép bị <strong>giữ chỗ</strong> (<code>pending_days</code>) ngay khi ghi nhận, trong cùng một</p>
+<p>transaction với đơn.</p>
+<p><strong>Errors:</strong> <code>409 OVERLAPPING_LEAVE</code> · <code>422 INVALID_LEAVE_RANGE</code> ·</p>
+<p><code>422 LEAVE_SPANS_TWO_YEARS</code> (quỹ là con số của một năm — tách thành hai đơn) ·</p>
+<p><code>422 LEAVE_NO_WORKING_DAYS</code> · <code>422 LEAVE_BELOW_MINIMUM</code> ·</p>
+<p><code>422 LEAVE_ABOVE_MAX_CONSECUTIVE</code> · <code>422 INSUFFICIENT_LEAVE_BALANCE</code></p>
+<hr>
+<h3 id="get-leave-requests">GET <code>/leave-requests</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?status=pending</code>, <code>?employeeId=</code>, <code>?departmentId=</code>, <code>?leaveTypeId=</code>,</p>
+<p><code>?from=&to=</code></p>
+<p><code>from</code>/<code>to</code> lọc theo kỳ nghỉ <strong>GIAO NHAU</strong> với khoảng, không phải chỉ đơn bắt</p>
+<p>đầu trong khoảng — một kỳ nghỉ bắc qua đầu tháng vẫn phải hiện trong tháng đó.</p>
+<hr>
+<h3 id="get-leave-requestscalendar">GET <code>/leave-requests/calendar</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code></p>
+</blockquote>
+<p><strong>Query:</strong> <code>?from=2026-05-01&to=2026-05-31</code> <em>(cả hai bắt buộc)</em></p>
+<p>Ai đang nghỉ trong khoảng ngày. Chỉ trả đơn <strong>đã duyệt</strong> — một đơn còn chờ duyệt</p>
+<p>chưa cho phép ai nghỉ cả.</p>
+<hr>
+<h3 id="patch-leave-requestsidapprove">PATCH <code>/leave-requests/:id/approve</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p><code>manager</code> ghi nhận nhưng <strong>KHÔNG duyệt</strong>. Người đã ghi một đơn cũng không duyệt</p>
+<p>được chính đơn đó.</p>
+<p>Chuyển <code>pending_days</code> sang <code>used_days</code>, và **ghi những ngày nghỉ vào bảng chấm</p>
+<p>công** với <code>status = leave</code> — đây là thứ khiến <code>absentDays</code> không tính người</p>
+<p>nghỉ phép là vắng mặt.</p>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{
+  "data": {
+    "request": { "id": 33, "status": "approved" },
+    "attendanceDaysWritten": 4,
+    "attendanceConflicts": ["2026-05-06"]
+  }
+}
+</code></pre>
+<p><code>attendanceConflicts</code> là những ngày <strong>đã có</strong> dữ liệu chấm công nên KHÔNG bị ghi</p>
+<p>đè: vừa có giờ chấm vừa được duyệt nghỉ phép trong cùng ngày là mâu thuẫn cần</p>
+<p>người xem, không phải thứ để phần mềm tự quyết.</p>
+<p><strong>Errors:</strong> <code>403 FORBIDDEN</code> · <code>403 CANNOT_APPROVE_OWN_RECORD</code> ·</p>
+<p><code>409 LEAVE_NOT_PENDING</code></p>
+<hr>
+<h3 id="patch-leave-requestsidreject">PATCH <code>/leave-requests/:id/reject</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> — <code>reason</code> bắt buộc.</p>
+</blockquote>
+<p>Trả lại chỗ đã giữ trên quỹ phép.</p>
+<h3 id="patch-leave-requestsidcancel">PATCH <code>/leave-requests/:id/cancel</code></h3>
+<blockquote>
+<p>🔒 Người GHI NHẬN đơn, hoặc nhân sự. Chỉ đơn còn <code>pending</code>.</p>
+</blockquote>
+<p>Đơn chuyển sang <code>cancelled</code> và <strong>vẫn nằm lại</strong> trong danh sách. Muốn gỡ hẳn thì</p>
+<p>dùng <code>DELETE</code>.</p>
+<hr>
+<h3 id="patch-leave-requestsid">PATCH <code>/leave-requests/:id</code></h3>
+<blockquote>
+<p>🔒 Đơn <code>pending</code>: người GHI NHẬN đơn, hoặc nhân sự.</p>
+<p>Đơn <code>approved</code>: <strong>chỉ nhân sự</strong> — sửa nó là viết lại một quyết định đã ra.</p>
+</blockquote>
+<pre><code class="language-json">{ "leaveTypeId": 1, "startDate": "2026-05-04", "endDate": "2026-05-06",
+  "startHalf": "afternoon", "endHalf": "full", "reason": "Rút ngắn kỳ nghỉ" }
+</code></pre>
+<p>Mọi trường đều <strong>tuỳ chọn</strong>; trường không gửi thì giữ nguyên.</p>
+<p><strong>KHÔNG nhận <code>employeeId</code>.</strong> Đổi người được nghỉ không phải là sửa đơn mà là một</p>
+<p>đơn khác: quỹ phép, phạm vi quản lý của người ghi và cả việc kiểm tra trùng ngày</p>
+<p>đều tính theo nhân viên. Nhập nhầm người thì xoá rồi ghi lại.</p>
+<p><strong>KHÔNG nhận <code>totalDays</code></strong> — server tính lại từ khoảng ngày mới, đúng như lúc ghi</p>
+<p>nhận. Quỹ phép <strong>trả chỗ cũ trước rồi mới giữ chỗ mới</strong>, trong cùng một</p>
+<p>transaction: làm ngược lại thì một đơn 3 ngày sửa thành 4 sẽ bị từ chối oan khi</p>
+<p>quỹ chỉ còn đúng 3.</p>
+<p><strong>Sửa đơn ĐÃ DUYỆT kéo theo hai thứ</strong>, cả hai đi cùng transaction với đơn:</p>
+<table><thead>
+<tr><th></th><th>Đơn <code>pending</code></th><th>Đơn <code>approved</code></th></tr>
+</thead><tbody>
+<tr><td>Cột quỹ bị đụng</td><td><code>pending_days</code></td><td><code>used_days</code></td></tr>
+<tr><td>Bảng chấm công</td><td>–</td><td>gỡ ngày công kỳ nghỉ <strong>cũ</strong>, ghi ngày công kỳ nghỉ <strong>mới</strong></td></tr>
+</tbody></table>
+<p>Dòng chấm công của kỳ nghỉ cũ <strong>đã bị sửa</strong> sang trạng thái khác thì giữ lại</p>
+<p>(<code>attendanceDaysKept</code>); ngày của kỳ nghỉ mới <strong>đã có sẵn</strong> dữ liệu chấm công thì</p>
+<p>không bị ghi đè (<code>attendanceConflicts</code>). Đơn vẫn ở trạng thái <code>approved</code> —</p>
+<p>không phải duyệt lại.</p>
+<p>Đơn <code>rejected</code> / <code>cancelled</code> <strong>không sửa được</strong>: nó không giữ ngày nào và không</p>
+<p>có dòng chấm công nào, nên sửa ngày trên đó chỉ khiến lý do từ chối nói về một kỳ</p>
+<p>nghỉ chưa từng tồn tại. Cần lại thì ghi đơn mới.</p>
+<p><strong>Response 200:</strong></p>
+<pre><code class="language-json">{ "request": { "...": "đơn sau khi sửa" },
+  "attendanceDaysWritten": 2, "attendanceConflicts": [], "attendanceDaysKept": 0 }
+</code></pre>
+<p><strong>Errors:</strong> <code>409 LEAVE_NOT_ACTIVE</code> · <code>409 OVERLAPPING_LEAVE</code> · các mã 422 giống</p>
+<p><code>POST /leave-requests</code> (kể cả <code>INSUFFICIENT_LEAVE_BALANCE</code> khi kéo dài một đơn đã</p>
+<p>duyệt quá quỹ còn lại)</p>
+<hr>
+<h3 id="delete-leave-requestsid">DELETE <code>/leave-requests/:id</code></h3>
+<blockquote>
+<p>🔒 Đơn <code>pending</code>: người GHI NHẬN hoặc nhân sự.</p>
+<p>Đơn <code>approved</code> / <code>rejected</code> / <code>cancelled</code>: <strong>chỉ nhân sự</strong> — xoá nó là đảo</p>
+<p>ngược một quyết định đã ra, kèm hoàn lại quỹ phép.</p>
+</blockquote>
+<p>Xoá <strong>gỡ sạch dấu vết đơn để lại</strong>, trong một transaction:</p>
+<table><thead>
+<tr><th>Trạng thái đơn</th><th>Quỹ phép</th><th>Bảng chấm công</th></tr>
+</thead><tbody>
+<tr><td><code>pending</code></td><td>hoàn <code>pending_days</code></td><td>–</td></tr>
+<tr><td><code>approved</code></td><td>hoàn <code>used_days</code></td><td>gỡ những ngày <code>leave</code> do đơn ghi ra</td></tr>
+<tr><td><code>rejected</code> · <code>cancelled</code></td><td>không đổi (đã hoàn từ trước)</td><td>–</td></tr>
+</tbody></table>
+<p>FK <code>attendances.leave_request_id</code> là <code>ON DELETE SET NULL</code>, nên xoá đơn suông sẽ</p>
+<p>để lại những dòng <code>leave</code> mồ côi — người xem bảng công thấy nhân viên nghỉ phép</p>
+<p>mà không tra ra được theo đơn nào. Vì thế service gỡ chúng tường minh.</p>
+<p>Dòng chấm công <strong>đã bị sửa</strong> sang trạng thái khác thì <strong>giữ lại</strong>: nó không còn</p>
+<p>là hệ quả của đơn nữa mà là ngày công thật, nhập tay hoặc nạp từ máy chấm công.</p>
+<pre><code class="language-json">{ "id": 12, "deleted": true, "attendanceDaysRemoved": 3, "attendanceDaysKept": 1 }
+</code></pre>
 <hr>
 <h2 id="9-salaries-lương">9. Salaries – Lương</h2>
+<blockquote>
+<p><strong>Quyền ở phân hệ này HẸP HƠN mọi phân hệ khác.</strong> <code>manager</code> đọc được hồ sơ và</p>
+<p>chấm công của phòng mình nhưng <strong>không</strong> đọc lương: biết lương nhân viên dưới</p>
+<p>quyền không cần cho việc quản lý công việc, và một bảng lương lộ ra nội bộ là</p>
+<p>chuyện không thu lại được.</p>
+<p></p>
+<p>| | Vai trò |</p>
+<p>|---|---|</p>
+<p>| Đọc bảng lương | <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> |</p>
+<p>| Tính / sửa / duyệt / huỷ | <code>admin</code>, <code>hr_manager</code> |</p>
+<p></p>
+<p><strong>Không có <code>GET /salaries/me</code></strong> — nhân viên không đăng nhập hệ thống này;</p>
+<p>phiếu lương cá nhân do nhân sự in ra từ <code>GET /salaries/:id</code>.</p>
+<p></p>
+<p>Mọi số tiền trả về là <strong><code>number</code></strong>, không phải chuỗi: TypeORM trả <code>DECIMAL</code></p>
+<p>dạng chuỗi để khỏi mất chính xác, nhưng giữ nguyên ra tới client thì mọi phép</p>
+<p>cộng ở giao diện đều là nối chuỗi.</p>
+</blockquote>
 <h3 id="post-salariescalculate">POST <code>/salaries/calculate</code></h3>
 <blockquote>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
 </blockquote>
-<p>Tính lương hàng loạt cho toàn bộ NV hoặc 1 phòng ban.</p>
-<pre><code class="language-json">{
-  "month": 5,
-  "year": 2026,
-  "departmentId": null,      // null = toàn công ty
-  "overwrite": false         // true = tính lại nếu đã tồn tại
-}
+<p>Tính lương cho <strong>toàn bộ</strong> nhân viên đang làm việc có hợp đồng còn hiệu lực</p>
+<p>trong kỳ. Một lần chạy là <strong>một tháng</strong> — số ngày công chuẩn là mẫu số chung của</p>
+<p>cả công ty, tính lẻ từng người sẽ mở đường cho hai người cùng tháng khác mẫu số.</p>
+<pre><code class="language-json">{ "year": 2026, "month": 8, "dryRun": false }
 </code></pre>
+<p><strong>Chạy lại được bao nhiêu lần cũng được</strong> chừng nào bảng lương chưa chốt: dòng</p>
+<p><code>draft</code>/<code>calculated</code> bị ghi đè bằng số mới, dòng <code>approved</code>/<code>paid</code> được **giữ</p>
+<p>nguyên** và đếm ở <code>skippedLocked</code>. Chấm công nhập bổ sung sau khi đã tính là</p>
+<p>chuyện thường ngày, nên "tính một lần rồi thôi" sẽ luôn cho ra bảng lương cũ.</p>
+<p>Khoản <strong>chỉnh tay</strong> (<code>performanceBonus</code>, <code>otherIncome</code>, <code>otherDeductions</code>) được</p>
+<p>giữ lại qua lần tính lại — chúng không suy ra được từ dữ liệu gốc.</p>
 <p><strong>Response 200:</strong></p>
 <pre><code class="language-json">{
-  "data": {
-    "processed": 45,
-    "skipped": 2,
-    "errors": [],
-    "totalNetSalary": 850000000
-  }
+  "year": 2026, "month": 8, "standardWorkingDays": 21,
+  "employeesConsidered": 66, "created": 60, "updated": 0,
+  "skippedLocked": 0, "skippedNoContract": ["NV0001"],
+  "totalGross": 955159291, "totalNet": 804272345, "dryRun": false
 }
 </code></pre>
+<p><strong>Errors:</strong> <code>422 PAYROLL_NO_WORKING_DAYS</code> – kỳ không có ngày công chuẩn nào</p>
+<hr>
+<h3 id="get-salariessummaryyear2026month8">GET <code>/salaries/summary?year=2026&month=8</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p>Số người, tổng gross/net/bảo hiểm/thuế và số dòng theo từng trạng thái. Gộp ở DB</p>
+<p>chứ không kéo hết dòng về rồi cộng bằng JavaScript.</p>
+<h3 id="get-salariesperiods">GET <code>/salaries/periods</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p>Mảng <code>{ year, month }</code> các kỳ <strong>đã có dữ liệu</strong>, mới nhất trước — để giao diện</p>
+<p>biết tháng nào chọn được thay vì cho chọn mọi tháng rồi trả về rỗng.</p>
 <hr>
 <h3 id="get-salaries">GET <code>/salaries</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<p><strong>Query:</strong> <code>?month=5&year=2026&departmentId=2&status=draft</code></p>
-<hr>
-<h3 id="get-salariesmeyearmonth">GET <code>/salaries/me/:year/:month</code></h3>
+<p><strong>Query:</strong> <code>?year=2026</code> (<strong>bắt buộc</strong>) <code>&month=8&employeeId=51&departmentId=2&status=calculated</code>,</p>
+<p>phân trang chuẩn §1.2. <code>sort</code>: <code>employeeCode</code> (mặc định) · <code>netSalary</code> · <code>grossSalary</code>.</p>
+<p>Bỏ trống <code>month</code> để xem cả năm của một người — đó là câu hỏi thật khi tra cứu</p>
+<p>thu nhập cả năm. Nhưng <code>year</code> thì không bỏ được: trộn nhiều năm vào một danh</p>
+<p>sách thì cột "thực nhận" không còn cộng lại thành gì có nghĩa.</p>
+<h3 id="get-salariesid">GET <code>/salaries/:id</code></h3>
 <blockquote>
-<p>🔒 Auth required (employee xem phiếu lương)</p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<p><strong>Response 200:</strong></p>
+<p><strong>Response (rút gọn):</strong></p>
 <pre><code class="language-json">{
-  "data": {
-    "id": 501,
-    "month": 5,
-    "year": 2026,
-    "employee": { "id": 51, "fullName": "Nguyễn Văn Bình", "employeeCode": "NV0051" },
-
-    "workingDays": {
-      "standard": 22,
-      "actual": 21,
-      "paidLeave": 1,
-      "unpaidLeave": 0,
-      "overtimeHours": 4
-    },
-
-    "income": {
-      "baseSalary": 15000000,
-      "positionAllowance": 500000,
-      "mealAllowance": 730000,
-      "transportAllowance": 300000,
-      "phoneAllowance": 200000,
-      "overtimePay": 227272,
-      "performanceBonus": 0,
-      "grossSalary": 16957272
-    },
-
-    "insurance": {
-      "insuranceSalary": 15000000,
-      "socialInsurance": 1200000,
-      "healthInsurance": 225000,
-      "unemploymentInsurance": 150000,
-      "total": 1575000
-    },
-
-    "tax": {
-      "selfDeduction": 11000000,
-      "dependentDeduction": 0,
-      "dependentCount": 0,
-      "taxableIncome": 2132272,
-      "personalIncomeTax": 106613
-    },
-
-    "summary": {
-      "totalDeductions": 1681613,
-      "netSalary": 15275659
-    },
-
-    "status": "approved",
-    "paidAt": "2026-05-31T02:00:00.000Z"
-  }
+  "id": 120, "employeeId": 51,
+  "employee": { "employeeCode": "NV0051", "fullName": "Nguyễn Văn Bình",
+                "departmentName": "Phòng Kỹ thuật", "positionName": "Kỹ sư phần mềm" },
+  "month": 8, "year": 2026,
+  "standardWorkingDays": 21, "actualWorkingDays": 19,
+  "paidLeaveDays": 2, "unpaidLeaveDays": 0, "overtimeHours": 6.5,
+  "baseSalary": 20000000, "positionAllowance": 2000000,
+  "mealAllowance": 730000, "overtimePay": 1218750,
+  "grossSalary": 23948750,
+  "insuranceBaseSalary": 20000000,
+  "socialInsurance": 1600000, "healthInsurance": 300000,
+  "unemploymentInsurance": 200000, "totalInsurance": 2100000,
+  "dependentCount": 1, "selfDeduction": 15500000, "dependentDeduction": 6200000,
+  "taxableIncome": 0, "personalIncomeTax": 0,
+  "advanceDeduction": 0, "otherDeductions": 0,
+  "netSalary": 21848750,
+  "status": "calculated", "approvedAt": null, "paidAt": null
 }
 </code></pre>
 <hr>
-<h3 id="patch-salariesidapprove">PATCH <code>/salaries/:id/approve</code></h3>
+<h3 id="patch-salariesid">PATCH <code>/salaries/:id</code></h3>
 <blockquote>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
 </blockquote>
-<hr>
-<h3 id="patch-salariesidmark-paid">PATCH <code>/salaries/:id/mark-paid</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
-</blockquote>
-<pre><code class="language-json">{ "paidAt": "2026-05-31T02:00:00.000Z" }
+<pre><code class="language-json">{ "performanceBonus": 3000000, "otherIncome": 0, "otherDeductions": 0,
+  "note": "Thưởng dự án Q3" }
 </code></pre>
+<p><strong>CHỈ ba khoản không suy ra được từ dữ liệu gốc.</strong> Lương cơ bản, bảo hiểm, thuế</p>
+<p>và ngày công đều do server tính từ hợp đồng và chấm công; cho sửa tay là mở</p>
+<p>đường cho một bảng lương không khớp với bất kỳ dữ liệu gốc nào và không ai dò</p>
+<p>lại được.</p>
+<p>Sửa xong server <strong>tính lại</strong> thuế TNCN và lương thực nhận.</p>
+<p><strong>Errors:</strong> <code>409 SALARY_LOCKED</code> – phiếu đã duyệt/đã trả</p>
 <hr>
-<h3 id="get-salariesidpayslip">GET <code>/salaries/:id/payslip</code></h3>
+<h3 id="patch-salariesidapprove-mark-paid-cancel">PATCH <code>/salaries/:id/approve</code> · <code>/mark-paid</code> · <code>/cancel</code></h3>
 <blockquote>
-<p>🔒 Auth required</p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
 </blockquote>
-<p>Xuất phiếu lương PDF.</p>
-<p><strong>Response:</strong> <code>Content-Type: application/pdf</code></p>
+<p>Vòng đời một phiếu: <code>calculated</code> → <code>approved</code> → <code>paid</code>.</p>
+<table><thead>
+<tr><th>Endpoint</th><th>Từ</th><th>Sang</th><th>Ghi chú</th></tr>
+</thead><tbody>
+<tr><td><code>/approve</code></td><td><code>calculated</code></td><td><code>approved</code></td><td>Từ đây phiếu bị khoá: không tính lại, không sửa tay</td></tr>
+<tr><td><code>/mark-paid</code></td><td><code>approved</code></td><td><code>paid</code></td><td>Nhảy thẳng từ <code>calculated</code> là bỏ mất bước kiểm soát cuối cùng trước khi tiền rời công ty</td></tr>
+<tr><td><code>/cancel</code></td><td>bất kỳ</td><td><code>cancelled</code></td><td>Đường thoát duy nhất khi phát hiện sai sau khi duyệt; phiếu vẫn nằm lại làm vết</td></tr>
+</tbody></table>
+<p><strong>Errors:</strong> <code>409 SALARY_NOT_CALCULATED</code> · <code>409 SALARY_NOT_APPROVED</code> ·</p>
+<p><code>409 SALARY_ALREADY_CANCELLED</code></p>
+<hr>
+<h2 id="9b-salary-advances-tạm-ứng-lương">9b. Salary Advances – Tạm ứng lương</h2>
+<blockquote>
+<p>Cùng khuôn với đơn nghỉ phép, vì cùng một lý do: nhân viên không đăng nhập hệ</p>
+<p>thống này nên không ai tự đề nghị. <strong>Quản lý ghi nhận</strong> cho phòng mình (nhân sự</p>
+<p>ghi cho bất kỳ ai), <strong>nhân sự duyệt</strong>, và người đã ghi <strong>không</strong> duyệt được</p>
+<p>chính phiếu đó — tạm ứng là tiền mặt ra khỏi công ty.</p>
+</blockquote>
+<h3 id="post-salary-advances">POST <code>/salary-advances</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code></p>
+</blockquote>
+<pre><code class="language-json">{ "employeeId": 51, "amount": 5000000, "advanceDate": "2026-08-20",
+  "deductMonth": 9, "deductYear": 2026, "reason": "Ứng trước tiền viện phí" }
+</code></pre>
+<p>**<code>deductMonth</code>/<code>deductYear</code> là KỲ LƯƠNG bị trừ, tách khỏi <code>advanceDate</code> là ngày</p>
+<p>thực chi.** Ứng ngày 28/07 để trừ vào lương tháng 8 là chuyện bình thường; suy</p>
+<p>kỳ trừ từ ngày ứng sẽ đoán sai đúng những trường hợp đó, mà đoán sai ở đây nghĩa</p>
+<p>là trừ hai lần hoặc không trừ lần nào.</p>
+<h3 id="get-salary-advances">GET <code>/salary-advances</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code> — <code>manager</code> chỉ thấy phòng mình.</p>
+</blockquote>
+<p><strong>Query:</strong> <code>?employeeId=51&status=pending&deductYear=2026&deductMonth=9</code></p>
+<h3 id="patch-salary-advancesidapprove-reject-cancel">PATCH <code>/salary-advances/:id/approve</code> · <code>/reject</code> · <code>/cancel</code></h3>
+<blockquote>
+<p>🔒 <code>approve</code>/<code>reject</code>: <code>admin</code>, <code>hr_manager</code>. <code>cancel</code>: người GHI NHẬN hoặc nhân sự.</p>
+</blockquote>
+<p><code>reject</code> cần <code>reason</code>. Cả ba chỉ chạy trên phiếu còn <code>pending</code>.</p>
+<p>Phiếu đã duyệt sẽ được lần chạy tính lương của kỳ đó trừ vào <code>advanceDeduction</code></p>
+<p>và chuyển sang trạng thái <code>deducted</code>.</p>
+<p><strong>Errors:</strong> <code>403 CANNOT_APPROVE_OWN_RECORD</code> · <code>409 ADVANCE_NOT_PENDING</code></p>
+<hr>
+<h2 id="9c-payroll-settings-cấu-hình-lương">9c. Payroll Settings – Cấu hình lương</h2>
+<h3 id="get-payroll-settings-patch-payroll-settings">GET <code>/payroll-settings</code> | PATCH <code>/payroll-settings</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+</blockquote>
+<pre><code class="language-json">{ "minimumWageRegion": 1, "mealAllowance": 730000, "transportAllowance": 0,
+  "phoneAllowance": 0, "attendanceAllowance": 0, "payOvertime": true }
+</code></pre>
+<p>Ở đây là những thứ <strong>giống nhau cho mọi người</strong>: vùng lương tối thiểu và các</p>
+<p>khoản phụ cấp theo chính sách chung. Khoản thoả thuận riêng với từng người (lương</p>
+<p>cơ bản, lương đóng bảo hiểm, phụ cấp chức vụ) nằm ở <strong>hợp đồng</strong>.</p>
+<p><code>minimumWageRegion</code> quyết định <strong>trần đóng BHTN</strong> (20 × lương tối thiểu vùng),</p>
+<p>khác trần BHXH/BHYT (20 × mức tham chiếu) — xem business-rules.md §1.2.</p>
+<p>Sửa cấu hình chỉ ảnh hưởng tới các kỳ lương <strong>tính từ nay</strong>; bảng lương đã tính</p>
+<p>giữ nguyên con số của lúc đó, vì nó là chứng từ.</p>
 <hr>
 <h2 id="10-family-members-thành-viên-gia-đình">10. Family Members – Thành viên gia đình</h2>
 <h3 id="get-employeesidfamily-members">GET <code>/employees/:id/family-members</code></h3>
@@ -999,10 +1493,17 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <blockquote>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
+<p><strong>Errors:</strong> <code>404 FAMILY_MEMBER_NOT_FOUND</code>, <code>404 EMPLOYEE_NOT_FOUND</code>, <code>403 FORBIDDEN</code> (ngoài phạm vi của role).</p>
 <hr>
 <h2 id="11-dependents-người-phụ-thuộc">11. Dependents – Người phụ thuộc</h2>
 <h3 id="get-employeesiddependents">GET <code>/employees/:id/dependents</code></h3>
+<blockquote>
+<p>🔒 Auth required — nhân viên xem được người phụ thuộc của <strong>chính mình</strong>; nhóm HR xem của bất kỳ ai.</p>
+</blockquote>
 <h3 id="post-employeesiddependents">POST <code>/employees/:id/dependents</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
 <pre><code class="language-json">{
   "fullName": "Nguyễn Thị Mẹ",
   "relationship": "mother",
@@ -1010,14 +1511,23 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
   "cccdNumber": null,
   "taxCode": null,
   "registrationDate": "2026-01-01",
+  "endDate": null,
   "documentUrl": "https://s3.../dependent-doc.pdf",
   "note": "Mẹ ruột, không có thu nhập"
 }
 </code></pre>
+<p><code>endDate</code> = ngày kết thúc đăng ký giảm trừ (<code>null</code> = còn hiệu lực).</p>
 <h3 id="patch-employeesiddependentsdepid">PATCH <code>/employees/:id/dependents/:depId</code></h3>
 <h3 id="delete-employeesiddependentsdepid">DELETE <code>/employees/:id/dependents/:depId</code></h3>
+<blockquote>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+</blockquote>
+<p><strong>Errors:</strong> <code>404 DEPENDENT_NOT_FOUND</code>, <code>409 DEPENDENT_ALREADY_CLAIMED</code>, <code>422 DEPENDENT_REASON_REQUIRED</code>, <code>422 INVALID_DATE_RANGE</code>.</p>
 <hr>
 <h2 id="12-documents-tài-liệu">12. Documents – Tài liệu</h2>
+<blockquote>
+<p>⏳ <strong>Toàn bộ §12 chưa hiện thực.</strong></p>
+</blockquote>
 <h3 id="get-employeesiddocuments">GET <code>/employees/:id/documents</code></h3>
 <p><strong>Query:</strong> <code>?type=cccd</code></p>
 <h3 id="post-employeesiddocuments">POST <code>/employees/:id/documents</code></h3>
@@ -1032,14 +1542,16 @@ expiryDate: (optional)
 <h3 id="delete-employeesiddocumentsdocid">DELETE <code>/employees/:id/documents/:docId</code></h3>
 <hr>
 <h2 id="13-users-tài-khoản">13. Users – Tài khoản</h2>
-<h3 id="get-users">GET <code>/users</code></h3>
+<h3 id="get-roles">GET <code>/roles</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code></p>
+<p>🔒 Auth required (mọi role đã đăng nhập)</p>
 </blockquote>
+<p>Danh sách vai trò đang hoạt động, dùng để đổ dropdown khi tạo tài khoản. Chỉ là tên vai trò, không phải dữ liệu nhạy cảm.</p>
 <h3 id="post-users">POST <code>/users</code></h3>
 <blockquote>
 <p>🔒 Roles: <code>admin</code></p>
 </blockquote>
+<p>Tạo tài khoản đăng nhập cho một nhân viên. Hồ sơ nhân viên (<code>employees</code>) và tài khoản (<code>users</code>) là <strong>hai bản ghi tách rời</strong>, nối qua <code>users.employee_id</code>; đây là bước "tài khoản" của wizard tạo nhân viên.</p>
 <pre><code class="language-json">{
   "username": "binh.nguyen",
   "email": "binh.nguyen@company.com",
@@ -1048,190 +1560,178 @@ expiryDate: (optional)
   "employeeId": 51
 }
 </code></pre>
-<h3 id="patch-usersid">PATCH <code>/users/:id</code></h3>
-<h3 id="patch-usersidreset-password">PATCH <code>/users/:id/reset-password</code></h3>
+<p><strong>Errors:</strong> <code>409 DUPLICATE_USERNAME</code>, <code>409 DUPLICATE_EMAIL</code>, <code>409 EMPLOYEE_ALREADY_HAS_ACCOUNT</code>, <code>422 ROLE_NOT_FOUND</code>, <code>403 FORBIDDEN</code> (chỉ admin).</p>
+<h3 id="get-users-patch-usersid-patch-usersidreset-password">GET <code>/users</code> · PATCH <code>/users/:id</code> · PATCH <code>/users/:id/reset-password</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code></p>
+<p>⏳ <strong>Chưa hiện thực.</strong> Phạm vi hẹp là <strong>cố ý</strong>: màn hình quản lý tài khoản chưa nằm trong giai đoạn nào của PLAN, thêm sớm là code không ai gọi.</p>
 </blockquote>
-<pre><code class="language-json">{ "newPassword": "NewTemp@2026" }
-</code></pre>
 <hr>
 <h2 id="14-disciplines-rewards-khen-thưởng-kỷ-luật">14. Disciplines & Rewards – Khen thưởng & Kỷ luật</h2>
-<h3 id="get-employeesiddisciplines-rewards">GET <code>/employees/:id/disciplines-rewards</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> | Employee xem của chính mình</p>
+<p><strong>Bản ghi này không mang tiền.</strong> Điều 128 BLLĐ 2019 cấm phạt tiền và cấm trừ</p>
+<p>lương thay cho kỷ luật; còn tiền thưởng thực trả đi qua <code>performanceBonus</code> của</p>
+<p>bảng lương (§9). Cột <code>amount</code> đã bị bỏ khỏi bảng.</p>
+</blockquote>
+<h3 id="get-employeesemployeeiddisciplines-rewards">GET <code>/employees/:employeeId/disciplines-rewards</code></h3>
+<blockquote>
+<p>🔒 Auth required — phạm vi theo hồ sơ nhân viên (<code>manager</code> chỉ xem phòng mình).</p>
 </blockquote>
 <p><strong>Query:</strong> <code>?type=reward</code> | <code>?type=discipline</code></p>
-<p><strong>Response 200:</strong></p>
-<pre><code class="language-json">{
-  "data": [
-    {
-      "id": 1,
-      "type": "reward",
-      "category": "Thưởng KPI",
-      "title": "Hoàn thành xuất sắc Q1/2026",
-      "description": "Vượt KPI 120%",
-      "decisionNumber": "QD-2026-001",
-      "decisionDate": "2026-04-01",
-      "effectiveDate": "2026-04-01",
-      "amount": 5000000,
-      "issuedBy": { "id": 3, "fullName": "Trần Thị Giám Đốc" }
-    }
-  ]
-}
+<p>Mới nhất trước, theo ngày ký quyết định. Không phân trang.</p>
+<pre><code class="language-json">[
+  {
+    "id": 1, "employeeId": 51, "type": "reward",
+    "category": "Thưởng KPI",
+    "title": "Hoàn thành xuất sắc Q1/2026",
+    "description": "Vượt KPI 120%",
+    "decisionNumber": "QD-2026-001",
+    "decisionDate": "2026-04-01", "effectiveDate": "2026-04-01",
+    "issuedBy": { "id": 3, "fullName": "Trần Thị Giám Đốc" },
+    "documentUrl": null, "note": null,
+    "createdAt": "2026-04-01T02:00:00.000Z"
+  }
+]
 </code></pre>
-<hr>
-<h3 id="post-employeesiddisciplines-rewards">POST <code>/employees/:id/disciplines-rewards</code></h3>
+<h3 id="post-employeesemployeeiddisciplines-rewards">POST <code>/employees/:employeeId/disciplines-rewards</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
 <pre><code class="language-json">{
-  "type": "discipline",
-  "category": "Cảnh cáo",
+  "type": "discipline", "category": "Khiển trách",
   "title": "Vi phạm nội quy công ty",
-  "description": "Đi muộn liên tục 3 ngày trong tháng",
+  "description": "Đi muộn liên tục 3 ngày trong tháng 5/2026",
   "decisionNumber": "QD-KC-2026-005",
-  "decisionDate": "2026-05-20",
-  "effectiveDate": "2026-05-20",
-  "amount": null,
-  "issuedById": 3,
-  "documentUrl": null
+  "decisionDate": "2026-05-20", "effectiveDate": "2026-06-01",
+  "issuedById": 3
 }
 </code></pre>
-<hr>
-<h3 id="patch-employeesiddisciplines-rewardsrecordid">PATCH <code>/employees/:id/disciplines-rewards/:recordId</code></h3>
+<p><code>decisionDate</code> là ngày ký, <code>effectiveDate</code> là ngày có hiệu lực — hai mốc khác</p>
+<p>nhau, cả hai bắt buộc, và hiệu lực không được đứng trước ngày ký.</p>
+<p><strong>Errors:</strong> <code>422 EFFECTIVE_BEFORE_DECISION</code></p>
+<h3 id="patch-employeesemployeeiddisciplines-rewardsrecordid">PATCH <code>/employees/:employeeId/disciplines-rewards/:recordId</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<hr>
-<h3 id="delete-employeesiddisciplines-rewardsrecordid">DELETE <code>/employees/:id/disciplines-rewards/:recordId</code></h3>
+<p>Mọi trường tuỳ chọn, kể cả <code>type</code>. Hiệu lực vẫn không được đứng trước ngày ký.</p>
+<h3 id="delete-employeesemployeeiddisciplines-rewardsrecordid">DELETE <code>/employees/:employeeId/disciplines-rewards/:recordId</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code> — hẹp hơn quyền ghi.</p>
 </blockquote>
 <hr>
 <h2 id="15-performance-reviews-đánh-giá-hiệu-suất">15. Performance Reviews – Đánh giá hiệu suất</h2>
-<h3 id="get-performance-reviews">GET <code>/performance-reviews</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
+<p><strong>Người chấm viết; nhân viên không tự chấm</strong> — họ không đăng nhập hệ thống</p>
+<p>này. Không có <code>GET /performance-reviews/me</code>.</p>
+<p></p>
+<p>Vòng đời: <code>draft</code> (còn sửa) → <code>submitted</code> (đã chốt) → <code>acknowledged</code> (nhân sự</p>
+<p>ghi nhận nhân viên đã ký nhận bản giấy).</p>
+<p></p>
+<p>| | Vai trò |</p>
+<p>|---|---|</p>
+<p>| Chấm, sửa, chốt, xoá nháp | <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code> |</p>
+<p>| Ghi nhận ký nhận | <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> |</p>
+<p></p>
+<p><code>manager</code> bị <code>resolveScope</code> giới hạn trong phòng ban mình quản.</p>
 </blockquote>
-<p><strong>Query:</strong> <code>?employeeId=51&year=2026&period=quarterly</code></p>
-<hr>
-<h3 id="get-performance-reviewsme">GET <code>/performance-reviews/me</code></h3>
-<blockquote>
-<p>🔒 Auth required (employee xem đánh giá của mình)</p>
-</blockquote>
-<hr>
 <h3 id="post-performance-reviews">POST <code>/performance-reviews</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
-</blockquote>
 <pre><code class="language-json">{
-  "employeeId": 51,
-  "reviewPeriod": "quarterly",
-  "periodYear": 2026,
-  "periodQuarter": 2,
-  "kpiScore": 85.5,
-  "attitudeScore": 90.0,
-  "skillScore": 88.0,
+  "employeeId": 51, "reviewPeriod": "quarterly",
+  "periodYear": 2026, "periodQuarter": 2,
+  "kpiScore": 85.5, "attitudeScore": 90, "skillScore": 88,
   "strengths": "Chủ động, hoàn thành đúng deadline",
   "weaknesses": "Cần cải thiện kỹ năng trình bày",
   "recommendations": "Đề xuất tham gia khoá đào tạo presentation"
 }
 </code></pre>
-<p><strong>Response 201:</strong> Trả về record với <code>overallScore</code> và <code>rating</code> tính tự động.</p>
-<hr>
+<p><strong>Người chấm lấy từ token</strong>, không nhận <code>reviewerId</code> trong body.</p>
+<p><strong><code>overallScore</code> và <code>rating</code> do server tính</strong>: trung bình các tiêu chí ĐÃ chấm</p>
+<p>(trọng số bằng nhau), tiêu chí chưa chấm không tính là 0.</p>
+<p>Ngưỡng xếp loại (quy ước nội bộ, không phải luật): ≥90 <code>excellent</code> · ≥75 <code>good</code></p>
+<p>· ≥60 <code>average</code> · ≥40 <code>below_average</code> · còn lại <code>poor</code>.</p>
+<p>Trường kỳ phải khớp loại kỳ: <code>monthly</code> cần <code>periodMonth</code>; <code>quarterly</code> và</p>
+<p><code>biannual</code> cần <code>periodQuarter</code> (nửa năm dùng 1 hoặc 2); <code>annual</code> không cần gì.</p>
+<p><strong>Errors:</strong> <code>409 REVIEW_PERIOD_TAKEN</code> · <code>422 REVIEW_PERIOD_MISMATCH</code> ·</p>
+<p><code>422 REVIEWER_HAS_NO_EMPLOYEE_RECORD</code></p>
+<h3 id="get-performance-reviews">GET <code>/performance-reviews</code></h3>
+<p><strong>Query:</strong> <code>?employeeId=51&departmentId=2&periodYear=2026&reviewPeriod=quarterly&status=submitted&rating=good</code>,</p>
+<p>phân trang chuẩn §1.2. Kỳ mới nhất trước.</p>
+<h3 id="get-performance-reviewsid">GET <code>/performance-reviews/:id</code></h3>
 <h3 id="patch-performance-reviewsid">PATCH <code>/performance-reviews/:id</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code> (chỉ khi status=draft)</p>
-</blockquote>
-<hr>
+<p>Chỉ khi còn <code>draft</code>; không đổi được <code>employeeId</code>. Sửa một tiêu chí thì điểm tổng</p>
+<p>và xếp loại được tính lại.</p>
+<p><strong>Errors:</strong> <code>409 REVIEW_NOT_DRAFT</code></p>
 <h3 id="patch-performance-reviewsidsubmit">PATCH <code>/performance-reviews/:id/submit</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>manager</code></p>
-</blockquote>
-<p>Chuyển trạng thái → <code>submitted</code>, gửi thông báo cho nhân viên.</p>
-<hr>
+<p><code>draft</code> → <code>submitted</code>. Bản chưa chấm điểm nào thì không chốt được.</p>
+<p><strong>Errors:</strong> <code>409 REVIEW_NOT_DRAFT</code> · <code>422 REVIEW_HAS_NO_SCORE</code></p>
 <h3 id="patch-performance-reviewsidacknowledge">PATCH <code>/performance-reviews/:id/acknowledge</code></h3>
 <blockquote>
-<p>🔒 Auth required (employee xác nhận đã đọc đánh giá)</p>
+<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> — <strong>không</strong> có <code>manager</code>.</p>
 </blockquote>
+<p>Ghi lại việc nhân viên đã ký nhận bản giấy. <code>submitted</code> → <code>acknowledged</code>.</p>
+<p><strong>Errors:</strong> <code>409 REVIEW_NOT_SUBMITTED</code></p>
+<h3 id="delete-performance-reviewsid">DELETE <code>/performance-reviews/:id</code></h3>
+<p>Chỉ xoá được bản còn <code>draft</code>.</p>
 <hr>
 <h2 id="16-trainings-đào-tạo">16. Trainings – Đào tạo</h2>
+<blockquote>
+<p><strong>Nhân sự ghi danh; nhân viên không tự đăng ký.</strong> Việc đăng ký diễn ra ngoài</p>
+<p>phần mềm, ở đây ghi lại danh sách cuối cùng.</p>
+<p></p>
+<p>Vòng đời khoá học: <code>planned</code> → <code>ongoing</code> → <code>completed</code>, hoặc <code>cancelled</code> khi</p>
+<p>chưa kết thúc. <code>completed</code> và <code>cancelled</code> là điểm cuối.</p>
+</blockquote>
 <h3 id="get-trainings">GET <code>/trainings</code></h3>
 <blockquote>
-<p>🔒 Auth required</p>
+<p>🔒 Auth required — danh mục khoá học là thông tin chung.</p>
 </blockquote>
-<p><strong>Query:</strong> <code>?status=ongoing&type=internal</code></p>
-<p><strong>Response 200:</strong></p>
-<pre><code class="language-json">{
-  "data": {
-    "items": [
-      {
-        "id": 1,
-        "code": "TRN-2026-001",
-        "name": "Kỹ năng lãnh đạo",
-        "type": "external",
-        "startDate": "2026-06-10",
-        "endDate": "2026-06-12",
-        "location": "Hà Nội",
-        "trainer": "Học viện Kỹ năng PACE",
-        "cost": 5000000,
-        "maxParticipants": 20,
-        "status": "planned"
-      }
-    ]
-  }
-}
-</code></pre>
-<hr>
-<h3 id="post-trainings">POST <code>/trainings</code></h3>
+<p><strong>Query:</strong> <code>?status=ongoing&type=internal&search=lãnh đạo</code>, phân trang chuẩn §1.2.</p>
+<p>Khoá có ngày lên trước, mới nhất trước; khoá chưa có ngày xuống cuối. Mỗi dòng</p>
+<p>kèm <code>participantCount</code> để biết còn bao nhiêu chỗ.</p>
+<h3 id="get-trainingsid-post-trainings-patch-trainingsid-delete-trainingsid">GET <code>/trainings/:id</code> | POST <code>/trainings</code> | PATCH <code>/trainings/:id</code> | DELETE <code>/trainings/:id</code></h3>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
+<p>🔒 Ghi: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
 <pre><code class="language-json">{
-  "code": "TRN-2026-002",
-  "name": "Clean Code &amp; Refactoring",
-  "type": "internal",
-  "startDate": "2026-07-01",
-  "endDate": "2026-07-01",
-  "location": "Phòng họp A",
-  "trainer": "Nguyễn Văn Senior Dev",
-  "cost": 0,
-  "maxParticipants": 15,
-  "description": ""
+  "code": "TRN-2026-001", "name": "Kỹ năng lãnh đạo", "type": "external",
+  "startDate": "2026-06-10", "endDate": "2026-06-12",
+  "location": "Hà Nội", "trainer": "Học viện Kỹ năng PACE",
+  "cost": 5000000, "maxParticipants": 20
 }
 </code></pre>
-<hr>
-<h3 id="patch-trainingsid-delete-trainingsid">PATCH <code>/trainings/:id</code> | DELETE <code>/trainings/:id</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
-</blockquote>
-<hr>
-<h3 id="get-trainingsidparticipants">GET <code>/trainings/:id/participants</code></h3>
-<p>Danh sách nhân viên tham gia khoá đào tạo.</p>
-<hr>
-<h3 id="post-trainingsidenroll">POST <code>/trainings/:id/enroll</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
-</blockquote>
-<p>Đăng ký nhân viên vào khoá đào tạo.</p>
+<p><code>POST</code> không nhận <code>status</code> — khoá mới luôn là <code>planned</code>. <code>PATCH</code> thì nhận, và</p>
+<p>vòng đời đi bằng chính ô đó. <code>maxParticipants</code> bỏ trống = không giới hạn, và</p>
+<p>không hạ được xuống dưới số người đã ghi danh.</p>
+<p><code>DELETE</code> chỉ xoá được khoá <strong>chưa có ai ghi danh</strong> — FK là <code>ON DELETE CASCADE</code>,</p>
+<p>xoá khoá đã có người sẽ kéo theo lịch sử đào tạo của họ. Khoá đã có người thì</p>
+<p>chuyển sang <code>cancelled</code>.</p>
+<p><strong>Errors:</strong> <code>409 TRAINING_CODE_TAKEN</code> · <code>409 TRAINING_INVALID_TRANSITION</code> ·</p>
+<p><code>422 TRAINING_CAPACITY_BELOW_ENROLLED</code> · <code>422 TRAINING_HAS_PARTICIPANTS</code> ·</p>
+<p><code>422 INVALID_TRAINING_RANGE</code></p>
+<h3 id="get-trainingsidparticipants-post-trainingsidparticipants">GET <code>/trainings/:id/participants</code> | POST <code>/trainings/:id/participants</code></h3>
 <pre><code class="language-json">{ "employeeIds": [51, 52, 53] }
 </code></pre>
-<hr>
-<h3 id="patch-trainingsidparticipantsemployeeid">PATCH <code>/trainings/:id/participants/:employeeId</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
-</blockquote>
-<p>Cập nhật kết quả sau khoá học.</p>
-<pre><code class="language-json">{
-  "result": "passed",
-  "score": 88.5,
-  "completionDate": "2026-07-01",
-  "certificateUrl": "https://s3.../cert-001.pdf"
-}
+<p>Nhận cả danh sách trong một lần gọi. Người đã có trong khoá được <strong>bỏ qua</strong>, không</p>
+<p>làm hỏng cả lô:</p>
+<pre><code class="language-json">{ "enrolled": 2, "alreadyEnrolled": ["NV0051"] }
 </code></pre>
+<p><strong>Errors:</strong> <code>409 TRAINING_CLOSED</code> · <code>422 TRAINING_FULL</code></p>
+<h3 id="patch-trainingsidparticipantsemployeeid">PATCH <code>/trainings/:id/participants/:employeeId</code></h3>
+<pre><code class="language-json">{ "result": "passed", "score": 8.5, "certificateUrl": "https://.../cc.pdf" }
+</code></pre>
+<p><code>result</code> bắt buộc. Bỏ trống <code>completionDate</code> thì lấy ngày kết thúc khoá học.</p>
+<h3 id="delete-trainingsidparticipantsemployeeid">DELETE <code>/trainings/:id/participants/:employeeId</code></h3>
+<p>Chỉ gỡ được khi người đó <strong>chưa có kết quả</strong>.</p>
+<p><strong>Errors:</strong> <code>422 TRAINING_RESULT_RECORDED</code></p>
+<h3 id="get-employeesemployeeidtrainings">GET <code>/employees/:employeeId/trainings</code></h3>
+<blockquote>
+<p>🔒 Auth required — phạm vi theo hồ sơ nhân viên.</p>
+</blockquote>
+<p>Lịch sử đào tạo của một nhân viên, mới nhất trước.</p>
 <hr>
 <h2 id="17-announcements-thông-báo-nội-bộ">17. Announcements – Thông báo nội bộ</h2>
+<blockquote>
+<p>⏳ <strong>Toàn bộ §17 chưa hiện thực</strong> (Giai đoạn 8).</p>
+</blockquote>
 <h3 id="get-announcements">GET <code>/announcements</code></h3>
 <blockquote>
 <p>🔒 Auth required (tất cả nhân viên)</p>
@@ -1284,52 +1784,24 @@ expiryDate: (optional)
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code> (chỉ người tạo hoặc admin)</p>
 </blockquote>
 <hr>
-<h2 id="18-leave-balances-quản-lý-ngày-phép-admin">18. Leave Balances – Quản lý ngày phép (Admin)</h2>
-<h3 id="get-leave-balances">GET <code>/leave-balances</code></h3>
+<h2 id="18-leave-balances-quản-lý-ngày-phép">18. Leave Balances – Quản lý ngày phép</h2>
 <blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
+<p><strong>Đã gộp vào <a href="#8-leaves--nghỉ-phép">§8</a>.</strong> Mục này từng mô tả một API khác với</p>
+<p>API thật — <code>POST /leave-balances/init-year</code> với <code>carryOverLimit</code>, <code>PATCH</code> với</p>
+<p><code>note</code>, response <code>{ processed }</code>. Không cái nào tồn tại: endpoint là</p>
+<p><code>POST /leave-balances/init</code> (<code>carryOver</code> là cờ bật/tắt, có <code>dryRun</code>), <code>PATCH</code></p>
+<p>nhận <code>reason</code>, và init trả về <code>employeesConsidered</code> / <code>created</code> / <code>skipped</code>.</p>
+<p></p>
+<p>Xem §8 cho toàn bộ <code>/leave-types</code>, <code>/leave-balances</code>, <code>/leave-requests</code>.</p>
 </blockquote>
-<p><strong>Query:</strong> <code>?year=2026&departmentId=2&employeeId=51</code></p>
-<p>Xem số ngày phép của tất cả nhân viên.</p>
-<hr>
-<h3 id="post-leave-balancesinit-year">POST <code>/leave-balances/init-year</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
-</blockquote>
-<p>Khởi tạo ngày phép năm mới cho toàn bộ nhân viên (chạy đầu năm).</p>
-<pre><code class="language-json">{
-  "year": 2027,
-  "carryOverLimit": 5
-}
-</code></pre>
-<p><strong>Logic:</strong> Với mỗi nhân viên đang active:</p>
-<ul>
-<li><code>allocated_days</code> = 12 + (số năm làm việc trọn 5 năm)</li>
-<li><code>carried_over</code> = min(remaining_days của năm trước, <code>carryOverLimit</code>)</li>
-</ul>
-<p><strong>Response 200:</strong></p>
-<pre><code class="language-json">{
-  "data": {
-    "processed": 143,
-    "year": 2027
-  }
-}
-</code></pre>
-<hr>
-<h3 id="patch-leave-balancesid">PATCH <code>/leave-balances/:id</code></h3>
-<blockquote>
-<p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
-</blockquote>
-<p>Điều chỉnh thủ công số ngày phép (trường hợp đặc biệt).</p>
-<pre><code class="language-json">{
-  "allocatedDays": 15,
-  "note": "Cộng thêm 3 ngày theo quyết định HĐQT"
-}
-</code></pre>
 <hr>
 <h2 id="19-reports-báo-cáo">19. Reports – Báo cáo</h2>
+<blockquote>
+<p><strong>Trạng thái:</strong> chỉ <code>GET /reports/employees/export</code> đã hiện thực. Các report còn lại của §19 chưa có. (Số liệu tổng quan nhân sự hiện lấy qua <code>GET /employees/stats</code> — xem §3.)</p>
+</blockquote>
 <h3 id="get-reportsdashboardstats">GET <code>/reports/dashboard/stats</code></h3>
 <blockquote>
+<p>⏳ <strong>Chưa hiện thực.</strong> Màn hình danh sách nhân viên đang dùng <code>GET /employees/stats</code> (§3).</p>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
 </blockquote>
 <p><strong>Response:</strong></p>
@@ -1355,12 +1827,27 @@ expiryDate: (optional)
 <blockquote>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></p>
 </blockquote>
-<p><strong>Query:</strong> Các filter tương tự GET <code>/employees</code></p>
-<p><strong>Response:</strong> <code>Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</code>  </p>
-<p>File Excel với các sheet: Danh sách, Thông tin BH, Thông tin lương.</p>
+<p>Xuất danh sách nhân viên ra Excel (<code>.xlsx</code>), 3 sheet theo đúng thứ tự: <strong><code>Danh sách</code></strong> · <strong><code>Thông tin BH</code></strong> · <strong><code>Thông tin lương</code></strong>.</p>
+<blockquote>
+<p><code>manager</code> <strong>bị loại</strong> khỏi endpoint này một cách có chủ đích, dù vẫn xem được danh sách phòng ban mình trên màn hình: xem một phòng trên màn hình khác với rút cả phòng ra một file mang đi.</p>
+</blockquote>
+<p><strong>Query:</strong> dùng <strong>chung</strong> bộ filter của <code>GET /employees</code> (<code>search</code>, <code>departmentId</code>, <code>positionId</code>, <code>status</code>, <code>gender</code>, <code>hireFrom</code>, <code>hireTo</code>, <code>onlyDeleted</code>) — file xuất ra đúng bằng những dòng đang hiển thị trên màn hình. <code>page</code>/<code>limit</code> bị <strong>bỏ qua</strong> (bản xuất không phân trang). Phạm vi dữ liệu theo đúng phạm vi role của <code>GET /employees</code>.</p>
+<table><thead>
+<tr><th>Query thêm</th><th>Mặc định</th><th>Ý nghĩa</th></tr>
+</thead><tbody>
+<tr><td><code>includeSensitive</code></td><td><code>false</code></td><td><code>true</code> → xuất CCCD, số tài khoản và các cột tiền ở dạng <strong>đầy đủ</strong> (không che). Mặc định CCCD/số tài khoản bị che (<code><strong><em><em></em></strong></em>9432</code>) và các cột tiền để trống, tiêu đề cột gắn hậu tố <code> (ẩn)</code></td></tr>
+</tbody></table>
+<p><strong>Vì sao phải xin tường minh:</strong> <code>includeSensitive=true</code> <strong>chỉ dành cho <code>admin</code>/<code>hr_manager</code></strong> — <code>hr_staff</code> gửi cờ này nhận <code>403 SENSITIVE_EXPORT_FORBIDDEN</code> (nhập liệu được nhưng không được mang dữ liệu nhạy cảm của toàn công ty ra khỏi hệ thống). Mỗi lần xuất bản đầy đủ đều được ghi log mức <code>warn</code> kèm người yêu cầu.</p>
+<p><strong>Trần số dòng:</strong> <strong>10.000</strong>. Vượt trần → <code>422 EXPORT_TOO_MANY_ROWS</code>, <strong>KHÔNG cắt bớt im lặng</strong>: người nhận file sẽ hành động trên nó như thể nó đầy đủ, nên thiếu dòng mà không báo là lỗi toàn vẹn dữ liệu chứ không phải bất tiện nhỏ.</p>
+<p><strong>Response:</strong> <code>Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</code>, kèm <code>Content-Disposition</code> có cả <code>filename=</code> (ASCII, đã bỏ dấu) lẫn <code>filename*=UTF-8''…</code> (tên tiếng Việt) và <code>X-Content-Type-Options: nosniff</code>.</p>
+<blockquote>
+<p><strong>CORS:</strong> browser giấu mọi response header khỏi JS trừ một danh sách ngắn, và <code>Content-Disposition</code> không nằm trong đó — server khai báo <code>exposedHeaders: ['Content-Disposition']</code> để frontend đọc được tên file. Ở dev thì Vite proxy làm request thành same-origin nên không thấy vấn đề này.</p>
+</blockquote>
+<p><strong>Errors:</strong> <code>403 FORBIDDEN</code> (role không được xuất), <code>403 SENSITIVE_EXPORT_FORBIDDEN</code>, <code>422 EXPORT_TOO_MANY_ROWS</code>.</p>
 <hr>
 <h3 id="get-reportssalariesexport">GET <code>/reports/salaries/export</code></h3>
 <blockquote>
+<p>⏳ <strong>Chưa hiện thực.</strong></p>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
 </blockquote>
 <p><strong>Query:</strong> <code>?month=5&year=2026&departmentId=2</code></p>
@@ -1368,32 +1855,104 @@ expiryDate: (optional)
 <hr>
 <h3 id="get-reportsattendancesexport">GET <code>/reports/attendances/export</code></h3>
 <blockquote>
+<p>⏳ <strong>Chưa hiện thực.</strong></p>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code>, <code>manager</code></p>
 </blockquote>
 <p><strong>Query:</strong> <code>?month=5&year=2026&departmentId=2</code></p>
 <hr>
 <h3 id="get-reportsleavessummary">GET <code>/reports/leaves/summary</code></h3>
 <blockquote>
+<p>⏳ <strong>Chưa hiện thực.</strong></p>
 <p>🔒 Roles: <code>admin</code>, <code>hr_manager</code></p>
 </blockquote>
 <p><strong>Query:</strong> <code>?year=2026</code></p>
 <hr>
 <h2 id="20-system-dữ-liệu-hệ-thống">20. System – Dữ liệu hệ thống</h2>
+<blockquote>
+<p>🔒 <strong>Mọi endpoint <code>/system/*</code> đều yêu cầu đăng nhập.</strong> Tài liệu này từng ghi <code>/system/leave-types</code> là public; thực tế guard mặc định vẫn áp dụng (PLAN 2.1).</p>
+<p></p>
+<p><code>/system/*</code> là các endpoint <strong>chỉ đọc</strong>, trả về <strong>mảng phẳng</strong> (không phân trang) để UI dùng thẳng. Phần CRUD ngày lễ ở cuối mục này nằm ở prefix riêng <code>/holidays</code> và có phân trang như bình thường.</p>
+</blockquote>
+<h3 id="địa-giới-hành-chính-chỉ-còn-2-cấp">Địa giới hành chính – chỉ còn 2 cấp</h3>
+<p>Từ <strong>01/07/2025</strong>, <strong>Luật 72/2025/QH15</strong> chấm dứt hoạt động của <strong>cấp huyện</strong>. Cả nước còn <strong>34 tỉnh/thành phố</strong> và <strong>3.321 phường/xã/đặc khu</strong> (687 phường, 2.621 xã, 13 đặc khu) — <strong>không có gì ở giữa</strong>.</p>
+<p>Vì vậy API chỉ có <strong>hai</strong> endpoint danh mục: <code>/system/provinces</code> và <code>/system/wards</code>. <strong>Không có <code>/system/districts</code></strong> — endpoint đó từng được mô tả ở đây và đã bị gỡ bỏ cùng cấp hành chính mà nó phục vụ.</p>
+<p>Dữ liệu đọc từ <strong>file tĩnh</strong> đi kèm app (<code>src/common/data/vn-provinces.json</code>, <code>vn-wards.json</code>, sinh bằng <code>scripts/build-vn-admin-data.ts</code> từ danh mục cơ quan thuế), <strong>không phải từ DB</strong> và <strong>không gọi API ngoài lúc chạy</strong>. Danh sách bất biến trong một lần chạy nên frontend cache thoải mái.</p>
+<hr>
 <h3 id="get-systemprovinces">GET <code>/system/provinces</code></h3>
-<p>Danh sách 63 tỉnh/thành phố.</p>
+<p>34 tỉnh/thành phố sau sáp nhập 2025. Không có query param.</p>
 <pre><code class="language-json">{
   "data": [
-    { "code": "01", "name": "Hà Nội", "type": "Thành phố Trung ương" },
-    { "code": "79", "name": "Thành phố Hồ Chí Minh", "type": "Thành phố Trung ương" }
+    { "code": "01", "name": "Thành phố Hà Nội", "type": "city", "tmsCode": "101" },
+    { "code": "34", "name": "Tỉnh Cà Mau", "type": "province", "tmsCode": "823" }
   ]
 }
 </code></pre>
-<h3 id="get-systemdistrictsprovincecode">GET <code>/system/districts/:provinceCode</code></h3>
-<h3 id="get-systemwardsdistrictcode">GET <code>/system/wards/:districtCode</code></h3>
+<p><code>code</code> là mã tỉnh Bộ Nội Vụ (<code>01</code>–<code>34</code>); <code>type</code> ∈ <code>city</code> | <code>province</code>.</p>
+<blockquote>
+<p><code>tmsCode</code> (mã tỉnh của hệ thống thuế) có mặt trong response vì controller trả thẳng file JSON và app <strong>không</strong> bật <code>ClassSerializerInterceptor</code>, dù <code>ProvinceResponseDto</code> không khai báo field này. Client <strong>không nên</strong> phụ thuộc vào nó.</p>
+</blockquote>
+<hr>
+<h3 id="get-systemwards">GET <code>/system/wards</code></h3>
+<p>3.321 phường/xã/đặc khu.</p>
+<table><thead>
+<tr><th>Query</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td><code>provinceCode</code></td><td>❌</td><td>Lọc theo tỉnh (1–10 chữ số). <strong>Nên luôn truyền</strong> — bỏ trống trả về <strong>toàn bộ 3.321</strong> đơn vị</td></tr>
+</tbody></table>
+<pre><code class="language-json">{
+  "data": [
+    {
+      "code": "10101003",
+      "name": "Phường Ba Đình",
+      "provinceCode": "01",
+      "type": "phuong",
+      "legacyDistrictCode": "10101",
+      "legacyDistrictName": "Quận Ba Đình"
+    }
+  ]
+}
+</code></pre>
+<ul>
+<li><code>code</code> là mã của <strong>hệ thống thuế (TMS)</strong>, không phải mã GSO. Chọn hệ mã này vì Giai đoạn 6 sẽ quyết toán thuế TNCN — dùng đúng mã cơ quan thuế dùng thì số liệu đi nộp không phải map thêm một lần nữa.</li>
+<li><code>type</code> ∈ <code>phuong</code> | <code>xa</code> | <code>dac_khu</code>.</li>
+<li><code>legacyDistrictCode</code> / <code>legacyDistrictName</code>: quận/huyện <strong>cũ</strong> mà đơn vị này tách ra. <strong>Chỉ để đối chiếu hồ sơ cũ, KHÔNG dùng cho nhập liệu mới.</strong></li>
+</ul>
+<hr>
 <h3 id="get-systemholidays">GET <code>/system/holidays</code></h3>
-<p><strong>Query:</strong> <code>?year=2026</code></p>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p><strong>Query:</strong> <code>?year=2026</code> (bỏ trống → năm hiện tại). Mảng phẳng, sắp xếp theo ngày. CRUD ngày lễ nằm ở <code>/holidays</code> — xem bên dưới.</p>
 <h3 id="get-systemleave-types">GET <code>/system/leave-types</code></h3>
-<p>Danh sách loại nghỉ phép (public, không cần auth).</p>
+<blockquote>
+<p>🔒 Auth required</p>
+</blockquote>
+<p>Loại nghỉ phép đang áp dụng — <strong>chỉ</strong> những loại <code>isActive = true</code>. CRUD nằm ở <code>/leave-types</code> (§8).</p>
+<hr>
+<h3 id="holidays-crud-holidays">Holidays – CRUD (<code>/holidays</code>)</h3>
+<p>Không nằm trong §20 gốc nhưng đã hiện thực, nên ghi lại ở đây.</p>
+<table><thead>
+<tr><th>Method</th><th>Path</th><th>Quyền</th></tr>
+</thead><tbody>
+<tr><td>GET</td><td><code>/holidays</code> (phân trang; <code>?year=</code>, <code>?type=</code>, <code>?isPaid=</code>, `?sort=holidayDate\</td><td>name\</td><td>year`)</td><td>Auth required</td></tr>
+<tr><td>GET</td><td><code>/holidays/:id</code></td><td>Auth required</td></tr>
+<tr><td>POST</td><td><code>/holidays</code></td><td><code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></td></tr>
+<tr><td>PATCH</td><td><code>/holidays/:id</code></td><td><code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></td></tr>
+<tr><td>DELETE</td><td><code>/holidays/:id</code></td><td><code>admin</code>, <code>hr_manager</code>, <code>hr_staff</code></td></tr>
+</tbody></table>
+<pre><code class="language-json">{
+  "name": "Tết Dương lịch",
+  "holidayDate": "2027-01-01",
+  "type": "national",
+  "isPaid": true,
+  "note": null
+}
+</code></pre>
+<blockquote>
+<p><code>year</code> <strong>không nhận từ client</strong> – luôn suy ra từ <code>holidayDate</code> để hai cột không bao giờ lệch nhau.</p>
+<p><code>holidays</code> <strong>không có <code>code</code></strong> (và không có <code>deleted_at</code> → DELETE là xoá vật lý). Vì ngày lễ do người dùng nhập nên <code>409 DUPLICATE_HOLIDAY_DATE</code> vẫn là lỗi có thật, khác với các mã master data do server sinh.</p>
+</blockquote>
+<p><strong>Errors:</strong> <code>404 HOLIDAY_NOT_FOUND</code>, <code>409 DUPLICATE_HOLIDAY_DATE</code>, <code>403 FORBIDDEN</code>.</p>
 <hr>
 <h2 id="21-error-codes">21. Error Codes</h2>
 <h3 id="http-status-codes">HTTP Status Codes</h3>
@@ -1408,44 +1967,137 @@ expiryDate: (optional)
 <tr><td>404</td><td>Not Found</td></tr>
 <tr><td>409</td><td>Conflict – Trùng dữ liệu</td></tr>
 <tr><td>422</td><td>Unprocessable Entity – Vi phạm business rule</td></tr>
-<tr><td>429</td><td>Too Many Requests – Rate limit</td></tr>
+<tr><td>423</td><td>Locked – Tài khoản đang bị khoá</td></tr>
+<tr><td>429</td><td>Too Many Requests – Lần đăng nhập sai làm khoá tài khoản</td></tr>
 <tr><td>500</td><td>Internal Server Error</td></tr>
+<tr><td>503</td><td>Service Unavailable – Driver mail/storage không nạp được</td></tr>
 </tbody></table>
+<blockquote>
+<p><strong>Header <code>Retry-After</code>.</strong> Với <strong>khoá tự động do đăng nhập sai</strong> (423 và 429), số giây phải chờ nằm ở header <code>Retry-After</code> (RFC 9110 §10.2.3), <strong>không</strong> nằm trong JSON body: envelope lỗi cố định theo §1.1, còn <code>error.message</code> là văn bản tiếng Anh dành cho developer nên UI không parse được. Đây là kênh <strong>duy nhất</strong> máy đọc được cho thông tin này. Khoá thủ công (<code>users.status = 'locked'</code>) cũng trả 423 nhưng <strong>không</strong> kèm header này — xem §2.</p>
+</blockquote>
 <h3 id="application-error-codes">Application Error Codes</h3>
 <pre><code class="language-">AUTH
-  INVALID_CREDENTIALS        Sai tên đăng nhập hoặc mật khẩu
-  TOKEN_EXPIRED              Access token hết hạn
-  TOKEN_INVALID              Token không hợp lệ
-  REFRESH_TOKEN_EXPIRED      Refresh token hết hạn, đăng nhập lại
-  ACCOUNT_LOCKED             Tài khoản bị khoá
-  WRONG_CURRENT_PASSWORD     Mật khẩu hiện tại không đúng
-  PASSWORD_MISMATCH          Mật khẩu xác nhận không khớp
+  PORTAL_ACCESS_DENIED       Vai trò không được đăng nhập hệ thống quản trị
+  INVALID_CREDENTIALS        401 Sai tên đăng nhập hoặc mật khẩu
+  TOKEN_EXPIRED              401 Access token hết hạn
+  TOKEN_INVALID              401 Token không hợp lệ / thiếu cookie refresh /
+                                 refresh token đã dùng lại (revoke toàn bộ session)
+  REFRESH_TOKEN_EXPIRED      401 Refresh token hết hạn, đăng nhập lại
+  ACCOUNT_LOCKED             429 lần sai thứ 5 (chính lần này gây khoá) /
+                             423 các lần thử sau trong thời gian khoá
+                                 → thời gian còn lại ở header Retry-After.
+                             423 users.status = 'locked' (khoá thủ công)
+                                 → KHÔNG có Retry-After, phải liên hệ HR/admin
+  ACCOUNT_INACTIVE           403 users.status khác 'active' (vd 'inactive');
+                                 chỉ kiểm tra SAU khi mật khẩu đúng
+  WRONG_CURRENT_PASSWORD     401 Mật khẩu hiện tại không đúng
+  PASSWORD_MISMATCH          400 Mật khẩu xác nhận không khớp
 
 EMPLOYEE
-  EMPLOYEE_NOT_FOUND         Không tìm thấy nhân viên
-  DUPLICATE_CCCD             CCCD đã tồn tại
-  DUPLICATE_EMAIL            Email đã tồn tại
-  DUPLICATE_TAX_CODE         Mã số thuế đã tồn tại
-  DUPLICATE_SI_NUMBER        Số sổ BHXH đã tồn tại
-  INVALID_CCCD_FORMAT        CCCD không đúng định dạng 12 số
-  INVALID_HIRE_DATE          Ngày vào làm không hợp lệ
+  EMPLOYEE_NOT_FOUND         404 Không tìm thấy nhân viên
+                             422 khi được dùng như tham chiếu (managerId,
+                                 employeeId của hợp đồng…)
+  EMPLOYEE_NOT_DELETED       422 Restore một hồ sơ đang bình thường
+  EMPLOYEE_SELF_MANAGER      422 Nhân viên không thể là quản lý trực tiếp của chính mình
+  EMPLOYEE_CODE_CONFLICT     409 Không cấp được mã NV#### duy nhất
+  DUPLICATE_CCCD             409 CCCD đã tồn tại
+  DUPLICATE_EMAIL            409 Email đã tồn tại
+  DUPLICATE_TAX_CODE         409 Mã số thuế đã tồn tại
+  DUPLICATE_SI_NUMBER        409 Số sổ BHXH đã tồn tại
+  DUPLICATE_HI_NUMBER        409 Số thẻ BHYT đã tồn tại
+  INVALID_HIRE_DATE          422 Ngày vào làm không hợp lệ
+  INVALID_DATE_OF_BIRTH      422 Ngày sinh không hợp lệ (tuổi lao động)
+  POSITION_DEPARTMENT_MISMATCH 422 Chức vụ không thuộc phòng ban đã chọn
+  AVATAR_REQUIRED            400 Thiếu file trong field multipart "avatar"
+  AVATAR_TOO_LARGE           400 Ảnh vượt quá 2MB
+  AVATAR_INVALID_TYPE        400 Không phải JPEG/PNG/WEBP (nhận diện bằng magic bytes)
+
+  Định dạng CCCD/MST/SĐT sai KHÔNG có mã riêng ở cấp response: chúng là
+  VALIDATION_ERROR (400) với details[].code = INVALID_CCCD / INVALID_TAX_CODE /
+  INVALID_SI_NUMBER / INVALID_HI_NUMBER / INVALID_PHONE / INVALID_NAME.
+
+MASTER DATA (departments / positions / leave_types / holidays)
+  CODE_ALLOCATION_FAILED     409 Không cấp được mã duy nhất (PB####/CV####/NP####)
+                                 sau số lần thử tối đa. Thay cho các mã
+                                 DUPLICATE_*_CODE cũ: `code` do server sinh nên
+                                 client không thể gây trùng nữa
+  DEPARTMENT_NOT_FOUND       404 (422 khi là tham chiếu từ position/employee)
+  PARENT_DEPARTMENT_NOT_FOUND 422 parentId không tồn tại
+  DEPARTMENT_CYCLE           422 Đặt cha thành chính nó hoặc thành con cháu của nó
+  DEPARTMENT_HAS_EMPLOYEES   422 Còn nhân viên → không xoá
+  DEPARTMENT_HAS_CHILDREN    422 Còn phòng ban con → không xoá
+  DEPARTMENT_HAS_POSITIONS   422 Còn chức vụ → không xoá
+  POSITION_NOT_FOUND         404
+  POSITION_HAS_EMPLOYEES     422 Còn nhân viên giữ chức vụ → không xoá
+  INVALID_SALARY_RANGE       422 minSalary &gt; maxSalary
+  LEAVE_TYPE_NOT_FOUND       404
+  LEAVE_TYPE_IN_USE          422 Còn đơn nghỉ / số dư phép tham chiếu → không xoá.
+                                 Đây là chốt chặn DUY NHẤT; `isSystem` không chặn gì
+  HOLIDAY_NOT_FOUND          404
+  DUPLICATE_HOLIDAY_DATE     409 Ngày lễ đã tồn tại (holidays KHÔNG có `code`,
+                                 ngày do người dùng nhập nên lỗi này vẫn có thật)
 
 CONTRACT
-  CONTRACT_NOT_FOUND
-  CONTRACT_ALREADY_ACTIVE    Nhân viên đã có hợp đồng đang hiệu lực
-  CONTRACT_TYPE_LIMIT        Đã ký 2 lần HĐXĐTH, phải chuyển indefinite
+  CONTRACT_NOT_FOUND         404
+  CONTRACT_ALREADY_ACTIVE    409 Nhân viên đã có hợp đồng đang hiệu lực
+  DUPLICATE_CONTRACT_NUMBER  409 Số hợp đồng đã tồn tại
+  CONTRACT_TYPE_LIMIT        422 Đã ký 2 lần HĐXĐTH, phải chuyển indefinite
+  CONTRACT_ALREADY_TERMINATED 422 Hợp đồng đã chấm dứt
+  CONTRACT_NOT_SIGNED        422 Chỉ hợp đồng đã ký mới chấm dứt được
+  CONTRACT_NOT_DELETABLE     422 Chỉ xoá được hợp đồng status=draft
+  INVALID_CONTRACT_PERIOD    422 Thời hạn vi phạm BLLĐ 2019
+  INVALID_CONTRACT_STATUS    422 Trạng thái không hợp lệ cho thao tác
+  INVALID_SIGN_DATE          422 Ngày ký không hợp lệ
+  INVALID_DATE_RANGE         422 Khoảng ngày không hợp lệ
+
+FAMILY / DEPENDENT
+  FAMILY_MEMBER_NOT_FOUND    404
+  DEPENDENT_NOT_FOUND        404
+  DEPENDENT_ALREADY_CLAIMED  409 Người phụ thuộc đã được đăng ký giảm trừ
+  DEPENDENT_REASON_REQUIRED  422 Thiếu lý do phụ thuộc
+
+USER
+  DUPLICATE_USERNAME         409
+  EMPLOYEE_ALREADY_HAS_ACCOUNT 409 Nhân viên đã có tài khoản
+  ROLE_NOT_FOUND             422 roleId không tồn tại
+
+REPORT / EXPORT
+  SENSITIVE_EXPORT_FORBIDDEN 403 Role không được lấy bản không che
+                                 (chỉ admin/hr_manager)
+  EXPORT_TOO_MANY_ROWS       422 Filter khớp quá 10.000 dòng – KHÔNG cắt bớt im lặng
+
+INFRA
+  MAIL_TRANSPORT_UNAVAILABLE 503 Driver mail không nạp được (vd SES chưa cài SDK)
+  STORAGE_DRIVER_UNAVAILABLE 503 Driver lưu trữ không nạp được (vd S3 chưa cài SDK)
+
+--- Từ đây trở xuống là các mã của giai đoạn SAU, chưa tồn tại trong code ---
 
 ATTENDANCE
-  ALREADY_CHECKED_IN         Đã chấm công vào hôm nay
-  NOT_CHECKED_IN             Chưa chấm công vào
-  ALREADY_CHECKED_OUT        Đã chấm công ra
+  ATTENDANCE_NOT_FOUND
+  ATTENDANCE_ALREADY_EXISTS  Ngày đó đã có bản ghi, hãy sửa thay vì tạo mới
+  INVALID_ATTENDANCE_TIMES   Giờ ra sớm hơn giờ vào
+  IMPORT_FILE_REQUIRED       Thiếu file .xlsx
+  IMPORT_INVALID_FILE_TYPE   Không phải file .xlsx hợp lệ (kiểm magic bytes)
+  IMPORT_MISSING_COLUMNS     File thiếu cột bắt buộc
+  IMPORT_TOO_MANY_ROWS       File vượt trần số dòng
+  IMPORT_EMPTY_FILE          File không có sheet nào
 
 LEAVE
   LEAVE_NOT_FOUND
-  INSUFFICIENT_LEAVE_BALANCE Không đủ ngày phép
-  OVERLAPPING_LEAVE          Trùng với đơn nghỉ khác đã được duyệt
-  CANNOT_CANCEL_APPROVED     Không thể huỷ đơn đã duyệt
-  LEAVE_IN_PAST              Không thể tạo đơn nghỉ ngày đã qua
+  LEAVE_TYPE_NOT_FOUND
+  LEAVE_NOT_PENDING          Đơn không còn ở trạng thái chờ duyệt
+  INSUFFICIENT_LEAVE_BALANCE Không đủ ngày phép còn lại
+  OVERLAPPING_LEAVE          Trùng ngày với đơn còn hiệu lực
+  INVALID_LEAVE_RANGE        Ngày kết thúc trước ngày bắt đầu
+  LEAVE_SPANS_TWO_YEARS      Kỳ nghỉ bắc qua giao thừa, phải tách hai đơn
+  LEAVE_NO_WORKING_DAYS      Kỳ nghỉ không có ngày làm việc nào
+  LEAVE_BELOW_MINIMUM        Ít hơn số ngày tối thiểu của loại phép
+  LEAVE_ABOVE_MAX_CONSECUTIVE Vượt số ngày liên tiếp tối đa của loại phép
+  CANNOT_APPROVE_OWN_RECORD  Người ghi nhận không được tự duyệt
+  ANNUAL_LEAVE_TYPE_MISSING  Chưa seed loại phép năm
+  LEAVE_BALANCE_NOT_FOUND
+  LEAVE_BALANCE_BELOW_COMMITTED  Hạ quỹ xuống dưới số đã dùng + đang chờ
+  CANNOT_APPROVE_OWN_RECORD  Người ghi nhận đơn không được tự duyệt
 
 SALARY
   SALARY_ALREADY_EXISTS      Bảng lương tháng này đã được tính
@@ -1462,19 +2114,25 @@ PERFORMANCE
   REVIEW_NOT_FOUND
   REVIEW_ALREADY_SUBMITTED   Không thể sửa đánh giá đã submit
 
-AUTH
-  RESET_TOKEN_INVALID        Token đặt lại mật khẩu không hợp lệ
-  RESET_TOKEN_EXPIRED        Token đặt lại mật khẩu đã hết hạn (30 phút)
-
 LEAVE_BALANCE
   BALANCE_ALREADY_INITIALIZED  Đã khởi tạo ngày phép cho năm này
 
+--- Đã hiện thực ---
+
+AUTH (reset password)
+  RESET_TOKEN_INVALID    400 Token không hợp lệ / không tồn tại / đã dùng
+  RESET_TOKEN_EXPIRED    400 Token đúng nhưng đã quá hạn (30 phút)
+
 SYSTEM
-  VALIDATION_ERROR           Lỗi validate dữ liệu (kèm details[])
-  FORBIDDEN                  Không có quyền thực hiện thao tác
-  RATE_LIMIT_EXCEEDED        Quá nhiều request
-  INTERNAL_ERROR             Lỗi server nội bộ
+  VALIDATION_ERROR       400 Lỗi validate dữ liệu (kèm details[])
+  FORBIDDEN              403 Không có quyền thực hiện thao tác
+  RATE_LIMIT_EXCEEDED    429 Mã mặc định cho status 429 khi exception không tự
+                             khai code (lockout đăng nhập dùng ACCOUNT_LOCKED)
+  INTERNAL_ERROR         500 Lỗi server nội bộ – KHÔNG lộ stack trace ra production
 </code></pre>
+<blockquote>
+<p>Mã nào không nằm trong bảng trên và không do service tự khai sẽ được <code>HttpExceptionFilter</code> suy ra từ HTTP status: <code>BAD_REQUEST</code>, <code>UNAUTHORIZED</code>, <code>FORBIDDEN</code>, <code>NOT_FOUND</code>, <code>CONFLICT</code>, <code>PAYLOAD_TOO_LARGE</code>, <code>UNPROCESSABLE_ENTITY</code>, <code>RATE_LIMIT_EXCEEDED</code>, <code>SERVICE_UNAVAILABLE</code>, <code>INTERNAL_ERROR</code>, hoặc <code>HTTP_<status></code> nếu không khớp gì cả.</p>
+</blockquote>
 <h3 id="validation-error-format">Validation Error Format</h3>
 <p><code>details[]</code> chỉ xuất hiện khi <code>code === "VALIDATION_ERROR"</code>. Mỗi phần tử có đủ 3 trường:</p>
 <pre><code class="language-json">{
@@ -1499,7 +2157,7 @@ SYSTEM
 type ValidationDetail = { field: string; code: string; message: string }
 </code></pre>
 <hr>
-<p><em>Cập nhật: 13/08/2026 – Version 1.2 – Chuẩn hóa response format: bỏ <code>message</code> khỏi success, <code>details[]</code> chỉ có ở VALIDATION_ERROR, mỗi detail item gồm <code>field</code>+<code>code</code>+<code>message</code></em></p>
+<p><em>Cập nhật: 19/08/2026 – Version 1.3 – Đồng bộ với code sau Giai đoạn 0–3: refresh token chỉ nằm trong cookie HttpOnly (bỏ khỏi body login và body /auth/refresh), thêm <code>GET /auth/me</code> và <code>rememberMe</code>, lockout 429/423 + header <code>Retry-After</code>, mã master data do server sinh (<code>PB</code>/<code>CV</code>/<code>NP</code>) thay cho <code>DUPLICATE_</em>_CODE</code> → <code>CODE_ALLOCATION_FAILED</code>, <code>GET /contract-types</code> read-only, địa giới 2 cấp 34 tỉnh/3.321 phường-xã (bỏ <code>/system/districts</code>), <code>GET /reports/employees/export</code>, thêm mục §1.6 trạng thái triển khai*</p>
 
 </main>
 <script>

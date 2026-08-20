@@ -32,7 +32,6 @@ function makeRecord(
     decisionNumber: 'QD-2026-001',
     decisionDate: '2026-04-01',
     effectiveDate: '2026-04-01',
-    amount: '5000000.00',
     issuedBy: 3,
     issuer: null,
     documentUrl: null,
@@ -108,44 +107,8 @@ describe('DisciplinesRewardsService', () => {
     await module.close();
   });
 
-  describe('Điều 128 BLLĐ — kỷ luật không kèm tiền', () => {
-    /*
-     * Điều 128 BLLĐ 2019 CẤM phạt tiền và cấm trừ lương thay cho kỷ luật. Cột
-     * `amount` có mặt vì khen thưởng cần nó; để nó nhận giá trị trên một dòng
-     * kỷ luật là để sẵn một khoản phạt trái luật, có số quyết định đàng hoàng.
-     */
-    it('refuses an amount on a discipline record', async () => {
-      const error = await captureError(() =>
-        service.create(
-          EMPLOYEE_ID,
-          makeDto({
-            type: DisciplineRewardType.DISCIPLINE,
-            amount: 500_000,
-          }),
-          hrUser,
-        ),
-      );
-
-      expect(error).toEqual({
-        status: 422,
-        code: 'DISCIPLINE_CANNOT_CARRY_AMOUNT',
-      });
-      expect(repository.create).not.toHaveBeenCalled();
-    });
-
-    it('allows an amount on a reward', async () => {
-      await service.create(
-        EMPLOYEE_ID,
-        makeDto({ type: DisciplineRewardType.REWARD, amount: 5_000_000 }),
-        hrUser,
-      );
-
-      expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: '5000000.00' }),
-      );
-    });
-
-    it('allows a discipline with no amount at all', async () => {
+  describe('loại quyết định', () => {
+    it('records the type it was given', async () => {
       await service.create(
         EMPLOYEE_ID,
         makeDto({
@@ -156,67 +119,26 @@ describe('DisciplinesRewardsService', () => {
       );
 
       expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: null }),
+        expect.objectContaining({ type: DisciplineRewardType.DISCIPLINE }),
       );
     });
 
-    /*
-     * Kiểm trên bản ĐÃ GHÉP: đổi riêng `type` sang kỷ luật mà giữ nguyên số tiền
-     * cũ vẫn là một khoản phạt, và chỉ nhìn phần sửa thì không thấy điều đó.
-     */
-    it('catches a reward with money being flipped into a discipline', async () => {
+    it('switches a reward into a discipline', async () => {
       repository.findById.mockResolvedValue(
-        makeRecord({ type: DisciplineRewardType.REWARD, amount: '5000000.00' }),
+        makeRecord({ type: DisciplineRewardType.REWARD }),
       );
 
-      const error = await captureError(() =>
-        service.update(
-          EMPLOYEE_ID,
-          7,
-          { type: DisciplineRewardType.DISCIPLINE },
-          hrUser,
-        ),
+      await service.update(
+        EMPLOYEE_ID,
+        7,
+        { type: DisciplineRewardType.DISCIPLINE },
+        hrUser,
       );
 
-      expect(error).toEqual({
-        status: 422,
-        code: 'DISCIPLINE_CANNOT_CARRY_AMOUNT',
-      });
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ type: DisciplineRewardType.DISCIPLINE }),
+      );
     });
-
-    /*
-     * PHẢI CÓ ĐƯỜNG XOÁ SỐ TIỀN, nếu không một khen thưởng có tiền sẽ không bao
-     * giờ sửa được thành kỷ luật: ràng buộc Điều 128 chặn vĩnh viễn, và người
-     * dùng chỉ còn cách xoá bản ghi rồi nhập lại, mất luôn số quyết định gốc.
-     */
-    it.each([[0], [null]])(
-      'lets the flip through when the money is cleared with %p',
-      async (amount) => {
-        repository.findById.mockResolvedValue(
-          makeRecord({
-            type: DisciplineRewardType.REWARD,
-            amount: '5000000.00',
-          }),
-        );
-
-        await service.update(
-          EMPLOYEE_ID,
-          7,
-          {
-            type: DisciplineRewardType.DISCIPLINE,
-            amount: amount as unknown as number,
-          },
-          hrUser,
-        );
-
-        expect(repository.save).toHaveBeenCalledWith(
-          expect.objectContaining({
-            type: DisciplineRewardType.DISCIPLINE,
-            amount: null,
-          }),
-        );
-      },
-    );
   });
 
   describe('ngày quyết định và ngày hiệu lực', () => {

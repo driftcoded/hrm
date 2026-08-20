@@ -19,8 +19,8 @@ import {
 /**
  * Khen thưởng và kỷ luật của nhân viên (PLAN 7.1, business-rules.md §14).
  *
- * Phạm vi xem lấy từ `EmployeesService.findOne()`. Kỷ luật không được kèm tiền
- * (Điều 128 BLLĐ 2019).
+ * Phạm vi xem lấy từ `EmployeesService.findOne()`. Tiền thưởng thực trả không
+ * lưu ở đây mà đi qua `salaries.performance_bonus`.
  */
 @Injectable()
 export class DisciplinesRewardsService {
@@ -50,7 +50,6 @@ export class DisciplinesRewardsService {
   ): Promise<DisciplineRewardResponseDto> {
     await this.employeesService.findOne(employeeId, user);
 
-    this.assertLawful(dto.type, dto.amount ?? null);
     this.assertDatesOrdered(dto.decisionDate, dto.effectiveDate);
 
     const created = await this.repository.create({
@@ -62,7 +61,6 @@ export class DisciplinesRewardsService {
       decisionNumber: dto.decisionNumber?.trim() || null,
       decisionDate: dto.decisionDate,
       effectiveDate: dto.effectiveDate,
-      amount: this.normaliseAmount(dto.amount),
       issuedBy: dto.issuedById ?? null,
       documentUrl: dto.documentUrl?.trim() || null,
       note: dto.note?.trim() || null,
@@ -87,27 +85,14 @@ export class DisciplinesRewardsService {
 
     this.assertBelongsTo(record, employeeId);
 
-    // Kiểm ràng buộc trên bản đã ghép giữa bản ghi cũ và phần sửa.
-    const nextType = dto.type ?? record.type;
-    // `undefined` giữ nguyên số cũ; `null` hoặc `0` xoá số tiền.
-    const nextAmount =
-      dto.amount === undefined
-        ? record.amount === null
-          ? null
-          : Number(record.amount)
-        : this.normaliseAmount(dto.amount) === null
-          ? null
-          : dto.amount;
-
-    this.assertLawful(nextType, nextAmount);
     this.assertDatesOrdered(
       dto.decisionDate ?? toDateOnlyString(record.decisionDate),
       dto.effectiveDate ?? toDateOnlyString(record.effectiveDate),
     );
 
-    record.type = nextType;
-    record.amount = this.normaliseAmount(nextAmount ?? undefined);
-
+    if (dto.type !== undefined) {
+      record.type = dto.type;
+    }
     if (dto.category !== undefined) {
       record.category = dto.category.trim();
     }
@@ -163,27 +148,6 @@ export class DisciplinesRewardsService {
 
   // --------------------------------------------------------- nội bộ ----
 
-  /** Đưa số tiền về `null` khi không có; `0` cũng được coi là không có. */
-  private normaliseAmount(value: number | null | undefined): string | null {
-    return value === undefined || value === null || value === 0
-      ? null
-      : value.toFixed(2);
-  }
-
-  /** Điều 128 BLLĐ 2019: không phạt tiền, không trừ lương thay cho kỷ luật. */
-  private assertLawful(
-    type: DisciplineRewardType,
-    amount: number | null,
-  ): void {
-    if (type === DisciplineRewardType.DISCIPLINE && amount !== null) {
-      throw new UnprocessableEntityException({
-        code: 'DISCIPLINE_CANNOT_CARRY_AMOUNT',
-        message:
-          'Article 128 of the 2019 Labour Code forbids fining an employee or docking pay as a disciplinary measure; a discipline record cannot carry an amount',
-      });
-    }
-  }
-
   /** Chặn ngày hiệu lực nằm trước ngày ký quyết định. */
   private assertDatesOrdered(
     decisionDate: string,
@@ -231,7 +195,6 @@ export class DisciplinesRewardsService {
       decisionNumber: record.decisionNumber,
       decisionDate: toDateOnlyString(record.decisionDate),
       effectiveDate: toDateOnlyString(record.effectiveDate),
-      amount: record.amount === null ? null : Number(record.amount),
       issuedBy: record.issuer
         ? { id: Number(record.issuer.id), fullName: record.issuer.fullName }
         : null,

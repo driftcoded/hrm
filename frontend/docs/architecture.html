@@ -105,8 +105,9 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#52-route-guards">5.2 Route Guards</a></li>
 <li class="h2"><a href="#6-auth-flow">6. Auth Flow</a></li>
 <li class="h3"><a href="#61-đăng-nhập">6.1 Đăng nhập</a></li>
-<li class="h3"><a href="#62-tự-động-làm-mới-token">6.2 Tự động làm mới token</a></li>
-<li class="h3"><a href="#63-đăng-xuất">6.3 Đăng xuất</a></li>
+<li class="h3"><a href="#62-khôi-phục-phiên-sau-f5">6.2 Khôi phục phiên sau F5</a></li>
+<li class="h3"><a href="#63-tự-động-làm-mới-token">6.3 Tự động làm mới token</a></li>
+<li class="h3"><a href="#64-đăng-xuất">6.4 Đăng xuất</a></li>
 <li class="h2"><a href="#7-api-call-pattern">7. API Call Pattern</a></li>
 <li class="h3"><a href="#xử-lý-lỗi-api">Xử lý lỗi API</a></li>
 <li class="h2"><a href="#8-internationalization-i18n">8. Internationalization (i18n)</a></li>
@@ -117,77 +118,110 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 
 <main id="content">
 <h1 id="frontend-architecture">Frontend Architecture</h1>
-<p><strong>Phiên bản:</strong> 1.0  </p>
-<p><strong>Ngày cập nhật:</strong> 19/06/2026  </p>
-<p><strong>Stack:</strong> React 18 · TypeScript · Vite · Ant Design v5</p>
+<p><strong>Phiên bản:</strong> 1.1  </p>
+<p><strong>Ngày cập nhật:</strong> 19/08/2026  </p>
+<p><strong>Stack:</strong> React 19 · TypeScript 6 · Vite 8 · Ant Design v6</p>
 <hr>
 <h2 id="1-tổng-quan">1. Tổng quan</h2>
 <p>Frontend HRM là Single Page Application (SPA) phục vụ các nhóm người dùng:</p>
 <table><thead>
-<tr><th>Nhóm</th><th>Quyền chính</th></tr>
+<tr><th><code>roles.name</code></th><th>Nhóm</th><th>Quyền chính</th></tr>
 </thead><tbody>
-<tr><td>Super Admin</td><td>Toàn bộ hệ thống, cấu hình công ty</td></tr>
-<tr><td>HR Manager</td><td>Quản lý nhân viên, chấm công, lương, phép</td></tr>
-<tr><td>Trưởng phòng</td><td>Duyệt phép, đánh giá nhân viên phòng ban</td></tr>
-<tr><td>Nhân viên</td><td>Xem thông tin cá nhân, nộp đơn phép, xem phiếu lương</td></tr>
+<tr><td><code>admin</code></td><td>Quản trị hệ thống</td><td>Toàn bộ hệ thống, tạo tài khoản đăng nhập</td></tr>
+<tr><td><code>hr_manager</code></td><td>Trưởng phòng Nhân sự</td><td>Quản lý nhân viên, hợp đồng, chấm công, lương, phép</td></tr>
+<tr><td><code>hr_staff</code></td><td>Nhân viên Nhân sự</td><td>Nhập liệu nhân viên & master data; <strong>không</strong> xoá hồ sơ, <strong>không</strong> ký hợp đồng</td></tr>
+<tr><td><code>manager</code></td><td>Quản lý phòng ban</td><td>Xem nhân viên phòng mình, duyệt phép, đánh giá; <strong>không</strong> xuất file</td></tr>
+<tr><td><code>employee</code></td><td>Nhân viên</td><td>Xem thông tin cá nhân, nộp đơn phép, xem phiếu lương</td></tr>
 </tbody></table>
+<p>Danh sách quyền theo từng thao tác nằm ở <code>src/constants/roles.ts</code> — phải khớp với <code>backend/src/common/constants/roles.constant.ts</code>.</p>
 <p>Giao tiếp với backend qua REST API (JSON). Xác thực bằng JWT access token trong memory + refresh token trong HttpOnly cookie.</p>
 <hr>
 <h2 id="2-tech-stack">2. Tech Stack</h2>
+<p>Phiên bản dưới đây lấy từ <code>frontend/package.json</code> (semver range <code>^</code>, tức là bản minor/patch mới hơn vẫn được cài).</p>
 <table><thead>
 <tr><th>Thư viện</th><th>Phiên bản</th><th>Vai trò</th></tr>
 </thead><tbody>
-<tr><td>React</td><td>18.x</td><td>UI framework</td></tr>
-<tr><td>TypeScript</td><td>5.x</td><td>Type safety</td></tr>
-<tr><td>Vite</td><td>5.x</td><td>Build tool, dev server</td></tr>
-<tr><td>Ant Design</td><td>5.x</td><td>Component library, Design System</td></tr>
-<tr><td>React Router</td><td>6.x</td><td>Client-side routing</td></tr>
-<tr><td>TanStack Query</td><td>5.x</td><td>Server state, cache, refetch</td></tr>
-<tr><td>Zustand</td><td>4.x</td><td>Client state (auth, UI prefs)</td></tr>
-<tr><td>axios</td><td>1.x</td><td>HTTP client với interceptors</td></tr>
-<tr><td>dayjs</td><td>1.x</td><td>Date/time với locale <code>vi</code></td></tr>
-<tr><td>i18next</td><td>23.x</td><td>Đa ngôn ngữ (VI / EN)</td></tr>
+<tr><td>React · React DOM</td><td><strong>19.2.x</strong></td><td>UI framework</td></tr>
+<tr><td>TypeScript</td><td><strong>~6.0.2</strong></td><td>Type safety</td></tr>
+<tr><td>Vite</td><td><strong>8.2.x</strong></td><td>Build tool, dev server</td></tr>
+<tr><td><code>@vitejs/plugin-react</code></td><td>6.0.x</td><td>React plugin cho Vite</td></tr>
+<tr><td>Ant Design (<code>antd</code>)</td><td><strong>6.6.x</strong></td><td>Component library, Design System</td></tr>
+<tr><td><code>@ant-design/icons</code></td><td>6.3.x</td><td>Bộ icon của AntD</td></tr>
+<tr><td>React Router (<code>react-router</code>)</td><td><strong>7.18.x</strong></td><td>Client-side routing</td></tr>
+<tr><td>TanStack Query</td><td>5.101.x</td><td>Server state, cache, refetch</td></tr>
+<tr><td>Zustand</td><td><strong>5.0.x</strong></td><td>Client state (auth, UI prefs)</td></tr>
+<tr><td>axios</td><td>1.19.x</td><td>HTTP client với interceptors</td></tr>
+<tr><td>dayjs</td><td>1.11.x</td><td>Date/time với locale <code>vi</code></td></tr>
+<tr><td>i18next</td><td><strong>26.3.x</strong></td><td>Đa ngôn ngữ (VI / EN)</td></tr>
+<tr><td>react-i18next</td><td>17.0.x</td><td>Binding i18next cho React</td></tr>
+<tr><td><code>i18next-browser-languagedetector</code></td><td>8.2.x</td><td>Nhận diện ngôn ngữ trình duyệt</td></tr>
+<tr><td>oxlint</td><td>1.75.x</td><td>Linter (<strong>không</strong> dùng ESLint)</td></tr>
 </tbody></table>
+<p>Vài điểm cần biết vì khác với tài liệu cũ:</p>
+<ul>
+<li><strong>React Router v7 ở chế độ Data Router</strong> (<code>createBrowserRouter</code> + <code>RouterProvider</code>), dùng package <code>react-router</code> trực tiếp — đây là SPA Vite thuần, <strong>không</strong> dùng framework/SSR mode (<code>@react-router/dev</code>). API vẫn cùng hình dạng với v6.4+.</li>
+<li><strong>Ant Design v6</strong>, không phải v5.</li>
+<li>Lint chạy bằng <strong>oxlint</strong> (<code>npm run lint</code>), không phải ESLint + Prettier.</li>
+</ul>
 <hr>
 <h2 id="3-cấu-trúc-thư-mục">3. Cấu trúc thư mục</h2>
 <pre><code class="language-">src/
-├── assets/             # Ảnh, icon tĩnh
+├── App.tsx             # Providers (QueryClient, AntD ConfigProvider, i18n)
+├── main.tsx            # Entry point
+├── i18n.ts             # Khởi tạo i18next
+├── index.css
+│
 ├── components/         # Shared components (KHÔNG fetch API)
-│   ├── common/         # Button mở rộng, Badge trạng thái, ...
-│   ├── layout/         # AppLayout, Sidebar, Header, PageHeader
-│   └── ui/             # DataTable, SearchFilter, UploadAvatar, ...
-├── constants/          # Enums, magic strings, config keys
+│   ├── auth/           # AuthShell, BrandPanel, BrandIllustration, SsoButtons
+│   ├── charts/         # DonutChart (SVG tự viết, không thư viện chart)
+│   ├── common/         # BrandMark, FullPageLoader, StatCard
+│   ├── crud/           # Bộ dùng chung cho màn hình master data:
+│   │                   #   DataTableCard, CrudFormModal, TableSearch,
+│   │                   #   RowActions, BooleanTag, GeneratedCodeField
+│   ├── dashboard/      # KpiCard, ActivityCard, ExpiringCard
+│   ├── departments/    # DepartmentOrgChart
+│   ├── employees/      # EmployeeWizard, AvatarUploader, EmployeeHeroCard, …
+│   └── layout/         # AppLayout, Sidebar, Header, PageHeader, NavTabs
+│
+├── constants/          # roles.ts, routeTitles.ts, settingsSections.ts
 ├── hooks/              # Custom hooks (wrap TanStack Query)
-│   ├── useAuth.ts
-│   ├── useEmployees.ts
-│   └── ...
-├── locales/
-│   ├── vi.json         # Bản dịch tiếng Việt (nguồn chính)
-│   └── en.json         # Bản dịch tiếng Anh
-├── pages/              # Route-level components (1 file = 1 route)
-│   ├── auth/
-│   ├── employees/
-│   ├── attendance/
-│   ├── leave/
-│   ├── payroll/
-│   └── settings/
-├── routes/
-│   └── RouterConfig.tsx  # Khai báo toàn bộ routes
-├── services/           # axios calls - MỌI API call qua đây
-│   ├── auth.service.ts
-│   ├── employee.service.ts
-│   └── ...
-├── store/              # Zustand stores
-│   ├── authStore.ts
-│   └── uiStore.ts
-├── types/              # TypeScript interfaces dùng chung
-│   ├── employee.types.ts
-│   ├── payroll.types.ts
-│   └── ...
-└── utils/              # Hàm tiện ích thuần (không có side effect)
+│   ├── useAuth.ts            useEmployees.ts       useDepartments.ts
+│   ├── usePositions.ts       useLeaveTypes.ts      useHolidays.ts
+│   ├── useContractTypes.ts   useProvinces.ts       useReports.ts
+│   ├── useCrudResource.ts    useCrudScreen.ts      useTableQuery.ts
+│   ├── useEmployeeSearch.ts  usePermissions.ts     useApiErrorMessage.ts
+│
+├── lib/                # axios.ts (instance + interceptors), queryClient.ts
+├── locales/            # vi.json (nguồn chính) · en.json
+├── pages/              # Route-level components
+│   ├── auth/           # LoginPage, ForgotPasswordPage, ResetPasswordPage
+│   ├── dashboard/      # DashboardPage
+│   ├── employees/      # EmployeesPage, EmployeeDetailPage, tabs/
+│   ├── profile/        # ProfilePage
+│   ├── settings/       # Departments, Positions, ContractTypes,
+│   │                   # LeaveTypes, Holidays, SettingsIndex
+│   └── ComingSoonPage.tsx    # Module của giai đoạn sau
+│
+├── routes/             # RouterConfig.tsx, PrivateRoute.tsx, GuestRoute.tsx
+├── services/           # axios calls – MỌI API call qua đây
+│   ├── auth.service.ts       employee.service.ts
+│   ├── masterData.service.ts report.service.ts
+├── store/              # Zustand stores: authStore, uiStore, tabsStore
+├── styles/             # tokens.css (design token)
+├── types/              # api.types, auth.types, employee.types, masterData.types
+└── utils/              # Hàm tiện ích thuần
     ├── format.ts       # Định dạng tiền, ngày, số VN
-    └── validators.ts   # Validate CCCD, MST, SĐT
+    ├── validators.ts   # Validate CCCD, MST, SĐT + sanitizeRedirectPath
+    ├── apiError.ts     # Bóc tách error envelope, đọc Retry-After
+    ├── departmentTree.ts  download.ts  user.ts
 </code></pre>
+<p>Khác với tài liệu cũ:</p>
+<ul>
+<li><strong>Không có <code>src/assets/</code></strong> — ảnh/icon tĩnh nằm ở <code>public/</code> (<code>favicon.svg</code>, <code>icons.svg</code>).</li>
+<li><strong>Không có <code>components/ui/</code></strong> — vai trò đó do <code>components/crud/</code> đảm nhiệm.</li>
+<li>CSS dùng <strong>CSS Module</strong> (<code>*.module.css</code>) cạnh chính component, cộng token chung ở <code>styles/tokens.css</code>.</li>
+<li><code>pages/attendance</code>, <code>pages/leave</code>, <code>pages/payroll</code> <strong>chưa tồn tại</strong>: các route đó trỏ tới <code>ComingSoonPage</code>.</li>
+</ul>
 <hr>
 <h2 id="4-state-management">4. State Management</h2>
 <p>Phân tách rõ ràng hai loại state:</p>
@@ -202,60 +236,93 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <tr><td><code>staleTime</code></td><td>Thời gian cache còn "tươi" trước khi refetch nền</td></tr>
 </tbody></table>
 <p>Cache key theo quy ước: <code>['entity', id?]</code> — ví dụ <code>['employees', '123']</code>, <code>['leave-requests', { status: 'pending' }]</code>.</p>
+<p>Mặc định toàn cục (<code>lib/queryClient.ts</code>): <code>retry: 1</code>, <code>refetchOnWindowFocus: false</code>, <code>staleTime: 60_000</code>.</p>
 <h3 id="42-client-state-zustand">4.2 Client State — Zustand</h3>
 <p>Chỉ dùng cho state không cần đồng bộ server:</p>
 <table><thead>
-<tr><th>Store</th><th>Nội dung</th></tr>
+<tr><th>Store</th><th>Nội dung</th><th>Persist</th></tr>
 </thead><tbody>
-<tr><td><code>authStore</code></td><td>Access token, thông tin user đăng nhập, quyền</td></tr>
-<tr><td><code>uiStore</code></td><td>Ngôn ngữ, collapsed sidebar, theme (light/dark)</td></tr>
+<tr><td><code>authStore</code></td><td>Access token, user đăng nhập, <code>isAuthenticated</code>, <code>sessionChecked</code></td><td>❌ <strong>memory-only</strong></td></tr>
+<tr><td><code>uiStore</code></td><td>Ngôn ngữ, collapsed sidebar, theme (light/dark)</td><td>✅ localStorage (<code>hrm-ui-store</code>)</td></tr>
+<tr><td><code>tabsStore</code></td><td>Danh sách tab đang mở của thanh tab</td><td>❌ cố ý không persist — tab mô tả "việc đang làm ngay lúc này"</td></tr>
 </tbody></table>
-<p>Zustand store được khởi tạo một lần khi app load. Không persist vào localStorage (trừ <code>uiStore</code> cho theme/locale).</p>
+<p><code>authStore</code> <strong>không</strong> dùng <code>persist</code>: access token chỉ nằm trong bộ nhớ để XSS không đọc được. Hệ quả là F5 làm mất token — <code>sessionChecked</code> đánh dấu app đã thử khôi phục phiên trong vòng đời trang này chưa, để không thử lại sau khi logout mà cũng không bỏ sót sau khi reload.</p>
 <hr>
 <h2 id="5-routing">5. Routing</h2>
 <h3 id="51-cấu-trúc-route">5.1 Cấu trúc route</h3>
 <table><thead>
-<tr><th>Pattern</th><th>Mô tả</th></tr>
+<tr><th>Pattern</th><th>Guard</th><th>Mô tả</th></tr>
 </thead><tbody>
-<tr><td><code>/login</code></td><td>Public route</td></tr>
-<tr><td><code>/</code></td><td>Redirect đến <code>/dashboard</code></td></tr>
-<tr><td><code>/dashboard</code></td><td>Trang tổng quan</td></tr>
-<tr><td><code>/employees</code></td><td>Danh sách nhân viên</td></tr>
-<tr><td><code>/employees/:id</code></td><td>Chi tiết nhân viên</td></tr>
-<tr><td><code>/employees/new</code></td><td>Tạo nhân viên mới</td></tr>
-<tr><td><code>/attendance</code></td><td>Chấm công</td></tr>
-<tr><td><code>/leave</code></td><td>Phép</td></tr>
-<tr><td><code>/payroll</code></td><td>Bảng lương</td></tr>
-<tr><td><code>/settings/*</code></td><td>Cài đặt hệ thống</td></tr>
+<tr><td><code>/login</code></td><td><code>GuestRoute</code></td><td>Màn hình đăng nhập</td></tr>
+<tr><td><code>/forgot-password</code> · <code>/reset-password</code></td><td>–</td><td><strong>Không</strong> wrap <code>GuestRoute</code>: người đang đăng nhập theo link reset từ hộp thư vẫn phải dùng được</td></tr>
+<tr><td><code>/</code></td><td><code>PrivateRoute</code></td><td>Redirect đến <code>/dashboard</code></td></tr>
+<tr><td><code>/dashboard</code></td><td><code>PrivateRoute</code></td><td>Trang tổng quan</td></tr>
+<tr><td><code>/profile</code></td><td><code>PrivateRoute</code></td><td>Hồ sơ cá nhân</td></tr>
+<tr><td><code>/employees</code> · <code>/employees/:id</code></td><td><code>PrivateRoute</code></td><td>Danh sách / chi tiết nhân viên</td></tr>
+<tr><td><code>/settings</code></td><td><code>PrivateRoute</code></td><td>Trang chỉ mục cài đặt</td></tr>
+<tr><td><code>/settings/departments</code> · <code>/positions</code> · <code>/contract-types</code> · <code>/leave-types</code> · <code>/holidays</code></td><td><code>PrivateRoute</code></td><td>Master data</td></tr>
+<tr><td><code>/attendance</code> · <code>/leave</code> · <code>/payroll</code> · <code>/reports</code></td><td><code>PrivateRoute</code></td><td><code>ComingSoonPage</code> – tính năng ở giai đoạn sau</td></tr>
+<tr><td><code>/departments</code></td><td><code>PrivateRoute</code></td><td>Redirect → <code>/settings/departments</code> (giữ bookmark cũ sống)</td></tr>
+<tr><td><code>*</code></td><td>–</td><td>Redirect → <code>/</code></td></tr>
 </tbody></table>
+<blockquote>
+<p><strong>Không có <code>/employees/new</code></strong>: tạo nhân viên dùng <code>EmployeeWizard</code> dạng modal/drawer ngay trên <code>/employees</code>.</p>
+<p></p>
+<p>Mọi page-level component đều được code-split bằng <code>React.lazy</code>; page nằm trong <code>AppLayout</code> dùng chung Suspense boundary của layout, còn màn hình auth đứng riêng có fallback toàn trang.</p>
+</blockquote>
 <h3 id="52-route-guards">5.2 Route Guards</h3>
-<p>Mọi route sau login đều wrap trong <code><PrivateRoute></code>. Component này kiểm tra:</p>
+<p><code>PrivateRoute</code> là <strong>layout route</strong> bọc toàn bộ route sau login. Nó <strong>không</strong> decode JWT để kiểm tra <code>exp</code> — token là chuỗi trong <code>authStore</code>, và hạn dùng thật do backend quyết định. Thay vào đó:</p>
 <ol>
-<li>Có access token trong <code>authStore</code> không</li>
-<li>Token còn hạn không (decode payload, kiểm tra <code>exp</code>)</li>
-<li>Nếu không → redirect <code>/login</code></li>
+<li>Nếu chưa authenticated và chưa <code>sessionChecked</code> → thử <strong>khôi phục phiên ngầm</strong> (<code>POST /auth/refresh</code> → <code>GET /auth/me</code>) và hiển thị <code>FullPageLoader</code> trong lúc chờ.</li>
+<li>Chỉ khi lần thử đó <strong>thất bại</strong> mới redirect <code>/login</code>, kèm <code>?redirect=<đường dẫn đang muốn vào></code> để đăng nhập xong quay lại đúng chỗ.</li>
 </ol>
-<p>Phân quyền theo role dùng <code><RoleGuard allowedRoles={['hr_manager']}></code> wrap ở component cấp page.</p>
+<p>Phân quyền theo role <strong>không</strong> dùng component <code><RoleGuard></code> (component đó không tồn tại). Dùng các hook trong <code>hooks/usePermissions.ts</code>: <code>useCanWriteMasterData</code>, <code>useCanWriteEmployees</code>, <code>useCanDeleteEmployees</code>, <code>useCanWriteContracts</code>, <code>useCanCreateUsers</code>, <code>useCanExportEmployees</code>.</p>
+<blockquote>
+<p>Các hook này <strong>ẩn nút bấm, không phải hàng rào bảo mật</strong>. Backend mới là chỗ chặn thật (<code>403 FORBIDDEN</code> ở mọi endpoint ghi); phía UI chỉ để người dùng không bấm một nút chắc chắn sẽ lỗi. Ví dụ <code>manager</code> / <code>employee</code> mở được màn hình master data bằng URL và thấy bảng, nhưng không có nút Thêm/Sửa/Xoá.</p>
+</blockquote>
 <hr>
 <h2 id="6-auth-flow">6. Auth Flow</h2>
 <h3 id="61-đăng-nhập">6.1 Đăng nhập</h3>
 <ol>
-<li>User nhập email / mật khẩu → gọi <code>POST /auth/login</code></li>
-<li>Backend trả về <code>access_token</code> (JWT, 15 phút) và set <code>refresh_token</code> trong HttpOnly cookie</li>
-<li><code>authStore</code> lưu <code>access_token</code> trong memory (không localStorage — bảo mật XSS)</li>
-<li>axios interceptor gắn <code>Authorization: Bearer <token></code> vào mọi request</li>
+<li>User nhập <strong>email hoặc tên đăng nhập</strong> + mật khẩu (+ tuỳ chọn "ghi nhớ đăng nhập") → gọi <code>POST /auth/login</code></li>
+<li>Backend trả <code>accessToken</code> (JWT, 15 phút) trong body và set <code>refresh_token</code> trong cookie HttpOnly, <code>SameSite=Strict</code>, <code>Path=/api/v1/auth/refresh</code> (<code>Secure</code> chỉ ở production). <strong>Refresh token không bao giờ có trong body.</strong></li>
+<li><code>authStore</code> lưu <code>accessToken</code> trong memory (không localStorage — bảo mật XSS)</li>
+<li>axios request interceptor gắn <code>Authorization: Bearer <token></code> vào mọi request</li>
 </ol>
-<h3 id="62-tự-động-làm-mới-token">6.2 Tự động làm mới token</h3>
+<blockquote>
+<p><strong><code>withCredentials</code> bật theo từng lời gọi, không bật toàn cục.</strong> Chỉ <strong>hai</strong> request được phép: <code>POST /auth/login</code> (nhận <code>Set-Cookie</code>) và <code>POST /auth/refresh</code> (gửi cookie + được rotate). Mọi thứ còn lại — kể cả <code>/auth/me</code> và <code>/auth/logout</code> — chỉ cần Bearer token. Đặt cờ này lên <code>axios.create()</code> sẽ xin credentials ở mọi request, kể cả những request không liên quan gì tới cookie refresh.</p>
+</blockquote>
+<h3 id="62-khôi-phục-phiên-sau-f5">6.2 Khôi phục phiên sau F5</h3>
+<p>Access token chỉ nằm trong memory nên reload trang, mở tab mới hay mở lại trình duyệt đều bắt đầu với store rỗng — dù cookie refresh vẫn còn hiệu lực tới 7 ngày.</p>
+<p><code>useSessionRestore()</code> gọi <code>POST /auth/refresh</code> → <code>GET /auth/me</code>, chạy <strong>tối đa một lần mỗi vòng đời trang</strong> (<code>authStore.sessionChecked</code>), và TanStack Query còn dedupe các caller song song nên hai route guard không thể bắn hai lần refresh.</p>
+<p><strong><code>GuestRoute</code> cũng chạy đúng quy trình đó trên màn hình <code>/login</code>:</strong> người còn cookie hợp lệ được cho vào thẳng chứ không bị hỏi lại mật khẩu. Trước đây vào thẳng <code>/login</code> (bookmark, tab mở lại) sẽ thấy form và bị đòi thông tin mà chính trình duyệt có thể tự cung cấp bằng một lần <code>POST /auth/refresh</code>. Thành công → redirect tới nơi người dùng định vào; thất bại → hiện form đăng nhập.</p>
+<p>Không thể có vòng lặp redirect: cả hai guard đọc cùng một state đã giải quyết sau một lần thử duy nhất, nên chỉ một trong hai có thể muốn redirect.</p>
+<h3 id="63-tự-động-làm-mới-token">6.3 Tự động làm mới token</h3>
 <p>Axios response interceptor xử lý lỗi <code>401 Unauthorized</code>:</p>
 <ol>
-<li>Gọi <code>POST /auth/refresh</code> (cookie tự đính kèm)</li>
-<li>Nhận <code>access_token</code> mới → cập nhật <code>authStore</code></li>
+<li>Gọi <code>POST /auth/refresh</code> (<strong>không body</strong>, cookie tự đính kèm)</li>
+<li>Nhận <code>accessToken</code> mới → cập nhật <code>authStore</code></li>
 <li>Retry request gốc với token mới</li>
-<li>Nếu refresh cũng fail → clear auth → redirect <code>/login</code></li>
+<li>Nếu refresh cũng fail → <code>clearAuth()</code> → <strong>hard redirect</strong> <code>/login</code></li>
 </ol>
 <p>Cơ chế queue: nếu nhiều request cùng nhận 401, chỉ gọi refresh 1 lần, các request khác chờ.</p>
-<h3 id="63-đăng-xuất">6.3 Đăng xuất</h3>
-<p>Gọi <code>POST /auth/logout</code> → backend xóa refresh token trong DB → clear <code>authStore</code> → redirect <code>/login</code>.</p>
+<p><strong>Những 401 KHÔNG được retry:</strong></p>
+<table><thead>
+<tr><th>Loại</th><th>Vì sao</th></tr>
+</thead><tbody>
+<tr><td><code>/auth/login</code>, <code>/auth/forgot-password</code>, <code>/auth/reset-password</code></td><td>Public — 401/400 ở đó là câu trả lời thật cho caller</td></tr>
+<tr><td><code>/auth/refresh</code></td><td>401 ở đây <strong>chính là</strong> lỗi refresh; retry sẽ đệ quy</td></tr>
+<tr><td><code>/auth/logout</code></td><td>Token đã chết thì không có gì để cứu</td></tr>
+<tr><td><code>error.code</code> ∈ <code>WRONG_CURRENT_PASSWORD</code>, <code>INVALID_CREDENTIALS</code></td><td>Đây là lỗi <strong>nghiệp vụ</strong>, không phải "token cũ". Refresh rồi replay <code>POST /auth/change-password</code> sẽ âm thầm gửi lại mật khẩu sai — và có thể tính vào lockout</td></tr>
+</tbody></table>
+<p><code>/auth/me</code> <strong>cố ý không</strong> nằm trong danh sách trên: nó phải được retry sau khi refresh xong.</p>
+<p><strong>Marker chống vòng lặp.</strong> Redirect sau khi refresh thất bại dùng <code>location.replace()</code> (để nút Back không quay lại trang vừa bị từ chối) và mang theo hai query:</p>
+<pre><code class="language-">/login?redirect=&lt;đường dẫn đang dở&gt;&amp;sessionExpired=1
+</code></pre>
+<p><code>sessionExpired=1</code> là <strong>marker báo "phiên vừa khôi phục hỏng"</strong>. Nó cần thiết vì redirect này là một lần tải trang đầy đủ, xoá sạch cờ <code>sessionChecked</code> trong memory — không có marker thì <code>GuestRoute</code> sẽ thử khôi phục lại từ đầu, và nếu cookie <em>trông</em> vẫn dùng được thì nó ném người dùng ngược về đúng trang vừa từ chối họ, rồi lặp mãi. Thấy marker thì <code>GuestRoute</code> bỏ qua lần thử đó và hiện thẳng form.</p>
+<p><code>redirect</code> được <strong>sanitize</strong> trước khi dùng (<code>utils/validators.ts</code> → <code>sanitizeRedirectPath</code>), mặc định về <code>/dashboard</code> và từ chối mọi giá trị có thể thành open redirect.</p>
+<h3 id="64-đăng-xuất">6.4 Đăng xuất</h3>
+<p>Gọi <code>POST /auth/logout</code> → backend revoke refresh token trong DB (nhận diện phiên qua claim <code>sid</code> của access token, <strong>không</strong> qua cookie) → xoá cookie → clear <code>authStore</code>. <code>authStore</code> luôn được dọn kể cả khi lời gọi server thất bại.</p>
 <hr>
 <h2 id="7-api-call-pattern">7. API Call Pattern</h2>
 <p>Mọi component KHÔNG fetch API trực tiếp. Luồng bắt buộc:</p>
@@ -265,58 +332,92 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <p><strong>Tầng Hook</strong> (<code>hooks/useEmployees.ts</code>): wrap service trong <code>useQuery</code> / <code>useMutation</code>. Component gọi hook, nhận <code>{ data, isLoading, error }</code>.</p>
 <p><strong>Tầng Component</strong>: chỉ render UI dựa trên data từ hook.</p>
 <h3 id="xử-lý-lỗi-api">Xử lý lỗi API</h3>
-<p>Lỗi từ backend có format chuẩn:</p>
-<pre><code class="language-">{ success: false, message: "...", errorCode: "EMPLOYEE_NOT_FOUND" }
+<p>Envelope lỗi thật của backend (<code>backend/docs/api-spec.md</code> §1.1) — <strong>không</strong> phải <code>{ success, message, errorCode }</code> như tài liệu này từng ghi:</p>
+<pre><code class="language-json">{
+  "success": false,
+  "error": {
+    "code": "EMPLOYEE_NOT_FOUND",
+    "message": "Cannot find employee with id 42",
+    "details": [
+      { "field": "email", "code": "INVALID_EMAIL", "message": "Invalid email format" }
+    ]
+  },
+  "timestamp": "2026-08-19T10:00:00.000Z"
+}
 </code></pre>
-<p><code>error.message</code> hiển thị trong Ant Design <code>message.error()</code>. Không log chi tiết lỗi ra console ở production.</p>
+<ul>
+<li>Mã lỗi nằm ở <strong><code>error.code</code></strong>, không phải <code>errorCode</code>.</li>
+<li><strong><code>details[]</code> chỉ xuất hiện khi <code>error.code === "VALIDATION_ERROR"</code></strong>; mỗi phần tử đủ 3 trường <code>field</code> + <code>code</code> + <code>message</code>.</li>
+<li>Response thành công là <code>{ success, data, timestamp }</code> — <strong>không</strong> có <code>message</code>.</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong><code>error.message</code> là văn bản tiếng Anh dành cho developer/log và TUYỆT ĐỐI KHÔNG được render cho người dùng.</strong> UI map <strong><code>error.code</code></strong> sang i18n. Dùng hook <code>useApiErrorMessage()</code>: nó tra <code>errors.api.<CODE></code> trong file dịch và fallback về một câu chung cho mã chưa biết. Kiểu TypeScript của envelope nằm ở <code>types/api.types.ts</code>.</p>
+</blockquote>
+<p><strong>Thời gian còn lại của khoá tài khoản nằm ở header <code>Retry-After</code>,</strong> không nằm trong body. <code>utils/apiError.ts</code> đọc header đó (chấp nhận cả dạng số giây lẫn HTTP date) và <code>useLoginErrorMessage()</code> phân biệt ba tình huống của màn hình đăng nhập:</p>
+<table><thead>
+<tr><th>Tín hiệu</th><th>Thông điệp</th></tr>
+</thead><tbody>
+<tr><td><code>401 INVALID_CREDENTIALS</code></td><td>Sai tên đăng nhập / mật khẩu</td></tr>
+<tr><td><code>429</code></td><td>Lần thử này vừa làm khoá tài khoản 15 phút</td></tr>
+<tr><td><code>423 ACCOUNT_LOCKED</code></td><td>Đang bị khoá (kèm số phút còn lại nếu đọc được)</td></tr>
+</tbody></table>
+<p>Không log chi tiết lỗi ra console ở production.</p>
 <hr>
 <h2 id="8-internationalization-i18n">8. Internationalization (i18n)</h2>
 <ul>
-<li>Dùng <code>i18next</code> với plugin <code>react-i18next</code></li>
-<li>Ngôn ngữ mặc định: Tiếng Việt (<code>vi</code>)</li>
+<li>Dùng <code>i18next</code> + <code>react-i18next</code> + <code>i18next-browser-languagedetector</code></li>
+<li>Ngôn ngữ mặc định và fallback: Tiếng Việt (<code>vi</code>); hỗ trợ <code>vi</code> | <code>en</code></li>
+<li>Chỉ có <strong>một namespace</strong>: <code>common</code> (khai báo <code>ns: ['common']</code>, <code>defaultNS: 'common'</code>) — key viết thẳng như <code>t('employee.fullName')</code>, không có tiền tố namespace</li>
 <li>Tất cả text hiển thị PHẢI qua <code>t('key')</code> — không hardcode tiếng Việt trong JSX</li>
-<li>Key theo namespace: <code>t('employee.fullName')</code>, <code>t('common.save')</code>, <code>t('error.required')</code></li>
+<li>Mã lỗi API map qua key <code>errors.api.<CODE></code> (§7)</li>
 <li>File nguồn chính: <code>locales/vi.json</code></li>
-<li>Ngôn ngữ được lưu trong <code>uiStore</code> và persist vào localStorage</li>
+<li><strong><code>uiStore</code> (persist localStorage <code>hrm-ui-store</code>) là nguồn sự thật</strong> cho ngôn ngữ; language-detector chỉ có tác dụng ở lần truy cập đầu tiên khi <code>uiStore</code> chưa từng được ghi. Hai chiều được đồng bộ: đổi qua switcher hay gọi <code>i18n.changeLanguage()</code> trực tiếp đều giữ bên kia nhất quán</li>
 </ul>
 <hr>
 <h2 id="9-performance">9. Performance</h2>
 <table><thead>
-<tr><th>Kỹ thuật</th><th>Áp dụng ở đâu</th></tr>
+<tr><th>Kỹ thuật</th><th>Trạng thái</th><th>Áp dụng ở đâu</th></tr>
 </thead><tbody>
-<tr><td>Code splitting (<code>React.lazy</code>)</td><td>Mỗi page-level component</td></tr>
-<tr><td><code>Suspense</code> + skeleton loader</td><td>Wrapper cho lazy routes</td></tr>
-<tr><td><code>staleTime: 5 phút</code> trong TanStack Query</td><td>Dữ liệu ít thay đổi (departments, positions)</td></tr>
-<tr><td>Virtual scroll</td><td>Bảng dữ liệu lớn (danh sách nhân viên)</td></tr>
-<tr><td>Debounce search</td><td>Input tìm kiếm, delay 300ms</td></tr>
-<tr><td><code>React.memo</code></td><td>Component list item có re-render nhiều</td></tr>
+<tr><td>Code splitting (<code>React.lazy</code>)</td><td>✅</td><td>Mỗi page-level component (<code>routes/RouterConfig.tsx</code>)</td></tr>
+<tr><td><code>Suspense</code> + <code>FullPageLoader</code></td><td>✅</td><td>Boundary trong <code>AppLayout</code> cho page nội bộ; fallback toàn trang cho màn hình auth</td></tr>
+<tr><td><code>staleTime</code> trong TanStack Query</td><td>✅</td><td>Mặc định toàn cục <strong>60 giây</strong> (<code>lib/queryClient.ts</code>), không phải 5 phút</td></tr>
+<tr><td>Debounce search</td><td>✅</td><td><code>useEmployeeSearch</code> – dropdown chọn người (query key là term <strong>đã</strong> debounce)</td></tr>
+<tr><td>Virtual scroll</td><td>⏳ chưa có</td><td>Dự định cho bảng dữ liệu lớn</td></tr>
+<tr><td><code>React.memo</code></td><td>⏳ chưa dùng</td><td>–</td></tr>
 </tbody></table>
 <hr>
 <h2 id="10-build-deploy">10. Build & Deploy</h2>
 <table><thead>
-<tr><th>Môi trường</th><th>URL</th><th>Config</th></tr>
+<tr><th>Môi trường</th><th>URL</th><th>Config</th><th>Trạng thái</th></tr>
 </thead><tbody>
-<tr><td>Development</td><td><code>http://localhost:5173</code></td><td><code>.env.development</code></td></tr>
-<tr><td>Staging</td><td><code>https://hrm-staging.company.vn</code></td><td><code>.env.staging</code></td></tr>
-<tr><td>Production</td><td><code>https://hrm.company.vn</code></td><td><code>.env.production</code></td></tr>
+<tr><td>Development</td><td><code>http://localhost:5173</code></td><td><code>.env.development</code></td><td>✅</td></tr>
+<tr><td>Staging</td><td><code>https://hrm-staging.company.vn</code></td><td><code>.env.staging</code></td><td>⏳ file chưa tồn tại</td></tr>
+<tr><td>Production</td><td><code>https://hrm.company.vn</code></td><td><code>.env.production</code></td><td>⏳ file chưa tồn tại</td></tr>
 </tbody></table>
-<p><strong>Biến môi trường quan trọng:</strong></p>
+<p><strong>Biến môi trường:</strong></p>
 <table><thead>
-<tr><th>Biến</th><th>Mô tả</th></tr>
+<tr><th>Biến</th><th>Trạng thái</th><th>Mô tả</th></tr>
 </thead><tbody>
-<tr><td><code>VITE_API_BASE_URL</code></td><td>URL gốc của backend API</td></tr>
-<tr><td><code>VITE_APP_NAME</code></td><td>Tên hiển thị trong tab/title</td></tr>
-<tr><td><code>VITE_SENTRY_DSN</code></td><td>Endpoint báo lỗi Sentry</td></tr>
+<tr><td><code>VITE_API_BASE_URL</code></td><td>✅</td><td>URL gốc của backend API. Ở dev là <strong><code>/api/v1</code></strong> (đường dẫn tương đối) — Vite proxy <code>/api</code> → <code>http://localhost:3000</code>, nhờ vậy request là same-origin và cookie refresh hoạt động bình thường</td></tr>
+<tr><td><code>VITE_APP_NAME</code></td><td>✅</td><td>Tên hiển thị trong tab/title (<code>HRM</code>)</td></tr>
+<tr><td><code>VITE_SENTRY_DSN</code></td><td>⏳</td><td>Chưa dùng (xem §11)</td></tr>
 </tbody></table>
+<p><code>lib/axios.ts</code> fallback về <code>/api/v1</code> nếu <code>VITE_API_BASE_URL</code> trống.</p>
 <p>Build output là thư mục <code>dist/</code> — deploy lên S3 + CloudFront hoặc Nginx static server.</p>
 <hr>
 <h2 id="11-error-monitoring">11. Error Monitoring</h2>
+<blockquote>
+<p>⏳ <strong>Chưa tích hợp gì.</strong> Không có package <code>@sentry/*</code> trong <code>package.json</code> và <strong>chưa có component <code>ErrorBoundary</code></strong> nào trong <code>src/</code>. Toàn bộ mục này là kế hoạch.</p>
+</blockquote>
+<p>Kế hoạch:</p>
 <ul>
 <li>Tích hợp Sentry (<code>@sentry/react</code>) để bắt lỗi runtime</li>
 <li><code>ErrorBoundary</code> wrap ở cấp Route để tránh crash toàn app</li>
 <li>Lỗi API 5xx được log vào Sentry với context (user, route, payload)</li>
 <li>Không log thông tin nhạy cảm (token, CCCD, mật khẩu)</li>
 </ul>
+<hr>
+<p><em>Cập nhật: 19/08/2026 – Version 1.1 – Đồng bộ với code: §2 phiên bản thật (React 19, AntD 6, React Router 7, Zustand 5, i18next 26, Vite 8, TS 6, oxlint); §3 cây thư mục thật (<code>components/crud</code>, <code>charts</code>, <code>constants</code>, <code>routes</code>, <code>lib</code>, <code>styles</code>; không có <code>assets/</code>); §5 route + guard thật (không có RoleGuard, không decode <code>exp</code>); §6 bổ sung khôi phục phiên, GuestRoute, marker <code>sessionExpired</code>, quy tắc <code>withCredentials</code>; §7 sửa envelope lỗi về <code>{ success, error: { code, message, details? }, timestamp }</code> và nêu rõ <code>error.message</code> không được hiển thị; §9–§11 đánh dấu phần chưa có</em></p>
 
 </main>
 <script>

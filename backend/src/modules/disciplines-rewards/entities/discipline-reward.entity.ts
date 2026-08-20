@@ -53,14 +53,6 @@ export class DisciplineReward {
   effectiveDate: string;
 
   @Column({
-    type: 'decimal',
-    precision: 15,
-    scale: 2,
-    nullable: true,
-  })
-  amount: string | null;
-
-  @Column({
     name: 'issued_by',
     type: 'bigint',
     unsigned: true,

@@ -691,6 +691,10 @@ Bảng trung gian many-to-many giữa `employees` và `trainings`, có thêm th�
 
 ### 8.2. `disciplines_rewards` – Khen thưởng & Kỷ luật
 
+> Bảng này **không mang tiền**. Điều 128 BLLĐ 2019 cấm phạt tiền thay cho kỷ
+> luật, còn tiền thưởng thực trả đi qua `salaries.performance_bonus`. Cột
+> `amount` đã bị bỏ (migration `1787280000000`).
+
 | Cột | Kiểu | Bắt buộc | Mô tả |
 |-----|------|:--------:|-------|
 | id | ID tự tăng | ✅ | Khóa chính |
@@ -702,7 +706,6 @@ Bảng trung gian many-to-many giữa `employees` và `trainings`, có thêm th�
 | decision_number | text (50) | ❌ | Số quyết định |
 | decision_date | ngày | ✅ | Ngày ban hành quyết định |
 | effective_date | ngày | ✅ | Ngày có hiệu lực |
-| amount | tiền VNĐ | ❌ | Số tiền thưởng hoặc phạt (nếu có) |
 | issued_by | FK → employees | ❌ | Người ký quyết định |
 | document_url | text (500) | ❌ | Link quyết định trên S3 |
 | note | văn bản dài | ❌ | – |

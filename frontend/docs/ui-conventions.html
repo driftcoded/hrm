@@ -123,16 +123,24 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#loading">Loading</a></li>
 <li class="h3"><a href="#empty-state">Empty State</a></li>
 <li class="h2"><a href="#8-thông-báo-notification">8. Thông báo (Notification)</a></li>
+<li class="h3"><a href="#không-thông-báo-trùng-bắt-buộc">KHÔNG thông báo trùng (BẮT BUỘC)</a></li>
 <li class="h2"><a href="#9-modal-conventions">9. Modal Conventions</a></li>
 <li class="h2"><a href="#10-responsive-design">10. Responsive Design</a></li>
 <li class="h2"><a href="#11-accessibility">11. Accessibility</a></li>
+<li class="h3"><a href="#ngưỡng-tương-phản-bắt-buộc">Ngưỡng tương phản (BẮT BUỘC)</a></li>
+<li class="h2"><a href="#12-dark-mode">12. Dark Mode</a></li>
+<li class="h3"><a href="#cách-bật">Cách bật</a></li>
+<li class="h3"><a href="#quy-tắc-token">Quy tắc token</a></li>
+<li class="h3"><a href="#ba-bậc-của-một-màu-status">Ba bậc của một màu status</a></li>
+<li class="h3"><a href="#khi-thêm-màu-mới">Khi thêm màu mới</a></li>
+<li class="h3"><a href="#in-ấn">In ấn</a></li>
 </ul></nav>
 
 <main id="content">
 <h1 id="ui-conventions">UI Conventions</h1>
-<p><strong>Phiên bản:</strong> 1.0  </p>
-<p><strong>Ngày cập nhật:</strong> 19/06/2026  </p>
-<p><strong>Design System:</strong> Ant Design v5 + Custom Token</p>
+<p><strong>Phiên bản:</strong> 1.2  </p>
+<p><strong>Ngày cập nhật:</strong> 19/08/2026  </p>
+<p><strong>Design System:</strong> Ant Design <strong>v6</strong> + Custom Token (<code>src/styles/tokens.css</code>)</p>
 <hr>
 <h2 id="1-design-tokens">1. Design Tokens</h2>
 <p>Các giá trị gốc của hệ thống. Không dùng giá trị hardcode trong CSS — luôn dùng token.</p>
@@ -149,15 +157,20 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <tr><td><code>colorBgBase</code></td><td><code>#ffffff</code></td><td>Nền chính</td></tr>
 </tbody></table>
 <h3 id="màu-trạng-thái-nhân-viên">Màu trạng thái nhân viên</h3>
+<p>Đúng <strong>6</strong> giá trị của <code>employees.status</code> — xem <code>components/employees/EmployeeStatusTag.tsx</code>:</p>
 <table><thead>
-<tr><th>Trạng thái</th><th>Màu</th><th>AntD Badge color</th></tr>
+<tr><th><code>status</code></th><th>Nhãn</th><th>Màu <code>Tag</code> của AntD</th></tr>
 </thead><tbody>
-<tr><td>Đang làm việc</td><td>Xanh lá</td><td><code>success</code></td></tr>
-<tr><td>Thử việc</td><td>Xanh dương</td><td><code>processing</code></td></tr>
-<tr><td>Nghỉ thai sản / phép dài</td><td>Vàng</td><td><code>warning</code></td></tr>
-<tr><td>Đã nghỉ việc</td><td>Đỏ</td><td><code>error</code></td></tr>
-<tr><td>Đã nghỉ hưu</td><td>Xám</td><td><code>default</code></td></tr>
+<tr><td><code>probation</code></td><td>Thử việc</td><td><code>orange</code></td></tr>
+<tr><td><code>active</code></td><td>Đang làm việc</td><td><code>green</code></td></tr>
+<tr><td><code>on_leave</code></td><td>Đang nghỉ</td><td><code>blue</code></td></tr>
+<tr><td><code>suspended</code></td><td>Tạm đình chỉ</td><td><code>red</code></td></tr>
+<tr><td><code>resigned</code></td><td>Đã nghỉ việc</td><td><code>default</code></td></tr>
+<tr><td><code>terminated</code></td><td>Đã chấm dứt</td><td><code>default</code></td></tr>
 </tbody></table>
+<blockquote>
+<p>Không có trạng thái <code>maternity_leave</code> hay <code>retired</code>. Màu luôn là <strong>kênh thứ hai</strong>, không bao giờ là kênh duy nhất: mỗi tag đều mang chữ của chính nó nên nghĩa vẫn còn với người mù màu và bản in đen trắng (§11).</p>
+</blockquote>
 <h3 id="typography">Typography</h3>
 <table><thead>
 <tr><th>Yếu tố</th><th>Font size</th><th>Font weight</th></tr>
@@ -175,7 +188,7 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <p>Theo bội số 8px: <code>4 / 8 / 12 / 16 / 24 / 32 / 48px</code></p>
 <hr>
 <h2 id="2-ant-design-theme-configuration">2. Ant Design Theme Configuration</h2>
-<p>Theme tùy chỉnh khai báo trong <code>main.tsx</code> qua <code>ConfigProvider</code>:</p>
+<p>Theme tùy chỉnh khai báo trong <strong><code>App.tsx</code></strong> qua <code>ConfigProvider</code> (kèm <code>locale={viVN}</code> từ <code>antd/locale/vi_VN</code>), và được phản chiếu thành CSS custom property trong <code>src/styles/tokens.css</code> cho các CSS module. <code>main.tsx</code> chỉ lo bootstrap: <code>antd/dist/reset.css</code>, <code>dayjs.locale('vi')</code>, khởi tạo i18n.</p>
 <table><thead>
 <tr><th>Thuộc tính</th><th>Giá trị</th></tr>
 </thead><tbody>
@@ -330,12 +343,26 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <tr><th>Loại</th><th>AntD component</th><th>Khi dùng</th></tr>
 </thead><tbody>
 <tr><td>Thành công</td><td><code>message.success()</code></td><td>Lưu, xóa, duyệt thành công</td></tr>
-<tr><td>Lỗi ngắn</td><td><code>message.error()</code></td><td>Lỗi validate, lỗi API nhẹ</td></tr>
+<tr><td>Lỗi ngắn</td><td><code>message.error()</code></td><td>Lỗi API nhẹ <strong>khi trên màn hình không có chỗ hiển thị inline</strong></td></tr>
 <tr><td>Cảnh báo</td><td><code>message.warning()</code></td><td>Nhắc nhở, xác nhận hành động</td></tr>
 <tr><td>Thông báo chi tiết</td><td><code>notification.open()</code></td><td>Thông báo có action button</td></tr>
 <tr><td>Xác nhận xóa</td><td><code>Modal.confirm()</code></td><td>Trước khi xóa bản ghi</td></tr>
 </tbody></table>
 <p>Thời gian hiển thị <code>message</code>: 3 giây. <code>notification</code>: 5 giây.</p>
+<h3 id="không-thông-báo-trùng-bắt-buộc">KHÔNG thông báo trùng (BẮT BUỘC)</h3>
+<p><strong>Mỗi sự kiện chỉ được thông báo qua ĐÚNG MỘT kênh.</strong> Nơi nào đã hiển thị thông báo</p>
+<p>inline thì KHÔNG được bắn toast cho cùng sự kiện đó.</p>
+<table><thead>
+<tr><th>Tình huống</th><th>Dùng</th><th>KHÔNG dùng</th></tr>
+</thead><tbody>
+<tr><td>Lỗi validate từng trường</td><td>Inline dưới input (AntD <code>Form</code> tự render)</td><td><code>message.error()</code></td></tr>
+<tr><td>Lỗi submit form (sai mật khẩu, token hết hạn…)</td><td><code>Alert</code> inline trong form/card</td><td>Toast kèm theo</td></tr>
+<tr><td>Card/bảng tải lỗi</td><td>Error state inline trong card + nút "Thử lại" (xem §7)</td><td>Toast</td></tr>
+<tr><td>Thao tác xong rồi điều hướng sang trang khác</td><td><code>message.success()</code> (trang cũ đã biến mất, không còn chỗ inline)</td><td>–</td></tr>
+<tr><td>Thao tác nền, không có gì hiện trên màn hình</td><td><code>message.*</code></td><td>–</td></tr>
+</tbody></table>
+<p>Nguyên tắc: nếu người dùng đã thấy lỗi ngay tại ngữ cảnh gây ra lỗi, đó là nơi duy nhất</p>
+<p>lỗi được hiển thị.</p>
 <hr>
 <h2 id="9-modal-conventions">9. Modal Conventions</h2>
 <ul>
@@ -366,6 +393,54 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li>Focus ring không bị ẩn (không override <code>outline: none</code> toàn cục)</li>
 <li>Keyboard navigation hoạt động với modal, dropdown, table row actions</li>
 </ul>
+<h3 id="ngưỡng-tương-phản-bắt-buộc">Ngưỡng tương phản (BẮT BUỘC)</h3>
+<table><thead>
+<tr><th>Loại</th><th>Ngưỡng</th><th>Chuẩn</th></tr>
+</thead><tbody>
+<tr><td>Text thường (< 18px)</td><td><strong>4.5:1</strong></td><td>WCAG 1.4.3 AA</td></tr>
+<tr><td>Text lớn (≥ 18px hoặc ≥ 14px bold)</td><td><strong>3:1</strong></td><td>WCAG 1.4.3 AA</td></tr>
+<tr><td>Icon / glyph trên tile, đường viền của control</td><td><strong>3:1</strong></td><td>WCAG 1.4.11</td></tr>
+</tbody></table>
+<p>Áp dụng cho <strong>cả hai theme</strong>. Xem §12 để biết token nào dùng cho text và token nào dùng cho glyph.</p>
+<hr>
+<h2 id="12-dark-mode">12. Dark Mode</h2>
+<h3 id="cách-bật">Cách bật</h3>
+<p><code>useUiStore.theme</code> (<code>'light' | 'dark'</code>, persist ở localStorage <code>hrm-ui-store</code>) là nguồn sự thật duy nhất. Ba chỗ đọc nó, phải sửa cùng nhau nếu đổi tên key/attribute:</p>
+<ol>
+<li><code>index.html</code> — script inline <strong>chặn render</strong>, chạy trước lần paint đầu tiên. Không có nó thì user dark mode bị chớp trắng toàn màn hình mỗi lần load, vì bundle React chỉ chạy sau khi trình duyệt đã vẽ xong body.</li>
+<li><code>hooks/useThemeMode.ts</code> — gắn <code>data-theme</code> + <code>color-scheme</code> lên <code><html></code>.</li>
+<li><code>App.tsx</code> — chọn <code>lightTheme</code> / <code>darkTheme</code> cho <code>ConfigProvider</code>.</li>
+</ol>
+<p>Attribute nằm trên <code><html></code> chứ <strong>không phải</strong> một <code><div></code> trong <code>#root</code>: token treo ở <code>:root</code>, và AntD render modal / dropdown / message qua portal ở cấp <code><body></code> — bọc bằng div sẽ để toàn bộ portal kẹt ở theme sáng.</p>
+<p>Mặc định theo OS (<code>prefers-color-scheme</code>). Cờ <code>hasChosenTheme</code> phân biệt "chưa từng chọn" với "cố ý chọn sáng dù OS đang tối" — thiếu nó thì lựa chọn của user bị OS ghi đè lúc trời tối.</p>
+<h3 id="quy-tắc-token">Quy tắc token</h3>
+<ul>
+<li>Dark block ở <code>styles/tokens.css</code> <strong>chỉ</strong> khai báo lại token <strong>màu và đổ bóng</strong>. Spacing, radius, typography, kích thước layout là theme-independent — khai báo lại là bug vì nó âm thầm tách đôi hình học của hai theme.</li>
+<li>Dark <strong>không phải</strong> light đảo ngược. Màu bão hoà đọc tốt trên nền trắng sẽ đục trên nền tối, nên mọi màu brand/status đi <strong>lên</strong> một bậc ramp (-6 → -4), vì các token này chủ yếu dùng làm <code>color:</code>/<code>fill:</code>.</li>
+<li>Chiều sâu đến từ <strong>bề mặt sáng hơn</strong>, không phải bóng đậm hơn: sidebar → canvas → card → elevated. Tránh đen tuyệt đối (làm chữ trắng bị rung, và giấu mất bóng).</li>
+</ul>
+<h3 id="ba-bậc-của-một-màu-status">Ba bậc của một màu status</h3>
+<p>Đây là lỗi dễ mắc nhất — dùng sai bậc là text không đọc được:</p>
+<table><thead>
+<tr><th>Bậc</th><th>Dùng cho</th><th>Ví dụ (light)</th></tr>
+</thead><tbody>
+<tr><td><code>--hrm-color-{name}-soft</code></td><td>nền tile có tint</td><td><code>#f6ffed</code></td></tr>
+<tr><td><code>--hrm-color-{name}</code></td><td>chính accent đó (fill lớn, viền)</td><td><code>#52c41a</code></td></tr>
+<tr><td><code>--hrm-color-{name}-strong</code></td><td><strong>text và glyph</strong></td><td><code>#237804</code></td></tr>
+</tbody></table>
+<p><code>--hrm-color-success</code> trên chính <code>-soft</code> của nó chỉ <strong>2.21:1</strong>, <code>--hrm-color-warning</code> chỉ <strong>1.83:1</strong> — không đạt cả ngưỡng 3:1. <strong>Text hoặc icon luôn dùng bậc <code>-strong</code>.</strong></p>
+<p>Tương tự, <code>--hrm-color-primary-solid</code> là bậc dành cho <strong>nền có chữ trắng đè lên</strong> (dòng nav đang chọn, avatar). <code>--hrm-color-primary</code> (<code>#1677ff</code>) dưới chữ trắng chỉ 4.10:1 — dưới AA. Không dùng <code>--hrm-color-primary</code> làm nền có chữ trắng.</p>
+<h3 id="khi-thêm-màu-mới">Khi thêm màu mới</h3>
+<ol>
+<li>Thêm cả cặp light + dark, cùng tên token.</li>
+<li>Kiểm tra tương phản theo bảng §11 trên <strong>cả hai</strong> bề mặt (card và canvas) của <strong>cả hai</strong> theme.</li>
+<li>Nếu là slot biểu đồ: kiểm tra thêm khoảng cách ΔE giữa các slot kề nhau dưới mô phỏng protan/deutan/tritan (sàn: 15 cho mắt thường, 8 cho CVD) — quy trình và số liệu ghi trong comment ở <code>tokens.css</code>.</li>
+</ol>
+<h3 id="in-ấn">In ấn</h3>
+<p>Giấy không có dark mode. <code>index.css</code> reset <code>color-scheme: light</code> và ép body về đen-trên-trắng trong <code>@media print</code>; hai print sheet cố tình hardcode <code>#000</code>/<code>#fff</code> thay vì dùng token — <strong>không</strong> "sửa" chúng thành token.</p>
+<hr>
+<p><em>Cập nhật: 19/08/2026 – Version 1.2 – Thêm §12 Dark Mode và bảng ngưỡng tương phản ở §11; thêm bậc <code>-strong</code> (text/glyph) và <code>-solid</code> (nền có chữ trắng) cho màu status/primary</em></p>
+<p><em>Cập nhật: 19/08/2026 – Version 1.1 – Sửa phiên bản Design System: Ant Design v6 (không phải v5); token tuỳ biến nằm ở src/styles/tokens.css; sửa bảng màu trạng thái nhân viên về đúng 6 giá trị của <code>employees.status</code>; ConfigProvider nằm ở App.tsx chứ không phải main.tsx</em></p>
 
 </main>
 <script>

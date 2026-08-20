@@ -283,7 +283,7 @@ announcements (standalone – thông báo nội bộ)
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
 </thead><tbody>
 <tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
-<tr><td>code</td><td>text (20)</td><td>✅</td><td>Duy nhất. Ví dụ: <code>IT</code> · <code>HR</code> · <code>FIN</code> · <code>SALE</code></td></tr>
+<tr><td>code</td><td>text (20)</td><td>✅</td><td>Duy nhất, <strong>do server sinh</strong>: <code>PB0001</code>, <code>PB0002</code>… API không nhận <code>code</code> khi tạo và không cho sửa. Số kế tiếp lấy từ mã lớn nhất từng cấp <strong>kể cả dòng đã xoá mềm</strong> → mã không bao giờ được dùng lại</td></tr>
 <tr><td>name</td><td>text (150)</td><td>✅</td><td>Tên đầy đủ: "Phòng Công nghệ thông tin"</td></tr>
 <tr><td>description</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
 <tr><td>parent_id</td><td>FK → departments</td><td>❌</td><td><code>NULL</code> nếu là phòng ban gốc. Self-reference để tạo cây tổ chức</td></tr>
@@ -300,7 +300,7 @@ announcements (standalone – thông báo nội bộ)
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
 </thead><tbody>
 <tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
-<tr><td>code</td><td>text (20)</td><td>✅</td><td>Duy nhất. Ví dụ: <code>DEV_JUNIOR</code> · <code>PM_SENIOR</code></td></tr>
+<tr><td>code</td><td>text (20)</td><td>✅</td><td>Duy nhất, <strong>do server sinh</strong>: <code>CV0001</code>, <code>CV0002</code>… (cùng quy tắc với <code>departments.code</code>)</td></tr>
 <tr><td>name</td><td>text (150)</td><td>✅</td><td>Tên chức vụ đầy đủ</td></tr>
 <tr><td>department_id</td><td>FK → departments</td><td>✅</td><td>Phòng ban sở hữu chức vụ này</td></tr>
 <tr><td>level</td><td>số nhỏ</td><td>✅</td><td>Cấp bậc: <code>1</code> Staff · <code>2</code> Senior · <code>3</code> Lead · <code>4</code> Manager · <code>5</code> Director</td></tr>
@@ -361,9 +361,9 @@ announcements (standalone – thông báo nội bộ)
 </thead><tbody>
 <tr><td>permanent_address</td><td>text (500)</td><td>✅</td><td>Hộ khẩu thường trú – địa chỉ đầy đủ</td></tr>
 <tr><td>current_address</td><td>text (500)</td><td>❌</td><td>Chỗ ở hiện tại. <code>NULL</code> = giống thường trú</td></tr>
-<tr><td>province_code</td><td>text (10)</td><td>✅</td><td>Mã tỉnh/thành phố theo Bộ Nội Vụ (63 tỉnh)</td></tr>
-<tr><td>district_code</td><td>text (10)</td><td>✅</td><td>Mã quận/huyện</td></tr>
-<tr><td>ward_code</td><td>text (10)</td><td>✅</td><td>Mã phường/xã</td></tr>
+<tr><td>province_code</td><td>text (10)</td><td>✅</td><td>Mã tỉnh/thành phố theo Bộ Nội Vụ — <strong>34 tỉnh/thành</strong> sau sáp nhập 01/07/2025, mã <code>01</code>–<code>34</code></td></tr>
+<tr><td>district_code</td><td>text (10)</td><td>❌</td><td>⚠️ <strong>ĐÃ LỖI THỜI.</strong> Cấp huyện chấm dứt hoạt động từ 01/07/2025 (Luật 72/2025/QH15). Cột giữ lại NULLABLE chỉ để đọc hồ sơ tuyển trước mốc đó — xem migration <code>MakeDistrictCodeNullable</code></td></tr>
+<tr><td>ward_code</td><td>text (10)</td><td>✅</td><td>Mã phường/xã/đặc khu theo danh mục cơ quan thuế (TMS), ví dụ <code>10105001</code>. Cả nước 3.321 đơn vị</td></tr>
 </tbody></table>
 <h4 id="liên-lạc">Liên lạc</h4>
 <table><thead>
@@ -420,6 +420,20 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
 <tr><td>deleted_at</td><td>thời điểm</td><td>❌</td><td>Soft delete</td></tr>
 </tbody></table>
+<blockquote>
+<p><strong>Đơn vị hành chính — cập nhật 01/07/2025.</strong> Việt Nam chuyển sang chính quyền</p>
+<p>địa phương <strong>2 cấp</strong> (Luật 72/2025/QH15): 34 tỉnh/thành → 3.321 phường/xã/đặc</p>
+<p>khu (2.621 xã + 687 phường + 13 đặc khu). Cấp huyện không còn.</p>
+<p></p>
+<p>Danh mục nằm ở <code>src/common/data/vn-provinces.json</code> và <code>vn-wards.json</code>, sinh từ</p>
+<p>danh mục chính thống của cơ quan thuế bằng <code>scripts/build-vn-admin-data.ts</code></p>
+<p>(đã đối chiếu chéo với provinces.open-api.vn v2: 34/34 tỉnh khớp, 0 tỉnh lệch</p>
+<p>số lượng, 3.310/3.321 tên khớp tuyệt đối). App KHÔNG gọi API ngoài lúc chạy.</p>
+<p></p>
+<p>Mỗi phường/xã mang kèm <code>legacyDistrictCode</code>/<code>legacyDistrictName</code> để tra ngược</p>
+<p>hồ sơ cũ. Mã phường/xã dùng hệ TMS của cơ quan thuế, không phải mã GSO — để</p>
+<p>số liệu quyết toán thuế TNCN ở Giai đoạn 6 không phải map thêm một lần nữa.</p>
+</blockquote>
 <p><strong>Validation tầng Application:</strong></p>
 <table><thead>
 <tr><th>Trường</th><th>Quy tắc</th></tr>
@@ -524,8 +538,10 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>work_date</td><td>ngày</td><td>✅</td><td>Ngày làm việc. <strong>Unique</strong> theo cặp (employee_id, work_date)</td></tr>
 <tr><td>check_in</td><td>thời gian (HH:mm)</td><td>❌</td><td>Giờ chấm vào. <code>NULL</code> nếu không chấm vào</td></tr>
 <tr><td>check_out</td><td>thời gian (HH:mm)</td><td>❌</td><td>Giờ chấm ra</td></tr>
+<tr><td>break_start</td><td>thời gian (HH:mm)</td><td>❌</td><td>Giờ nghỉ THỰC TẾ bắt đầu. <code>NULL</code> = trừ theo khung chuẩn 12:00–13:00</td></tr>
+<tr><td>break_end</td><td>thời gian (HH:mm)</td><td>❌</td><td>Giờ nghỉ thực tế kết thúc. Có giá trị thì trừ đúng khoảng này, không trừ khung chuẩn</td></tr>
 <tr><td>work_hours</td><td>số thập phân</td><td>❌</td><td>Giờ làm thực tế – tính tự động khi check_out</td></tr>
-<tr><td>overtime_hours</td><td>số thập phân</td><td>✅</td><td>Giờ làm thêm. Mặc định <code>0</code></td></tr>
+<tr><td>overtime_hours</td><td>số thập phân</td><td>✅</td><td>Giờ làm thêm, <strong>suy ra từ <code>check_in</code>/<code>check_out</code></strong>: phần vượt 8 giờ làm thực, hoặc toàn bộ nếu là ngày nghỉ tuần/ngày lễ. <strong>LÀ căn cứ trả tiền</strong> — không có bảng đơn duyệt song song (business-rules.md §12.3). Mặc định <code>0</code></td></tr>
 <tr><td>is_late</td><td>boolean</td><td>✅</td><td>Đến muộn > 15 phút. Mặc định <code>false</code></td></tr>
 <tr><td>late_minutes</td><td>số nhỏ</td><td>✅</td><td>Số phút đến muộn. Mặc định <code>0</code></td></tr>
 <tr><td>is_early_leave</td><td>boolean</td><td>✅</td><td>Về sớm > 15 phút. Mặc định <code>false</code></td></tr>
@@ -542,7 +558,7 @@ announcements (standalone – thông báo nội bộ)
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
 </thead><tbody>
 <tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính (TINYINT)</td></tr>
-<tr><td>code</td><td>text (20)</td><td>✅</td><td>Duy nhất. Ví dụ: <code>ANNUAL</code> · <code>SICK</code> · <code>MATERNITY</code></td></tr>
+<tr><td>code</td><td>text (20)</td><td>✅</td><td>Duy nhất. Hai kiểu mã cùng tồn tại: 9 loại luật định giữ mã có nghĩa đã seed (<code>ANNUAL</code> · <code>SICK</code> · <code>MATERNITY</code>…), loại do công ty tự thêm nhận mã <strong>server sinh</strong> <code>NP0001</code>, <code>NP0002</code>… API không nhận <code>code</code> khi tạo và không cho sửa</td></tr>
 <tr><td>name</td><td>text (100)</td><td>✅</td><td>Tên hiển thị tiếng Việt</td></tr>
 <tr><td>days_per_year</td><td>số thập phân</td><td>✅</td><td>Số ngày/năm. <code>0</code> = không giới hạn hoặc tính theo case</td></tr>
 <tr><td>is_paid</td><td>boolean</td><td>✅</td><td>Có hưởng lương không. Mặc định <code>true</code></td></tr>
@@ -554,8 +570,18 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>description</td><td>văn bản dài</td><td>❌</td><td>Mô tả, căn cứ pháp lý</td></tr>
 <tr><td>is_active</td><td>boolean</td><td>✅</td><td>Mặc định <code>true</code></td></tr>
 <tr><td>sort_order</td><td>số nhỏ</td><td>✅</td><td>Thứ tự hiển thị. Mặc định <code>0</code></td></tr>
+<tr><td>is_system</td><td>boolean</td><td>✅</td><td>Mặc định <code>false</code>. Đánh dấu 9 loại <strong>luật định</strong> được seed từ BLLĐ 2019 & Luật BHXH. Thêm bằng migration <code>AddIsSystemToLeaveTypes</code> (nằm sau <code>sort_order</code>)</td></tr>
 </tbody></table>
-<p><strong>Seed dữ liệu (căn cứ BLLĐ 2019 & Luật BHXH):</strong></p>
+<blockquote>
+<p><strong><code>is_system</code> chỉ mang tính thông tin.</strong> Nó <strong>không</strong> chặn sửa và <strong>không</strong> chặn xoá — chỉ để UI gắn nhãn "loại nghỉ theo luật".</p>
+<p></p>
+<p>Chốt chặn xoá <strong>duy nhất</strong> là <code>LEAVE_TYPE_IN_USE</code> (loại nghỉ còn được <code>leave_requests</code> / <code>leave_balances</code> tham chiếu; FK ở DB cũng là RESTRICT). Bảng không có <code>deleted_at</code> nên xoá là xoá vật lý; muốn ẩn khỏi UI thì đặt <code>is_active = false</code>.</p>
+<p></p>
+<p><strong>Vì sao không khoá cứng:</strong> pháp luật thay đổi — mức hưởng được nâng, và loại nghỉ luật định có thể bị bãi bỏ (đúng như BLLĐ 2019 đã bãi bỏ loại hợp đồng <code>seasonal</code>). Một dòng đã bị pháp luật bãi bỏ vẫn phải xoá được. Loại luật định nào đang mang lịch sử thì vẫn không xoá được, nhưng vì <code>LEAVE_TYPE_IN_USE</code> — tức là vì đúng lý do.</p>
+<p></p>
+<p>⚠️ Comment trong file migration <code>1787094467290-AddIsSystemToLeaveTypes.ts</code> mô tả <code>is_system</code> như một cờ <strong>chặn</strong> xoá/đổi tên. Mô tả đó đã lạc hậu so với <code>LeaveTypesService</code> hiện tại; hành vi thật là như mô tả ở trên.</p>
+</blockquote>
+<p><strong>Seed dữ liệu (căn cứ BLLĐ 2019 & Luật BHXH) – cả 9 dòng đều có <code>is_system = true</code>:</strong></p>
 <table><thead>
 <tr><th>code</th><th>Tên</th><th>Ngày/năm</th><th>Hưởng lương</th><th>Căn cứ</th></tr>
 </thead><tbody>
@@ -639,7 +665,7 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>actual_working_days</td><td>số thập phân</td><td>✅</td><td>Ngày công thực tế. Mặc định <code>0</code></td></tr>
 <tr><td>paid_leave_days</td><td>số thập phân</td><td>✅</td><td>Ngày nghỉ phép có lương. Mặc định <code>0</code></td></tr>
 <tr><td>unpaid_leave_days</td><td>số thập phân</td><td>✅</td><td>Ngày nghỉ không lương. Mặc định <code>0</code></td></tr>
-<tr><td>overtime_hours</td><td>số thập phân</td><td>✅</td><td>Tổng giờ làm thêm trong tháng. Mặc định <code>0</code></td></tr>
+<tr><td>overtime_hours</td><td>số thập phân</td><td>✅</td><td>Tổng giờ làm thêm trong tháng, <strong>cộng dồn từ <code>attendances.overtime_hours</code></strong> của tháng đó. Mặc định <code>0</code></td></tr>
 </tbody></table>
 <h4 id="thu-nhập">Thu nhập</h4>
 <table><thead>
@@ -782,6 +808,11 @@ announcements (standalone – thông báo nội bộ)
 </tbody></table>
 <hr>
 <h3 id="82-disciplines_rewards-khen-thưởng-kỷ-luật">8.2. <code>disciplines_rewards</code> – Khen thưởng & Kỷ luật</h3>
+<blockquote>
+<p>Bảng này <strong>không mang tiền</strong>. Điều 128 BLLĐ 2019 cấm phạt tiền thay cho kỷ</p>
+<p>luật, còn tiền thưởng thực trả đi qua <code>salaries.performance_bonus</code>. Cột</p>
+<p><code>amount</code> đã bị bỏ (migration <code>1787280000000</code>).</p>
+</blockquote>
 <table><thead>
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
 </thead><tbody>
@@ -794,7 +825,6 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>decision_number</td><td>text (50)</td><td>❌</td><td>Số quyết định</td></tr>
 <tr><td>decision_date</td><td>ngày</td><td>✅</td><td>Ngày ban hành quyết định</td></tr>
 <tr><td>effective_date</td><td>ngày</td><td>✅</td><td>Ngày có hiệu lực</td></tr>
-<tr><td>amount</td><td>tiền VNĐ</td><td>❌</td><td>Số tiền thưởng hoặc phạt (nếu có)</td></tr>
 <tr><td>issued_by</td><td>FK → employees</td><td>❌</td><td>Người ký quyết định</td></tr>
 <tr><td>document_url</td><td>text (500)</td><td>❌</td><td>Link quyết định trên S3</td></tr>
 <tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
@@ -930,7 +960,7 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>seed-employees-demo</td><td>10–15 nhân viên mẫu đủ case</td><td>Demo & testing</td></tr>
 </tbody></table>
 <hr>
-<p><em>Cập nhật: 26/05/2026 – Version 1.2 – Bỏ SQL, viết lại dạng bảng mô tả</em></p>
+<p><em>Cập nhật: 19/08/2026 – Version 1.3 – Bổ sung cột <code>leave_types.is_system</code> (migration <code>AddIsSystemToLeaveTypes</code>) và làm rõ nó chỉ mang tính thông tin, chốt chặn xoá duy nhất là <code>LEAVE_TYPE_IN_USE</code>; ghi rõ <code>departments.code</code> / <code>positions.code</code> / <code>leave_types.code</code> do server sinh (<code>PB</code>/<code>CV</code>/<code>NP</code>)</em></p>
 
 </main>
 <script>

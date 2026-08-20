@@ -66,13 +66,12 @@ export class DisciplinesRewardsController {
   @ApiOperation({
     summary: 'Ghi nhận một quyết định khen thưởng / kỷ luật',
     description:
-      'Kỷ luật không được kèm `amount` (Điều 128 BLLĐ 2019).\n\n' +
       '`decisionDate` là ngày ký, `effectiveDate` là ngày có hiệu lực; hiệu lực không được trước ngày ký.',
   })
   @ApiCreatedResponse({ type: DisciplineRewardResponseDto })
   @ApiForbiddenResponse({ description: 'FORBIDDEN' })
   @ApiUnprocessableEntityResponse({
-    description: 'DISCIPLINE_CANNOT_CARRY_AMOUNT · EFFECTIVE_BEFORE_DECISION',
+    description: 'EFFECTIVE_BEFORE_DECISION',
   })
   create(
     @Param('employeeId', ParseIntPipe) employeeId: number,
@@ -87,8 +86,7 @@ export class DisciplinesRewardsController {
   @ApiAuth()
   @ApiOperation({
     summary: 'Sửa một quyết định',
-    description:
-      'Ràng buộc kỷ luật–số tiền được kiểm trên bản đã ghép giữa bản ghi cũ và phần sửa. Gửi `amount: 0` hoặc `null` để xoá số tiền.',
+    description: 'Mọi trường tuỳ chọn; hiệu lực vẫn không được trước ngày ký.',
   })
   @ApiOkResponse({ type: DisciplineRewardResponseDto })
   @ApiNotFoundResponse({ description: 'DISCIPLINE_REWARD_NOT_FOUND' })

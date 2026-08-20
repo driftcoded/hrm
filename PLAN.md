@@ -671,9 +671,8 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Điểm tổng và xếp loại do server tính từ ba tiêu chí, không nhận từ client
 
 **Tests (7.1):** *(69 unit test)*
-- [x] Kỷ luật kèm tiền → 422 `DISCIPLINE_CANNOT_CARRY_AMOUNT` (Điều 128 BLLĐ 2019)
-- [x] Đổi khen thưởng có tiền thành kỷ luật → bị chặn; gửi `amount: 0`/`null` thì qua
 - [x] Ngày hiệu lực trước ngày ký → 422 `EFFECTIVE_BEFORE_DECISION`
+- [x] Đổi loại quyết định giữa khen thưởng và kỷ luật
 - [x] Bản ghi của nhân viên khác trên cùng đường dẫn → 404, không sửa được
 - [x] Điểm tổng = trung bình các tiêu chí ĐÃ chấm; tiêu chí chưa chấm không tính là 0
 - [x] Sửa một tiêu chí → điểm tổng và xếp loại tính lại theo

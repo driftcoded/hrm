@@ -97,6 +97,8 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h2"><a href="#mục-lục">Mục lục</a></li>
 <li class="h2"><a href="#1-tổng-quan-hệ-thống">1. Tổng quan hệ thống</a></li>
 <li class="h2"><a href="#2-sơ-đồ-hạ-tầng">2. Sơ đồ hạ tầng</a></li>
+<li class="h3"><a href="#21-hiện-tại-dev-giai-đoạn-03">2.1. Hiện tại (dev / Giai đoạn 0–3)</a></li>
+<li class="h3"><a href="#22-kiến-trúc-mục-tiêu-khi-lên-production">2.2. Kiến trúc mục tiêu khi lên production</a></li>
 <li class="h2"><a href="#3-kiến-trúc-ứng-dụng">3. Kiến trúc ứng dụng</a></li>
 <li class="h3"><a href="#31-các-tầng-layers">3.1. Các tầng (Layers)</a></li>
 <li class="h3"><a href="#32-trách-nhiệm-từng-tầng">3.2. Trách nhiệm từng tầng</a></li>
@@ -113,19 +115,22 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#72-forgot-password-flow">7.2. Forgot Password flow</a></li>
 <li class="h3"><a href="#73-authorization-matrix">7.3. Authorization matrix</a></li>
 <li class="h3"><a href="#74-refresh-token-rotation">7.4. Refresh Token rotation</a></li>
-<li class="h2"><a href="#8-caching-redis">8. Caching – Redis</a></li>
-<li class="h3"><a href="#81-những-gì-cần-cache">8.1. Những gì cần cache</a></li>
-<li class="h3"><a href="#82-cache-invalidation">8.2. Cache invalidation</a></li>
-<li class="h2"><a href="#9-file-upload-aws-s3">9. File Upload – AWS S3</a></li>
-<li class="h3"><a href="#91-phân-loại-bucketfolder">9.1. Phân loại bucket/folder</a></li>
-<li class="h3"><a href="#92-upload-flow">9.2. Upload flow</a></li>
-<li class="h3"><a href="#93-xoá-file">9.3. Xoá file</a></li>
+<li class="h2"><a href="#8-caching">8. Caching</a></li>
+<li class="h3"><a href="#81-cacheservice-cái-đang-thực-sự-chạy">8.1. `CacheService` – cái đang thực sự chạy</a></li>
+<li class="h3"><a href="#82-dữ-liệu-tham-chiếu-tĩnh-thay-cho-cache-tỉnhhuyệnxã">8.2. Dữ liệu tham chiếu tĩnh (thay cho cache tỉnh/huyện/xã)</a></li>
+<li class="h3"><a href="#83-kế-hoạch-chưa-xây">8.3. Kế hoạch (chưa xây)</a></li>
+<li class="h2"><a href="#9-file-upload-storageservice">9. File Upload – StorageService</a></li>
+<li class="h3"><a href="#91-driver">9.1. Driver</a></li>
+<li class="h3"><a href="#92-phân-loại-folderkey">9.2. Phân loại folder/key</a></li>
+<li class="h3"><a href="#93-upload-flow">9.3. Upload flow</a></li>
+<li class="h3"><a href="#94-xoá-file">9.4. Xoá file</a></li>
 <li class="h2"><a href="#10-background-jobs-scheduler">10. Background Jobs & Scheduler</a></li>
 <li class="h3"><a href="#101-cron-jobs-chạy-định-kỳ">10.1. Cron jobs (chạy định kỳ)</a></li>
 <li class="h3"><a href="#102-queue-jobs-bất-đồng-bộ">10.2. Queue jobs (bất đồng bộ)</a></li>
 <li class="h2"><a href="#11-email-service">11. Email Service</a></li>
-<li class="h3"><a href="#111-các-email-được-gửi">11.1. Các email được gửi</a></li>
-<li class="h3"><a href="#112-template">11.2. Template</a></li>
+<li class="h3"><a href="#111-transport">11.1. Transport</a></li>
+<li class="h3"><a href="#112-các-email-được-gửi">11.2. Các email được gửi</a></li>
+<li class="h3"><a href="#113-template">11.3. Template</a></li>
 <li class="h2"><a href="#12-rate-limiting-security-headers">12. Rate Limiting & Security Headers</a></li>
 <li class="h3"><a href="#121-rate-limiting">12.1. Rate limiting</a></li>
 <li class="h3"><a href="#122-security-headers-helmet">12.2. Security headers (Helmet)</a></li>
@@ -147,6 +152,7 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#165-backup">16.5. Backup</a></li>
 <li class="h2"><a href="#17-environment-variables">17. Environment Variables</a></li>
 <li class="h2"><a href="#18-lý-do-chọn-tech-stack">18. Lý do chọn tech stack</a></li>
+<li class="h2"><a href="#19-việc-phải-làm-trước-khi-lên-production">19. Việc phải làm trước khi lên production</a></li>
 </ul></nav>
 
 <main id="content">
@@ -161,8 +167,8 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li><a href="#5-module-pattern">Module Pattern</a></li>
 <li><a href="#6-nestjs-core-patterns">NestJS Core Patterns</a></li>
 <li><a href="#7-authentication--authorization">Authentication & Authorization</a></li>
-<li><a href="#8-caching--redis">Caching – Redis</a></li>
-<li><a href="#9-file-upload--aws-s3">File Upload – AWS S3</a></li>
+<li><a href="#8-caching">Caching</a></li>
+<li><a href="#9-file-upload--storageservice">File Upload – StorageService</a></li>
 <li><a href="#10-background-jobs--scheduler">Background Jobs & Scheduler</a></li>
 <li><a href="#11-email-service">Email Service</a></li>
 <li><a href="#12-rate-limiting--security-headers">Rate Limiting & Security Headers</a></li>
@@ -172,28 +178,51 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li><a href="#16-database-strategy">Database Strategy</a></li>
 <li><a href="#17-environment-variables">Environment Variables</a></li>
 <li><a href="#18-lý-do-chọn-tech-stack">Lý do chọn tech stack</a></li>
+<li><a href="#19-việc-phải-làm-trước-khi-lên-production">Việc phải làm trước khi lên production</a></li>
 </ol>
 <hr>
 <h2 id="1-tổng-quan-hệ-thống">1. Tổng quan hệ thống</h2>
 <p>HRM Backend là REST API xây dựng bằng <strong>NestJS</strong> phục vụ ứng dụng quản lý nhân sự cho công ty Việt Nam. Hệ thống xử lý: quản lý nhân viên, chấm công, nghỉ phép, tính lương theo pháp luật VN, hợp đồng lao động và báo cáo.</p>
 <p><strong>Tech stack:</strong></p>
+<blockquote>
+<p>Cột <strong>Trạng thái</strong> phân biệt cái đã chạy trong code với cái là <em>kiến trúc mục tiêu</em> khi lên production. Tài liệu này mô tả cả hai; chỗ nào chưa có thì nói rõ.</p>
+</blockquote>
 <table><thead>
-<tr><th>Thành phần</th><th>Công nghệ</th></tr>
+<tr><th>Thành phần</th><th>Công nghệ</th><th>Trạng thái</th></tr>
 </thead><tbody>
-<tr><td>Framework</td><td>NestJS (Node.js)</td></tr>
-<tr><td>Ngôn ngữ</td><td>TypeScript strict mode</td></tr>
-<tr><td>Database</td><td>MySQL 8.0+ (Amazon RDS)</td></tr>
-<tr><td>ORM</td><td>TypeORM + migrations</td></tr>
-<tr><td>Cache</td><td>Redis (ElastiCache hoặc EC2)</td></tr>
-<tr><td>File storage</td><td>AWS S3</td></tr>
-<tr><td>Email</td><td>AWS SES</td></tr>
-<tr><td>Process manager</td><td>PM2 cluster mode</td></tr>
-<tr><td>Reverse proxy</td><td>Nginx</td></tr>
-<tr><td>Hosting</td><td>AWS EC2 (app) + RDS (database)</td></tr>
-<tr><td>Monitoring</td><td>CloudWatch Logs + Sentry</td></tr>
+<tr><td>Framework</td><td>NestJS 11 (Node.js)</td><td>✅ đang chạy</td></tr>
+<tr><td>Ngôn ngữ</td><td>TypeScript strict mode</td><td>✅</td></tr>
+<tr><td>Database</td><td>MySQL 8.0+ (production: Amazon RDS)</td><td>✅ (RDS: kế hoạch)</td></tr>
+<tr><td>ORM</td><td>TypeORM + migrations</td><td>✅</td></tr>
+<tr><td>Cache</td><td><code>CacheService</code> + driver <strong>in-memory</strong></td><td>✅ — <strong>KHÔNG có Redis</strong> (§8)</td></tr>
+<tr><td>File storage</td><td>Driver <code>local</code> (ghi <code>uploads/</code>) · driver <code>s3</code> đã viết nhưng <strong>chưa từng chạy</strong></td><td>✅ local · ⏳ S3</td></tr>
+<tr><td>Email</td><td>Transport <code>dev</code> (ghi file <code>logs/mail/</code>) · transport <code>ses</code> đã viết nhưng <strong>chưa từng chạy</strong></td><td>✅ dev · ⏳ SES</td></tr>
+<tr><td>Logging</td><td>Winston (<code>nest-winston</code>)</td><td>✅</td></tr>
+<tr><td>Process manager</td><td>PM2 cluster mode</td><td>⏳ kế hoạch</td></tr>
+<tr><td>Reverse proxy</td><td>Nginx</td><td>⏳ kế hoạch</td></tr>
+<tr><td>Hosting</td><td>AWS EC2 (app) + RDS (database)</td><td>⏳ kế hoạch</td></tr>
+<tr><td>Monitoring</td><td>CloudWatch Logs + Sentry</td><td>⏳ kế hoạch – chưa có package nào</td></tr>
 </tbody></table>
+<p><strong>Chưa cài (nêu trong tài liệu như kế hoạch):</strong> Redis, <code>@nestjs/throttler</code>, <code>@nestjs/schedule</code>, <code>Bull</code>, <code>@sentry/node</code>, <code>@nestjs/terminus</code>, <code>@aws-sdk/client-s3</code>, <code>@aws-sdk/client-sesv2</code>.</p>
 <hr>
 <h2 id="2-sơ-đồ-hạ-tầng">2. Sơ đồ hạ tầng</h2>
+<h3 id="21-hiện-tại-dev-giai-đoạn-03">2.1. Hiện tại (dev / Giai đoạn 0–3)</h3>
+<pre><code class="language-">Browser (Vite dev server :5173, proxy /api → backend)
+   │
+   ▼
+NestJS (một process, `npm run start:dev`)
+   │
+   ├──► MySQL 8            (local hoặc RDS)
+   │
+   ├──► CacheService       (in-memory Map trong chính process — KHÔNG Redis)
+   │
+   ├──► uploads/           (driver storage `local` trên đĩa)
+   │
+   └──► logs/mail/*.html   (transport mail `dev` — không gửi email thật)
+
+logs/ (Winston: console + file)
+</code></pre>
+<h3 id="22-kiến-trúc-mục-tiêu-khi-lên-production">2.2. Kiến trúc mục tiêu khi lên production</h3>
 <pre><code class="language-">Internet
    │
    ▼
@@ -216,6 +245,9 @@ Sentry          ◄─── NestJS exception filter
 <blockquote>
 <p><strong>Tại sao tách RDS?</strong> Nếu EC2 restart, database không bị ảnh hưởng. Dễ scale độc lập. RDS tự động backup, failover.</p>
 </blockquote>
+<blockquote>
+<p>⚠️ <strong>Chặn đường lên production:</strong> PM2 cluster mode có nhiều worker process, mà driver cache hiện tại là in-memory <em>trong từng process</em>. Bật cluster trước khi thay driver sẽ làm hỏng đếm lockout đăng nhập và token reset password (§8). Tương tự, driver storage <code>local</code> ghi lên đĩa của <strong>một</strong> instance.</p>
+</blockquote>
 <hr>
 <h2 id="3-kiến-trúc-ứng-dụng">3. Kiến trúc ứng dụng</h2>
 <h3 id="31-các-tầng-layers">3.1. Các tầng (Layers)</h3>
@@ -223,7 +255,8 @@ Sentry          ◄─── NestJS exception filter
      │
      ▼
 ┌──────────────────────────────────────────────────────┐
-│  MIDDLEWARE  (Helmet, CORS, Logger, Rate Limiter)    │
+│  MIDDLEWARE  (Helmet, CORS, cookie-parser)           │
+│              ⏳ Rate Limiter: chưa có – §12.1         │
 └──────────────────────────────────────────────────────┘
      │
      ▼
@@ -252,7 +285,7 @@ Sentry          ◄─── NestJS exception filter
 └──────────────────────────────────────────────────────┘
      │
      ▼
-  MySQL (RDS)   /   Redis (cache)
+  MySQL   /   CacheService (in-memory – §8)
      │
      ▼
 ┌──────────────────────────────────────────────────────┐
@@ -260,8 +293,11 @@ Sentry          ◄─── NestJS exception filter
 └──────────────────────────────────────────────────────┘
      │
      ▼
-HTTP Response  { success, data, message, timestamp }
+HTTP Response  { success, data, timestamp }
 </code></pre>
+<blockquote>
+<p>Response <strong>không</strong> có field <code>message</code> (api-spec.md §1.1).</p>
+</blockquote>
 <h3 id="32-trách-nhiệm-từng-tầng">3.2. Trách nhiệm từng tầng</h3>
 <table><thead>
 <tr><th>Tầng</th><th>Trách nhiệm</th><th>KHÔNG làm</th></tr>
@@ -277,72 +313,77 @@ HTTP Response  { success, data, message, timestamp }
 <pre><code class="language-">src/
 ├── main.ts                        # Bootstrap app, Swagger, global middleware
 ├── app.module.ts                  # Root module, import tất cả modules
+├── app.controller.ts              # GET /health
+├── app.service.ts
 │
-├── config/                        # Cấu hình theo environment
+├── config/                        # Cấu hình theo environment (registerAs)
 │   ├── app.config.ts              # PORT, NODE_ENV, API prefix
+│   ├── auth.config.ts             # Lockout, session, TTL reset token, tên cookie
 │   ├── database.config.ts         # MySQL connection
+│   ├── env.validation.ts          # Joi schema – fail fast khi thiếu env
 │   ├── jwt.config.ts              # Secret, expiry
-│   ├── redis.config.ts            # Redis host/port
-│   ├── s3.config.ts               # Bucket, region, credentials
-│   └── mail.config.ts             # SES region, from address
+│   ├── mail.config.ts             # MAIL_TRANSPORT, from, thư mục output dev
+│   ├── storage.config.ts          # STORAGE_DRIVER, thư mục local / bucket S3
+│   └── winston.config.ts          # Transport log
+│                                  # (KHÔNG có redis.config.ts / s3.config.ts riêng)
 │
 ├── common/                        # Shared across toàn bộ app
-│   ├── decorators/
-│   │   ├── current-user.decorator.ts   # @CurrentUser() → lấy user từ request
-│   │   └── roles.decorator.ts          # @Roles('admin', 'hr_manager')
-│   ├── filters/
-│   │   └── http-exception.filter.ts    # Bắt mọi exception → format lỗi chuẩn
-│   ├── guards/
-│   │   ├── jwt-auth.guard.ts           # Kiểm tra Bearer token
-│   │   └── roles.guard.ts              # Kiểm tra role từ @Roles() decorator
-│   ├── interceptors/
-│   │   ├── transform.interceptor.ts    # Wrap response → { success, data, message }
-│   │   └── logging.interceptor.ts      # Log request method, path, duration
-│   ├── pipes/
-│   │   └── parse-int.pipe.ts           # Parse ID params từ string → number
-│   └── dto/
-│       ├── pagination.dto.ts           # page, limit, sort, order, search
-│       └── pagination-response.dto.ts  # items[], meta { total, page, ... }
+│   ├── constants/                 # roles.constant.ts, attendance.constant.ts
+│   ├── data/                      # vn-provinces.json (34), vn-wards.json (3.321)
+│   ├── decorators/                # @CurrentUser, @Roles, @Public, @ApiAuth,
+│   │                              # @IsBooleanValue
+│   ├── dto/                       # pagination, pagination-response,
+│   │                              # error-response, delete-response
+│   ├── filters/                   # http-exception.filter.ts
+│   ├── guards/                    # jwt-auth.guard.ts, roles.guard.ts
+│   ├── interceptors/              # transform.interceptor.ts
+│   ├── pipes/                     # validation-exception.factory.ts
+│   ├── types/                     # authenticated-user.ts
+│   ├── utils/                     # sequential-code, pagination, date, duration,
+│   │                              # hash, assert-ownership, work-hours, overtime,
+│   │                              # reject-null (+ .spec.ts đi kèm)
+│   └── validators/                # vn-identity, is-calendar-date, is-clock-time
 │
 ├── database/
 │   ├── database.module.ts
-│   ├── migrations/                # TypeORM migration files (26 bước)
-│   └── seeds/                     # Seed scripts: roles, leave-types, holidays
+│   ├── data-source.ts
+│   ├── migrations/                # InitSchema, AddIsSystemToLeaveTypes,
+│   │                              # MakeDistrictCodeNullable
+│   └── seeds/                     # roles, leave-types, holidays, demo
 │
-├── shared/                        # Feature modules dùng chung
-│   ├── redis/
-│   │   ├── redis.module.ts
-│   │   └── redis.service.ts       # get/set/del/ttl wrapper
+├── shared/                        # Hạ tầng dùng chung (@Global modules)
+│   ├── cache/
+│   │   ├── cache.module.ts        # Đổi driver = đổi useClass ở đây
+│   │   ├── cache.service.ts       # Abstract: get/set/del/incr/ttl/reset
+│   │   └── in-memory-cache.service.ts   # Driver đang dùng (§8)
 │   ├── mail/
-│   │   ├── mail.module.ts
-│   │   └── mail.service.ts        # sendForgotPassword, sendWelcome...
-│   ├── s3/
-│   │   ├── s3.module.ts
-│   │   └── s3.service.ts          # upload, delete, getSignedUrl
-│   └── scheduler/
-│       └── scheduler.service.ts   # Các cron jobs định kỳ
+│   │   ├── mail.module.ts         # Chọn transport theo MAIL_TRANSPORT
+│   │   ├── mail.service.ts
+│   │   ├── templates/             # reset-password.template.ts (TS, không .hbs)
+│   │   └── transports/            # dev-file-mail (đang dùng), ses-mail (chưa chạy)
+│   └── storage/
+│       ├── storage.module.ts      # Chọn driver theo STORAGE_DRIVER
+│       ├── storage.service.ts
+│       ├── image-file.util.ts     # Nhận diện ảnh bằng magic bytes
+│       └── transports/            # local-storage (đang dùng), s3-storage (chưa chạy)
+│                                  # (KHÔNG có shared/scheduler/ – xem §10)
 │
 └── modules/                       # Business modules (domain-driven)
-    ├── auth/
-    ├── users/
-    ├── employees/
-    ├── departments/
-    ├── positions/
-    ├── contracts/
-    ├── attendances/
-    ├── leaves/
-    ├── leave-balances/
-    ├── salaries/
-    ├── dependents/
-    ├── family-members/
-    ├── documents/
-    ├── trainings/
-    ├── performance-reviews/
-    ├── disciplines-rewards/
-    ├── work-history/
-    ├── announcements/
-    └── reports/
+    ├── auth/          ✅          ├── attendances/       ✅
+    ├── users/         ✅          ├── leave-balances/    (chỉ entity)
+    ├── employees/     ✅          ├── salaries/          (chỉ entity)
+    ├── departments/   ✅          ├── documents/         (chỉ entity)
+    ├── positions/     ✅          ├── trainings/         (chỉ entity)
+    ├── contracts/     ✅          ├── performance-reviews/ (chỉ entity)
+    ├── leaves/        ✅ (chỉ leave-types)  ├── disciplines-rewards/ (chỉ entity)
+    ├── system/        ✅ (provinces/wards/holidays)  ├── work-history/ (chỉ entity)
+    ├── family-members/✅          ├── announcements/     (chỉ entity)
+    ├── dependents/    ✅          └── audit-logs/        (chỉ entity)
+    └── reports/       ✅ (xuất Excel nhân viên + bảng công)
 </code></pre>
+<blockquote>
+<p>"chỉ entity" = thư mục đã có <code>entities/*.ts</code> để migration dựng bảng, nhưng chưa có controller/service/route nào.</p>
+</blockquote>
 <hr>
 <h2 id="5-module-pattern">5. Module Pattern</h2>
 <p>Mỗi business module có cấu trúc thống nhất:</p>
@@ -367,6 +408,9 @@ HTTP Response  { success, data, message, timestamp }
 <li>Repository chỉ chứa TypeORM queries, không có if/else logic.</li>
 <li>Response DTO phải <strong>loại bỏ</strong> các field nhạy cảm: <code>password</code>, <code>deleted_at</code>, <code>token_hash</code>.</li>
 </ul>
+<blockquote>
+<p>Module <strong>không đọc DB thì không có repository</strong>: <code>ContractTypesService</code> (enum, không có bảng <code>contract_types</code>) và <code>SystemController</code> (đọc file JSON tĩnh) là hai ví dụ có chủ đích, không phải thiếu sót.</p>
+</blockquote>
 <hr>
 <h2 id="6-nestjs-core-patterns">6. NestJS Core Patterns</h2>
 <h3 id="61-global-validationpipe">6.1. Global ValidationPipe</h3>
@@ -387,14 +431,22 @@ HTTP Response  { success, data, message, timestamp }
 </ul>
 <h3 id="63-transforminterceptor">6.3. TransformInterceptor</h3>
 <p>Wrap <strong>mọi</strong> response thành format chuẩn:</p>
-<pre><code class="language-">{ success: true, data: &lt;kết quả&gt;, message: "...", timestamp: "ISO-8601" }
+<pre><code class="language-">{ success: true, data: &lt;kết quả&gt;, timestamp: "ISO-8601" }
 </code></pre>
-<p>Đặt globally trong <code>app.module.ts</code> qua <code>APP_INTERCEPTOR</code>.</p>
+<p><strong>Không</strong> có field <code>message</code> (api-spec.md §1.1). Đặt globally trong <code>app.module.ts</code> qua <code>APP_INTERCEPTOR</code>.</p>
+<blockquote>
+<p>Ngoại lệ duy nhất: <code>GET /reports/employees/export</code> trả về file nhị phân nên controller ghi thẳng vào <code>res</code> (<code>@Res()</code> không <code>passthrough</code>) để đi vòng qua interceptor mà không phải sửa interceptor dùng chung. Lỗi ném ra từ service vẫn đi qua <code>HttpExceptionFilter</code> như thường.</p>
+</blockquote>
 <h3 id="64-httpexceptionfilter">6.4. HttpExceptionFilter</h3>
 <p>Bắt mọi exception (kể cả unhandled) và trả về:</p>
 <pre><code class="language-">{ success: false, error: { code: "...", message: "...", details: [...] }, timestamp: "..." }
 </code></pre>
-<p>Đặt globally qua <code>APP_FILTER</code>. Không bao giờ để lộ stack trace ra production.</p>
+<p>Đặt globally qua <code>APP_FILTER</code>. Không bao giờ để lộ stack trace ra production (5xx ở production trả <code>"Internal server error"</code>).</p>
+<ul>
+<li><code>details[]</code> <strong>chỉ</strong> xuất hiện khi <code>code === "VALIDATION_ERROR"</code>.</li>
+<li>Exception nào mang <code>retryAfterSeconds</code> trong payload sẽ được filter phát ra thành <strong>header <code>Retry-After</code></strong> (giây) — không bao giờ echo vào body. Dùng cho lockout đăng nhập 423/429 (§7.1).</li>
+<li>Exception không tự khai <code>code</code> thì filter suy ra từ HTTP status (<code>NOT_FOUND</code>, <code>CONFLICT</code>, <code>RATE_LIMIT_EXCEEDED</code>…, hoặc <code>HTTP_<status></code>).</li>
+</ul>
 <h3 id="65-custom-decorators">6.5. Custom Decorators</h3>
 <table><thead>
 <tr><th>Decorator</th><th>Dùng ở</th><th>Mục đích</th></tr>
@@ -408,21 +460,38 @@ HTTP Response  { success, data, message, timestamp }
 <h2 id="7-authentication-authorization">7. Authentication & Authorization</h2>
 <h3 id="71-luồng-đăng-nhập">7.1. Luồng đăng nhập</h3>
 <ol>
-<li><code>POST /auth/login</code> → verify username/password → tạo Access Token (15 phút) + Refresh Token (7 ngày).</li>
-<li><strong>Access Token</strong> lưu trong bộ nhớ JavaScript (Zustand store) — không lưu localStorage (chống XSS).</li>
-<li><strong>Refresh Token</strong> lưu trong <code>HttpOnly; Secure; SameSite=Strict</code> cookie — không thể đọc từ JS.</li>
-<li>Mọi request gửi <code>Authorization: Bearer <access_token></code> trong header.</li>
-<li>Khi Access Token hết hạn (401): Axios interceptor tự gọi <code>POST /auth/refresh</code> → nhận token mới → retry request ban đầu.</li>
-<li>Logout: gọi <code>POST /auth/logout</code> → server revoke refresh token trong DB → xoá cookie.</li>
+<li><code>POST /auth/login</code> (username <strong>hoặc</strong> email) → verify password → tạo Access Token (15 phút) + Refresh Token (7 ngày).</li>
+<li><strong>Access Token</strong> trả trong body, lưu trong bộ nhớ JavaScript (Zustand store) — không lưu localStorage (chống XSS).</li>
+<li><strong>Refresh Token</strong> chỉ giao qua cookie <code>HttpOnly; SameSite=Strict; Path=/api/v1/auth/refresh</code>, <strong>không bao giờ</strong> có trong response body.</li>
 </ol>
+<ul>
+<li><code>Secure</code> <strong>chỉ bật ở production</strong>: <code>Secure: true</code> trên <code>http://localhost</code> khiến browser âm thầm bỏ cookie (không báo lỗi) → dev sẽ không refresh được token.</li>
+<li><code>Path</code> hẹp vì refresh token chỉ cần ở đúng endpoint đó; với <code>Path=/</code> browser sẽ đính kèm nó vào <strong>mọi</strong> request tới origin.</li>
+<li><code>Max-Age</code> chỉ được set khi <code>rememberMe: true</code>; ngược lại là session cookie. Bản ghi <code>refresh_tokens.expires_at</code> trong DB luôn 7 ngày ở cả hai trường hợp.</li>
+<li><code>set()</code> và <code>clear()</code> <strong>phải</strong> dùng chung một bộ attribute: <code>clearCookie</code> chỉ xoá được cookie khi <code>Path</code>/domain/secure/sameSite khớp lúc set — lệch nhau thì logout "thành công" nhưng cookie vẫn còn.</li>
+</ul>
+<ol>
+<li>Mọi request gửi <code>Authorization: Bearer <access_token></code> trong header.</li>
+<li>Khi Access Token hết hạn (401): Axios interceptor tự gọi <code>POST /auth/refresh</code> (không body, cookie tự đính kèm) → nhận token mới → retry request ban đầu.</li>
+<li>Sau F5, store rỗng → frontend gọi <code>POST /auth/refresh</code> rồi <code>GET /auth/me</code> để dựng lại session.</li>
+<li>Logout: gọi <code>POST /auth/logout</code> → server revoke refresh token trong DB → xoá cookie. Session được xác định qua claim <code>sid</code> của <strong>access token</strong>, không qua cookie (cookie có <code>Path</code> hẹp nên không được gửi tới <code>/auth/logout</code>).</li>
+</ol>
+<p><strong>Chống brute-force (không dùng rate limiter):</strong> đếm số lần đăng nhập sai theo định danh trong <code>CacheService</code>. Lần sai thứ <code>AUTH_MAX_FAILED_LOGIN_ATTEMPTS</code> (mặc định 5) đặt khoá <code>AUTH_LOCKOUT_MINUTES</code> (mặc định 15) và trả <strong>429</strong>; các lần thử sau đó trong thời gian khoá trả <strong>423</strong>. Cả hai đều kèm header <code>Retry-After</code> (giây) — đó là kênh duy nhất máy đọc được, vì <code>error.message</code> là văn bản tiếng Anh cho developer. Trạng thái tài khoản (<code>ACCOUNT_INACTIVE</code>) chỉ được kiểm tra <strong>sau khi</strong> mật khẩu đúng.</p>
 <h3 id="72-forgot-password-flow">7.2. Forgot Password flow</h3>
 <ol>
-<li><code>POST /auth/forgot-password</code> → tạo reset token (random 32 bytes) → lưu <strong>hash</strong> vào Redis với TTL 30 phút.</li>
-<li>Gửi email (AWS SES) chứa link: <code>https://app.company.com/reset-password?token=<raw_token></code>.</li>
-<li><code>POST /auth/reset-password</code> → hash token từ request → so khớp với Redis → cập nhật password → xoá token.</li>
+<li><code>POST /auth/forgot-password</code> → tạo reset token (random 32 bytes) → lưu <strong>SHA-256 hash</strong> của token vào <code>CacheService</code> với TTL 30 phút (<code>AUTH_RESET_TOKEN_TTL_MINUTES</code>). Giá trị thật chỉ có trong email. Response luôn giống nhau dù email có tồn tại hay không (chống user enumeration).</li>
+<li>Gửi email chứa link <code><FRONTEND_URL>/reset-password?token=<raw_token></code>.</li>
+<li><code>POST /auth/reset-password</code> → hash token từ request → so khớp trong cache → cập nhật password → xoá token (dùng một lần).</li>
 </ol>
+<p>Entry được giữ thêm một khoảng ân hạn sau khi hết hạn logic để phân biệt <code>RESET_TOKEN_EXPIRED</code> (token đúng nhưng quá hạn) với <code>RESET_TOKEN_INVALID</code> (không tồn tại / đã dùng).</p>
 <blockquote>
-<p>Token lưu trong <strong>Redis</strong> (không phải DB) vì: tự hết hạn, không cần job dọn dẹp, tốc độ nhanh.</p>
+<p><strong>Token KHÔNG nằm trong Redis.</strong> Dự án quyết định <strong>chưa dùng Redis</strong> (cũng không Docker) ở giai đoạn này. Chỗ lưu là <code>CacheService</code> — một abstraction trong <code>src/shared/cache/</code> với driver mặc định <code>InMemoryCacheService</code> (Map + TTL theo từng key + sweep định kỳ). Interface mô phỏng đúng quy ước Redis (<code>incr</code>, <code>ttl</code> trả <code>-2</code>/<code>-1</code>) để sau này thêm <code>RedisCacheService</code> và đổi <code>useClass</code> trong <code>CacheModule</code> là xong, business logic không phải sửa dòng nào.</p>
+<p></p>
+<p>⚠️ <strong>Hai giới hạn – phải xử lý TRƯỚC khi lên production</strong> (đây chính là lý do đây là việc tiền-production chứ không phải chuyện nhỏ):</p>
+<p>1. <strong>State nằm trong RAM của process</strong> → restart app là <strong>mất sạch</strong> counter lockout đang đếm và mọi token reset password đang chờ. Người dùng vừa bấm "quên mật khẩu" sẽ thấy link báo không hợp lệ.</p>
+<p>2. <strong>Không chia sẻ giữa nhiều process</strong> → chạy <strong>PM2 cluster</strong> thì mỗi worker có một Map riêng: đếm login sai không chính xác (5 lần sai chia cho N worker ⇒ khoá không bao giờ kích hoạt), và token reset tạo ở worker A không đọc được ở worker B.</p>
+<p></p>
+<p>Ngoài ra driver này không có eviction theo dung lượng — chỉ dùng cho dữ liệu nhỏ, có TTL.</p>
 </blockquote>
 <h3 id="73-authorization-matrix">7.3. Authorization matrix</h3>
 <table><thead>
@@ -440,49 +509,94 @@ HTTP Response  { success, data, message, timestamp }
 <h3 id="74-refresh-token-rotation">7.4. Refresh Token rotation</h3>
 <p>Mỗi lần refresh: revoke token cũ, cấp token mới. Nếu phát hiện dùng token đã bị revoke → revoke <strong>tất cả</strong> token của user đó (dấu hiệu bị đánh cắp).</p>
 <hr>
-<h2 id="8-caching-redis">8. Caching – Redis</h2>
-<h3 id="81-những-gì-cần-cache">8.1. Những gì cần cache</h3>
+<h2 id="8-caching">8. Caching</h2>
+<blockquote>
+<p><strong>Không có Redis, và không có tầng cache dữ liệu nào.</strong> Phiên bản trước của mục này liệt kê các key <code>provinces</code> / <code>districts:{provinceCode}</code> / <code>wards:{districtCode}</code> cùng "63 tỉnh/thành" — <strong>không có gì trong đó được hiện thực</strong>, và cấp huyện thì đã không còn tồn tại (§8.2).</p>
+</blockquote>
+<h3 id="81-cacheservice-cái-đang-thực-sự-chạy">8.1. <code>CacheService</code> – cái đang thực sự chạy</h3>
+<p><code>src/shared/cache/</code> là một <code>@Global</code> module cung cấp abstract class <code>CacheService</code>:</p>
 <table><thead>
-<tr><th>Key pattern</th><th>TTL</th><th>Nội dung</th><th>Lý do</th></tr>
+<tr><th>Method</th><th>Ghi chú</th></tr>
 </thead><tbody>
-<tr><td><code>provinces</code></td><td>24 giờ</td><td>63 tỉnh/thành</td><td>Bất biến, query nhiều</td></tr>
-<tr><td><code>districts:{provinceCode}</code></td><td>24 giờ</td><td>Quận/huyện theo tỉnh</td><td>Bất biến</td></tr>
-<tr><td><code>wards:{districtCode}</code></td><td>24 giờ</td><td>Phường/xã theo huyện</td><td>Bất biến</td></tr>
-<tr><td><code>holidays:{year}</code></td><td>30 ngày</td><td>Danh sách ngày lễ</td><td>Bất biến theo năm</td></tr>
-<tr><td><code>leave_types</code></td><td>1 giờ</td><td>9 loại nghỉ phép</td><td>Hiếm thay đổi</td></tr>
-<tr><td><code>pwd_reset:{hash}</code></td><td>30 phút</td><td>Reset password token</td><td>Tự hết hạn</td></tr>
-<tr><td><code>rate_limit:{ip}</code></td><td>1 phút</td><td>Số request theo IP</td><td>Rate limiting</td></tr>
+<tr><td><code>get<T>(key)</code> / <code>set<T>(key, value, ttlSeconds?)</code> / <code>del(key)</code></td><td><code>ttlSeconds</code> bỏ trống = không hết hạn</td></tr>
+<tr><td><code>incr(key, ttlSeconds?)</code></td><td>Giống <code>INCR</code> + <code>EXPIRE NX</code> của Redis: TTL chỉ set ở lần đầu, các lần incr sau <strong>không</strong> gia hạn</td></tr>
+<tr><td><code>ttl(key)</code></td><td>Giữ đúng quy ước Redis: <code>-2</code> = key không tồn tại, <code>-1</code> = tồn tại nhưng không có TTL</td></tr>
+<tr><td><code>reset()</code></td><td>Chỉ dùng cho test/maintenance, <strong>không</strong> dùng trong business logic</td></tr>
 </tbody></table>
-<h3 id="82-cache-invalidation">8.2. Cache invalidation</h3>
+<p>Driver đang dùng: <strong><code>InMemoryCacheService</code></strong> (<code>Map</code> + TTL từng key + sweep mỗi 60 giây). Xem §7.2 cho hai giới hạn phải xử lý trước production.</p>
+<p>Hiện chỉ có <strong>auth</strong> dùng cache, với 3 nhóm key:</p>
+<table><thead>
+<tr><th>Key</th><th>TTL</th><th>Nội dung</th></tr>
+</thead><tbody>
+<tr><td><code>auth:login:fail:{identifier}</code></td><td>= thời gian khoá (15 phút)</td><td>Counter số lần đăng nhập sai liên tiếp</td></tr>
+<tr><td><code>auth:login:lock:{identifier}</code></td><td>15 phút</td><td>Trạng thái "đang bị khoá"</td></tr>
+<tr><td><code>auth:reset:{sha256(token)}</code></td><td>30 phút + ân hạn 15 phút</td><td>Payload token reset password (<code>userId</code>, <code>expiresAt</code>)</td></tr>
+</tbody></table>
+<p><strong>Chưa có</strong> cache cho <code>holidays</code>, <code>leave_types</code> hay bất kỳ master data nào — và cũng chưa cần: chúng là truy vấn nhỏ trên bảng nhỏ.</p>
+<h3 id="82-dữ-liệu-tham-chiếu-tĩnh-thay-cho-cache-tỉnhhuyệnxã">8.2. Dữ liệu tham chiếu tĩnh (thay cho cache tỉnh/huyện/xã)</h3>
+<p>Danh mục hành chính <strong>không</strong> nằm trong DB và <strong>không</strong> cần cache: chúng là file JSON đóng gói cùng app trong <code>src/common/data/</code>, nạp <strong>một lần lúc khởi động</strong> và gom sẵn theo tỉnh trong bộ nhớ.</p>
+<table><thead>
+<tr><th>File</th><th>Nội dung</th></tr>
+</thead><tbody>
+<tr><td><code>vn-provinces.json</code></td><td><strong>34</strong> tỉnh/thành phố (sau sáp nhập 01/07/2025)</td></tr>
+<tr><td><code>vn-wards.json</code></td><td><strong>3.321</strong> phường/xã/đặc khu (687 phường, 2.621 xã, 13 đặc khu)</td></tr>
+</tbody></table>
+<p>Sinh bằng <code>scripts/build-vn-admin-data.ts</code> từ danh mục cơ quan thuế; <strong>app không gọi API ngoài lúc chạy</strong>.</p>
+<blockquote>
+<p><strong>Cấp huyện đã bị bỏ.</strong> Từ 01/07/2025 (Luật 72/2025/QH15) Việt Nam còn chính quyền địa phương <strong>2 cấp</strong>. Vì vậy không có key <code>districts:*</code>, không có endpoint <code>/system/districts</code>, và <code>employees.district_code</code> chỉ còn là cột nullable để đọc hồ sơ cũ.</p>
+</blockquote>
+<h3 id="83-kế-hoạch-chưa-xây">8.3. Kế hoạch (chưa xây)</h3>
 <ul>
-<li>Khi admin cập nhật <code>holidays</code> → xoá key <code>holidays:{year}</code>.</li>
-<li>Khi admin thêm <code>leave_type</code> → xoá key <code>leave_types</code>.</li>
-<li>Provinces/Districts/Wards không cần invalidate (cố định theo Bộ Nội Vụ).</li>
+<li>Thêm <code>RedisCacheService implements CacheService</code>, đổi <code>useClass</code> trong <code>CacheModule</code> → khắc phục hai giới hạn ở §7.2 mà không phải sửa business logic.</li>
+<li>Rate limiting bằng Redis store (§12.1) — cũng chưa có.</li>
 </ul>
 <hr>
-<h2 id="9-file-upload-aws-s3">9. File Upload – AWS S3</h2>
-<h3 id="91-phân-loại-bucketfolder">9.1. Phân loại bucket/folder</h3>
-<pre><code class="language-">hrm-bucket/
-├── avatars/{employeeId}/{timestamp}.{ext}     max 2MB, JPEG/PNG/WEBP
-├── documents/{employeeId}/{type}/{filename}   max 10MB, PDF/JPG/PNG
-├── contracts/{contractId}/{filename}          max 10MB, PDF
-└── exports/{userId}/{timestamp}-{name}.xlsx   max 50MB, XLSX (tự xoá sau 24h)
+<h2 id="9-file-upload-storageservice">9. File Upload – StorageService</h2>
+<blockquote>
+<p><strong>S3 chưa từng chạy.</strong> <code>StorageService</code> chọn driver theo biến <code>STORAGE_DRIVER</code>, mặc định <strong><code>local</code></strong>. Driver <code>s3</code> đã được viết nhưng <strong>chưa bao giờ được thực thi</strong>: dự án chưa có AWS credentials, nên <code>@aws-sdk/client-s3</code> <strong>chưa được cài</strong> vào <code>package.json</code> và chỉ được nạp bằng dynamic import khi thực sự upload (thiếu SDK → <code>503 STORAGE_DRIVER_UNAVAILABLE</code>).</p>
+</blockquote>
+<h3 id="91-driver">9.1. Driver</h3>
+<table><thead>
+<tr><th>Driver</th><th>Khi nào</th><th>Nơi lưu</th><th>URL trả về</th></tr>
+</thead><tbody>
+<tr><td><code>local</code> (mặc định)</td><td>dev/test, và production nếu chưa đổi</td><td><code>uploads/</code> trên đĩa (<code>STORAGE_LOCAL_DIR</code>)</td><td>Đường dẫn tương đối <code>/<API_PREFIX>/uploads/…</code></td></tr>
+<tr><td><code>s3</code></td><td>⏳ khi đã có credentials + <code>npm install @aws-sdk/client-s3</code></td><td>Bucket <code>S3_BUCKET</code></td><td>URL public (hoặc <code>S3_PUBLIC_BASE_URL</code>)</td></tr>
+</tbody></table>
+<p><code>main.ts</code> chỉ mount route static <code>/<API_PREFIX>/uploads</code> khi driver là <code>local</code>, kèm <code>X-Content-Type-Options: nosniff</code> và <code>Content-Disposition: inline</code> để file upload không bao giờ được browser thực thi như HTML/script.</p>
+<blockquote>
+<p>Ở production mà vẫn để <code>STORAGE_DRIVER=local</code> thì <code>StorageModule</code> log <strong>cảnh báo</strong>: file chỉ nằm trên đĩa của <strong>một</strong> instance, PM2 cluster nhiều máy sẽ đọc không thấy ảnh.</p>
+</blockquote>
+<h3 id="92-phân-loại-folderkey">9.2. Phân loại folder/key</h3>
+<pre><code class="language-">avatars/{employeeId}/{random}.{ext}         ✅ đã có – max 2MB (AVATAR_MAX_BYTES),
+                                               JPEG/PNG/WEBP
+documents/{employeeId}/{type}/{filename}    ⏳ max 10MB, PDF/JPG/PNG
+contracts/{contractId}/{filename}           ⏳ max 10MB, PDF
+exports/{userId}/{timestamp}-{name}.xlsx    ⏳ max 50MB, XLSX (tự xoá sau 24h)
 </code></pre>
-<h3 id="92-upload-flow">9.2. Upload flow</h3>
+<p>Hiện chỉ <strong>avatar</strong> đi qua <code>StorageService</code>. Bản xuất Excel (<code>GET /reports/employees/export</code>) được <strong>stream thẳng về client</strong>, không lưu file ở đâu cả.</p>
+<h3 id="93-upload-flow">9.3. Upload flow</h3>
 <ol>
 <li>Client gửi file qua <code>multipart/form-data</code> đến NestJS.</li>
-<li>NestJS validate: kích thước, MIME type, tên file (strip path traversal).</li>
-<li>Upload lên S3 với key theo pattern trên.</li>
-<li>Lưu S3 URL vào DB.</li>
+<li>NestJS validate: dung lượng, và <strong>kiểu file bằng magic bytes</strong> — không tin phần mở rộng cũng không tin <code>Content-Type</code> client khai (<code>shared/storage/image-file.util.ts</code>).</li>
+<li>Ghi qua driver với key theo pattern trên; phần tên file là <strong>ngẫu nhiên</strong> (chống cache cũ + chống đoán URL của người khác).</li>
+<li>Lưu URL vào DB.</li>
 <li>Trả URL về cho client.</li>
 </ol>
 <blockquote>
 <p><strong>Không</strong> cho client upload thẳng lên S3 (Presigned URL) vì cần validate và audit log phía server.</p>
 </blockquote>
-<h3 id="93-xoá-file">9.3. Xoá file</h3>
-<p>Khi xoá record trong DB → gọi <code>s3.deleteObject()</code> để tránh rác. Export files tự xoá sau 24 giờ qua S3 Lifecycle rule.</p>
+<h3 id="94-xoá-file">9.4. Xoá file</h3>
+<p>Khi thay/xoá record → <code>StorageService.removeByUrl()</code>. Thao tác này <strong>không ném lỗi</strong>: dọn rác thất bại không được làm hỏng nghiệp vụ đang chạy.</p>
+<blockquote>
+<p>⏳ Kế hoạch Giai đoạn 8: bucket S3 phải <strong>private</strong>, truy cập qua presigned URL TTL 15 phút. Hiện driver <code>s3</code> mới dựng URL dạng public object URL. Export lifecycle rule 24 giờ cũng chưa áp dụng (chưa có file export nào được lưu).</p>
+</blockquote>
 <hr>
 <h2 id="10-background-jobs-scheduler">10. Background Jobs & Scheduler</h2>
+<blockquote>
+<p>⏳ <strong>Chưa xây gì cả.</strong> <code>@nestjs/schedule</code> và <code>Bull</code> <strong>chưa được cài</strong>, không có <code>shared/scheduler/</code>, không có cron job nào đang chạy. Toàn bộ mục này là kế hoạch.</p>
+<p></p>
+<p>Lưu ý: queue bằng Bull cần Redis, mà Redis chưa có (§8) — nên §10 phụ thuộc vào việc thay driver cache trước.</p>
+</blockquote>
 <p>Dùng <code>@nestjs/schedule</code> cho cron jobs, <code>Bull</code> + Redis cho queue jobs bất đồng bộ.</p>
 <h3 id="101-cron-jobs-chạy-định-kỳ">10.1. Cron jobs (chạy định kỳ)</h3>
 <table><thead>
@@ -509,24 +623,42 @@ HTTP Response  { success, data, message, timestamp }
 </blockquote>
 <hr>
 <h2 id="11-email-service">11. Email Service</h2>
-<p>Dùng <strong>AWS SES</strong> qua <code>@nestjs-modules/mailer</code> + Handlebars templates.</p>
-<h3 id="111-các-email-được-gửi">11.1. Các email được gửi</h3>
+<blockquote>
+<p><strong>SES chưa từng chạy.</strong> <code>MailService</code> chọn transport theo <code>MAIL_TRANSPORT</code>, mặc định <strong><code>dev</code></strong>. Transport <code>ses</code> đã được viết nhưng <strong>chưa bao giờ được thực thi</strong>: dự án chưa có AWS credentials, nên <code>@aws-sdk/client-sesv2</code> <strong>chưa được cài</strong> và chỉ nạp bằng dynamic import khi thực sự gửi (thiếu SDK → <code>503 MAIL_TRANSPORT_UNAVAILABLE</code>).</p>
+<p></p>
+<p>Không dùng <code>@nestjs-modules/mailer</code> và <strong>không dùng Handlebars</strong> — package đó cũng chưa được cài.</p>
+</blockquote>
+<h3 id="111-transport">11.1. Transport</h3>
 <table><thead>
-<tr><th>Trigger</th><th>Subject</th><th>Nội dung</th></tr>
+<tr><th>Transport</th><th>Khi nào</th><th>Hành vi</th></tr>
 </thead><tbody>
-<tr><td>Tạo tài khoản mới</td><td>Chào mừng đến [Công ty]</td><td>Username, link đặt mật khẩu</td></tr>
-<tr><td>Forgot password</td><td>Đặt lại mật khẩu</td><td>Link reset (hết hạn 30 phút)</td></tr>
-<tr><td>Đơn nghỉ được duyệt</td><td>Đơn nghỉ của bạn đã được duyệt</td><td>Chi tiết đơn</td></tr>
-<tr><td>Đơn nghỉ bị từ chối</td><td>Đơn nghỉ của bạn bị từ chối</td><td>Lý do từ chối</td></tr>
-<tr><td>HĐ sắp hết hạn</td><td>Hợp đồng sắp hết hạn</td><td>Danh sách NV (gửi cho HR)</td></tr>
-<tr><td>Lương đã được duyệt</td><td>Phiếu lương tháng X/202X</td><td>Link xem phiếu lương</td></tr>
+<tr><td><code>dev</code> (mặc định)</td><td>dev/test</td><td><strong>Không gửi email thật.</strong> Render nội dung ra file HTML: <code>logs/mail/<timestamp>-<to>.html</code>. Nhờ vậy test được luồng forgot-password ở local mà không cần AWS</td></tr>
+<tr><td><code>ses</code></td><td>⏳ khi đã có credentials + <code>npm install @aws-sdk/client-sesv2</code></td><td>Gửi thật qua AWS SES v2</td></tr>
 </tbody></table>
-<h3 id="112-template">11.2. Template</h3>
-<p>Templates lưu tại <code>src/shared/mail/templates/*.hbs</code>. Luôn có cả bản HTML và text thuần.</p>
+<blockquote>
+<p>⚠️ File trong <code>logs/mail/</code> chứa <strong>toàn bộ</strong> nội dung email, gồm cả link reset password. <code>logs/</code> phải luôn nằm trong <code>.gitignore</code>, và transport này không được bật ở production. Ở production mà vẫn để <code>MAIL_TRANSPORT=dev</code> thì <code>MailModule</code> log cảnh báo rõ ràng ("email sẽ CHỈ được ghi ra file, KHÔNG gửi thật"). Dòng log chỉ ghi đường dẫn file + người nhận, <strong>không</strong> ghi token.</p>
+</blockquote>
+<h3 id="112-các-email-được-gửi">11.2. Các email được gửi</h3>
+<table><thead>
+<tr><th>Trigger</th><th>Trạng thái</th><th>Nội dung</th></tr>
+</thead><tbody>
+<tr><td>Forgot password</td><td>✅ đã có</td><td>Link reset (hết hạn 30 phút)</td></tr>
+<tr><td>Tạo tài khoản mới</td><td>⏳</td><td>Username, link đặt mật khẩu</td></tr>
+<tr><td>Đơn nghỉ được duyệt / bị từ chối</td><td>⏳</td><td>Chi tiết đơn / lý do</td></tr>
+<tr><td>HĐ sắp hết hạn</td><td>⏳</td><td>Danh sách NV (gửi cho HR)</td></tr>
+<tr><td>Lương đã được duyệt</td><td>⏳</td><td>Link xem phiếu lương</td></tr>
+</tbody></table>
+<h3 id="113-template">11.3. Template</h3>
+<p>Templates là <strong>hàm TypeScript</strong> trong <code>src/shared/mail/templates/</code> (hiện có <code>reset-password.template.ts</code>), không phải file <code>.hbs</code>. Mỗi template trả về cả bản HTML và bản text thuần.</p>
 <hr>
 <h2 id="12-rate-limiting-security-headers">12. Rate Limiting & Security Headers</h2>
 <h3 id="121-rate-limiting">12.1. Rate limiting</h3>
-<p>Dùng <code>@nestjs/throttler</code> + Redis store:</p>
+<blockquote>
+<p>⏳ <strong>Chưa có.</strong> <code>@nestjs/throttler</code> chưa được cài và không có guard rate-limit nào đang chạy.</p>
+<p></p>
+<p>Cái <strong>đã có</strong> là <strong>lockout đăng nhập theo định danh</strong> (không theo IP): 5 lần sai liên tiếp → khoá 15 phút, đếm trong <code>CacheService</code> — xem §7.1. Nó chống được đoán mật khẩu của một tài khoản cụ thể, nhưng <strong>không</strong> chống được quét nhiều tài khoản từ một IP, và cũng không bảo vệ <code>/auth/forgot-password</code> khỏi spam email.</p>
+</blockquote>
+<p>Kế hoạch (<code>@nestjs/throttler</code> + Redis store):</p>
 <table><thead>
 <tr><th>Endpoint</th><th>Giới hạn</th><th>Lý do</th></tr>
 </thead><tbody>
@@ -549,11 +681,15 @@ HTTP Response  { success, data, message, timestamp }
 <h3 id="123-cors">12.3. CORS</h3>
 <p>Chỉ cho phép request từ frontend domain. Cấu hình trong <code>main.ts</code>:</p>
 <ul>
-<li><strong>Allowed origins</strong>: <code>http://localhost:5173</code> (dev) và <code>https://hrm.company.com</code> (prod)</li>
+<li><strong>Allowed origins</strong>: đúng <strong>một</strong> origin, đọc từ <code>FRONTEND_URL</code> (mặc định <code>http://localhost:5173</code>)</li>
 <li><strong>Allowed methods</strong>: GET, POST, PATCH, DELETE</li>
 <li><strong>Allowed headers</strong>: Content-Type, Authorization</li>
 <li><strong>Credentials</strong>: <code>true</code> (để gửi HttpOnly cookie)</li>
+<li><strong>Exposed headers</strong>: <code>Content-Disposition</code></li>
 </ul>
+<blockquote>
+<p><strong>Vì sao phải <code>exposedHeaders</code>:</strong> browser giấu <strong>mọi</strong> response header khỏi JS trừ một danh sách safelist ngắn, và <code>Content-Disposition</code> không nằm trong đó. Thiếu dòng này thì file Excel vẫn tải về được nhưng tên file server chọn không đọc được, file rơi xuống với tên kiểu "download". Ở dev không thấy vấn đề vì Vite proxy làm request thành same-origin.</p>
+</blockquote>
 <hr>
 <h2 id="13-error-handling-logging">13. Error Handling & Logging</h2>
 <h3 id="131-exception-hierarchy">13.1. Exception hierarchy</h3>
@@ -568,18 +704,23 @@ HTTP Response  { success, data, message, timestamp }
 Không bao giờ throw Error trần. Luôn dùng HttpException có code cụ thể.
 </code></pre>
 <h3 id="132-logging-strategy">13.2. Logging strategy</h3>
-<p>Dùng <strong>Winston</strong> logger với 2 transport:</p>
+<p>Dùng <strong>Winston</strong> (<code>nest-winston</code>, thay logger mặc định của Nest trong <code>main.ts</code>) với 3 transport:</p>
 <table><thead>
-<tr><th>Transport</th><th>Level</th><th>Môi trường</th></tr>
+<tr><th>Transport</th><th>Level</th><th>Ghi chú</th></tr>
 </thead><tbody>
-<tr><td>Console (màu)</td><td>debug+</td><td>development</td></tr>
-<tr><td>CloudWatch Logs</td><td>info+</td><td>production</td></tr>
+<tr><td>Console (màu, <code>nestLike</code>)</td><td><code>debug</code> ở dev · <code>info</code> ở production</td><td>–</td></tr>
+<tr><td>File <code>logs/error.log</code></td><td><code>error</code></td><td>JSON</td></tr>
+<tr><td>File <code>logs/combined.log</code></td><td>theo level chung</td><td>JSON</td></tr>
 </tbody></table>
+<p><code>logs/</code> nằm trong <code>.gitignore</code> (cùng chỗ với <code>logs/mail/</code> của transport mail dev).</p>
+<blockquote>
+<p>⏳ <strong>CloudWatch Logs chưa có.</strong> Ở production hiện tại log vẫn chỉ ra console + file trên đĩa instance.</p>
+</blockquote>
 <p><strong>Log những gì:</strong></p>
 <ul>
-<li>Mọi request: method, path, status code, duration, user_id.</li>
-<li>Mọi lỗi 500: full stack trace.</li>
-<li>Các hành động quan trọng: login, logout, tạo/sửa/xoá nhân viên, tính lương, export.</li>
+<li><code>HttpExceptionFilter</code> log <strong>mọi</strong> lỗi: <code>warn</code> cho 4xx, <code>error</code> + stack trace cho 5xx, kèm method + URL + status + code.</li>
+<li>Các hành động quan trọng: login thành công, logout, phát hiện dùng lại refresh token, khoá tài khoản, xuất Excel bản không che (mức <code>warn</code>, kèm người yêu cầu).</li>
+<li>⏳ Chưa có logging interceptor ghi duration/user_id cho <strong>mọi</strong> request.</li>
 </ul>
 <p><strong>Không log:</strong></p>
 <ul>
@@ -587,7 +728,10 @@ Không bao giờ throw Error trần. Luôn dùng HttpException có code cụ th�
 <li>Request body của <code>POST /auth/login</code>, <code>POST /auth/change-password</code>.</li>
 </ul>
 <h3 id="133-sentry-error-monitoring">13.3. Sentry (error monitoring)</h3>
-<p>Tích hợp Sentry để nhận alert ngay khi có lỗi production:</p>
+<blockquote>
+<p>⏳ <strong>Chưa tích hợp</strong> – chưa có package <code>@sentry/*</code> nào trong <code>package.json</code>, và không có biến <code>SENTRY_DSN</code> trong Joi schema.</p>
+</blockquote>
+<p>Kế hoạch:</p>
 <ul>
 <li>Tự động capture unhandled exceptions.</li>
 <li>Gắn user context (user_id, role) vào mỗi error.</li>
@@ -595,20 +739,20 @@ Không bao giờ throw Error trần. Luôn dùng HttpException có code cụ th�
 </ul>
 <hr>
 <h2 id="14-health-check">14. Health Check</h2>
-<p><code>GET /health</code> — không cần auth, dùng cho PM2, load balancer, uptime monitoring.</p>
+<p><code>GET /health</code> — <code>@Public()</code>, không cần auth, dùng cho PM2, load balancer, uptime monitoring.</p>
+<p><strong>Hiện tại</strong> (<code>app.service.ts</code>, tự viết – <strong>không</strong> dùng <code>@nestjs/terminus</code>):</p>
 <table><thead>
 <tr><th>Check</th><th>Mục đích</th></tr>
 </thead><tbody>
-<tr><td>Database ping</td><td>MySQL connection còn sống</td></tr>
-<tr><td>Redis ping</td><td>Redis connection còn sống</td></tr>
-<tr><td>Disk space</td><td>Còn đủ dung lượng</td></tr>
-<tr><td>Memory usage</td><td>Không bị memory leak</td></tr>
+<tr><td>Database ping (<code>SELECT 1</code>)</td><td>MySQL connection còn sống</td></tr>
+<tr><td><code>process.uptime()</code></td><td>Thời gian process đã chạy</td></tr>
 </tbody></table>
-<p>Response:</p>
-<ul>
-<li><code>200 OK</code> → tất cả healthy</li>
-<li><code>503 Service Unavailable</code> → ít nhất 1 check fail</li>
-</ul>
+<pre><code class="language-json">{ "success": true, "data": { "status": "ok", "uptime": 1234.5, "database": "up" }, "timestamp": "…" }
+</code></pre>
+<blockquote>
+<p>⚠️ Endpoint <strong>luôn trả 200</strong>, kể cả khi DB down (khi đó <code>status: "error"</code>, <code>database: "down"</code>). Load balancer nào chỉ nhìn HTTP status sẽ tưởng app khoẻ — cần sửa trước khi đặt sau LB thật.</p>
+</blockquote>
+<p>⏳ Chưa có: Redis ping (chưa có Redis), disk space, memory usage, và mã <code>503 Service Unavailable</code> khi có check fail.</p>
 <hr>
 <h2 id="15-response-dto-pattern">15. Response & DTO Pattern</h2>
 <h3 id="151-request-dto">15.1. Request DTO</h3>
@@ -683,32 +827,41 @@ Không bao giờ throw Error trần. Luôn dùng HttpException có code cụ th�
 <hr>
 <h2 id="17-environment-variables">17. Environment Variables</h2>
 <p>Tất cả config nhạy cảm qua <code>.env</code> (không commit). File <code>.env.example</code> luôn cập nhật.</p>
+<p>Schema xác thực bằng <strong>Joi</strong> (<code>src/config/env.validation.ts</code>) với <code>abortEarly: false</code> — thiếu/sai biến thì app <strong>fail fast lúc bootstrap</strong> chứ không chết giữa chừng lúc chạy.</p>
 <table><thead>
-<tr><th>Nhóm</th><th>Biến</th><th>Mô tả</th></tr>
+<tr><th>Nhóm</th><th>Biến</th><th>Bắt buộc</th><th>Mặc định / Mô tả</th></tr>
 </thead><tbody>
-<tr><td><strong>App</strong></td><td><code>PORT</code></td><td>Port server (mặc định 3000)</td></tr>
-<tr><td></td><td><code>NODE_ENV</code></td><td><code>development</code> / <code>production</code></td></tr>
-<tr><td></td><td><code>API_PREFIX</code></td><td><code>/api/v1</code></td></tr>
-<tr><td></td><td><code>FRONTEND_URL</code></td><td>URL frontend (dùng cho CORS, email links)</td></tr>
-<tr><td><strong>Database</strong></td><td><code>DB_HOST</code></td><td>RDS endpoint</td></tr>
-<tr><td></td><td><code>DB_PORT</code></td><td>3306</td></tr>
-<tr><td></td><td><code>DB_NAME</code></td><td><code>hrm_production</code></td></tr>
-<tr><td></td><td><code>DB_USER</code></td><td>–</td></tr>
-<tr><td></td><td><code>DB_PASSWORD</code></td><td>–</td></tr>
-<tr><td><strong>JWT</strong></td><td><code>JWT_SECRET</code></td><td>Ít nhất 64 ký tự random</td></tr>
-<tr><td></td><td><code>JWT_EXPIRES_IN</code></td><td><code>15m</code></td></tr>
-<tr><td></td><td><code>JWT_REFRESH_EXPIRES_IN</code></td><td><code>7d</code></td></tr>
-<tr><td><strong>Redis</strong></td><td><code>REDIS_HOST</code></td><td>–</td></tr>
-<tr><td></td><td><code>REDIS_PORT</code></td><td>6379</td></tr>
-<tr><td></td><td><code>REDIS_PASSWORD</code></td><td>–</td></tr>
-<tr><td><strong>S3</strong></td><td><code>AWS_REGION</code></td><td><code>ap-southeast-1</code></td></tr>
-<tr><td></td><td><code>AWS_ACCESS_KEY_ID</code></td><td>–</td></tr>
-<tr><td></td><td><code>AWS_SECRET_ACCESS_KEY</code></td><td>–</td></tr>
-<tr><td></td><td><code>S3_BUCKET</code></td><td><code>hrm-bucket</code></td></tr>
-<tr><td><strong>Email</strong></td><td><code>MAIL_FROM</code></td><td><code>no-reply@company.com</code></td></tr>
-<tr><td></td><td><code>MAIL_FROM_NAME</code></td><td><code>HRM System</code></td></tr>
-<tr><td><strong>Monitoring</strong></td><td><code>SENTRY_DSN</code></td><td>Sentry project DSN</td></tr>
+<tr><td><strong>App</strong></td><td><code>NODE_ENV</code></td><td>❌</td><td><code>development</code> \</td><td><code>production</code> \</td><td><code>test</code> (mặc định <code>development</code>)</td></tr>
+<tr><td></td><td><code>PORT</code></td><td>❌</td><td><code>3000</code></td></tr>
+<tr><td></td><td><code>API_PREFIX</code></td><td>❌</td><td><code>api/v1</code> (không có dấu <code>/</code> đầu)</td></tr>
+<tr><td></td><td><code>FRONTEND_URL</code></td><td>❌</td><td><code>http://localhost:5173</code> — dùng cho CORS <strong>và</strong> link trong email reset</td></tr>
+<tr><td><strong>Database</strong></td><td><code>DB_HOST</code></td><td>✅</td><td>–</td></tr>
+<tr><td></td><td><code>DB_PORT</code></td><td>❌</td><td><code>3306</code></td></tr>
+<tr><td></td><td><code>DB_USERNAME</code></td><td>✅</td><td>–</td></tr>
+<tr><td></td><td><code>DB_PASSWORD</code></td><td>✅</td><td>Cho phép chuỗi rỗng nhưng <strong>phải khai báo</strong></td></tr>
+<tr><td></td><td><code>DB_DATABASE</code></td><td>✅</td><td>–</td></tr>
+<tr><td><strong>JWT</strong></td><td><code>JWT_SECRET</code></td><td>✅</td><td><strong>≥ 64 ký tự</strong> (≈256-bit entropy nếu random hex)</td></tr>
+<tr><td></td><td><code>JWT_EXPIRES_IN</code></td><td>❌</td><td><code>15m</code></td></tr>
+<tr><td></td><td><code>JWT_REFRESH_EXPIRES_IN</code></td><td>❌</td><td><code>7d</code></td></tr>
+<tr><td><strong>Auth policy</strong></td><td><code>AUTH_MAX_FAILED_LOGIN_ATTEMPTS</code></td><td>❌</td><td><code>5</code></td></tr>
+<tr><td></td><td><code>AUTH_LOCKOUT_MINUTES</code></td><td>❌</td><td><code>15</code></td></tr>
+<tr><td></td><td><code>AUTH_MAX_CONCURRENT_SESSIONS</code></td><td>❌</td><td><code>5</code> (vượt → revoke session <strong>cũ nhất</strong>)</td></tr>
+<tr><td></td><td><code>AUTH_RESET_TOKEN_TTL_MINUTES</code></td><td>❌</td><td><code>30</code></td></tr>
+<tr><td></td><td><code>AUTH_REFRESH_COOKIE_NAME</code></td><td>❌</td><td><code>refresh_token</code></td></tr>
+<tr><td><strong>Mail</strong></td><td><code>MAIL_TRANSPORT</code></td><td>❌</td><td><code>dev</code> (mặc định) \</td><td><code>ses</code></td></tr>
+<tr><td></td><td><code>MAIL_FROM</code></td><td>❌</td><td><code>no-reply@company.local</code></td></tr>
+<tr><td></td><td><code>MAIL_FROM_NAME</code></td><td>❌</td><td><code>HRM System</code></td></tr>
+<tr><td></td><td><code>MAIL_DEV_OUTPUT_DIR</code></td><td>❌</td><td><code>logs/mail</code></td></tr>
+<tr><td></td><td><code>AWS_REGION</code></td><td>❌</td><td><code>ap-southeast-1</code> (dùng chung cho SES và S3)</td></tr>
+<tr><td><strong>Storage</strong></td><td><code>STORAGE_DRIVER</code></td><td>❌</td><td><code>local</code> (mặc định) \</td><td><code>s3</code></td></tr>
+<tr><td></td><td><code>STORAGE_LOCAL_DIR</code></td><td>❌</td><td><code>uploads</code></td></tr>
+<tr><td></td><td><code>STORAGE_LOCAL_PUBLIC_PATH</code></td><td>❌</td><td>Mặc định <code>/<API_PREFIX>/uploads</code></td></tr>
+<tr><td></td><td><code>S3_BUCKET</code></td><td>⚠️</td><td><strong>Bắt buộc khi</strong> <code>STORAGE_DRIVER=s3</code></td></tr>
+<tr><td></td><td><code>S3_PUBLIC_BASE_URL</code></td><td>❌</td><td>CDN/CloudFront; rỗng = endpoint S3 mặc định</td></tr>
+<tr><td></td><td><code>AVATAR_MAX_BYTES</code></td><td>❌</td><td><code>2097152</code> (2MB)</td></tr>
+<tr><td><strong>Seed</strong></td><td><code>SEED_DEFAULT_PASSWORD</code></td><td>❌</td><td>Chỉ dùng cho script seed ở dev</td></tr>
 </tbody></table>
+<p><strong>Không có trong schema</strong> (vì tính năng chưa xây): <code>REDIS_*</code>, <code>SENTRY_DSN</code>, <code>AWS_ACCESS_KEY_ID</code> / <code>AWS_SECRET_ACCESS_KEY</code> (khi bật S3/SES nên cấp bằng IAM role của EC2/ECS thay vì key trong <code>.env</code>).</p>
 <hr>
 <h2 id="18-lý-do-chọn-tech-stack">18. Lý do chọn tech stack</h2>
 <table><thead>
@@ -716,15 +869,31 @@ Không bao giờ throw Error trần. Luôn dùng HttpException có code cụ th�
 </thead><tbody>
 <tr><td>TypeORM</td><td>Prisma</td><td>Migration linh hoạt hơn cho schema phức tạp VN (26 bảng, circular FK)</td></tr>
 <tr><td>MySQL 8</td><td>PostgreSQL</td><td>Phổ biến hơn ở VN, dễ tìm DBA và hosting</td></tr>
-<tr><td>Redis</td><td>In-memory cache</td><td>Persist qua restart, share giữa nhiều PM2 workers</td></tr>
+<tr><td><strong>In-memory cache sau <code>CacheService</code></strong></td><td><strong>Redis ngay từ đầu</strong></td><td><strong>Quyết định của chủ dự án: chưa dùng Redis (và không Docker) ở giai đoạn này</strong> — thêm một service phải vận hành để phục vụ 3 loại key nhỏ là chưa đáng. Đổi lại phải chấp nhận 2 giới hạn ở §7.2 và <strong>phải</strong> thay driver trước khi bật PM2 cluster / lên production. Abstraction giữ cho việc đổi chỉ tốn một dòng <code>useClass</code></td></tr>
 <tr><td>JWT + Refresh Token</td><td>Session</td><td>Stateless, scale tốt khi thêm server</td></tr>
-<tr><td>Bull + Redis</td><td>Cron đơn thuần</td><td>Job queue bền vững, không mất job khi server restart</td></tr>
-<tr><td>AWS SES</td><td>SMTP tự host</td><td>Rẻ, deliverability cao, không cần quản lý server email</td></tr>
-<tr><td>PM2 cluster</td><td>Single process</td><td>Tận dụng nhiều CPU core trên EC2</td></tr>
-<tr><td>RDS</td><td>MySQL cùng EC2</td><td>Tách biệt database ra instance riêng, tự backup, failover</td></tr>
+<tr><td>Refresh token trong cookie HttpOnly <code>Path</code> hẹp</td><td>Trả trong response body</td><td>JS không đọc được → XSS không lấy được phiên 7 ngày; <code>Path</code> hẹp để browser không đính kèm token vào mọi request</td></tr>
+<tr><td>Mã bản ghi do server sinh (<code>PB</code>/<code>CV</code>/<code>NP</code>/<code>NV</code>)</td><td>Người dùng tự nhập</td><td>Người dùng không phải nghĩ ra định danh trước khi lưu, và dữ liệu không trôi dạt (<code>IT</code>/<code>it</code>/<code>CNTT</code> cùng một phòng)</td></tr>
+<tr><td>Dữ liệu hành chính từ file JSON đóng gói</td><td>Bảng DB hoặc API ngoài</td><td>Bất biến, tra cứu nhiều, và không phụ thuộc dịch vụ bên thứ ba lúc chạy</td></tr>
+<tr><td>Bull + Redis (⏳)</td><td>Cron đơn thuần</td><td>Job queue bền vững, không mất job khi server restart</td></tr>
+<tr><td>AWS SES (⏳)</td><td>SMTP tự host</td><td>Rẻ, deliverability cao, không cần quản lý server email</td></tr>
+<tr><td>PM2 cluster (⏳)</td><td>Single process</td><td>Tận dụng nhiều CPU core trên EC2</td></tr>
+<tr><td>RDS (⏳)</td><td>MySQL cùng EC2</td><td>Tách biệt database ra instance riêng, tự backup, failover</td></tr>
 </tbody></table>
 <hr>
-<p><em>Cập nhật: 26/05/2026 – Version 1.0 – Full architecture document</em></p>
+<h2 id="19-việc-phải-làm-trước-khi-lên-production">19. Việc phải làm trước khi lên production</h2>
+<table><thead>
+<tr><th>#</th><th>Việc</th><th>Vì sao chặn</th></tr>
+</thead><tbody>
+<tr><td>1</td><td>Thêm <code>RedisCacheService</code> và đổi driver trong <code>CacheModule</code></td><td>In-memory mất state khi restart và <strong>không</strong> chia sẻ giữa các worker PM2 → lockout đăng nhập và token reset password sai (§7.2, §8.1)</td></tr>
+<tr><td>2</td><td><code>npm install @aws-sdk/client-sesv2</code>, đặt <code>MAIL_TRANSPORT=ses</code>, verify <code>MAIL_FROM</code></td><td>Transport SES <strong>chưa từng chạy</strong>; để <code>dev</code> ở production nghĩa là email không bao giờ được gửi (§11)</td></tr>
+<tr><td>3</td><td><code>npm install @aws-sdk/client-s3</code>, đặt <code>STORAGE_DRIVER=s3</code> + bucket private + presigned URL</td><td>Driver S3 <strong>chưa từng chạy</strong>; <code>local</code> chỉ ghi lên đĩa một instance (§9)</td></tr>
+<tr><td>4</td><td>Chặn Swagger ở production</td><td><code>main.ts</code> đang mount <code>/api/docs</code> ở <strong>mọi</strong> môi trường</td></tr>
+<tr><td>5</td><td><code>GET /health</code> trả <code>503</code> khi có check fail</td><td>Hiện luôn trả 200, LB sẽ tưởng app khoẻ (§14)</td></tr>
+<tr><td>6</td><td>Thêm rate limiting theo IP</td><td>Lockout hiện chỉ theo định danh, không chặn quét nhiều tài khoản hay spam forgot-password (§12.1)</td></tr>
+<tr><td>7</td><td>Chuyển log ra CloudWatch + tích hợp Sentry</td><td>Log đang nằm trên đĩa instance, không có alert (§13)</td></tr>
+</tbody></table>
+<hr>
+<p><em>Cập nhật: 19/08/2026 – Version 1.1 – Đồng bộ với code sau Giai đoạn 0–3: phân biệt "đã chạy" vs "kế hoạch" trong toàn tài liệu; §7.2 reset token nằm ở <code>CacheService</code> in-memory (KHÔNG Redis) kèm 2 giới hạn; §8 viết lại (bỏ cache tỉnh/huyện/xã, mô tả dữ liệu JSON tĩnh 34 tỉnh/3.321 phường-xã); §4 cập nhật cây thư mục thật (<code>shared/cache|mail|storage</code>, <code>modules/reports|contracts|family-members|dependents|system</code>); §9/§11 nói rõ S3 và SES chưa từng chạy; §14/§17 theo code hiện tại; thêm §19 checklist tiền-production</em></p>
 
 </main>
 <script>

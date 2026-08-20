@@ -37,12 +37,6 @@ export class DisciplineRewardResponseDto {
   @ApiProperty({ example: '2026-04-01' })
   effectiveDate: string;
 
-  @ApiPropertyOptional({
-    example: 5000000,
-    description: 'Chỉ có ở khen thưởng — kỷ luật không được kèm tiền.',
-  })
-  amount: number | null;
-
   @ApiPropertyOptional({ type: DisciplineRewardIssuerDto })
   issuedBy: DisciplineRewardIssuerDto | null;
 
