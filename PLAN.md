@@ -16,10 +16,10 @@
 | 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
 | 5 | Phép | 41 / 41 | ✅ Hoàn thành |
 | 6 | Lương | 33 / 35 | 🟡 Đã kiểm chứng qua API; 2 mục cần mở trình duyệt |
-| 7 | HR Processes | 0 / 14 | ⬜ Chưa bắt đầu |
+| 7 | HR Processes | 18 / 26 | 🟡 7.1 backend xong; 7.2 frontend chưa |
 | 8 | Thông báo & Hoàn thiện | 0 / 34 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 215 / 265 tasks hoàn thành
+**Tổng:** 233 / 277 tasks hoàn thành
 
 > ### Cách đếm
 >
@@ -652,26 +652,50 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 
 ## Giai đoạn 7 — HR Processes
 
-### 7.1 Backend HR Processes
-- [ ] `RewardsDisciplinesModule`: CRUD khen thưởng / kỷ luật theo NV
-- [ ] `PerformanceReviewsModule`: tạo kỳ đánh giá, NV tự đánh, manager đánh
-- [ ] `TrainingsModule`: CRUD khoá đào tạo, đăng ký tham gia, hoàn thành
+> ### Nhân viên không tự thao tác
+>
+> Bản cũ của mục này viết "NV tự đánh", "NV nhận thông báo", "NV submit →
+> Manager review", "đăng ký tham gia". Nhân viên **không đăng nhập hệ thống
+> này** — quyết định đã chốt từ giai đoạn 4. Schema cũng đã dựng theo hướng đó:
+> `performance_reviews.reviewer_id` là NOT NULL và không có cột nào cho điểm tự
+> chấm; `employee_trainings` không có cột "người đăng ký".
+>
+> Mô hình thật: **quản lý chấm, nhân sự ghi nhận việc ký nhận, nhân sự ghi
+> danh.** Phiếu tự đánh giá nếu công ty có thì nằm ngoài phần mềm, người chấm
+> tham khảo khi nhập.
 
-**Tests (7.1):**
-- [ ] Tạo kỷ luật → lưu vào lịch sử NV
-- [ ] Tạo kỳ đánh giá → NV nhận thông báo
-- [ ] Đánh giá: NV submit → Manager review → Hoàn thành
-- [ ] Đào tạo: đăng ký → tham gia → hoàn thành → lịch sử cập nhật
+### 7.1 Backend HR Processes
+- [x] `DisciplinesRewardsModule`: CRUD khen thưởng / kỷ luật theo NV
+- [x] `PerformanceReviewsModule`: người chấm viết, `draft` → `submitted` → `acknowledged`
+- [x] `TrainingsModule`: CRUD khoá đào tạo, ghi danh hàng loạt, ghi kết quả học
+- [x] Điểm tổng và xếp loại do server tính từ ba tiêu chí, không nhận từ client
+
+**Tests (7.1):** *(69 unit test)*
+- [x] Kỷ luật kèm tiền → 422 `DISCIPLINE_CANNOT_CARRY_AMOUNT` (Điều 128 BLLĐ 2019)
+- [x] Đổi khen thưởng có tiền thành kỷ luật → bị chặn; gửi `amount: 0`/`null` thì qua
+- [x] Ngày hiệu lực trước ngày ký → 422 `EFFECTIVE_BEFORE_DECISION`
+- [x] Bản ghi của nhân viên khác trên cùng đường dẫn → 404, không sửa được
+- [x] Điểm tổng = trung bình các tiêu chí ĐÃ chấm; tiêu chí chưa chấm không tính là 0
+- [x] Sửa một tiêu chí → điểm tổng và xếp loại tính lại theo
+- [x] Ngưỡng xếp loại liền mạch, phủ kín 0–100
+- [x] Trùng kỳ đánh giá của cùng một người → 409 `REVIEW_PERIOD_TAKEN`
+- [x] Kỳ `quarterly` kèm tháng, hoặc thiếu quý → 422 `REVIEW_PERIOD_MISMATCH`
+- [x] Chốt bản chưa chấm điểm nào → 422 `REVIEW_HAS_NO_SCORE`
+- [x] `manager` không ghi nhận được việc ký nhận; tài khoản không gắn hồ sơ NV không chấm được
+- [x] Đào tạo: ghi danh vượt sức chứa → 422 `TRAINING_FULL`; người đã có thì bỏ qua
+- [x] Đào tạo: `completed`/`cancelled` là điểm cuối, không quay lại được
+- [x] Đào tạo: gỡ người đã có kết quả → 422; xoá khoá đã có người → 422
 
 ### 7.2 Frontend HR Processes
 - [ ] Tab Khen thưởng/kỷ luật trong chi tiết NV
-- [ ] Trang `/performance`: danh sách kỳ đánh giá
-- [ ] Form đánh giá: NV tự đánh (tự nhập điểm + nhận xét)
-- [ ] Trang `/trainings`: danh sách khoá đào tạo, đăng ký
+- [ ] Trang `/performance`: danh sách kỳ đánh giá, form chấm điểm
+- [ ] Trang `/trainings`: danh sách khoá đào tạo, ghi danh, ghi kết quả
+- [ ] Tab Đào tạo trong chi tiết NV
 
 **Tests (7.2):**
-- [ ] NV tự đánh → lưu nháp → submit
-- [ ] Manager xem đánh giá NV → thêm nhận xét → xác nhận
+- [ ] Chấm điểm → điểm tổng và xếp loại hiện lại ngay
+- [ ] Bản đã chốt → ẩn nút Sửa
+- [ ] Ghi danh vượt sức chứa → báo lỗi rõ ràng
 - [ ] Lịch sử đào tạo hiển thị đúng trong tab NV
 
 ---
