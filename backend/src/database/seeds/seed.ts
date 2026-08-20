@@ -10,7 +10,8 @@ import { seedUsers } from './users.seed';
  * leave types of database-schema.md §5.2) plus the minimal auth data set of
  * Giai đoạn 1.1 (department/position/employees/dev accounts).
  * Provinces/districts/wards have NO dedicated table (see
- * src/common/data/vn-provinces.json instead — scope decision from phase 0.1).
+ * src/common/data/vn-administrative-units-2025.csv instead — scope decision
+ * from phase 0.1).
  *
  * Idempotent: safe to re-run, never creates duplicates.
  */

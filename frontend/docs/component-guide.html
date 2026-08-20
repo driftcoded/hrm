@@ -288,7 +288,7 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li>Tài khoản đăng nhập (email, mật khẩu tạm) — <strong>chỉ hiện với <code>admin</code></strong>; role khác chỉ thấy 3 bước, vì <code>POST /users</code> là endpoint admin-only</li>
 </ol>
 <p>Wizard dùng <strong>một</strong> instance <code>Form</code> cho cả 4 bước (ẩn pane không hoạt động thay vì unmount) nên không mất dữ liệu người dùng đã gõ; nút "Tiếp" chỉ validate field của <strong>bước hiện tại</strong>.</p>
-<p><strong>EmployeeDetailPage</strong> dùng Tabs — hiện có <code>PersonalTab</code>, <code>ContractsTab</code>, <code>RewardsTab</code>, <code>FamilyTab</code> (kèm <code>DependentsSection</code>); ba tab còn lại (Lương & Phụ cấp, Phép năm, Chấm công) render <code>ComingSoonTab</code> cho tới khi có bản xem theo từng nhân viên.</p>
+<p><strong>EmployeeDetailPage</strong> dùng Tabs — hiện có <code>PersonalTab</code>, <code>ContractsTab</code>, <code>FamilyTab</code> (kèm <code>DependentsSection</code>); ba tab còn lại (Lương & Phụ cấp, Phép năm, Chấm công) render <code>ComingSoonTab</code> cho tới khi có bản xem theo từng nhân viên.</p>
 <h3 id="42-attendance-chấm-công">4.2 Attendance (Chấm công)</h3>
 <table><thead>
 <tr><th>File</th><th>Mô tả</th></tr>

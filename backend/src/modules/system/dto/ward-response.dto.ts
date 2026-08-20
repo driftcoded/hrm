@@ -5,9 +5,10 @@ import { IsOptional, IsString, Matches } from 'class-validator';
 /**
  * Một phường/xã/đặc khu (api-spec.md §20).
  *
- * Nguồn: `src/common/data/vn-wards.json`, sinh từ danh mục hành chính chính
- * thống của cơ quan thuế bằng `scripts/build-vn-admin-data.ts` — KHÔNG gọi API
- * bên ngoài lúc chạy. 3.321 đơn vị: 687 phường, 2.621 xã, 13 đặc khu.
+ * Nguồn: `src/common/data/vn-administrative-units-2025.csv` — chính file danh
+ * mục cơ quan thuế phát hành, đọc thẳng chứ không qua bản sao phái sinh, và
+ * KHÔNG gọi API bên ngoài lúc chạy. 3.321 đơn vị: 687 phường, 2.621 xã, 13 đặc
+ * khu.
  *
  * `code` là mã của HỆ THỐNG THUẾ (TMS), ví dụ `10105001`. Chọn hệ mã này thay
  * vì mã GSO vì Giai đoạn 6 sẽ quyết toán thuế TNCN: dùng đúng mã cơ quan thuế

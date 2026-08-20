@@ -138,15 +138,13 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#62-salary_components-chi-tiết-từng-khoản-phụ-cấp-khấu-trừ">6.2. `salary_components` – Chi tiết từng khoản phụ cấp / khấu trừ</a></li>
 <li class="h3"><a href="#63-salary_advances-tạm-ứng-lương">6.3. `salary_advances` – Tạm ứng lương</a></li>
 <li class="h3"><a href="#64-payroll_settings-cấu-hình-lương-của-công-ty">6.4. `payroll_settings` – Cấu hình lương của công ty</a></li>
-<li class="h2"><a href="#nhóm-7-khen-thưởng-kỷ-luật">Nhóm 7 – Khen thưởng & Kỷ luật</a></li>
-<li class="h3"><a href="#71-disciplines_rewards-khen-thưởng-kỷ-luật">7.1. `disciplines_rewards` – Khen thưởng & Kỷ luật</a></li>
-<li class="h2"><a href="#nhóm-8-tài-liệu-hệ-thống">Nhóm 8 – Tài liệu & Hệ thống</a></li>
-<li class="h3"><a href="#81-work_history-lịch-sử-công-tác">8.1. `work_history` – Lịch sử công tác</a></li>
-<li class="h3"><a href="#82-documents-tài-liệu-hồ-sơ-nhân-viên">8.2. `documents` – Tài liệu hồ sơ nhân viên</a></li>
-<li class="h3"><a href="#83-announcements-thông-báo-nội-bộ">8.3. `announcements` – Thông báo nội bộ</a></li>
-<li class="h3"><a href="#84-audit_logs-nhật-ký-thao-tác">8.4. `audit_logs` – Nhật ký thao tác</a></li>
-<li class="h3"><a href="#85-system_branding_settings-thương-hiệu">8.5. `system_branding_settings` – Thương hiệu</a></li>
-<li class="h3"><a href="#86-system_mail_settings-cấu-hình-gửi-email">8.6. `system_mail_settings` – Cấu hình gửi email</a></li>
+<li class="h2"><a href="#nhóm-7-tài-liệu-hệ-thống">Nhóm 7 – Tài liệu & Hệ thống</a></li>
+<li class="h3"><a href="#71-work_history-lịch-sử-công-tác">7.1. `work_history` – Lịch sử công tác</a></li>
+<li class="h3"><a href="#72-documents-tài-liệu-hồ-sơ-nhân-viên">7.2. `documents` – Tài liệu hồ sơ nhân viên</a></li>
+<li class="h3"><a href="#73-announcements-thông-báo-nội-bộ">7.3. `announcements` – Thông báo nội bộ</a></li>
+<li class="h3"><a href="#74-audit_logs-nhật-ký-thao-tác">7.4. `audit_logs` – Nhật ký thao tác</a></li>
+<li class="h3"><a href="#75-system_branding_settings-thương-hiệu">7.5. `system_branding_settings` – Thương hiệu</a></li>
+<li class="h3"><a href="#76-system_mail_settings-cấu-hình-gửi-email">7.6. `system_mail_settings` – Cấu hình gửi email</a></li>
 <li class="h2"><a href="#thứ-tự-migration">Thứ tự Migration</a></li>
 <li class="h2"><a href="#seed-data-cần-chuẩn-bị">Seed Data cần chuẩn bị</a></li>
 </ul></nav>
@@ -168,8 +166,7 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li><a href="#nhóm-4--hợp-đồng-lao-động">Nhóm 4 – Hợp đồng lao động</a></li>
 <li><a href="#nhóm-5--chấm-công--nghỉ-phép">Nhóm 5 – Chấm công & Nghỉ phép</a></li>
 <li><a href="#nhóm-6--lương--phúc-lợi">Nhóm 6 – Lương & Phúc lợi</a></li>
-<li><a href="#nhóm-7--khen-thưởng--kỷ-luật">Nhóm 7 – Khen thưởng & Kỷ luật</a></li>
-<li><a href="#nhóm-8--tài-liệu--hệ-thống">Nhóm 8 – Tài liệu & Hệ thống</a></li>
+<li><a href="#nhóm-7--tài-liệu--hệ-thống">Nhóm 7 – Tài liệu & Hệ thống</a></li>
 <li><a href="#thứ-tự-migration">Thứ tự Migration</a></li>
 <li><a href="#seed-data-cần-chuẩn-bị">Seed Data cần chuẩn bị</a></li>
 </ol>
@@ -188,7 +185,6 @@ users ──── employees ──┬── departments (self-ref, có manager_
                        ├── dependents
                        ├── family_members
                        ├── work_history
-                       ├── disciplines_rewards
                        └── documents
 
 holidays    (standalone – lịch nghỉ lễ VN)
@@ -426,10 +422,9 @@ Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
 <p>địa phương <strong>2 cấp</strong> (Luật 72/2025/QH15): 34 tỉnh/thành → 3.321 phường/xã/đặc</p>
 <p>khu (2.621 xã + 687 phường + 13 đặc khu). Cấp huyện không còn.</p>
 <p></p>
-<p>Danh mục nằm ở <code>src/common/data/vn-provinces.json</code> và <code>vn-wards.json</code>, sinh từ</p>
-<p>danh mục chính thống của cơ quan thuế bằng <code>scripts/build-vn-admin-data.ts</code></p>
-<p>(đã đối chiếu chéo với provinces.open-api.vn v2: 34/34 tỉnh khớp, 0 tỉnh lệch</p>
-<p>số lượng, 3.310/3.321 tên khớp tuyệt đối). App KHÔNG gọi API ngoài lúc chạy.</p>
+<p>Danh mục nằm ở <code>src/common/data/vn-administrative-units-2025.csv</code> — chính bản</p>
+<p>phát hành của cơ quan thuế, đọc thẳng lúc khởi động chứ không qua bản JSON</p>
+<p>sinh lại. App KHÔNG gọi API ngoài lúc chạy.</p>
 <p></p>
 <p>Mỗi phường/xã mang kèm <code>legacyDistrictCode</code>/<code>legacyDistrictName</code> để tra ngược</p>
 <p>hồ sơ cũ. Mã phường/xã dùng hệ TMS của cơ quan thuế, không phải mã GSO — để</p>
@@ -785,34 +780,8 @@ Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
 <tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
 </tbody></table>
 <hr>
-<h2 id="nhóm-7-khen-thưởng-kỷ-luật">Nhóm 7 – Khen thưởng & Kỷ luật</h2>
-<h3 id="71-disciplines_rewards-khen-thưởng-kỷ-luật">7.1. <code>disciplines_rewards</code> – Khen thưởng & Kỷ luật</h3>
-<blockquote>
-<p>Bảng này <strong>không mang tiền</strong>. Điều 128 BLLĐ 2019 cấm phạt tiền thay cho kỷ</p>
-<p>luật, còn tiền thưởng thực trả đi qua <code>salaries.performance_bonus</code>. Cột</p>
-<p><code>amount</code> đã bị bỏ (migration <code>1787280000000</code>).</p>
-</blockquote>
-<table><thead>
-<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
-</thead><tbody>
-<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
-<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Đối tượng được khen/kỷ luật</td></tr>
-<tr><td>type</td><td>enum</td><td>✅</td><td><code>reward</code> (khen thưởng) · <code>discipline</code> (kỷ luật)</td></tr>
-<tr><td>category</td><td>text (100)</td><td>✅</td><td>Phân loại cụ thể: "Thưởng KPI" · "Cảnh cáo" · "Khiển trách"…</td></tr>
-<tr><td>title</td><td>text (255)</td><td>✅</td><td>Tiêu đề quyết định</td></tr>
-<tr><td>description</td><td>văn bản dài</td><td>✅</td><td>Mô tả chi tiết lý do</td></tr>
-<tr><td>decision_number</td><td>text (50)</td><td>❌</td><td>Số quyết định</td></tr>
-<tr><td>decision_date</td><td>ngày</td><td>✅</td><td>Ngày ban hành quyết định</td></tr>
-<tr><td>effective_date</td><td>ngày</td><td>✅</td><td>Ngày có hiệu lực</td></tr>
-<tr><td>issued_by</td><td>FK → employees</td><td>❌</td><td>Người ký quyết định</td></tr>
-<tr><td>document_url</td><td>text (500)</td><td>❌</td><td>Link quyết định trên S3</td></tr>
-<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
-<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
-<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
-</tbody></table>
-<hr>
-<h2 id="nhóm-8-tài-liệu-hệ-thống">Nhóm 8 – Tài liệu & Hệ thống</h2>
-<h3 id="81-work_history-lịch-sử-công-tác">8.1. <code>work_history</code> – Lịch sử công tác</h3>
+<h2 id="nhóm-7-tài-liệu-hệ-thống">Nhóm 7 – Tài liệu & Hệ thống</h2>
+<h3 id="71-work_history-lịch-sử-công-tác">7.1. <code>work_history</code> – Lịch sử công tác</h3>
 <p>Ghi lại <strong>mọi thay đổi quan trọng</strong> trong sự nghiệp nhân viên tại công ty. Chỉ INSERT, không UPDATE.</p>
 <table><thead>
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
@@ -834,7 +803,7 @@ Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
 <tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
 </tbody></table>
 <hr>
-<h3 id="82-documents-tài-liệu-hồ-sơ-nhân-viên">8.2. <code>documents</code> – Tài liệu hồ sơ nhân viên</h3>
+<h3 id="72-documents-tài-liệu-hồ-sơ-nhân-viên">7.2. <code>documents</code> – Tài liệu hồ sơ nhân viên</h3>
 <table><thead>
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
 </thead><tbody>
@@ -853,7 +822,7 @@ Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
 <tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
 </tbody></table>
 <hr>
-<h3 id="83-announcements-thông-báo-nội-bộ">8.3. <code>announcements</code> – Thông báo nội bộ</h3>
+<h3 id="73-announcements-thông-báo-nội-bộ">7.3. <code>announcements</code> – Thông báo nội bộ</h3>
 <table><thead>
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
 </thead><tbody>
@@ -872,7 +841,7 @@ Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
 <tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
 </tbody></table>
 <hr>
-<h3 id="84-audit_logs-nhật-ký-thao-tác">8.4. <code>audit_logs</code> – Nhật ký thao tác</h3>
+<h3 id="74-audit_logs-nhật-ký-thao-tác">7.4. <code>audit_logs</code> – Nhật ký thao tác</h3>
 <blockquote>
 <p><strong>Bảng này chỉ INSERT, tuyệt đối không UPDATE hay DELETE. Giữ tối thiểu 2 năm.</strong></p>
 </blockquote>
@@ -892,7 +861,7 @@ Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
 <tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
 </tbody></table>
 <hr>
-<h3 id="85-system_branding_settings-thương-hiệu">8.5. <code>system_branding_settings</code> – Thương hiệu</h3>
+<h3 id="75-system_branding_settings-thương-hiệu">7.5. <code>system_branding_settings</code> – Thương hiệu</h3>
 <blockquote>
 <p><strong>Chỉ 1 dòng</strong> (<code>id = 1</code>). Tên công ty, logo và favicon hiện trên giao diện.</p>
 </blockquote>
@@ -907,7 +876,7 @@ Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
 <tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
 </tbody></table>
 <hr>
-<h3 id="86-system_mail_settings-cấu-hình-gửi-email">8.6. <code>system_mail_settings</code> – Cấu hình gửi email</h3>
+<h3 id="76-system_mail_settings-cấu-hình-gửi-email">7.6. <code>system_mail_settings</code> – Cấu hình gửi email</h3>
 <blockquote>
 <p><strong>Chỉ 1 dòng</strong> (<code>id = 1</code>). Mật khẩu SMTP lưu <strong>đã mã hoá</strong>, không lưu thô.</p>
 </blockquote>
@@ -958,7 +927,6 @@ Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
 <li><code>salary_advances</code></li>
 <li><code>system_branding_settings</code></li>
 <li><code>system_mail_settings</code></li>
-<li><code>disciplines_rewards</code></li>
 <li><code>work_history</code></li>
 <li><code>documents</code></li>
 <li><code>announcements</code></li>

@@ -91,8 +91,7 @@
     "refresh": "Refresh",
     "comingSoon": "Coming soon",
     "comingSoonAria": "{{label}} (coming soon)",
-    "confirm": "Confirm",
-    "all": "All"
+    "confirm": "Confirm"
   },
   "crud": {
     "totalRecords": "{{total}} records in total",
@@ -188,7 +187,6 @@
       "DEPENDENT_ALREADY_CLAIMED": "This person is already claimed by another employee. A dependent can only be claimed by a single taxpayer.",
       "DEPENDENT_NOT_FOUND": "Dependent not found.",
       "DEPENDENT_REASON_REQUIRED": "A reason is required when stopping a deduction.",
-      "DISCIPLINE_REWARD_NOT_FOUND": "Reward or discipline decision not found.",
       "DUPLICATE_CCCD": "That ID number already exists in the system.",
       "DUPLICATE_CONTRACT_NUMBER": "That contract number already exists.",
       "DUPLICATE_EMAIL": "That email is already in use.",
@@ -198,7 +196,6 @@
       "DUPLICATE_TAX_CODE": "That tax code already exists.",
       "DUPLICATE_USERNAME": "That username is already taken.",
       "ECONNABORTED": "The request timed out. Please try again.",
-      "EFFECTIVE_BEFORE_DECISION": "The effective date cannot precede the decision date.",
       "EMPLOYEE_ALREADY_HAS_ACCOUNT": "This employee already has a login account.",
       "EMPLOYEE_NOT_DELETED": "This record is not deleted, so there is nothing to restore.",
       "EMPLOYEE_NOT_FOUND": "The selected employee no longer exists. Their record may have just been deleted — please reload the page and pick again.",
@@ -931,7 +928,6 @@
       "salary": "Salary",
       "leave": "Leave",
       "attendance": "Attendance",
-      "rewards": "Rewards",
       "family": "Family",
       "comingSoonTitle": "No {{name}} data yet",
       "comingSoonDetail": "This feature belongs to phase {{phase}} of the plan."
@@ -1494,47 +1490,6 @@
         "phone": "Phone allowance",
         "attendance": "Attendance allowance",
         "payOvertime": "Pay overtime"
-      }
-    }
-  },
-  "hr": {
-    "rewards": {
-      "create": "Add decision",
-      "edit": "Edit decision",
-      "empty": "No reward or discipline decisions yet",
-      "loadError": "Could not load rewards and disciplines",
-      "createSuccess": "Decision added",
-      "updateSuccess": "Decision updated",
-      "deleteSuccess": "Decision deleted",
-      "deleteConfirm": "Delete this decision?",
-      "datesHint": "Decision date and the date it takes effect.",
-      "disciplineFormsHint": "Article 124 of the 2019 Labour Code allows only three disciplinary forms; fines are unlawful (Article 128).",
-      "type": {
-        "reward": "Reward",
-        "discipline": "Discipline"
-      },
-      "columns": {
-        "type": "Type",
-        "title": "Subject",
-        "decisionDate": "Decision date",
-        "effectiveDate": "Effective from",
-        "decisionNumber": "Decision no.",
-        "issuedBy": "Issued by"
-      },
-      "fields": {
-        "type": "Type",
-        "category": "Form",
-        "title": "Title",
-        "description": "Details",
-        "decisionNumber": "Decision no.",
-        "dates": "Decision – effective date",
-        "note": "Note"
-      },
-      "errors": {
-        "category": "Pick or type a form",
-        "title": "Enter a title",
-        "description": "Enter the details",
-        "dates": "Pick the decision and effective dates"
       }
     }
   }

@@ -26,11 +26,10 @@ import { ComingSoonTab } from './tabs/ComingSoonTab';
 import { ContractsTab } from './tabs/ContractsTab';
 import { FamilyTab } from './tabs/FamilyTab';
 import { PersonalTab } from './tabs/PersonalTab';
-import { RewardsTab } from './tabs/RewardsTab';
 import styles from './EmployeeDetailPage.module.css';
 
 /**
- * `/employees/:id` — one employee, in six tabs.
+ * `/employees/:id` — one employee, in five tabs.
  *
  * TABS KEEP THEIR STATE (PLAN test §3.2 "click tab không reload lại tab khác").
  * Two things make that true: AntD keeps a rendered pane mounted once visited
@@ -43,7 +42,7 @@ import styles from './EmployeeDetailPage.module.css';
  *
  * Ba tab còn trống — lương, phép, chấm công — có backend rồi nhưng chưa có bản
  * xem theo từng người; chúng render `ComingSoonTab` nêu rõ giai đoạn thay vì bị
- * ẩn đi, vì sáu tab là hình dạng của một hồ sơ nhân viên ở đây và giấu bớt sẽ
+ * ẩn đi, vì năm tab là hình dạng của một hồ sơ nhân viên ở đây và giấu bớt sẽ
  * làm màn hình trông như đã xong.
  */
 
@@ -168,17 +167,6 @@ export function EmployeeDetailPage() {
         children: <ComingSoonTab titleKey="employees.tabs.attendance" phase="4" />,
       },
       {
-        key: 'rewards',
-        label: t('employees.tabs.rewards'),
-        children: (
-          <RewardsTab
-            employeeId={employee.id}
-            canWrite={canWrite}
-            canDelete={canDelete}
-          />
-        ),
-      },
-      {
         key: 'family',
         label: t('employees.tabs.family'),
         children: <FamilyTab employeeId={employee.id} canWrite={canWrite} />,
@@ -186,7 +174,6 @@ export function EmployeeDetailPage() {
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    canDelete,
     canWrite,
     canWriteContracts,
     employee,

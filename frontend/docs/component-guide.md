@@ -177,7 +177,7 @@ Hiển thị ngày theo định dạng VN. Props: `value` (ISO string), `format`
 
 Wizard dùng **một** instance `Form` cho cả 4 bước (ẩn pane không hoạt động thay vì unmount) nên không mất dữ liệu người dùng đã gõ; nút "Tiếp" chỉ validate field của **bước hiện tại**.
 
-**EmployeeDetailPage** dùng Tabs — hiện có `PersonalTab`, `ContractsTab`, `RewardsTab`, `FamilyTab` (kèm `DependentsSection`); ba tab còn lại (Lương & Phụ cấp, Phép năm, Chấm công) render `ComingSoonTab` cho tới khi có bản xem theo từng nhân viên.
+**EmployeeDetailPage** dùng Tabs — hiện có `PersonalTab`, `ContractsTab`, `FamilyTab` (kèm `DependentsSection`); ba tab còn lại (Lương & Phụ cấp, Phép năm, Chấm công) render `ComingSoonTab` cho tới khi có bản xem theo từng nhân viên.
 
 ### 4.2 Attendance (Chấm công)
 

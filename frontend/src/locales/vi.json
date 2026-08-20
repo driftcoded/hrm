@@ -91,8 +91,7 @@
     "refresh": "Làm mới",
     "comingSoon": "Sắp có",
     "comingSoonAria": "{{label}} (sắp có)",
-    "confirm": "Xác nhận",
-    "all": "Tất cả"
+    "confirm": "Xác nhận"
   },
   "crud": {
     "totalRecords": "Tổng {{total}} bản ghi",
@@ -188,7 +187,6 @@
       "DEPENDENT_ALREADY_CLAIMED": "Người này đã được một nhân viên khác đăng ký giảm trừ. Mỗi người phụ thuộc chỉ được khai cho một người nộp thuế.",
       "DEPENDENT_NOT_FOUND": "Không tìm thấy người phụ thuộc.",
       "DEPENDENT_REASON_REQUIRED": "Cần nhập lý do khi ngừng giảm trừ.",
-      "DISCIPLINE_REWARD_NOT_FOUND": "Không tìm thấy quyết định khen thưởng/kỷ luật.",
       "DUPLICATE_CCCD": "Số CCCD này đã tồn tại trong hệ thống.",
       "DUPLICATE_CONTRACT_NUMBER": "Số hợp đồng này đã tồn tại.",
       "DUPLICATE_EMAIL": "Email này đã được dùng.",
@@ -198,7 +196,6 @@
       "DUPLICATE_TAX_CODE": "Mã số thuế này đã tồn tại.",
       "DUPLICATE_USERNAME": "Tên đăng nhập này đã được dùng.",
       "ECONNABORTED": "Yêu cầu bị hủy do quá thời gian chờ. Vui lòng thử lại.",
-      "EFFECTIVE_BEFORE_DECISION": "Ngày hiệu lực không được trước ngày ra quyết định.",
       "EMPLOYEE_ALREADY_HAS_ACCOUNT": "Nhân viên này đã có tài khoản đăng nhập.",
       "EMPLOYEE_NOT_DELETED": "Hồ sơ này chưa bị xóa nên không cần khôi phục.",
       "EMPLOYEE_NOT_FOUND": "Không tìm thấy nhân viên đã chọn. Có thể hồ sơ vừa bị xóa — vui lòng tải lại trang và chọn lại.",
@@ -931,7 +928,6 @@
       "salary": "Lương",
       "leave": "Phép",
       "attendance": "Chấm công",
-      "rewards": "Khen thưởng",
       "family": "Gia đình",
       "comingSoonTitle": "Mục {{name}} chưa có dữ liệu",
       "comingSoonDetail": "Tính năng này thuộc Giai đoạn {{phase}} của kế hoạch."
@@ -1494,47 +1490,6 @@
         "phone": "Phụ cấp điện thoại",
         "attendance": "Phụ cấp chuyên cần",
         "payOvertime": "Trả tiền làm thêm giờ"
-      }
-    }
-  },
-  "hr": {
-    "rewards": {
-      "create": "Thêm quyết định",
-      "edit": "Sửa quyết định",
-      "empty": "Chưa có quyết định khen thưởng hay kỷ luật nào",
-      "loadError": "Không tải được danh sách khen thưởng/kỷ luật",
-      "createSuccess": "Đã thêm quyết định",
-      "updateSuccess": "Đã cập nhật quyết định",
-      "deleteSuccess": "Đã xóa quyết định",
-      "deleteConfirm": "Xóa quyết định này?",
-      "datesHint": "Ngày ra quyết định và ngày bắt đầu có hiệu lực.",
-      "disciplineFormsHint": "Điều 124 BLLĐ 2019 chỉ có ba hình thức kỷ luật; phạt tiền là trái luật (Điều 128).",
-      "type": {
-        "reward": "Khen thưởng",
-        "discipline": "Kỷ luật"
-      },
-      "columns": {
-        "type": "Loại",
-        "title": "Nội dung",
-        "decisionDate": "Ngày quyết định",
-        "effectiveDate": "Hiệu lực từ",
-        "decisionNumber": "Số quyết định",
-        "issuedBy": "Người ký"
-      },
-      "fields": {
-        "type": "Loại",
-        "category": "Hình thức",
-        "title": "Tiêu đề",
-        "description": "Nội dung chi tiết",
-        "decisionNumber": "Số quyết định",
-        "dates": "Ngày quyết định – hiệu lực",
-        "note": "Ghi chú"
-      },
-      "errors": {
-        "category": "Chọn hoặc nhập hình thức",
-        "title": "Nhập tiêu đề",
-        "description": "Nhập nội dung chi tiết",
-        "dates": "Chọn ngày quyết định và ngày hiệu lực"
       }
     }
   }

@@ -81,7 +81,6 @@
 
 | Tiếng Việt | Viết tắt | Tiếng Anh | Mô tả / Ghi chú |
 |------------|---------|-----------|-----------------|
-| Khen thưởng | – | Reward / Commendation | Thưởng vật chất hoặc tinh thần |
 | Kỷ luật | – | Discipline | Cảnh cáo / Khiển trách / Sa thải |
 | Khiển trách | – | Reprimand | Hình thức kỷ luật bằng văn bản |
 | Kinh phí công đoàn | KPCĐ | Union Fee | NSDLĐ đóng 2% quỹ lương |
@@ -233,7 +232,6 @@
 | `bonus` | Thưởng | |
 | `deduction` | Khấu trừ | |
 | `payslip` | Phiếu lương | |
-| `disciplineReward` | Khen thưởng / Kỷ luật | |
 | `workHistory` | Lịch sử công tác | |
 | `dependent` | Người phụ thuộc | |
 | `familyMember` | Thành viên gia đình | |

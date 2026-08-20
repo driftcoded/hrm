@@ -189,7 +189,7 @@ src/
 │
 ├── common/                        # Shared across toàn bộ app
 │   ├── constants/                 # roles.constant.ts, attendance.constant.ts
-│   ├── data/                      # vn-provinces.json (34), vn-wards.json (3.321)
+│   ├── data/                      # vn-administrative-units-2025.csv + loader
 │   ├── decorators/                # @CurrentUser, @Roles, @Public, @ApiAuth,
 │   │                              # @IsBooleanValue
 │   ├── dto/                       # pagination, pagination-response,
@@ -234,9 +234,9 @@ src/
     ├── employees/     ✅          ├── salaries/          (chỉ entity)
     ├── departments/   ✅          ├── documents/         (chỉ entity)
     ├── contracts/     ✅          ├── work-history/      (chỉ entity)
-    ├── leaves/        ✅ (chỉ leave-types)  ├── disciplines-rewards/ ✅
+    ├── leaves/        ✅ (chỉ leave-types)  ├── announcements/     (chỉ entity)
     ├── system/        ✅ (provinces/wards/holidays)
-    ├── family-members/✅          ├── announcements/     (chỉ entity)
+    ├── family-members/✅
     ├── dependents/    ✅          └── audit-logs/        (chỉ entity)
     └── reports/       ✅ (xuất Excel nhân viên + bảng công)
 ```
@@ -415,14 +415,14 @@ Hiện chỉ có **auth** dùng cache, với 3 nhóm key:
 
 ### 8.2. Dữ liệu tham chiếu tĩnh (thay cho cache tỉnh/huyện/xã)
 
-Danh mục hành chính **không** nằm trong DB và **không** cần cache: chúng là file JSON đóng gói cùng app trong `src/common/data/`, nạp **một lần lúc khởi động** và gom sẵn theo tỉnh trong bộ nhớ.
+Danh mục hành chính **không** nằm trong DB và **không** cần cache: đó là file danh mục của cơ quan thuế đóng gói cùng app trong `src/common/data/`, đọc và phân tích **một lần lúc khởi động** rồi gom sẵn theo tỉnh trong bộ nhớ.
 
 | File | Nội dung |
 |------|----------|
-| `vn-provinces.json` | **34** tỉnh/thành phố (sau sáp nhập 01/07/2025) |
-| `vn-wards.json` | **3.321** phường/xã/đặc khu (687 phường, 2.621 xã, 13 đặc khu) |
+| `vn-administrative-units-2025.csv` | Bản phát hành gốc: **34** tỉnh/thành và **3.321** phường/xã/đặc khu (687 phường, 2.621 xã, 13 đặc khu) |
+| `administrative-units.ts` | Đọc file trên, chuẩn hoá tên, phân loại và gom theo tỉnh |
 
-Sinh bằng `scripts/build-vn-admin-data.ts` từ danh mục cơ quan thuế; **app không gọi API ngoài lúc chạy**.
+**Đọc thẳng file gốc, không giữ bản JSON sinh lại từ nó**: bản phái sinh phải nhớ sinh lại mỗi lần danh mục đổi, và không có gì báo khi người ta quên. **App không gọi API ngoài lúc chạy**.
 
 > **Cấp huyện đã bị bỏ.** Từ 01/07/2025 (Luật 72/2025/QH15) Việt Nam còn chính quyền địa phương **2 cấp**. Vì vậy không có key `districts:*`, không có endpoint `/system/districts`, và `employees.district_code` chỉ còn là cột nullable để đọc hồ sơ cũ.
 

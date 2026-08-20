@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * Migration that creates all 27 tables in the exact order defined in
+ * Migration that creates all 26 tables in the exact order defined in
  * docs/database-schema.md §"Migration Order" (to avoid FK constraint errors).
  *
  * ĐÂY LÀ MIGRATION DUY NHẤT CỦA DỰ ÁN. Dự án còn ở giai đoạn phát triển, chưa
@@ -599,28 +599,6 @@ export class InitSchema1787061755739 implements MigrationInterface {
       INSERT INTO system_mail_settings (id) VALUES (1);
     `);
 
-    // 27. disciplines_rewards
-    await queryRunner.query(`
-      CREATE TABLE disciplines_rewards (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        employee_id BIGINT UNSIGNED NOT NULL,
-        type ENUM('reward','discipline') NOT NULL,
-        category VARCHAR(100) NOT NULL,
-        title VARCHAR(255) NOT NULL,
-        description TEXT NOT NULL,
-        decision_number VARCHAR(50) NULL,
-        decision_date DATE NOT NULL,
-        effective_date DATE NOT NULL,
-        issued_by BIGINT UNSIGNED NULL,
-        document_url VARCHAR(500) NULL,
-        note TEXT NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_disc_rewards_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
-        CONSTRAINT fk_disc_rewards_issuer FOREIGN KEY (issued_by) REFERENCES employees(id) ON DELETE SET NULL
-      ) ${charset};
-    `);
-
     // 23. work_history (INSERT only, never UPDATE)
     await queryRunner.query(`
       CREATE TABLE work_history (
@@ -713,7 +691,6 @@ export class InitSchema1787061755739 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS announcements;`);
     await queryRunner.query(`DROP TABLE IF EXISTS documents;`);
     await queryRunner.query(`DROP TABLE IF EXISTS work_history;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS disciplines_rewards;`);
     await queryRunner.query(`DROP TABLE IF EXISTS system_mail_settings;`);
     await queryRunner.query(`DROP TABLE IF EXISTS system_branding_settings;`);
     await queryRunner.query(`DROP TABLE IF EXISTS salary_advances;`);

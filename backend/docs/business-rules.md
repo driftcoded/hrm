@@ -581,8 +581,7 @@ Mức hưởng: **75%** bình quân lương đóng BHXH (BHXH chi trả, không 
 
 - Thời hiệu xử lý kỷ luật: **6 tháng** kể từ ngày vi phạm (90 ngày với vi phạm liên quan tài chính, tài sản).
 - **Không được phạt tiền**, không được trừ lương thay cho kỷ luật (Điều 128 BLLĐ).
-  Bảng `disciplines_rewards` vì thế **không có cột tiền**; tiền thưởng thực trả
-  đi qua `salaries.performance_bonus`.
+  Tiền thưởng thực trả đi qua `salaries.performance_bonus`.
 - Phải thành lập hội đồng xử lý kỷ luật, có biên bản, quyết định bằng văn bản.
 
 ---

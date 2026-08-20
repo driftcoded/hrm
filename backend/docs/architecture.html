@@ -329,7 +329,7 @@ HTTP Response  { success, data, timestamp }
 │
 ├── common/                        # Shared across toàn bộ app
 │   ├── constants/                 # roles.constant.ts, attendance.constant.ts
-│   ├── data/                      # vn-provinces.json (34), vn-wards.json (3.321)
+│   ├── data/                      # vn-administrative-units-2025.csv + loader
 │   ├── decorators/                # @CurrentUser, @Roles, @Public, @ApiAuth,
 │   │                              # @IsBooleanValue
 │   ├── dto/                       # pagination, pagination-response,
@@ -533,14 +533,14 @@ HTTP Response  { success, data, timestamp }
 </tbody></table>
 <p><strong>Chưa có</strong> cache cho <code>holidays</code>, <code>leave_types</code> hay bất kỳ master data nào — và cũng chưa cần: chúng là truy vấn nhỏ trên bảng nhỏ.</p>
 <h3 id="82-dữ-liệu-tham-chiếu-tĩnh-thay-cho-cache-tỉnhhuyệnxã">8.2. Dữ liệu tham chiếu tĩnh (thay cho cache tỉnh/huyện/xã)</h3>
-<p>Danh mục hành chính <strong>không</strong> nằm trong DB và <strong>không</strong> cần cache: chúng là file JSON đóng gói cùng app trong <code>src/common/data/</code>, nạp <strong>một lần lúc khởi động</strong> và gom sẵn theo tỉnh trong bộ nhớ.</p>
+<p>Danh mục hành chính <strong>không</strong> nằm trong DB và <strong>không</strong> cần cache: đó là file danh mục của cơ quan thuế đóng gói cùng app trong <code>src/common/data/</code>, đọc và phân tích <strong>một lần lúc khởi động</strong> rồi gom sẵn theo tỉnh trong bộ nhớ.</p>
 <table><thead>
 <tr><th>File</th><th>Nội dung</th></tr>
 </thead><tbody>
-<tr><td><code>vn-provinces.json</code></td><td><strong>34</strong> tỉnh/thành phố (sau sáp nhập 01/07/2025)</td></tr>
-<tr><td><code>vn-wards.json</code></td><td><strong>3.321</strong> phường/xã/đặc khu (687 phường, 2.621 xã, 13 đặc khu)</td></tr>
+<tr><td><code>vn-administrative-units-2025.csv</code></td><td>Bản phát hành gốc: <strong>34</strong> tỉnh/thành và <strong>3.321</strong> phường/xã/đặc khu (687 phường, 2.621 xã, 13 đặc khu)</td></tr>
+<tr><td><code>administrative-units.ts</code></td><td>Đọc file trên, chuẩn hoá tên, phân loại và gom theo tỉnh</td></tr>
 </tbody></table>
-<p>Sinh bằng <code>scripts/build-vn-admin-data.ts</code> từ danh mục cơ quan thuế; <strong>app không gọi API ngoài lúc chạy</strong>.</p>
+<p><strong>Đọc thẳng file gốc, không giữ bản JSON sinh lại từ nó</strong>: bản phái sinh phải nhớ sinh lại mỗi lần danh mục đổi, và không có gì báo khi người ta quên. <strong>App không gọi API ngoài lúc chạy</strong>.</p>
 <blockquote>
 <p><strong>Cấp huyện đã bị bỏ.</strong> Từ 01/07/2025 (Luật 72/2025/QH15) Việt Nam còn chính quyền địa phương <strong>2 cấp</strong>. Vì vậy không có key <code>districts:*</code>, không có endpoint <code>/system/districts</code>, và <code>employees.district_code</code> chỉ còn là cột nullable để đọc hồ sơ cũ.</p>
 </blockquote>

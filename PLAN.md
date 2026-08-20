@@ -16,10 +16,10 @@
 | 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
 | 5 | Phép | 41 / 41 | ✅ Hoàn thành |
 | 6 | Lương | 33 / 35 | 🟡 Đã kiểm chứng qua API; 2 mục cần mở trình duyệt |
-| 7 | Khen thưởng & Kỷ luật | 11 / 11 | ✅ Hoàn thành (đã bỏ Đánh giá + Đào tạo khỏi phạm vi) |
+| 7 | — | — | ⛔ Đã bỏ khỏi phạm vi (Đánh giá, Đào tạo, Khen thưởng/Kỷ luật) |
 | 8 | Thông báo & Hoàn thiện | 0 / 34 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 226 / 279 tasks hoàn thành
+**Tổng:** 215 / 268 tasks hoàn thành
 
 > ### Cách đếm
 >
@@ -650,50 +650,24 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 
 ---
 
-## Giai đoạn 7 — Khen thưởng & Kỷ luật
+## Giai đoạn 7 — (đã bỏ khỏi phạm vi)
 
-> ### Đánh giá hiệu suất và Đào tạo đã bị bỏ khỏi phạm vi
+> Giai đoạn này từng gồm ba phân hệ: **Đánh giá hiệu suất**, **Đào tạo** và
+> **Khen thưởng / Kỷ luật**. Cả ba đã dựng xong backend lẫn giao diện, rồi bị
+> **gỡ bỏ hoàn toàn** — bảng trong DB, module, màn hình, mã lỗi, tài liệu.
 >
-> Hai phân hệ này từng được dựng xong cả backend lẫn giao diện, rồi **bị gỡ bỏ
-> hoàn toàn** — bảng trong DB, module, màn hình, mã lỗi, tài liệu (migration
-> `1787290000000-DropReviewsAndTrainings`).
+> Đánh giá và đào tạo bị bỏ trước: một phiếu đánh giá chỉ có nghĩa khi có bộ
+> tiêu chí để đối chiếu, mà bộ tiêu chí thì mỗi phòng ban một khác và phải để
+> công ty tự cấu hình (thang điểm, nhóm tiêu chí, trọng số, ngưỡng xếp loại) —
+> một phân hệ lớn hơn hẳn phần đã dựng. Đào tạo đi kèm vì giá trị chính của nó
+> là lấp khoảng cách năng lực mà đánh giá chỉ ra.
 >
-> Lý do: một phiếu đánh giá chỉ có nghĩa khi có **bộ tiêu chí** để đối chiếu, và
-> bộ tiêu chí thì mỗi phòng ban một khác — phòng Kinh doanh chấm theo doanh số,
-> phòng Kế toán chấm theo độ chính xác sổ sách. Bản đã dựng chấm cả công ty bằng
-> ba con số cứng (KPI / thái độ / kỹ năng, thang 0–100) nên không nói được "80
-> điểm là đạt hay chưa đạt". Làm cho đúng thì phải cho công ty **tự cấu hình**
-> thang điểm, nhóm tiêu chí, trọng số và ngưỡng xếp loại — một phân hệ riêng,
-> lớn hơn hẳn phần đã có. Công ty quyết định không dùng, nên gỡ thay vì để lại
-> một màn hình chấm điểm không ai tin được con số.
+> Khen thưởng / kỷ luật bị bỏ sau, theo cùng quyết định phạm vi. Quy định pháp
+> luật liên quan (Điều 124–128 BLLĐ 2019) vẫn giữ trong `docs/business-rules.md`
+> §14 để dùng lại nếu sau này công ty cần.
 >
-> Đào tạo đi kèm: giá trị chính của nó là **lấp khoảng cách năng lực mà đánh giá
-> chỉ ra**. Không còn đánh giá thì danh mục khoá học chỉ là một cái bảng rời.
->
-> ### Nhân viên không tự thao tác
->
-> Nhân viên **không đăng nhập hệ thống này** — quyết định đã chốt từ giai đoạn 4.
-> Quyết định khen thưởng / kỷ luật do nhân sự nhập, không có luồng "NV tự khai".
-
-### 7.1 Backend Khen thưởng & Kỷ luật
-- [x] `DisciplinesRewardsModule`: CRUD khen thưởng / kỷ luật theo NV
-- [x] Bản ghi KHÔNG mang tiền — Điều 128 BLLĐ 2019 cấm phạt tiền thay kỷ luật;
-      tiền thưởng thực trả đi qua `salaries.performance_bonus`
-- [x] Phạm vi dữ liệu bám theo `resolveScope` của hồ sơ nhân viên
-
-**Tests (7.1):**
-- [x] Ngày hiệu lực trước ngày ký → 422 `EFFECTIVE_BEFORE_DECISION`
-- [x] Đổi loại quyết định giữa khen thưởng và kỷ luật
-- [x] Bản ghi của nhân viên khác trên cùng đường dẫn → 404, không sửa được
-
-### 7.2 Frontend Khen thưởng & Kỷ luật
-- [x] Tab Khen thưởng/kỷ luật trong chi tiết NV
-- [x] Lọc khen thưởng / kỷ luật, mở rộng dòng để đọc nội dung quyết định
-- [x] Gợi ý hình thức kỷ luật theo Điều 124 BLLĐ 2019 (3 hình thức), cho gõ tự do
-
-**Tests (7.2):**
-- [x] Thêm / sửa / xoá quyết định, danh sách cập nhật ngay
-- [x] Vai trò không có quyền xoá thì không thấy nút xoá
+> Số thứ tự các giai đoạn giữ nguyên: đổi số sẽ làm sai mọi tham chiếu "Giai
+> đoạn 8" đang nằm rải rác trong code và tài liệu.
 
 ---
 

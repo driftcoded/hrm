@@ -203,7 +203,7 @@ export class CreateEmployeeDto {
     example: '10105001',
     maxLength: 10,
     description:
-      'Mã phường/xã/đặc khu theo danh mục cơ quan thuế (src/common/data/vn-wards.json)',
+      'Mã phường/xã/đặc khu theo danh mục cơ quan thuế (src/common/data/vn-administrative-units-2025.csv)',
   })
   @IsString()
   @Matches(AREA_CODE_PATTERN, { message: 'wardCode must be 1-10 digits' })

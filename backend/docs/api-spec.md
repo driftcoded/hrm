@@ -25,12 +25,11 @@
 11. [Dependents – Người phụ thuộc](#11-dependents--người-phụ-thuộc)
 12. [Documents – Tài liệu](#12-documents--tài-liệu)
 13. [Users – Tài khoản](#13-users--tài-khoản)
-14. [Disciplines & Rewards – Khen thưởng & Kỷ luật](#14-disciplines--rewards--khen-thưởng--kỷ-luật)
-15. [Announcements – Thông báo nội bộ](#15-announcements--thông-báo-nội-bộ)
-16. [Leave Balances – Quản lý ngày phép (Admin)](#16-leave-balances--quản-lý-ngày-phép-admin)
-17. [Reports – Báo cáo](#17-reports--báo-cáo)
-18. [System – Dữ liệu hệ thống](#18-system--dữ-liệu-hệ-thống)
-19. [Error Codes](#19-error-codes)
+14. [Announcements – Thông báo nội bộ](#14-announcements--thông-báo-nội-bộ)
+15. [Leave Balances – Quản lý ngày phép (Admin)](#15-leave-balances--quản-lý-ngày-phép-admin)
+16. [Reports – Báo cáo](#16-reports--báo-cáo)
+17. [System – Dữ liệu hệ thống](#17-system--dữ-liệu-hệ-thống)
+18. [Error Codes](#18-error-codes)
 
 ---
 
@@ -158,7 +157,7 @@ GET  /roles             POST /users
 
 Các endpoint được mô tả trong tài liệu nhưng **chưa hiện thực**: §12 (Documents), §17 (Announcements), `GET /employees/:id/work-history` (§3), `GET /users` · `PATCH /users/:id` · `PATCH /users/:id/reset-password` (§13), và mọi report ngoài `GET /reports/employees/export` (§19).
 
-Đã hiện thực từ khi dòng này được viết: §7 (Attendances, giai đoạn 4), §8 (Leaves, giai đoạn 5), §9 (Salaries, giai đoạn 6), §14 (Khen thưởng/kỷ luật — giai đoạn 7).
+Đã hiện thực từ khi dòng này được viết: §7 (Attendances, giai đoạn 4), §8 (Leaves, giai đoạn 5), §9 (Salaries, giai đoạn 6).
 
 ---
 
@@ -1558,65 +1557,7 @@ Tạo tài khoản đăng nhập cho một nhân viên. Hồ sơ nhân viên (`e
 
 ---
 
-## 14. Disciplines & Rewards – Khen thưởng & Kỷ luật
-
-> **Bản ghi này không mang tiền.** Điều 128 BLLĐ 2019 cấm phạt tiền và cấm trừ
-> lương thay cho kỷ luật; còn tiền thưởng thực trả đi qua `performanceBonus` của
-> bảng lương (§9). Cột `amount` đã bị bỏ khỏi bảng.
-
-### GET `/employees/:employeeId/disciplines-rewards`
-> 🔒 Auth required — phạm vi theo hồ sơ nhân viên (`manager` chỉ xem phòng mình).
-
-**Query:** `?type=reward` | `?type=discipline`
-
-Mới nhất trước, theo ngày ký quyết định. Không phân trang.
-
-```json
-[
-  {
-    "id": 1, "employeeId": 51, "type": "reward",
-    "category": "Thưởng KPI",
-    "title": "Hoàn thành xuất sắc Q1/2026",
-    "description": "Vượt KPI 120%",
-    "decisionNumber": "QD-2026-001",
-    "decisionDate": "2026-04-01", "effectiveDate": "2026-04-01",
-    "issuedBy": { "id": 3, "fullName": "Trần Thị Giám Đốc" },
-    "documentUrl": null, "note": null,
-    "createdAt": "2026-04-01T02:00:00.000Z"
-  }
-]
-```
-
-### POST `/employees/:employeeId/disciplines-rewards`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
-
-```json
-{
-  "type": "discipline", "category": "Khiển trách",
-  "title": "Vi phạm nội quy công ty",
-  "description": "Đi muộn liên tục 3 ngày trong tháng 5/2026",
-  "decisionNumber": "QD-KC-2026-005",
-  "decisionDate": "2026-05-20", "effectiveDate": "2026-06-01",
-  "issuedById": 3
-}
-```
-
-`decisionDate` là ngày ký, `effectiveDate` là ngày có hiệu lực — hai mốc khác
-nhau, cả hai bắt buộc, và hiệu lực không được đứng trước ngày ký.
-
-**Errors:** `422 EFFECTIVE_BEFORE_DECISION`
-
-### PATCH `/employees/:employeeId/disciplines-rewards/:recordId`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
-
-Mọi trường tuỳ chọn, kể cả `type`. Hiệu lực vẫn không được đứng trước ngày ký.
-
-### DELETE `/employees/:employeeId/disciplines-rewards/:recordId`
-> 🔒 Roles: `admin`, `hr_manager` — hẹp hơn quyền ghi.
-
----
-
-## 15. Announcements – Thông báo nội bộ
+## 14. Announcements – Thông báo nội bộ
 
 > ⏳ **Toàn bộ §17 chưa hiện thực** (Giai đoạn 8).
 
@@ -1678,7 +1619,7 @@ Lấy thông báo theo đối tượng của người dùng hiện tại.
 
 ---
 
-## 16. Leave Balances – Quản lý ngày phép
+## 15. Leave Balances – Quản lý ngày phép
 
 > **Đã gộp vào [§8](#8-leaves--nghỉ-phép).** Mục này từng mô tả một API khác với
 > API thật — `POST /leave-balances/init-year` với `carryOverLimit`, `PATCH` với
@@ -1690,7 +1631,7 @@ Lấy thông báo theo đối tượng của người dùng hiện tại.
 
 ---
 
-## 17. Reports – Báo cáo
+## 16. Reports – Báo cáo
 
 > **Trạng thái:** chỉ `GET /reports/employees/export` đã hiện thực. Các report còn lại của §19 chưa có. (Số liệu tổng quan nhân sự hiện lấy qua `GET /employees/stats` — xem §3.)
 
@@ -1771,7 +1712,7 @@ Xuất danh sách nhân viên ra Excel (`.xlsx`), 3 sheet theo đúng thứ tự
 
 ---
 
-## 18. System – Dữ liệu hệ thống
+## 17. System – Dữ liệu hệ thống
 
 > 🔒 **Mọi endpoint `/system/*` đều yêu cầu đăng nhập.** Tài liệu này từng ghi `/system/leave-types` là public; thực tế guard mặc định vẫn áp dụng (PLAN 2.1).
 >
@@ -1783,7 +1724,7 @@ Từ **01/07/2025**, **Luật 72/2025/QH15** chấm dứt hoạt động của *
 
 Vì vậy API chỉ có **hai** endpoint danh mục: `/system/provinces` và `/system/wards`. **Không có `/system/districts`** — endpoint đó từng được mô tả ở đây và đã bị gỡ bỏ cùng cấp hành chính mà nó phục vụ.
 
-Dữ liệu đọc từ **file tĩnh** đi kèm app (`src/common/data/vn-provinces.json`, `vn-wards.json`, sinh bằng `scripts/build-vn-admin-data.ts` từ danh mục cơ quan thuế), **không phải từ DB** và **không gọi API ngoài lúc chạy**. Danh sách bất biến trong một lần chạy nên frontend cache thoải mái.
+Dữ liệu đọc thẳng từ **file danh mục của cơ quan thuế** đi kèm app (`src/common/data/vn-administrative-units-2025.csv`), **không phải từ DB** và **không gọi API ngoài lúc chạy**. Danh sách bất biến trong một lần chạy nên frontend cache thoải mái.
 
 ---
 
@@ -1874,7 +1815,7 @@ Không nằm trong §20 gốc nhưng đã hiện thực, nên ghi lại ở đâ
 
 ---
 
-## 19. Error Codes
+## 18. Error Codes
 
 ### HTTP Status Codes
 

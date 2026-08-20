@@ -11,8 +11,8 @@ Hệ thống quản lý nhân sự (HRM) cho công ty Việt Nam.
 - `npm run migration:generate -- src/database/migrations/<Name>`
 - `npm run migration:run` – Apply migrations
 - `npm run seed` – Seed master data: roles, ngày lễ, 9 loại nghỉ phép, users
-  (KHÔNG seed tỉnh/xã: danh mục hành chính là file JSON tĩnh trong
-  `src/common/data/`, và cấp huyện đã bị bỏ từ 01/07/2025)
+  (KHÔNG seed tỉnh/xã: danh mục hành chính đọc thẳng từ file CSV của cơ quan
+  thuế trong `src/common/data/`, và cấp huyện đã bị bỏ từ 01/07/2025)
 - `npm run seed:demo` – Seed dữ liệu demo (phòng ban, chức vụ, nhân viên mẫu)
 - `npm run seed:contract` – Seed hợp đồng cho nhân viên demo
 - `npm run seed:attendance` – Seed bảng công 01/07–19/08/2026 (thêm `-- --reset` để

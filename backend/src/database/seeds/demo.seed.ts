@@ -81,7 +81,7 @@ const EMPLOYEE_CODE_PREFIX = 'NV';
 // ------------------------------------------------------------ locations ----
 
 interface DemoLocation {
-  /** From `src/common/data/vn-provinces.json` (34-province list). */
+  /** From `src/common/data/vn-administrative-units-2025.csv` (34-province list). */
   provinceCode: string;
   provinceName: string;
   /** Short form used for `hometown`. */

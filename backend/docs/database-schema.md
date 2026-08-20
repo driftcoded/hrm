@@ -15,10 +15,9 @@
 5. [Nhóm 4 – Hợp đồng lao động](#nhóm-4--hợp-đồng-lao-động)
 6. [Nhóm 5 – Chấm công & Nghỉ phép](#nhóm-5--chấm-công--nghỉ-phép)
 7. [Nhóm 6 – Lương & Phúc lợi](#nhóm-6--lương--phúc-lợi)
-8. [Nhóm 7 – Khen thưởng & Kỷ luật](#nhóm-7--khen-thưởng--kỷ-luật)
-9. [Nhóm 8 – Tài liệu & Hệ thống](#nhóm-8--tài-liệu--hệ-thống)
-10. [Thứ tự Migration](#thứ-tự-migration)
-11. [Seed Data cần chuẩn bị](#seed-data-cần-chuẩn-bị)
+8. [Nhóm 7 – Tài liệu & Hệ thống](#nhóm-7--tài-liệu--hệ-thống)
+9. [Thứ tự Migration](#thứ-tự-migration)
+10. [Seed Data cần chuẩn bị](#seed-data-cần-chuẩn-bị)
 
 ---
 
@@ -38,7 +37,6 @@ users ──── employees ──┬── departments (self-ref, có manager_
                        ├── dependents
                        ├── family_members
                        ├── work_history
-                       ├── disciplines_rewards
                        └── documents
 
 holidays    (standalone – lịch nghỉ lễ VN)
@@ -288,10 +286,9 @@ Bảng trung gian many-to-many giữa `roles` và `permissions`. Không có cộ
 > địa phương **2 cấp** (Luật 72/2025/QH15): 34 tỉnh/thành → 3.321 phường/xã/đặc
 > khu (2.621 xã + 687 phường + 13 đặc khu). Cấp huyện không còn.
 >
-> Danh mục nằm ở `src/common/data/vn-provinces.json` và `vn-wards.json`, sinh từ
-> danh mục chính thống của cơ quan thuế bằng `scripts/build-vn-admin-data.ts`
-> (đã đối chiếu chéo với provinces.open-api.vn v2: 34/34 tỉnh khớp, 0 tỉnh lệch
-> số lượng, 3.310/3.321 tên khớp tuyệt đối). App KHÔNG gọi API ngoài lúc chạy.
+> Danh mục nằm ở `src/common/data/vn-administrative-units-2025.csv` — chính bản
+> phát hành của cơ quan thuế, đọc thẳng lúc khởi động chứ không qua bản JSON
+> sinh lại. App KHÔNG gọi API ngoài lúc chạy.
 >
 > Mỗi phường/xã mang kèm `legacyDistrictCode`/`legacyDistrictName` để tra ngược
 > hồ sơ cũ. Mã phường/xã dùng hệ TMS của cơ quan thuế, không phải mã GSO — để
@@ -661,36 +658,9 @@ Lưu breakdown chi tiết từng dòng của phiếu lương, liên kết với 
 
 ---
 
-## Nhóm 7 – Khen thưởng & Kỷ luật
+## Nhóm 7 – Tài liệu & Hệ thống
 
-### 7.1. `disciplines_rewards` – Khen thưởng & Kỷ luật
-
-> Bảng này **không mang tiền**. Điều 128 BLLĐ 2019 cấm phạt tiền thay cho kỷ
-> luật, còn tiền thưởng thực trả đi qua `salaries.performance_bonus`. Cột
-> `amount` đã bị bỏ (migration `1787280000000`).
-
-| Cột | Kiểu | Bắt buộc | Mô tả |
-|-----|------|:--------:|-------|
-| id | ID tự tăng | ✅ | Khóa chính |
-| employee_id | FK → employees | ✅ | Đối tượng được khen/kỷ luật |
-| type | enum | ✅ | `reward` (khen thưởng) · `discipline` (kỷ luật) |
-| category | text (100) | ✅ | Phân loại cụ thể: "Thưởng KPI" · "Cảnh cáo" · "Khiển trách"… |
-| title | text (255) | ✅ | Tiêu đề quyết định |
-| description | văn bản dài | ✅ | Mô tả chi tiết lý do |
-| decision_number | text (50) | ❌ | Số quyết định |
-| decision_date | ngày | ✅ | Ngày ban hành quyết định |
-| effective_date | ngày | ✅ | Ngày có hiệu lực |
-| issued_by | FK → employees | ❌ | Người ký quyết định |
-| document_url | text (500) | ❌ | Link quyết định trên S3 |
-| note | văn bản dài | ❌ | – |
-| created_at | thời điểm | ✅ | Tự động |
-| updated_at | thời điểm | ✅ | Tự động cập nhật |
-
----
-
-## Nhóm 8 – Tài liệu & Hệ thống
-
-### 8.1. `work_history` – Lịch sử công tác
+### 7.1. `work_history` – Lịch sử công tác
 
 Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên tại công ty. Chỉ INSERT, không UPDATE.
 
@@ -714,7 +684,7 @@ Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên t�
 
 ---
 
-### 8.2. `documents` – Tài liệu hồ sơ nhân viên
+### 7.2. `documents` – Tài liệu hồ sơ nhân viên
 
 | Cột | Kiểu | Bắt buộc | Mô tả |
 |-----|------|:--------:|-------|
@@ -734,7 +704,7 @@ Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên t�
 
 ---
 
-### 8.3. `announcements` – Thông báo nội bộ
+### 7.3. `announcements` – Thông báo nội bộ
 
 | Cột | Kiểu | Bắt buộc | Mô tả |
 |-----|------|:--------:|-------|
@@ -754,7 +724,7 @@ Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên t�
 
 ---
 
-### 8.4. `audit_logs` – Nhật ký thao tác
+### 7.4. `audit_logs` – Nhật ký thao tác
 
 > **Bảng này chỉ INSERT, tuyệt đối không UPDATE hay DELETE. Giữ tối thiểu 2 năm.**
 
@@ -774,7 +744,7 @@ Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên t�
 
 ---
 
-### 8.5. `system_branding_settings` – Thương hiệu
+### 7.5. `system_branding_settings` – Thương hiệu
 
 > **Chỉ 1 dòng** (`id = 1`). Tên công ty, logo và favicon hiện trên giao diện.
 
@@ -789,7 +759,7 @@ Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên t�
 
 ---
 
-### 8.6. `system_mail_settings` – Cấu hình gửi email
+### 7.6. `system_mail_settings` – Cấu hình gửi email
 
 > **Chỉ 1 dòng** (`id = 1`). Mật khẩu SMTP lưu **đã mã hoá**, không lưu thô.
 
@@ -840,11 +810,10 @@ Tạo bảng theo thứ tự sau để tránh lỗi Foreign Key constraint:
 20. `salary_advances`
 21. `system_branding_settings`
 22. `system_mail_settings`
-23. `disciplines_rewards`
-24. `work_history`
-25. `documents`
-26. `announcements`
-27. `audit_logs`
+23. `work_history`
+24. `documents`
+25. `announcements`
+26. `audit_logs`
 
 > Sau bước 8: `ALTER TABLE departments ADD CONSTRAINT fk_dept_manager FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL;`
 
