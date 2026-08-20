@@ -394,6 +394,25 @@ export class EmployeesRepository {
     return this.scoped(departmentScope).getCount();
   }
 
+  /** Số nhân viên còn làm việc (bỏ `resigned`/`terminated`), lọc thêm theo phòng ban nếu có. */
+  countEmployed(options: {
+    departmentId?: number;
+    departmentScope?: number[];
+  }): Promise<number> {
+    const query = this.scoped(options.departmentScope).andWhere(
+      'employee.status NOT IN (:...leftStatuses)',
+      { leftStatuses: [EmployeeStatus.RESIGNED, EmployeeStatus.TERMINATED] },
+    );
+
+    if (options.departmentId !== undefined) {
+      query.andWhere('employee.departmentId = :departmentId', {
+        departmentId: options.departmentId,
+      });
+    }
+
+    return query.getCount();
+  }
+
   async countByStatus(departmentScope?: number[]): Promise<StatusCount[]> {
     const rows = await this.scoped(departmentScope)
       .select('employee.status', 'status')

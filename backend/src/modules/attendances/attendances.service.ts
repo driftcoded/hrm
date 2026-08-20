@@ -22,10 +22,21 @@ import { EmployeesService } from '@/modules/employees/employees.service';
 import { HolidaysService } from '@/modules/system/holidays.service';
 import { AttendancesRepository } from './attendances.repository';
 import { AttendanceResponseDto } from './dto/attendance-response.dto';
+import {
+  AttendanceDailyStatDto,
+  AttendanceStatsDto,
+  emptyStatusCounts,
+} from './dto/attendance-stats.dto';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { FilterAttendanceDto } from './dto/filter-attendance.dto';
+import { FilterAttendanceStatsDto } from './dto/filter-attendance-stats.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { Attendance, AttendanceStatus } from './entities/attendance.entity';
+
+/** Làm tròn giờ công về 2 chữ số thập phân. */
+function roundHours(value: number): number {
+  return Math.round(value * 100) / 100;
+}
 
 /**
  * Nghiệp vụ chấm công (PLAN 4.1, business-rules.md §12).
@@ -196,6 +207,104 @@ export class AttendancesService {
       page,
       limit,
     );
+  }
+
+  // ------------------------------------------------------------ thống kê ----
+
+  /**
+   * `GET /attendances/stats` — số liệu cho biểu đồ chấm công.
+   *
+   * Trả về cả tháng trong một lần gọi: `daily` phục vụ cả biểu đồ theo ngày lẫn
+   * tỉ lệ trạng thái của một ngày bất kỳ. Không có bộ lọc trạng thái.
+   * Phạm vi phòng ban theo `resolveScope`, giống `findAll`.
+   */
+  async getStats(
+    filter: FilterAttendanceStatsDto,
+    user: AuthenticatedUser,
+  ): Promise<AttendanceStatsDto> {
+    const scope = await this.employeesService.resolveScope(user);
+
+    if (scope.kind === 'self') {
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: `Role "${user.role}" cannot read attendance statistics`,
+      });
+    }
+
+    // Thiếu tháng/năm thì mặc định tháng hiện tại (khác `findAll`, ở đó là không lọc).
+    const now = new Date();
+    const year = filter.year ?? now.getFullYear();
+    const month = filter.month ?? now.getMonth() + 1;
+    const range = this.monthRange(month, year);
+
+    const departmentScope =
+      scope.kind === 'department' ? scope.departmentIds : undefined;
+
+    const [rows, employeeCount] = await Promise.all([
+      this.attendancesRepository.aggregateByDateAndStatus({
+        employeeId: filter.employeeId,
+        departmentId: filter.departmentId,
+        dateRange: range,
+        departmentScope,
+      }),
+      // Lọc theo một nhân viên thì mẫu số là chính người đó.
+      filter.employeeId !== undefined
+        ? Promise.resolve(1)
+        : this.employeesService.countEmployed({
+            departmentId: filter.departmentId,
+            departmentScope,
+          }),
+    ]);
+
+    // Dựng đủ trục ngày trước, rồi mới đổ số vào — ngày trống vẫn là một phần tử.
+    const daily = new Map<string, AttendanceDailyStatDto>();
+
+    for (
+      let day = new Date(`${range.from}T00:00:00Z`);
+      toDateOnlyString(day.toISOString()) <= range.to;
+      day = new Date(day.getTime() + 24 * 60 * 60 * 1000)
+    ) {
+      const date = toDateOnlyString(day.toISOString());
+      daily.set(date, { date, counts: emptyStatusCounts(), total: 0 });
+    }
+
+    const totals = emptyStatusCounts();
+    let totalRecords = 0;
+    let totalWorkHours = 0;
+    let totalOvertimeHours = 0;
+
+    for (const row of rows) {
+      const date = toDateOnlyString(row.date);
+      const entry = daily.get(date);
+
+      // Bỏ qua ngày nằm ngoài khoảng đã hỏi.
+      if (!entry) {
+        continue;
+      }
+
+      const count = Number(row.count);
+      const workHours = Number(row.workHours);
+      const overtimeHours = Number(row.overtimeHours);
+
+      entry.counts[row.status] += count;
+      entry.total += count;
+
+      totals[row.status] += count;
+      totalRecords += count;
+      totalWorkHours += workHours;
+      totalOvertimeHours += overtimeHours;
+    }
+
+    return {
+      from: range.from,
+      to: range.to,
+      totals,
+      totalRecords,
+      employeeCount,
+      totalWorkHours: roundHours(totalWorkHours),
+      totalOvertimeHours: roundHours(totalOvertimeHours),
+      daily: [...daily.values()],
+    };
   }
 
   // -------------------------------------------------------- điều chỉnh ----

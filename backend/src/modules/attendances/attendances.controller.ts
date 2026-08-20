@@ -42,8 +42,10 @@ import { AttendanceImportService } from './attendance-import.service';
 import { buildImportTemplate } from './attendance-template.util';
 import { AttendancesService } from './attendances.service';
 import { AttendanceResponseDto } from './dto/attendance-response.dto';
+import { AttendanceStatsDto } from './dto/attendance-stats.dto';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { FilterAttendanceDto } from './dto/filter-attendance.dto';
+import { FilterAttendanceStatsDto } from './dto/filter-attendance-stats.dto';
 import { ImportQueryDto } from './dto/import-query.dto';
 import { AttendanceImportResultDto } from './dto/import-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
@@ -190,6 +192,28 @@ export class AttendancesController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<PaginatedResponseDto<AttendanceResponseDto>> {
     return this.attendancesService.findAll(filter, user);
+  }
+
+  /** Khai báo TRƯỚC `@Get(':id')`, nếu không `/attendances/stats` sẽ rơi vào `:id`. */
+  @Get('stats')
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Số liệu chấm công theo ngày và theo trạng thái',
+    description:
+      'Cho biểu đồ trên màn hình chấm công. Lọc theo `month`+`year` (mặc định tháng hiện tại), ' +
+      '`departmentId`, `employeeId`. KHÔNG có `status` — kết quả chính là phân tích theo trạng thái.\n\n' +
+      '`daily` phủ kín mọi ngày trong tháng, kể cả ngày không có bản ghi nào. ' +
+      '`manager` chỉ thấy phòng ban mình quản, giống `GET /attendances`.',
+  })
+  @ApiOkResponse({ type: AttendanceStatsDto })
+  @ApiForbiddenResponse({
+    description: 'FORBIDDEN – role không có phạm vi đọc bảng chấm công',
+  })
+  getStats(
+    @Query() filter: FilterAttendanceStatsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<AttendanceStatsDto> {
+    return this.attendancesService.getStats(filter, user);
   }
 
   @Get(':id')

@@ -105,6 +105,7 @@ describe('AttendancesService', () => {
             ),
             findByEmployeeAndDate: jest.fn().mockResolvedValue(null),
             findByEmployeeInRange: jest.fn().mockResolvedValue([]),
+            aggregateByDateAndStatus: jest.fn().mockResolvedValue([]),
             create: jest.fn((record: Attendance) => {
               lastWritten = stamp(record);
               return Promise.resolve(lastWritten);
@@ -120,6 +121,7 @@ describe('AttendancesService', () => {
           useValue: {
             resolveScope: jest.fn().mockResolvedValue({ kind: 'all' }),
             findOne: jest.fn().mockResolvedValue({ id: 51 }),
+            countEmployed: jest.fn().mockResolvedValue(65),
           },
         },
         {
@@ -406,6 +408,144 @@ describe('AttendancesService', () => {
           dateRange: { from: '2028-02-01', to: '2028-02-29' },
         }),
       );
+    });
+  });
+
+  describe('getStats', () => {
+    /*
+     * Ngày không có bản ghi vẫn phải là một phần tử. Trả về thưa thì biểu đồ vẽ
+     * Chủ nhật sát ngay thứ Sáu như thể tuần đó chỉ có sáu ngày.
+     */
+    it('covers every day of the month, including days with no records', async () => {
+      const stats = await service.getStats({ month: 2, year: 2028 }, hrUser);
+
+      // 2028 nhuận — 29 ngày, không phải 28.
+      expect(stats.daily).toHaveLength(29);
+      expect(stats.daily[0].date).toBe('2028-02-01');
+      expect(stats.daily[28].date).toBe('2028-02-29');
+      expect(stats.from).toBe('2028-02-01');
+      expect(stats.to).toBe('2028-02-29');
+    });
+
+    /* Mọi trạng thái luôn có mặt: thiếu khoá bắt mỗi người gọi tự đoán là 0. */
+    it('reports every status key even when nothing happened', async () => {
+      const stats = await service.getStats({ month: 5, year: 2026 }, hrUser);
+
+      expect(stats.totals).toEqual({
+        present: 0,
+        absent: 0,
+        late: 0,
+        early_leave: 0,
+        leave: 0,
+        holiday: 0,
+        wfh: 0,
+      });
+      expect(stats.totalRecords).toBe(0);
+    });
+
+    it('folds the aggregate rows into the right day and status', async () => {
+      repository.aggregateByDateAndStatus.mockResolvedValue([
+        {
+          date: '2026-05-04',
+          status: AttendanceStatus.PRESENT,
+          count: '12',
+          workHours: '96.00',
+          overtimeHours: '1.50',
+        },
+        {
+          date: '2026-05-04',
+          status: AttendanceStatus.LATE,
+          count: '2',
+          workHours: '15.50',
+          overtimeHours: '0.00',
+        },
+        {
+          date: '2026-05-05',
+          status: AttendanceStatus.ABSENT,
+          count: '1',
+          workHours: '0',
+          overtimeHours: '0',
+        },
+      ]);
+
+      const stats = await service.getStats({ month: 5, year: 2026 }, hrUser);
+      const day4 = stats.daily.find((entry) => entry.date === '2026-05-04');
+
+      expect(day4).toMatchObject({ total: 14 });
+      expect(day4?.counts.present).toBe(12);
+      expect(day4?.counts.late).toBe(2);
+
+      expect(stats.totals).toMatchObject({ present: 12, late: 2, absent: 1 });
+      expect(stats.totalRecords).toBe(15);
+      expect(stats.totalWorkHours).toBe(111.5);
+    });
+
+    /*
+     * mysql2 trả cột DATE dưới dạng `Date` với một số cấu hình driver. Ghép theo
+     * `String(date)` sẽ trượt khỏi mọi khoá trên trục và biểu đồ ra rỗng.
+     */
+    it('matches rows whose date arrives as a Date object', async () => {
+      repository.aggregateByDateAndStatus.mockResolvedValue([
+        {
+          date: new Date(2026, 4, 4),
+          status: AttendanceStatus.PRESENT,
+          count: '3',
+          workHours: '24',
+          overtimeHours: '0',
+        },
+      ]);
+
+      const stats = await service.getStats({ month: 5, year: 2026 }, hrUser);
+
+      expect(
+        stats.daily.find((entry) => entry.date === '2026-05-04')?.counts
+          .present,
+      ).toBe(3);
+      expect(stats.totalRecords).toBe(3);
+    });
+
+    /* Mẫu số là số nhân viên, không phải số bản ghi đã có. */
+    it('reports the employed headcount as the denominator', async () => {
+      const stats = await service.getStats({ month: 5, year: 2026 }, hrUser);
+
+      expect(stats.employeeCount).toBe(65);
+    });
+
+    it('uses a denominator of one when filtering to a single employee', async () => {
+      const stats = await service.getStats(
+        { month: 5, year: 2026, employeeId: 51 },
+        hrUser,
+      );
+
+      expect(stats.employeeCount).toBe(1);
+      expect(employeesService.countEmployed).not.toHaveBeenCalled();
+    });
+
+    /* Biểu đồ không được là đường vòng để đọc số của phòng ban khác. */
+    it('passes the manager department scope down to the aggregate query', async () => {
+      employeesService.resolveScope.mockResolvedValue({
+        kind: 'department',
+        departmentIds: [2, 3],
+      });
+
+      await service.getStats({ month: 5, year: 2026 }, managerUser);
+
+      expect(repository.aggregateByDateAndStatus).toHaveBeenCalledWith(
+        expect.objectContaining({ departmentScope: [2, 3] }),
+      );
+    });
+
+    it('refuses a role whose scope is only itself', async () => {
+      employeesService.resolveScope.mockResolvedValue({
+        kind: 'self',
+        employeeId: 12,
+      });
+
+      const error = await captureError(() =>
+        service.getStats({ month: 5, year: 2026 }, hrUser),
+      );
+
+      expect(error).toEqual({ status: 403, code: 'FORBIDDEN' });
     });
   });
 });

@@ -151,6 +151,14 @@ export class EmployeesService {
    * thống kê phòng ban mình, đúng như danh sách họ xem được. Nếu không, tổng
    * số nhân viên toàn công ty sẽ rò rỉ qua một endpoint khác.
    */
+  /** Số nhân viên còn làm việc trong phạm vi — mẫu số cho biểu đồ chấm công. */
+  countEmployed(options: {
+    departmentId?: number;
+    departmentScope?: number[];
+  }): Promise<number> {
+    return this.employeesRepository.countEmployed(options);
+  }
+
   async findStats(user: AuthenticatedUser): Promise<EmployeeStatsDto> {
     const scope = await this.resolveScope(user);
 

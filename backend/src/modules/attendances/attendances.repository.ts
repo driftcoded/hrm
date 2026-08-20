@@ -11,11 +11,17 @@ const SORT_COLUMNS: Record<AttendanceSortKey, string> = {
   workHours: 'attendance.workHours',
 };
 
-export interface FindAttendancesOptions {
-  skip: number;
-  take: number;
-  sort: AttendanceSortKey;
-  order: 'ASC' | 'DESC';
+/** Một ô của phép GROUP BY (ngày × trạng thái); số trả về dạng chuỗi, ép kiểu ở service. */
+export interface AttendanceAggregateRow {
+  date: string | Date;
+  status: AttendanceStatus;
+  count: string;
+  workHours: string;
+  overtimeHours: string;
+}
+
+/** Điều kiện WHERE dùng chung cho cả truy vấn phân trang và truy vấn tổng hợp. */
+export interface AttendanceFilterOptions {
   employeeId?: number;
   departmentId?: number;
   status?: AttendanceStatus;
@@ -23,6 +29,13 @@ export interface FindAttendancesOptions {
   dateRange?: { from: string; to: string };
   /** Giới hạn theo phòng ban – role `manager` (architecture.md §7.3). */
   departmentScope?: number[];
+}
+
+export interface FindAttendancesOptions extends AttendanceFilterOptions {
+  skip: number;
+  take: number;
+  sort: AttendanceSortKey;
+  order: 'ASC' | 'DESC';
 }
 
 /**
@@ -56,6 +69,29 @@ export class AttendancesRepository {
     this.applyFilters(query, options);
 
     return query.getManyAndCount();
+  }
+
+  /** Đếm bản ghi và cộng giờ, gộp theo (ngày, trạng thái). Không nhận `status`. */
+  aggregateByDateAndStatus(
+    options: Omit<AttendanceFilterOptions, 'status'>,
+  ): Promise<AttendanceAggregateRow[]> {
+    const query = this.repository
+      .createQueryBuilder('attendance')
+      // Join chỉ để lọc theo phòng ban, không lấy cột nào của employees.
+      .innerJoin('attendance.employee', 'employee')
+      .select('attendance.workDate', 'date')
+      .addSelect('attendance.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      // COALESCE: một ngày mà `work_hours` toàn NULL thì SUM trả về NULL.
+      .addSelect('COALESCE(SUM(attendance.workHours), 0)', 'workHours')
+      .addSelect('COALESCE(SUM(attendance.overtimeHours), 0)', 'overtimeHours')
+      .groupBy('attendance.workDate')
+      .addGroupBy('attendance.status')
+      .orderBy('attendance.workDate', 'ASC');
+
+    this.applyFilters(query, options);
+
+    return query.getRawMany<AttendanceAggregateRow>();
   }
 
   /** Bản ghi chấm công của một nhân viên trong một ngày, nếu có. */
@@ -95,7 +131,7 @@ export class AttendancesRepository {
 
   private applyFilters(
     query: ReturnType<Repository<Attendance>['createQueryBuilder']>,
-    options: FindAttendancesOptions,
+    options: AttendanceFilterOptions,
   ): void {
     if (options.employeeId !== undefined) {
       query.andWhere('attendance.employeeId = :employeeId', {
