@@ -19,6 +19,12 @@ export interface DonutSlice {
   label: string;
   value: number;
   slot: DonutSlot;
+  /**
+   * Class setting `--slice` to a colour of the caller's own, used INSTEAD of the
+   * slot colour. For a chart whose colours belong to a domain (attendance
+   * statuses) rather than to the categorical order.
+   */
+  className?: string;
 }
 
 /** Reserved key of the folded tail, so it cannot collide with a real entity id. */

@@ -4,6 +4,8 @@ import type {
   AttendanceFilters,
   AttendanceImportResult,
   AttendanceRecord,
+  AttendanceStats,
+  AttendanceStatsFilters,
   CreateAttendancePayload,
   UpdateAttendancePayload,
 } from '@/types/attendance.types';
@@ -71,6 +73,13 @@ export function listAttendances(
   filters?: AttendanceFilters,
 ): Promise<PaginatedData<AttendanceRecord>> {
   return get<PaginatedData<AttendanceRecord>>('/attendances', filters);
+}
+
+/** Số liệu cho biểu đồ chấm công — một lần gọi trả cả tháng. */
+export function getAttendanceStats(
+  filters?: AttendanceStatsFilters,
+): Promise<AttendanceStats> {
+  return get<AttendanceStats>('/attendances/stats', filters);
 }
 
 export async function updateAttendance(

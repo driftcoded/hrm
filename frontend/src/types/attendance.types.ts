@@ -99,6 +99,44 @@ export interface UpdateAttendancePayload {
   note: string;
 }
 
+// ------------------------------------------------------------ thống kê ----
+
+export type AttendanceStatusCounts = Record<AttendanceStatus, number>;
+
+/** Một ngày trong kỳ thống kê. */
+export interface AttendanceDailyStat {
+  /** `YYYY-MM-DD`. */
+  date: string;
+  counts: AttendanceStatusCounts;
+  total: number;
+}
+
+/**
+ * Kết quả `GET /attendances/stats`.
+ *
+ * `daily` có đủ mọi ngày từ `from` tới `to`, kể cả ngày không có bản ghi nào.
+ * `totals` là tổng của `daily`.
+ */
+export interface AttendanceStats {
+  from: string;
+  to: string;
+  totals: AttendanceStatusCounts;
+  totalRecords: number;
+  /** Số nhân viên còn làm việc trong phạm vi lọc — mẫu số của biểu đồ. */
+  employeeCount: number;
+  totalWorkHours: number;
+  totalOvertimeHours: number;
+  daily: AttendanceDailyStat[];
+}
+
+/** Query của thống kê — không có `status` và không phân trang. */
+export interface AttendanceStatsFilters {
+  employeeId?: number;
+  departmentId?: number;
+  month?: number;
+  year?: number;
+}
+
 // ------------------------------------------------------------- import ----
 
 export interface AttendanceImportError {

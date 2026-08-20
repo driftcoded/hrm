@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react';
-import { App, Button, DatePicker, Select, Space, Tooltip } from 'antd';
+import { App, Button, Col, DatePicker, Row, Select, Space, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
+  CalendarOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
   EditOutlined,
   ExportOutlined,
+  FieldTimeOutlined,
   ImportOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -11,6 +15,8 @@ import {
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { AttendanceStatusTag } from '@/components/attendance/AttendanceStatusTag';
+import { AttendanceOverviewRail } from '@/components/attendance/AttendanceOverviewRail';
+import { StatTile } from '@/components/employees/StatTile';
 import { AddAttendanceModal } from '@/components/attendance/AddAttendanceModal';
 import { AdjustAttendanceModal } from '@/components/attendance/AdjustAttendanceModal';
 import { ImportAttendanceModal } from '@/components/attendance/ImportAttendanceModal';
@@ -19,6 +25,7 @@ import { useAllDepartments } from '@/hooks/useDepartments';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import {
   useAttendances,
+  useAttendanceStats,
   useExportAttendances,
 } from '@/hooks/useAttendances';
 import {
@@ -27,6 +34,7 @@ import {
 } from '@/hooks/usePermissions';
 import { useTableQuery } from '@/hooks/useTableQuery';
 import { flattenDepartmentTree } from '@/utils/departmentTree';
+import { formatNumber, formatPercent } from '@/utils/format';
 import {
   ATTENDANCE_STATUSES,
   type AttendanceRecord,
@@ -100,6 +108,43 @@ export function AttendanceTablePage() {
     status,
   });
 
+  /*
+   * Biểu đồ theo tháng + phòng ban, KHÔNG theo `status`: bản thân biểu đồ là
+   * phân tích theo trạng thái, lọc sẵn một trạng thái thì nó luôn ra 100%.
+   */
+  const stats = useAttendanceStats({ month, year, departmentId });
+
+  const [pickedDate, setPickedDate] = useState<string | null>(null);
+
+  /**
+   * Ngày cho biểu đồ tỉ lệ: hôm nay nếu tháng đang xem có hôm nay, ngược lại là
+   * ngày gần nhất có bản ghi.
+   *
+   * Suy ra chứ không lưu trong state, nên đổi tháng là tự về mặc định của tháng
+   * mới thay vì trỏ vào một ngày không còn nằm trong dữ liệu.
+   */
+  const selectedDate = useMemo(() => {
+    if (!stats.data) {
+      return null;
+    }
+
+    if (pickedDate && pickedDate >= stats.data.from && pickedDate <= stats.data.to) {
+      return pickedDate;
+    }
+
+    const today = dayjs().format('YYYY-MM-DD');
+
+    if (today >= stats.data.from && today <= stats.data.to) {
+      return today;
+    }
+
+    const lastWithData = [...stats.data.daily]
+      .reverse()
+      .find((entry) => entry.total > 0);
+
+    return lastWithData?.date ?? stats.data.from;
+  }, [stats.data, pickedDate]);
+
   const { exportAttendances, isExporting } = useExportAttendances();
 
   const [adjusting, setAdjusting] = useState<AttendanceRecord | null>(null);
@@ -109,6 +154,32 @@ export function AttendanceTablePage() {
   const rows = list.data?.items ?? [];
   const total = list.data?.meta.total ?? 0;
   const hasFilters = departmentId !== undefined || status !== undefined;
+
+  /** Con số cho bốn thẻ tổng quan — `null` khi chưa có số liệu. */
+  const tiles = useMemo(() => {
+    if (!stats.data) {
+      return null;
+    }
+
+    const { totals, totalRecords } = stats.data;
+    const working = totals.present + totals.wfh;
+    const irregular = totals.late + totals.early_leave;
+    const share = (value: number) =>
+      totalRecords > 0 ? formatPercent((value / totalRecords) * 100) : formatPercent(0);
+
+    return {
+      totalRecords,
+      working,
+      workingShare: share(working),
+      irregular,
+      irregularShare: share(irregular),
+      absent: totals.absent,
+      leave: totals.leave,
+      overtimeHours: stats.data.totalOvertimeHours,
+      workHours: stats.data.totalWorkHours,
+      employeeCount: stats.data.employeeCount,
+    };
+  }, [stats.data]);
 
   const setMonth = (next: Dayjs | null) => {
     if (!next) {
@@ -234,8 +305,74 @@ export function AttendanceTablePage() {
       : []),
   ];
 
+  const tileValue = (value: number | undefined) =>
+    tiles && value !== undefined ? formatNumber(value) : '—';
+
   return (
     <div className={styles.page}>
+      {/* --------------------------------------------- overview tiles --- */}
+      {/* Cùng khuôn với màn Nhân viên: bốn thẻ lên trên cùng, rồi mới tới thanh
+          lọc đứng sát bảng mà nó lọc. */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} xl={6}>
+          <StatTile
+            tone="blue"
+            icon={<CalendarOutlined />}
+            label={t('attendance.tiles.records')}
+            value={tileValue(tiles?.totalRecords)}
+            caption={
+              tiles
+                ? t('attendance.tiles.recordsCaption', { count: tiles.employeeCount })
+                : ''
+            }
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatTile
+            tone="teal"
+            icon={<CheckCircleOutlined />}
+            label={t('attendance.tiles.working')}
+            value={tileValue(tiles?.working)}
+            caption={
+              tiles
+                ? t('attendance.tiles.workingCaption', { percent: tiles.workingShare })
+                : ''
+            }
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatTile
+            tone="orange"
+            icon={<ClockCircleOutlined />}
+            label={t('attendance.tiles.irregular')}
+            value={tileValue(tiles?.irregular)}
+            caption={
+              tiles
+                ? t('attendance.tiles.irregularCaption', {
+                    absent: tiles.absent,
+                    leave: tiles.leave,
+                  })
+                : ''
+            }
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <StatTile
+            tone="purple"
+            icon={<FieldTimeOutlined />}
+            label={t('attendance.tiles.overtime')}
+            value={tileValue(tiles?.overtimeHours)}
+            caption={
+              tiles
+                ? t('attendance.tiles.overtimeCaption', {
+                    hours: formatNumber(tiles.workHours),
+                  })
+                : ''
+            }
+          />
+        </Col>
+      </Row>
+
       {/* Thanh lọc nằm thẳng trên nền trang, không bọc card — nó là dải điều
           khiển của bảng ngay bên dưới. */}
       <div className={styles.filterRow}>
@@ -322,26 +459,44 @@ export function AttendanceTablePage() {
         </Space>
       </div>
 
-      <DataTableCard<AttendanceRecord>
-        columns={columns}
-        rows={rows}
-        isLoading={list.isLoading}
-        isRefreshing={list.isFetching && !list.isLoading}
-        isError={list.isError}
-        onRetry={list.refetch}
-        errorMessage={t('attendance.loadError')}
-        hasFilters={hasFilters}
-        total={total}
-        scrollX={1120}
-        pagination={{
-          page: table.page,
-          pageSize: table.pageSize,
-          total,
-          onChange: table.setPagination,
-        }}
-        onSorterChange={table.setSorter}
-        activeSort={{ key: table.sort, order: table.order }}
-      />
+      {/* ------------------------------------------------------- body --- */}
+      <div className={styles.body}>
+        <div className={styles.main}>
+          <DataTableCard<AttendanceRecord>
+            columns={columns}
+            rows={rows}
+            isLoading={list.isLoading}
+            isRefreshing={list.isFetching && !list.isLoading}
+            isError={list.isError}
+            onRetry={list.refetch}
+            errorMessage={t('attendance.loadError')}
+            hasFilters={hasFilters}
+            total={total}
+            // Phân trang dưới bảng đã in "Tổng N bản ghi" rồi.
+            showCount={false}
+            scrollX={1120}
+            pagination={{
+              page: table.page,
+              pageSize: table.pageSize,
+              total,
+              onChange: table.setPagination,
+            }}
+            onSorterChange={table.setSorter}
+            activeSort={{ key: table.sort, order: table.order }}
+          />
+        </div>
+
+        <aside className={styles.rail}>
+          <AttendanceOverviewRail
+            stats={stats.data}
+            isLoading={stats.isLoading}
+            isError={stats.isError}
+            onRetry={() => void stats.refetch()}
+            selectedDate={selectedDate}
+            onSelectDate={setPickedDate}
+          />
+        </aside>
+      </div>
 
       <AddAttendanceModal
         open={isAddOpen}

@@ -1,0 +1,34 @@
+/*
+ * Màu của sáu nhóm trạng thái chấm công.
+ *
+ * Mỗi class chỉ đặt `--slice` — biến mà DonutChart đọc để tô cung và ô chú giải.
+ */
+
+.present {
+  --slice: var(--hrm-attendance-present);
+}
+
+.wfh {
+  --slice: var(--hrm-attendance-wfh);
+}
+
+.late {
+  --slice: var(--hrm-attendance-late);
+}
+
+.leave {
+  --slice: var(--hrm-attendance-leave);
+}
+
+.absent {
+  --slice: var(--hrm-attendance-absent);
+}
+
+.holiday {
+  --slice: var(--hrm-attendance-holiday);
+}
+
+/* Xám giảm nhấn cho phần chưa có dữ liệu — cùng vai trò với `--hrm-chart-other`. */
+.noData {
+  --slice: var(--hrm-chart-other);
+}

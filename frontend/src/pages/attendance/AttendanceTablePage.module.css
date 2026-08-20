@@ -68,3 +68,30 @@
   color: var(--hrm-color-text-tertiary);
   font-size: var(--hrm-font-size-caption);
 }
+
+/* --- Hai cột: bảng + biểu đồ ở cột chính, số liệu ở cột phải (như màn Nhân viên) --- */
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--hrm-grid-gap);
+  align-items: start;
+}
+
+.main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+.rail {
+  min-width: 0;
+}
+
+/* Tablet trở xuống: cột phải rơi xuống dưới thay vì bóp bảng còn ~400px. */
+@media (max-width: 1199px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

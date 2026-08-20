@@ -23,7 +23,9 @@ import styles from './DonutChart.module.css';
  * COLOUR. Slot classes map to `--hrm-chart-1…7` from styles/tokens.css — a fixed
  * order validated for colour-vision separation against the white card surface (see
  * the comment on those tokens). `donutSlices.ts` assigns the slots and folds the
- * tail past seven into one grey "other" slice.
+ * tail past seven into one grey "other" slice. A slice may instead carry its own
+ * `className` setting `--slice`, for a chart whose colours belong to a domain
+ * (attendance statuses) rather than to the categorical order.
  *
  * INTERACTION. Hovering an arc or a legend row swaps the centre text to that
  * slice, which is the donut's tooltip — no floating layer to position, and the
@@ -55,6 +57,11 @@ export interface DonutChartProps {
   formatSliceValue: (value: number, percent: number) => string;
   /** Shown instead of the ring when there is nothing to divide up. */
   emptyText: string;
+  /**
+   * `row` (mặc định): vòng bên trái, chú giải bên phải — cho card rộng.
+   * `stacked`: vòng ở trên, chú giải ở dưới — cho cột rail hẹp.
+   */
+  layout?: 'row' | 'stacked';
 }
 
 const RADIUS = 60;
@@ -79,6 +86,7 @@ export function DonutChart({
   figureLabel,
   formatSliceValue,
   emptyText,
+  layout = 'row',
 }: DonutChartProps) {
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -111,7 +119,10 @@ export function DonutChart({
 
   return (
     <div className={styles.wrapper}>
-      <figure className={styles.figure} aria-label={figureLabel}>
+      <figure
+        className={layout === 'stacked' ? styles.figureStacked : styles.figure}
+        aria-label={figureLabel}
+      >
         <div className={styles.chart} onMouseLeave={() => setHovered(null)}>
           <svg viewBox="0 0 160 160" className={styles.svg} aria-hidden="true" focusable="false">
             <circle
@@ -127,7 +138,7 @@ export function DonutChart({
                 key={arc.key}
                 className={[
                   styles.arc,
-                  SLOT_CLASS[String(arc.slot)],
+                  arc.className ?? SLOT_CLASS[String(arc.slot)],
                   arc.key === hovered ? styles.arcActive : null,
                 ]
                   .filter(Boolean)
@@ -164,7 +175,7 @@ export function DonutChart({
               onMouseLeave={() => setHovered(null)}
             >
               <span
-                className={`${styles.swatch} ${SLOT_CLASS[String(arc.slot)]}`}
+                className={`${styles.swatch} ${arc.className ?? SLOT_CLASS[String(arc.slot)]}`}
                 aria-hidden="true"
               />
               <span className={styles.legendLabel} title={arc.label}>

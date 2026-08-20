@@ -1,0 +1,58 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+/* Ô ngày trên tiêu đề card hẹp — chỉ cần DD/MM là đủ định vị. */
+.datePicker {
+  width: 110px;
+}
+
+.denominator {
+  margin: var(--hrm-space-4) 0 0;
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  text-align: center;
+}
+
+.statList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-3);
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.statLabel {
+  flex: 1;
+  min-width: 0;
+  color: var(--hrm-color-text-secondary);
+}
+
+.statValue {
+  flex: none;
+  font-weight: 600;
+  color: var(--hrm-color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.statIconBlue {
+  color: var(--hrm-color-primary);
+}
+
+.statIconOrange {
+  color: var(--hrm-color-warning-strong);
+}
+
+.statIconTeal {
+  color: var(--hrm-color-teal);
+}

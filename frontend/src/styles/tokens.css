@@ -112,6 +112,30 @@
   /* Track behind the slices, so a rounding gap still reads as part of a ring. */
   --hrm-chart-track: #f0f0f0;
 
+  /* --- Attendance chart palette (§13) ---
+     Status data, so these are NOT the categorical --hrm-chart-* slots: they are
+     tied to the six buckets of the attendance charts and follow the hue of the
+     matching AttendanceStatusTag, so a segment and a tag read as one status.
+
+     `late` covers both `late` and `early_leave`: those two tags are orange and
+     gold, only ΔE 7.3 apart under normal vision — as chart fills they are the
+     same colour, so the charts show them as one bucket.
+
+     The DRAW ORDER is present -> wfh -> late -> leave -> absent -> holiday, and
+     it is the safety mechanism: blue next to purple, or orange next to gold,
+     fails CVD separation. Re-run before reordering or adding a bucket:
+
+       node scripts/validate_palette.js \
+         "#389e0d,#08979c,#d46b08,#1677ff,#cf1322,#722ed1" \
+         --mode light --surface "#ffffff"
+       -> ALL CHECKS PASS · worst adjacent ΔE 15.4 protan / 16.5 normal */
+  --hrm-attendance-present: #389e0d;
+  --hrm-attendance-wfh: #08979c;
+  --hrm-attendance-late: #d46b08;
+  --hrm-attendance-leave: #1677ff;
+  --hrm-attendance-absent: #cf1322;
+  --hrm-attendance-holiday: #722ed1;
+
   /* --- Radius (§2) --- */
   --hrm-radius: 6px;
   --hrm-radius-md: 10px;
@@ -218,21 +242,27 @@
      get DARKER than the accent to carry white, here it stays dark while the
      accent gets lighter. 7.23:1 under white. */
   --hrm-color-primary-solid: #1554ad;
-  --hrm-color-primary-soft: #111d2c;
-  --hrm-color-primary-softer: #0d1621;
+  /* The `-soft` tints are LIGHTER than the card here, not darker.
+     AntD's dark `colorSuccessBg` family (#162312, #2b2111, …) is built against
+     its own #141414 container; on this lighter #1e222a card those sink to
+     1.01–1.03:1 and the tinted square disappears, leaving a glyph floating in
+     mid-air. These sit 1.15–1.30 ABOVE the card so the tile reads as a tile,
+     while each still clears 4.5:1 against the glyph colour it carries. */
+  --hrm-color-primary-soft: #15304d;
+  --hrm-color-primary-softer: #182a41;
   --hrm-color-success: #73d13d;
-  --hrm-color-success-soft: #162312;
+  --hrm-color-success-soft: #1c3a20;
   --hrm-color-success-strong: #95de64;
   --hrm-color-warning: #ffc53d;
-  --hrm-color-warning-soft: #2b2111;
+  --hrm-color-warning-soft: #3a2f12;
   --hrm-color-warning-strong: #ffd666;
   --hrm-color-error: #ff7875;
-  --hrm-color-error-soft: #2c1618;
+  --hrm-color-error-soft: #4a282e;
   --hrm-color-error-strong: #ff9c9e;
   --hrm-color-accent: #b37feb;
-  --hrm-color-accent-soft: #1d1029;
+  --hrm-color-accent-soft: #332450;
   --hrm-color-teal: #36cfc9;
-  --hrm-color-teal-soft: #0c2426;
+  --hrm-color-teal-soft: #0f3a3c;
   --hrm-color-magenta: #ff85c0;
 
   /* --- Text ---
@@ -285,6 +315,19 @@
   /* De-emphasis grey for the folded "Khác" tail — 5.46:1 on the dark card. */
   --hrm-chart-other: #8c98ab;
   --hrm-chart-track: #2a2f3a;
+
+  /* Attendance buckets (§13), re-stepped for the dark card. Same six hues and
+     the same draw order; validated the same way:
+       node scripts/validate_palette.js \
+         "#49aa19,#08979c,#d87a16,#3c89e8,#e84749,#a067de" \
+         --mode dark --surface "#1e222a"
+       -> ALL CHECKS PASS · worst adjacent ΔE 15.2 protan / 17.4 normal */
+  --hrm-attendance-present: #49aa19;
+  --hrm-attendance-wfh: #08979c;
+  --hrm-attendance-late: #d87a16;
+  --hrm-attendance-leave: #3c89e8;
+  --hrm-attendance-absent: #e84749;
+  --hrm-attendance-holiday: #a067de;
 
   /* --- Elevation ---
      A soft navy shadow is invisible on a dark canvas, so the shadows go to near

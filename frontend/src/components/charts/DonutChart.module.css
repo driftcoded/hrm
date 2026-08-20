@@ -14,6 +14,19 @@
   min-width: 0;
 }
 
+/* Xếp dọc cho cột rail hẹp: vòng căn giữa ở trên, chú giải trải hết bề ngang. */
+.figureStacked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-4);
+  margin: 0;
+  min-width: 0;
+}
+
+.figureStacked .chart {
+  align-self: center;
+}
+
 .chart {
   position: relative;
   flex: none;

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createAttendance,
   downloadImportTemplate,
+  getAttendanceStats,
   importAttendances,
   listAttendances,
   updateAttendance,
@@ -9,6 +10,7 @@ import {
 import { exportAttendances } from '@/services/report.service';
 import type {
   AttendanceFilters,
+  AttendanceStatsFilters,
   CreateAttendancePayload,
   UpdateAttendancePayload,
 } from '@/types/attendance.types';
@@ -24,12 +26,27 @@ import { saveBlob } from '@/utils/download';
 export const ATTENDANCE_KEYS = {
   root: ['attendances'] as const,
   list: (filters?: AttendanceFilters) => ['attendances', 'list', filters] as const,
+  stats: (filters?: AttendanceStatsFilters) =>
+    ['attendances', 'stats', filters] as const,
 };
 
 export function useAttendances(filters?: AttendanceFilters) {
   return useQuery({
     queryKey: ATTENDANCE_KEYS.list(filters),
     queryFn: () => listAttendances(filters),
+  });
+}
+
+/**
+ * Số liệu cho biểu đồ chấm công.
+ *
+ * Một lần gọi trả cả tháng, nên đổi ngày trên biểu đồ không gọi lại server.
+ * Key nằm dưới `ATTENDANCE_KEYS.root` nên mọi thay đổi ngày công đều làm mới.
+ */
+export function useAttendanceStats(filters?: AttendanceStatsFilters) {
+  return useQuery({
+    queryKey: ATTENDANCE_KEYS.stats(filters),
+    queryFn: () => getAttendanceStats(filters),
   });
 }
 
