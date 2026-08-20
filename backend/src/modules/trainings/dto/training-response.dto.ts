@@ -55,6 +55,26 @@ export class TrainingResponseDto {
   createdAt: string;
 }
 
+export class TrainingBriefDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 'TRN-2026-001' })
+  code: string;
+
+  @ApiProperty({ example: 'Kỹ năng lãnh đạo' })
+  name: string;
+
+  @ApiProperty({ enum: TrainingType })
+  type: TrainingType;
+
+  @ApiPropertyOptional({ example: '2026-06-10' })
+  startDate: string | null;
+
+  @ApiPropertyOptional({ example: '2026-06-12' })
+  endDate: string | null;
+}
+
 export class TrainingParticipantDto {
   @ApiProperty({ example: 15 })
   id: number;
@@ -88,6 +108,16 @@ export class TrainingParticipantDto {
 
   @ApiPropertyOptional({ example: 'Vắng buổi 2, đã học bù' })
   note: string | null;
+
+  /**
+   * Chỉ có ở `GET /employees/:id/trainings`, nơi câu hỏi là "học khoá nào".
+   *
+   * `TrainingBriefDto` phải khai báo TRƯỚC class này: `emitDecoratorMetadata`
+   * sinh `design:type` đọc thẳng biến lúc định nghĩa class, nên khai báo sau sẽ
+   * ném `Cannot access ... before initialization` khi Nest nạp module.
+   */
+  @ApiPropertyOptional({ type: () => TrainingBriefDto })
+  training?: TrainingBriefDto;
 }
 
 /** Kết quả `POST /trainings/:id/participants` — ghi danh hàng loạt. */

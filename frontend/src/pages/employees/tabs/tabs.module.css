@@ -125,3 +125,46 @@
   color: var(--hrm-color-text-tertiary);
   font-size: var(--hrm-font-size-caption);
 }
+
+/* --- tab Khen thưởng/Kỷ luật, Đánh giá, Đào tạo (giai đoạn 7) --- */
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-space-4);
+}
+
+.toolbarSpacer {
+  flex: 1 1 auto;
+}
+
+/* Ô hai dòng: giá trị chính ở trên, chú thích nhạt ở dưới. */
+.stackedCell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cellMeta {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+/* Nội dung mở rộng của một dòng bảng. */
+.expanded {
+  padding: var(--hrm-space-2) 0;
+  white-space: pre-wrap;
+}
+
+.expanded p {
+  margin: 0 0 var(--hrm-space-2);
+}
+
+.expanded p:last-child {
+  margin-bottom: 0;
+}
+
+/* Alert lỗi trong modal của tab. */
+.formError {
+  margin-bottom: var(--hrm-space-4);
+}

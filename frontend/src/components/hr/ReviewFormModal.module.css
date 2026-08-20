@@ -1,0 +1,30 @@
+.control {
+  width: 100%;
+}
+
+/* Điểm tổng và xếp loại tính ngay khi gõ, đứng ngay dưới ba ô điểm. */
+.preview {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  padding: var(--hrm-space-3) var(--hrm-space-4);
+  border: 1px solid var(--hrm-color-border-subtle);
+  border-radius: var(--hrm-radius-md);
+  background: var(--hrm-color-bg-layout);
+}
+
+.previewScore {
+  font-size: var(--hrm-font-size-h3);
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  margin: var(--hrm-space-2) 0 var(--hrm-space-4);
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
+  line-height: var(--hrm-line-height-base);
+}
+
+.error {
+  margin-bottom: var(--hrm-space-4);
+}

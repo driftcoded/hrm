@@ -26,10 +26,13 @@ import { ComingSoonTab } from './tabs/ComingSoonTab';
 import { ContractsTab } from './tabs/ContractsTab';
 import { FamilyTab } from './tabs/FamilyTab';
 import { PersonalTab } from './tabs/PersonalTab';
+import { ReviewsTab } from './tabs/ReviewsTab';
+import { RewardsTab } from './tabs/RewardsTab';
+import { TrainingsTab } from './tabs/TrainingsTab';
 import styles from './EmployeeDetailPage.module.css';
 
 /**
- * `/employees/:id` — one employee, in eight tabs.
+ * `/employees/:id` — one employee, in nine tabs.
  *
  * TABS KEEP THEIR STATE (PLAN test §3.2 "click tab không reload lại tab khác").
  * Two things make that true: AntD keeps a rendered pane mounted once visited
@@ -40,10 +43,10 @@ import styles from './EmployeeDetailPage.module.css';
  * The active tab is in the URL (`?tab=contracts`), so a link can point at a
  * specific tab and F5 stays where the user was.
  *
- * Five of the eight tabs have no backend yet (lương, phép, chấm công, khen
- * thưởng, đánh giá — phases 4 to 7). They render `ComingSoonTab` naming the
- * phase rather than being hidden: the eight tabs are the shape of an employee
- * record here, and hiding five would make the screen look finished.
+ * Ba tab còn trống — lương, phép, chấm công — có backend rồi nhưng chưa có bản
+ * xem theo từng người; chúng render `ComingSoonTab` nêu rõ giai đoạn thay vì bị
+ * ẩn đi, vì chín tab là hình dạng của một hồ sơ nhân viên ở đây và giấu bớt sẽ
+ * làm màn hình trông như đã xong.
  */
 
 const TAB_PARAM = 'tab';
@@ -169,12 +172,23 @@ export function EmployeeDetailPage() {
       {
         key: 'rewards',
         label: t('employees.tabs.rewards'),
-        children: <ComingSoonTab titleKey="employees.tabs.rewards" phase="7" />,
+        children: (
+          <RewardsTab
+            employeeId={employee.id}
+            canWrite={canWrite}
+            canDelete={canDelete}
+          />
+        ),
       },
       {
         key: 'reviews',
         label: t('employees.tabs.reviews'),
-        children: <ComingSoonTab titleKey="employees.tabs.reviews" phase="7" />,
+        children: <ReviewsTab employeeId={employee.id} />,
+      },
+      {
+        key: 'trainings',
+        label: t('employees.tabs.trainings'),
+        children: <TrainingsTab employeeId={employee.id} />,
       },
       {
         key: 'family',
@@ -183,7 +197,14 @@ export function EmployeeDetailPage() {
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canWrite, canWriteContracts, employee, mutations.isSaving, t]);
+  }, [
+    canDelete,
+    canWrite,
+    canWriteContracts,
+    employee,
+    mutations.isSaving,
+    t,
+  ]);
 
   if (!isValidId) {
     return <Alert type="error" showIcon title={t('employees.detail.invalidId')} />;

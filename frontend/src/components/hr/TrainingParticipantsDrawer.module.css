@@ -1,0 +1,41 @@
+.subtitle {
+  margin: 0 0 var(--hrm-space-4);
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+/* Ô chọn người + nút ghi danh nằm cùng một hàng, ô chọn giãn hết chỗ còn lại. */
+.enrollRow {
+  display: flex;
+  gap: var(--hrm-space-2);
+  margin-bottom: var(--hrm-space-4);
+}
+
+.enrollField {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-inline-end: 0;
+}
+
+.notice {
+  margin-bottom: var(--hrm-space-4);
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.personMeta {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.muted {
+  color: var(--hrm-color-text-tertiary);
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+}

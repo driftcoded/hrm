@@ -447,6 +447,23 @@ export class TrainingsService {
 
   private toParticipant(row: EmployeeTraining): TrainingParticipantDto {
     return {
+      // Chỉ kèm khoá học khi quan hệ đã được load — `GET /employees/:id/trainings`.
+      training: row.training
+        ? {
+            id: Number(row.training.id),
+            code: row.training.code,
+            name: row.training.name,
+            type: row.training.type,
+            startDate:
+              row.training.startDate === null
+                ? null
+                : toDateOnlyString(row.training.startDate),
+            endDate:
+              row.training.endDate === null
+                ? null
+                : toDateOnlyString(row.training.endDate),
+          }
+        : undefined,
       id: Number(row.id),
       employeeId: Number(row.employeeId),
       employeeCode: row.employee?.employeeCode ?? '',

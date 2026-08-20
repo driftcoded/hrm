@@ -101,6 +101,18 @@ const PayrollSettingsPage = lazy(() =>
   })),
 );
 
+// HR processes module (Giai đoạn 7.2), each its own chunk.
+const PerformancePage = lazy(() =>
+  import('@/pages/performance/PerformancePage').then((module) => ({
+    default: module.PerformancePage,
+  })),
+);
+const TrainingsPage = lazy(() =>
+  import('@/pages/trainings/TrainingsPage').then((module) => ({
+    default: module.TrainingsPage,
+  })),
+);
+
 // Master-data settings screens (Giai đoạn 2.2), each its own chunk.
 const SettingsIndexPage = lazy(() =>
   import('@/pages/settings/SettingsIndexPage').then((module) => ({
@@ -144,8 +156,8 @@ const MailSettingsPage = lazy(() =>
  *
  * `departments` left this list in Giai đoạn 2.2: departments are master data and
  * now live at `/settings/departments`. `employees` left it in Giai đoạn 3.2,
- * `attendance` in Giai đoạn 4.2, `leave` in 5.2 and `payroll` in 6.2 — all four
- * modules have real screens now.
+ * `attendance` in Giai đoạn 4.2, `leave` in 5.2, `payroll` in 6.2, và
+ * `performance` + `trainings` trong 7.2 — tất cả đều đã có màn hình thật.
  */
 const UPCOMING_MODULES: Array<{ path: string; titleKey: string; phase: string }> = [
   { path: 'reports', titleKey: 'nav.reports', phase: '8' },
@@ -233,6 +245,8 @@ const router = createBrowserRouter([
               { path: 'settings', element: <PayrollSettingsPage /> },
             ],
           },
+          { path: 'performance', element: <PerformancePage /> },
+          { path: 'trainings', element: <TrainingsPage /> },
           {
             path: 'settings',
             children: [

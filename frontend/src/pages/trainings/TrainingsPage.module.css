@@ -1,0 +1,41 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hrm-grid-gap);
+}
+
+.search {
+  width: 220px;
+}
+
+.filterSelect {
+  min-width: 150px;
+}
+
+.course {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.courseMeta {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.muted {
+  color: var(--hrm-color-text-tertiary);
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767px) {
+  .search,
+  .filterSelect {
+    flex: 1 1 140px;
+    min-width: 140px;
+    width: auto;
+  }
+}

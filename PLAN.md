@@ -16,10 +16,10 @@
 | 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
 | 5 | Phép | 41 / 41 | ✅ Hoàn thành |
 | 6 | Lương | 33 / 35 | 🟡 Đã kiểm chứng qua API; 2 mục cần mở trình duyệt |
-| 7 | HR Processes | 18 / 26 | 🟡 7.1 backend xong; 7.2 frontend chưa |
+| 7 | HR Processes | 27 / 27 | ✅ Hoàn thành |
 | 8 | Thông báo & Hoàn thiện | 0 / 34 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 233 / 277 tasks hoàn thành
+**Tổng:** 242 / 295 tasks hoàn thành
 
 > ### Cách đếm
 >
@@ -686,16 +686,27 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [x] Đào tạo: gỡ người đã có kết quả → 422; xoá khoá đã có người → 422
 
 ### 7.2 Frontend HR Processes
-- [ ] Tab Khen thưởng/kỷ luật trong chi tiết NV
-- [ ] Trang `/performance`: danh sách kỳ đánh giá, form chấm điểm
-- [ ] Trang `/trainings`: danh sách khoá đào tạo, ghi danh, ghi kết quả
-- [ ] Tab Đào tạo trong chi tiết NV
+- [x] Tab Khen thưởng/kỷ luật trong chi tiết NV
+- [x] Trang `/performance`: danh sách kỳ đánh giá, form chấm điểm
+- [x] Trang `/trainings`: danh sách khoá đào tạo, ghi danh, ghi kết quả
+- [x] Tab Đào tạo trong chi tiết NV
+- [x] Tab Đánh giá trong chi tiết NV — cùng form, khoá sẵn nhân viên
+- [x] 19 mã lỗi của ba phân hệ có câu tiếng Việt riêng, không rơi về câu chung
 
 **Tests (7.2):**
-- [ ] Chấm điểm → điểm tổng và xếp loại hiện lại ngay
-- [ ] Bản đã chốt → ẩn nút Sửa
-- [ ] Ghi danh vượt sức chứa → báo lỗi rõ ràng
-- [ ] Lịch sử đào tạo hiển thị đúng trong tab NV
+- [x] Chấm điểm → điểm tổng và xếp loại hiện lại ngay
+- [x] Bản đã chốt → ẩn nút Sửa
+- [x] Ghi danh vượt sức chứa → báo lỗi rõ ràng
+- [x] Lịch sử đào tạo hiển thị đúng trong tab NV
+
+> **Lịch sử đào tạo phải nói TÊN KHOÁ.** `GET /employees/:id/trainings` trước
+> chỉ trả thông tin học viên — đúng cho danh sách người của một khoá, nhưng ở
+> tab hồ sơ thì câu hỏi là "người này học khoá nào". Đã thêm `training` (mã,
+> tên, hình thức, thời gian) vào phần trả về của riêng đường dẫn đó.
+>
+> **Nút nào backend chắc chắn từ chối thì không bày ra.** Học viên đã chấm kết
+> quả không gỡ khỏi khoá được (`TRAINING_RESULT_RECORDED`), nên nút gỡ chỉ hiện
+> khi chưa chấm.
 
 ---
 

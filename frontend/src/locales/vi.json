@@ -91,7 +91,8 @@
     "refresh": "Làm mới",
     "comingSoon": "Sắp có",
     "comingSoonAria": "{{label}} (sắp có)",
-    "confirm": "Xác nhận"
+    "confirm": "Xác nhận",
+    "all": "Tất cả"
   },
   "crud": {
     "totalRecords": "Tổng {{total}} bản ghi",
@@ -187,6 +188,7 @@
       "DEPENDENT_ALREADY_CLAIMED": "Người này đã được một nhân viên khác đăng ký giảm trừ. Mỗi người phụ thuộc chỉ được khai cho một người nộp thuế.",
       "DEPENDENT_NOT_FOUND": "Không tìm thấy người phụ thuộc.",
       "DEPENDENT_REASON_REQUIRED": "Cần nhập lý do khi ngừng giảm trừ.",
+      "DISCIPLINE_REWARD_NOT_FOUND": "Không tìm thấy quyết định khen thưởng/kỷ luật.",
       "DUPLICATE_CCCD": "Số CCCD này đã tồn tại trong hệ thống.",
       "DUPLICATE_CONTRACT_NUMBER": "Số hợp đồng này đã tồn tại.",
       "DUPLICATE_EMAIL": "Email này đã được dùng.",
@@ -196,6 +198,7 @@
       "DUPLICATE_TAX_CODE": "Mã số thuế này đã tồn tại.",
       "DUPLICATE_USERNAME": "Tên đăng nhập này đã được dùng.",
       "ECONNABORTED": "Yêu cầu bị hủy do quá thời gian chờ. Vui lòng thử lại.",
+      "EFFECTIVE_BEFORE_DECISION": "Ngày hiệu lực không được trước ngày ra quyết định.",
       "EMPLOYEE_ALREADY_HAS_ACCOUNT": "Nhân viên này đã có tài khoản đăng nhập.",
       "EMPLOYEE_NOT_DELETED": "Hồ sơ này chưa bị xóa nên không cần khôi phục.",
       "EMPLOYEE_NOT_FOUND": "Không tìm thấy nhân viên đã chọn. Có thể hồ sơ vừa bị xóa — vui lòng tải lại trang và chọn lại.",
@@ -225,6 +228,7 @@
       "INVALID_LEAVE_RANGE": "Ngày kết thúc phải sau ngày bắt đầu.",
       "INVALID_SALARY_RANGE": "Lương tối thiểu không được lớn hơn lương tối đa.",
       "INVALID_SIGN_DATE": "Ngày ký không được sau ngày hiệu lực.",
+      "INVALID_TRAINING_RANGE": "Ngày kết thúc phải sau ngày bắt đầu.",
       "LEAVE_ABOVE_MAX_CONSECUTIVE": "Vượt số ngày nghỉ liên tiếp tối đa của loại phép này.",
       "LEAVE_BALANCE_BELOW_COMMITTED": "Không thể hạ quỹ xuống dưới số ngày đã dùng và đang chờ duyệt.",
       "LEAVE_BALANCE_IN_USE": "Quỹ này đã có ngày nghỉ trừ vào nên không xoá được. Hãy điều chỉnh số ngày thay vì xoá.",
@@ -259,6 +263,13 @@
       "REFRESH_TOKEN_EXPIRED": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
       "RESET_TOKEN_EXPIRED": "Liên kết đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu liên kết mới.",
       "RESET_TOKEN_INVALID": "Liên kết đặt lại mật khẩu không hợp lệ. Vui lòng yêu cầu liên kết mới.",
+      "REVIEWER_HAS_NO_EMPLOYEE_RECORD": "Tài khoản của bạn chưa gắn với hồ sơ nhân viên nào nên chưa đánh giá được.",
+      "REVIEW_HAS_NO_SCORE": "Chưa chấm điểm tiêu chí nào nên chưa gửi được.",
+      "REVIEW_NOT_DRAFT": "Bản đánh giá đã gửi nên không sửa được nữa.",
+      "REVIEW_NOT_FOUND": "Không tìm thấy bản đánh giá.",
+      "REVIEW_NOT_SUBMITTED": "Chỉ bản đã gửi mới ghi nhận ký nhận được.",
+      "REVIEW_PERIOD_MISMATCH": "Kỳ đánh giá và các trường quý/tháng không khớp nhau.",
+      "REVIEW_PERIOD_TAKEN": "Nhân viên đã có bản đánh giá cho kỳ này.",
       "ROLE_NOT_FOUND": "Vai trò không tồn tại.",
       "SALARY_ALREADY_CANCELLED": "Phiếu lương này đã bị huỷ.",
       "SALARY_LOCKED": "Phiếu lương đã chốt nên không sửa được. Hãy huỷ phiếu trước.",
@@ -269,6 +280,15 @@
       "SERVICE_UNAVAILABLE": "Hệ thống đang tạm thời không khả dụng. Vui lòng thử lại sau.",
       "TOKEN_EXPIRED": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
       "TOKEN_INVALID": "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.",
+      "TRAINING_CAPACITY_BELOW_ENROLLED": "Số lượng tối đa không được nhỏ hơn số người đã ghi danh.",
+      "TRAINING_CLOSED": "Khoá học đã kết thúc hoặc đã hủy.",
+      "TRAINING_CODE_TAKEN": "Mã khoá học này đã tồn tại.",
+      "TRAINING_FULL": "Khoá học đã đủ số lượng đăng ký tối đa.",
+      "TRAINING_HAS_PARTICIPANTS": "Khoá đã có học viên nên không xóa được. Hãy chuyển sang trạng thái Đã hủy.",
+      "TRAINING_INVALID_TRANSITION": "Không thể chuyển khoá học sang trạng thái này.",
+      "TRAINING_NOT_FOUND": "Không tìm thấy khoá đào tạo.",
+      "TRAINING_PARTICIPANT_NOT_FOUND": "Nhân viên này không có trong khoá học.",
+      "TRAINING_RESULT_RECORDED": "Học viên đã được chấm kết quả nên không gỡ khỏi khoá được.",
       "UNAUTHORIZED": "Bạn cần đăng nhập để thực hiện thao tác này.",
       "UNKNOWN_ERROR": "Đã xảy ra lỗi. Vui lòng thử lại.",
       "UNPROCESSABLE_ENTITY": "Không thể thực hiện thao tác này với dữ liệu hiện tại.",
@@ -314,7 +334,9 @@
     "holidays": "Ngày lễ",
     "reports": "Báo cáo",
     "branding": "Thương hiệu",
-    "mailSettings": "Cấu hình email"
+    "mailSettings": "Cấu hình email",
+    "performance": "Đánh giá",
+    "trainings": "Đào tạo"
   },
   "profile": {
     "title": "Hồ sơ cá nhân",
@@ -932,7 +954,8 @@
       "reviews": "Đánh giá",
       "family": "Gia đình",
       "comingSoonTitle": "Mục {{name}} chưa có dữ liệu",
-      "comingSoonDetail": "Tính năng này thuộc Giai đoạn {{phase}} của kế hoạch."
+      "comingSoonDetail": "Tính năng này thuộc Giai đoạn {{phase}} của kế hoạch.",
+      "trainings": "Đào tạo"
     },
     "contracts": {
       "add": "Thêm hợp đồng",
@@ -1442,6 +1465,219 @@
         "phone": "Phụ cấp điện thoại",
         "attendance": "Phụ cấp chuyên cần",
         "payOvertime": "Trả tiền làm thêm giờ"
+      }
+    }
+  },
+  "hr": {
+    "rewards": {
+      "create": "Thêm quyết định",
+      "edit": "Sửa quyết định",
+      "empty": "Chưa có quyết định khen thưởng hay kỷ luật nào",
+      "loadError": "Không tải được danh sách khen thưởng/kỷ luật",
+      "createSuccess": "Đã thêm quyết định",
+      "updateSuccess": "Đã cập nhật quyết định",
+      "deleteSuccess": "Đã xóa quyết định",
+      "deleteConfirm": "Xóa quyết định này?",
+      "datesHint": "Ngày ra quyết định và ngày bắt đầu có hiệu lực.",
+      "disciplineFormsHint": "Điều 124 BLLĐ 2019 chỉ có ba hình thức kỷ luật; phạt tiền là trái luật (Điều 128).",
+      "type": {
+        "reward": "Khen thưởng",
+        "discipline": "Kỷ luật"
+      },
+      "columns": {
+        "type": "Loại",
+        "title": "Nội dung",
+        "decisionDate": "Ngày quyết định",
+        "effectiveDate": "Hiệu lực từ",
+        "decisionNumber": "Số quyết định",
+        "issuedBy": "Người ký"
+      },
+      "fields": {
+        "type": "Loại",
+        "category": "Hình thức",
+        "title": "Tiêu đề",
+        "description": "Nội dung chi tiết",
+        "decisionNumber": "Số quyết định",
+        "dates": "Ngày quyết định – hiệu lực",
+        "note": "Ghi chú"
+      },
+      "errors": {
+        "category": "Chọn hoặc nhập hình thức",
+        "title": "Nhập tiêu đề",
+        "description": "Nhập nội dung chi tiết",
+        "dates": "Chọn ngày quyết định và ngày hiệu lực"
+      }
+    },
+    "reviews": {
+      "title": "Đánh giá hiệu suất",
+      "subtitle": "Các kỳ đánh giá KPI, thái độ và kỹ năng của nhân viên",
+      "create": "Tạo đánh giá",
+      "edit": "Sửa đánh giá",
+      "empty": "Chưa có kỳ đánh giá nào",
+      "loadError": "Không tải được danh sách đánh giá",
+      "createSuccess": "Đã tạo bản đánh giá",
+      "updateSuccess": "Đã cập nhật bản đánh giá",
+      "deleteSuccess": "Đã xóa bản đánh giá",
+      "deleteConfirm": "Xóa bản đánh giá này?",
+      "submit": "Gửi duyệt",
+      "submitConfirm": "Gửi bản đánh giá này? Sau khi gửi sẽ không sửa được nữa.",
+      "submitSuccess": "Đã gửi bản đánh giá",
+      "acknowledge": "Ghi nhận đã ký",
+      "acknowledgeSuccess": "Đã ghi nhận nhân viên ký nhận",
+      "overallPreview": "Điểm tổng",
+      "overallHint": "Điểm tổng là trung bình các tiêu chí đã chấm; con số lưu lại do máy chủ tính.",
+      "columns": {
+        "employee": "Nhân viên",
+        "period": "Kỳ",
+        "scores": "KPI · Thái độ · Kỹ năng",
+        "overall": "Tổng",
+        "rating": "Xếp loại",
+        "reviewer": "Người đánh giá",
+        "status": "Trạng thái"
+      },
+      "fields": {
+        "employee": "Nhân viên",
+        "employeePlaceholder": "Tìm theo tên hoặc mã nhân viên",
+        "period": "Kỳ đánh giá",
+        "year": "Năm",
+        "quarter": "Quý",
+        "half": "Nửa năm",
+        "month": "Tháng",
+        "kpi": "Điểm KPI",
+        "attitude": "Điểm thái độ",
+        "skill": "Điểm kỹ năng",
+        "strengths": "Điểm mạnh",
+        "weaknesses": "Điểm cần cải thiện",
+        "recommendations": "Đề xuất",
+        "note": "Ghi chú"
+      },
+      "errors": {
+        "employee": "Chọn nhân viên",
+        "year": "Nhập năm",
+        "quarter": "Chọn quý",
+        "month": "Chọn tháng"
+      },
+      "filters": {
+        "year": "Năm",
+        "period": "Kỳ",
+        "status": "Trạng thái",
+        "rating": "Xếp loại"
+      },
+      "period": {
+        "monthly": "Theo tháng",
+        "quarterly": "Theo quý",
+        "biannual": "Nửa năm",
+        "annual": "Cả năm"
+      },
+      "periodLabel": {
+        "monthly": "Tháng {{month}}/{{year}}",
+        "quarterly": "Quý {{part}}/{{year}}",
+        "biannual": "Nửa {{part}}/{{year}}",
+        "annual": "Năm {{year}}"
+      },
+      "rating": {
+        "excellent": "Xuất sắc",
+        "good": "Tốt",
+        "average": "Trung bình",
+        "below_average": "Dưới trung bình",
+        "poor": "Kém"
+      },
+      "status": {
+        "draft": "Nháp",
+        "submitted": "Đã gửi",
+        "acknowledged": "Đã ký nhận"
+      }
+    },
+    "trainings": {
+      "title": "Đào tạo",
+      "subtitle": "Khoá đào tạo và kết quả học tập của nhân viên",
+      "create": "Thêm khoá học",
+      "edit": "Sửa khoá học",
+      "loadError": "Không tải được danh sách khoá đào tạo",
+      "createSuccess": "Đã tạo khoá học",
+      "updateSuccess": "Đã cập nhật khoá học",
+      "deleteSuccess": "Đã xóa khoá học",
+      "deleteConfirm": "Xóa khoá học này?",
+      "noSchedule": "Chưa xếp lịch",
+      "participants": "Học viên",
+      "participantCount": "{{n}} học viên",
+      "participantsEmpty": "Chưa có ai ghi danh khoá này",
+      "participantsError": "Không tải được danh sách học viên",
+      "employeeEmpty": "Nhân viên chưa tham gia khoá đào tạo nào",
+      "notGraded": "Chưa chấm",
+      "openCertificate": "Xem chứng chỉ",
+      "enroll": "Ghi danh",
+      "enrollPlaceholder": "Chọn nhân viên để ghi danh",
+      "enrollSuccess": "Đã ghi danh {{n}} người",
+      "enrollPartial": "Đã ghi danh {{n}} người. Bỏ qua vì đã có trong khoá: {{skipped}}",
+      "unenroll": "Gỡ khỏi khoá",
+      "unenrollConfirm": "Gỡ học viên này khỏi khoá?",
+      "unenrollSuccess": "Đã gỡ học viên khỏi khoá",
+      "grade": "Chấm kết quả",
+      "gradeTitle": "Chấm kết quả cho {{name}}",
+      "gradeSuccess": "Đã lưu kết quả",
+      "fullWarning": "Khoá đã đủ số lượng đăng ký tối đa.",
+      "columns": {
+        "course": "Khoá học",
+        "range": "Thời gian",
+        "trainer": "Giảng viên",
+        "participants": "Học viên",
+        "cost": "Chi phí",
+        "status": "Trạng thái",
+        "participant": "Học viên",
+        "registrationDate": "Ngày ghi danh",
+        "completionDate": "Ngày hoàn thành",
+        "result": "Kết quả",
+        "score": "Điểm",
+        "certificate": "Chứng chỉ"
+      },
+      "fields": {
+        "code": "Mã khoá",
+        "name": "Tên khoá học",
+        "type": "Hình thức",
+        "status": "Trạng thái",
+        "range": "Thời gian",
+        "trainer": "Giảng viên",
+        "location": "Địa điểm",
+        "cost": "Chi phí (₫)",
+        "maxParticipants": "Số lượng tối đa",
+        "maxParticipantsHint": "Để trống nếu không giới hạn.",
+        "description": "Mô tả",
+        "attachmentUrl": "Link tài liệu",
+        "note": "Ghi chú",
+        "result": "Kết quả",
+        "completionDate": "Ngày hoàn thành",
+        "score": "Điểm",
+        "certificateUrl": "Link chứng chỉ"
+      },
+      "errors": {
+        "code": "Nhập mã khoá",
+        "name": "Nhập tên khoá học",
+        "employees": "Chọn ít nhất một nhân viên",
+        "result": "Chọn kết quả"
+      },
+      "filters": {
+        "search": "Tìm mã hoặc tên khoá",
+        "status": "Trạng thái",
+        "type": "Hình thức"
+      },
+      "type": {
+        "internal": "Nội bộ",
+        "external": "Bên ngoài",
+        "online": "Trực tuyến",
+        "on_the_job": "Kèm cặp tại chỗ"
+      },
+      "status": {
+        "planned": "Dự kiến",
+        "ongoing": "Đang diễn ra",
+        "completed": "Đã kết thúc",
+        "cancelled": "Đã hủy"
+      },
+      "result": {
+        "passed": "Đạt",
+        "failed": "Không đạt",
+        "incomplete": "Chưa hoàn thành",
+        "exempted": "Được miễn"
       }
     }
   }

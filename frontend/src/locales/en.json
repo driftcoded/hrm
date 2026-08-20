@@ -91,7 +91,8 @@
     "refresh": "Refresh",
     "comingSoon": "Coming soon",
     "comingSoonAria": "{{label}} (coming soon)",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "all": "All"
   },
   "crud": {
     "totalRecords": "{{total}} records in total",
@@ -187,6 +188,7 @@
       "DEPENDENT_ALREADY_CLAIMED": "This person is already claimed by another employee. A dependent can only be claimed by a single taxpayer.",
       "DEPENDENT_NOT_FOUND": "Dependent not found.",
       "DEPENDENT_REASON_REQUIRED": "A reason is required when stopping a deduction.",
+      "DISCIPLINE_REWARD_NOT_FOUND": "Reward or discipline decision not found.",
       "DUPLICATE_CCCD": "That ID number already exists in the system.",
       "DUPLICATE_CONTRACT_NUMBER": "That contract number already exists.",
       "DUPLICATE_EMAIL": "That email is already in use.",
@@ -196,6 +198,7 @@
       "DUPLICATE_TAX_CODE": "That tax code already exists.",
       "DUPLICATE_USERNAME": "That username is already taken.",
       "ECONNABORTED": "The request timed out. Please try again.",
+      "EFFECTIVE_BEFORE_DECISION": "The effective date cannot precede the decision date.",
       "EMPLOYEE_ALREADY_HAS_ACCOUNT": "This employee already has a login account.",
       "EMPLOYEE_NOT_DELETED": "This record is not deleted, so there is nothing to restore.",
       "EMPLOYEE_NOT_FOUND": "The selected employee no longer exists. Their record may have just been deleted — please reload the page and pick again.",
@@ -225,6 +228,7 @@
       "INVALID_LEAVE_RANGE": "The end date must be on or after the start date.",
       "INVALID_SALARY_RANGE": "The minimum salary cannot be greater than the maximum salary.",
       "INVALID_SIGN_DATE": "The signing date cannot be after the effective date.",
+      "INVALID_TRAINING_RANGE": "The end date must be after the start date.",
       "LEAVE_ABOVE_MAX_CONSECUTIVE": "Above the maximum consecutive days for this leave type.",
       "LEAVE_BALANCE_BELOW_COMMITTED": "The balance cannot go below the days already used and pending.",
       "LEAVE_BALANCE_IN_USE": "This balance already has leave drawn against it and cannot be deleted. Adjust the number of days instead.",
@@ -259,6 +263,13 @@
       "REFRESH_TOKEN_EXPIRED": "Your session has expired. Please sign in again.",
       "RESET_TOKEN_EXPIRED": "This password reset link has expired. Please request a new one.",
       "RESET_TOKEN_INVALID": "This password reset link is invalid. Please request a new one.",
+      "REVIEWER_HAS_NO_EMPLOYEE_RECORD": "Your account is not linked to an employee record, so you cannot review anyone.",
+      "REVIEW_HAS_NO_SCORE": "No criterion has been scored yet, so the review cannot be submitted.",
+      "REVIEW_NOT_DRAFT": "The review has been submitted and can no longer be edited.",
+      "REVIEW_NOT_FOUND": "Review not found.",
+      "REVIEW_NOT_SUBMITTED": "Only a submitted review can be acknowledged.",
+      "REVIEW_PERIOD_MISMATCH": "The review period does not match the quarter/month fields.",
+      "REVIEW_PERIOD_TAKEN": "This employee already has a review for this period.",
       "ROLE_NOT_FOUND": "That role does not exist.",
       "SALARY_ALREADY_CANCELLED": "This payslip is already cancelled.",
       "SALARY_LOCKED": "This payslip is locked and can no longer be changed. Cancel it first.",
@@ -269,6 +280,15 @@
       "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Please try again later.",
       "TOKEN_EXPIRED": "Your session has expired. Please sign in again.",
       "TOKEN_INVALID": "Your session is invalid. Please sign in again.",
+      "TRAINING_CAPACITY_BELOW_ENROLLED": "The maximum cannot be lower than the number already enrolled.",
+      "TRAINING_CLOSED": "The course has finished or been cancelled.",
+      "TRAINING_CODE_TAKEN": "This course code already exists.",
+      "TRAINING_FULL": "The course has reached its maximum number of participants.",
+      "TRAINING_HAS_PARTICIPANTS": "The course has participants and cannot be deleted. Cancel it instead.",
+      "TRAINING_INVALID_TRANSITION": "The course cannot move to that status.",
+      "TRAINING_NOT_FOUND": "Training course not found.",
+      "TRAINING_PARTICIPANT_NOT_FOUND": "This employee is not enrolled in the course.",
+      "TRAINING_RESULT_RECORDED": "The participant already has a result and cannot be removed.",
       "UNAUTHORIZED": "You need to sign in to perform this action.",
       "UNKNOWN_ERROR": "Something went wrong. Please try again.",
       "UNPROCESSABLE_ENTITY": "This action cannot be performed with the current data.",
@@ -314,7 +334,9 @@
     "holidays": "Public holidays",
     "reports": "Reports",
     "branding": "Branding",
-    "mailSettings": "Email settings"
+    "mailSettings": "Email settings",
+    "performance": "Reviews",
+    "trainings": "Training"
   },
   "profile": {
     "title": "My profile",
@@ -932,7 +954,8 @@
       "reviews": "Reviews",
       "family": "Family",
       "comingSoonTitle": "No {{name}} data yet",
-      "comingSoonDetail": "This feature belongs to phase {{phase}} of the plan."
+      "comingSoonDetail": "This feature belongs to phase {{phase}} of the plan.",
+      "trainings": "Training"
     },
     "contracts": {
       "add": "Add contract",
@@ -1442,6 +1465,219 @@
         "phone": "Phone allowance",
         "attendance": "Attendance allowance",
         "payOvertime": "Pay overtime"
+      }
+    }
+  },
+  "hr": {
+    "rewards": {
+      "create": "Add decision",
+      "edit": "Edit decision",
+      "empty": "No reward or discipline decisions yet",
+      "loadError": "Could not load rewards and disciplines",
+      "createSuccess": "Decision added",
+      "updateSuccess": "Decision updated",
+      "deleteSuccess": "Decision deleted",
+      "deleteConfirm": "Delete this decision?",
+      "datesHint": "Decision date and the date it takes effect.",
+      "disciplineFormsHint": "Article 124 of the 2019 Labour Code allows only three disciplinary forms; fines are unlawful (Article 128).",
+      "type": {
+        "reward": "Reward",
+        "discipline": "Discipline"
+      },
+      "columns": {
+        "type": "Type",
+        "title": "Subject",
+        "decisionDate": "Decision date",
+        "effectiveDate": "Effective from",
+        "decisionNumber": "Decision no.",
+        "issuedBy": "Issued by"
+      },
+      "fields": {
+        "type": "Type",
+        "category": "Form",
+        "title": "Title",
+        "description": "Details",
+        "decisionNumber": "Decision no.",
+        "dates": "Decision – effective date",
+        "note": "Note"
+      },
+      "errors": {
+        "category": "Pick or type a form",
+        "title": "Enter a title",
+        "description": "Enter the details",
+        "dates": "Pick the decision and effective dates"
+      }
+    },
+    "reviews": {
+      "title": "Performance reviews",
+      "subtitle": "KPI, attitude and skill reviews for every period",
+      "create": "New review",
+      "edit": "Edit review",
+      "empty": "No review periods yet",
+      "loadError": "Could not load reviews",
+      "createSuccess": "Review created",
+      "updateSuccess": "Review updated",
+      "deleteSuccess": "Review deleted",
+      "deleteConfirm": "Delete this review?",
+      "submit": "Submit",
+      "submitConfirm": "Submit this review? It cannot be edited afterwards.",
+      "submitSuccess": "Review submitted",
+      "acknowledge": "Mark acknowledged",
+      "acknowledgeSuccess": "Employee acknowledgement recorded",
+      "overallPreview": "Overall score",
+      "overallHint": "The overall score averages the criteria you scored; the stored figure is computed by the server.",
+      "columns": {
+        "employee": "Employee",
+        "period": "Period",
+        "scores": "KPI · Attitude · Skill",
+        "overall": "Overall",
+        "rating": "Rating",
+        "reviewer": "Reviewer",
+        "status": "Status"
+      },
+      "fields": {
+        "employee": "Employee",
+        "employeePlaceholder": "Search by name or employee code",
+        "period": "Review period",
+        "year": "Year",
+        "quarter": "Quarter",
+        "half": "Half",
+        "month": "Month",
+        "kpi": "KPI score",
+        "attitude": "Attitude score",
+        "skill": "Skill score",
+        "strengths": "Strengths",
+        "weaknesses": "Areas to improve",
+        "recommendations": "Recommendations",
+        "note": "Note"
+      },
+      "errors": {
+        "employee": "Pick an employee",
+        "year": "Enter a year",
+        "quarter": "Pick a quarter",
+        "month": "Pick a month"
+      },
+      "filters": {
+        "year": "Year",
+        "period": "Period",
+        "status": "Status",
+        "rating": "Rating"
+      },
+      "period": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "biannual": "Half-yearly",
+        "annual": "Annual"
+      },
+      "periodLabel": {
+        "monthly": "{{month}}/{{year}}",
+        "quarterly": "Q{{part}} {{year}}",
+        "biannual": "H{{part}} {{year}}",
+        "annual": "Year {{year}}"
+      },
+      "rating": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "average": "Average",
+        "below_average": "Below average",
+        "poor": "Poor"
+      },
+      "status": {
+        "draft": "Draft",
+        "submitted": "Submitted",
+        "acknowledged": "Acknowledged"
+      }
+    },
+    "trainings": {
+      "title": "Training",
+      "subtitle": "Training courses and employee results",
+      "create": "New course",
+      "edit": "Edit course",
+      "loadError": "Could not load training courses",
+      "createSuccess": "Course created",
+      "updateSuccess": "Course updated",
+      "deleteSuccess": "Course deleted",
+      "deleteConfirm": "Delete this course?",
+      "noSchedule": "Not scheduled",
+      "participants": "Participants",
+      "participantCount": "{{n}} participants",
+      "participantsEmpty": "Nobody is enrolled in this course yet",
+      "participantsError": "Could not load participants",
+      "employeeEmpty": "This employee has not attended any training",
+      "notGraded": "Not graded",
+      "openCertificate": "View certificate",
+      "enroll": "Enrol",
+      "enrollPlaceholder": "Pick employees to enrol",
+      "enrollSuccess": "Enrolled {{n}} people",
+      "enrollPartial": "Enrolled {{n}} people. Already in the course, skipped: {{skipped}}",
+      "unenroll": "Remove from course",
+      "unenrollConfirm": "Remove this participant from the course?",
+      "unenrollSuccess": "Participant removed",
+      "grade": "Record result",
+      "gradeTitle": "Record result for {{name}}",
+      "gradeSuccess": "Result saved",
+      "fullWarning": "The course has reached its maximum number of participants.",
+      "columns": {
+        "course": "Course",
+        "range": "Dates",
+        "trainer": "Trainer",
+        "participants": "Participants",
+        "cost": "Cost",
+        "status": "Status",
+        "participant": "Participant",
+        "registrationDate": "Enrolled on",
+        "completionDate": "Completed on",
+        "result": "Result",
+        "score": "Score",
+        "certificate": "Certificate"
+      },
+      "fields": {
+        "code": "Course code",
+        "name": "Course name",
+        "type": "Format",
+        "status": "Status",
+        "range": "Dates",
+        "trainer": "Trainer",
+        "location": "Location",
+        "cost": "Cost (₫)",
+        "maxParticipants": "Maximum participants",
+        "maxParticipantsHint": "Leave empty for no limit.",
+        "description": "Description",
+        "attachmentUrl": "Material link",
+        "note": "Note",
+        "result": "Result",
+        "completionDate": "Completion date",
+        "score": "Score",
+        "certificateUrl": "Certificate link"
+      },
+      "errors": {
+        "code": "Enter a course code",
+        "name": "Enter a course name",
+        "employees": "Pick at least one employee",
+        "result": "Pick a result"
+      },
+      "filters": {
+        "search": "Search code or name",
+        "status": "Status",
+        "type": "Format"
+      },
+      "type": {
+        "internal": "Internal",
+        "external": "External",
+        "online": "Online",
+        "on_the_job": "On the job"
+      },
+      "status": {
+        "planned": "Planned",
+        "ongoing": "Ongoing",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "result": {
+        "passed": "Passed",
+        "failed": "Failed",
+        "incomplete": "Incomplete",
+        "exempted": "Exempted"
       }
     }
   }

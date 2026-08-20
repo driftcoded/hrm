@@ -8,8 +8,10 @@ import {
   DoubleRightOutlined,
   FileTextOutlined,
   HomeOutlined,
+  ReadOutlined,
   SettingOutlined,
   TeamOutlined,
+  TrophyOutlined,
 } from '@ant-design/icons';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -56,6 +58,8 @@ const NAV_ITEMS: NavItem[] = [
   { key: '/attendance', icon: <ClockCircleOutlined />, labelKey: 'nav.attendance' },
   { key: '/payroll', icon: <DollarCircleOutlined />, labelKey: 'nav.payroll' },
   { key: '/leave', icon: <FileTextOutlined />, labelKey: 'nav.leave' },
+  { key: '/performance', icon: <TrophyOutlined />, labelKey: 'nav.performance' },
+  { key: '/trainings', icon: <ReadOutlined />, labelKey: 'nav.trainings' },
   { key: '/reports', icon: <BarChartOutlined />, labelKey: 'nav.reports' },
   {
     key: '/settings',
