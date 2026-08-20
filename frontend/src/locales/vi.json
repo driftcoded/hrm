@@ -314,7 +314,13 @@
     "holidays": "Ngày lễ",
     "reports": "Báo cáo",
     "branding": "Thương hiệu",
-    "mailSettings": "Cấu hình email"
+    "mailSettings": "Cấu hình email",
+    "groups": {
+      "overview": "Tổng quan",
+      "people": "Nhân sự",
+      "timePay": "Chấm công & lương",
+      "system": "Hệ thống"
+    }
   },
   "profile": {
     "title": "Hồ sơ cá nhân",

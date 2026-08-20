@@ -45,6 +45,31 @@
  * menu must inherit the sidebar's navy rather than AntD's default `#001529`.
  * `:global` is required because these are AntD's class names, not this module's.
  */
+/*
+ * Tiêu đề nhóm: chữ nhỏ, viết hoa, giãn chữ — đọc ra là nhãn phân đoạn chứ
+ * không phải một mục bấm được. Nhóm đầu bỏ khoảng đệm trên để không thụt xuống
+ * so với logo.
+ */
+.menu :global(.ant-menu-item-group-title) {
+  padding: var(--hrm-space-4) var(--hrm-space-3) var(--hrm-space-1);
+  color: var(--hrm-sidebar-text-muted);
+  font-size: var(--hrm-font-size-caption);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: var(--hrm-line-height-tight);
+}
+
+.menu :global(.ant-menu-item-group:first-child .ant-menu-item-group-title) {
+  padding-top: 0;
+}
+
+/* Lúc thu gọn, đường kẻ thay cho tiêu đề nhóm. */
+.menu :global(.ant-menu-item-divider) {
+  margin-block: var(--hrm-space-2);
+  border-color: var(--hrm-sidebar-border);
+}
+
 .menu :global(.ant-menu-item) {
   height: var(--hrm-nav-item-height);
   line-height: var(--hrm-nav-item-height);

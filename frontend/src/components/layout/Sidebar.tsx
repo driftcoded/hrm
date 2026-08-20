@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { Menu, Tooltip, type MenuProps } from 'antd';
 import {
   BarChartOutlined,
+  CalendarOutlined,
   ClockCircleOutlined,
+  DashboardOutlined,
   DollarCircleOutlined,
   DoubleLeftOutlined,
   DoubleRightOutlined,
-  FileTextOutlined,
-  HomeOutlined,
   SettingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
@@ -38,36 +38,69 @@ interface NavItem {
   children?: NavChild[];
 }
 
+interface NavGroup {
+  /** Not a route — only a heading, so it must not collide with any path. */
+  key: string;
+  labelKey: string;
+  items: NavItem[];
+}
+
 /**
- * Business modules only. `/profile` is deliberately absent — it is reached from
- * the header user dropdown, and mixing a personal page into the module list
- * makes the navigation read inconsistently.
+ * Điều hướng chia theo NHÓM CÔNG VIỆC, không phải một danh sách phẳng.
  *
- * Modules that ship in a later phase still route to a real placeholder page
- * (see routes/RouterConfig.tsx) rather than a dead link.
+ * Thứ tự trong nhóm "Công & lương" là thứ tự dữ liệu chảy: chấm công và nghỉ
+ * phép là đầu vào của bảng lương, nên đọc từ trên xuống chính là đọc quy trình.
  *
- * "Phòng ban" is no longer a top-level item: departments are master data and live
- * under Cài đặt with the other four master-data screens (Giai đoạn 2.2). Listing
- * it twice would give one page two homes in the navigation.
+ * `/profile` cố tình không có ở đây — nó vào từ dropdown người dùng trên header;
+ * trộn một trang cá nhân vào danh sách phân hệ làm menu đọc không nhất quán.
+ *
+ * "Phòng ban" cũng không đứng cấp 1: nó là dữ liệu danh mục, nằm trong Cài đặt
+ * cùng bốn màn danh mục còn lại. Để hai chỗ là cho một trang hai nhà.
  */
-const NAV_ITEMS: NavItem[] = [
-  { key: '/dashboard', icon: <HomeOutlined />, labelKey: 'nav.dashboard' },
-  { key: '/employees', icon: <TeamOutlined />, labelKey: 'nav.employees' },
-  { key: '/attendance', icon: <ClockCircleOutlined />, labelKey: 'nav.attendance' },
-  { key: '/payroll', icon: <DollarCircleOutlined />, labelKey: 'nav.payroll' },
-  { key: '/leave', icon: <FileTextOutlined />, labelKey: 'nav.leave' },
-  { key: '/reports', icon: <BarChartOutlined />, labelKey: 'nav.reports' },
+const NAV_GROUPS: NavGroup[] = [
   {
-    key: '/settings',
-    icon: <SettingOutlined />,
-    labelKey: 'nav.settings',
-    children: SETTINGS_SECTIONS.map((section) => ({
-      key: section.path,
-      labelKey: section.titleKey,
-      adminOnly: section.adminOnly,
-    })),
+    key: 'group-overview',
+    labelKey: 'nav.groups.overview',
+    items: [
+      { key: '/dashboard', icon: <DashboardOutlined />, labelKey: 'nav.dashboard' },
+      { key: '/reports', icon: <BarChartOutlined />, labelKey: 'nav.reports' },
+    ],
+  },
+  {
+    key: 'group-people',
+    labelKey: 'nav.groups.people',
+    items: [
+      { key: '/employees', icon: <TeamOutlined />, labelKey: 'nav.employees' },
+    ],
+  },
+  {
+    key: 'group-time-pay',
+    labelKey: 'nav.groups.timePay',
+    items: [
+      { key: '/attendance', icon: <ClockCircleOutlined />, labelKey: 'nav.attendance' },
+      { key: '/leave', icon: <CalendarOutlined />, labelKey: 'nav.leave' },
+      { key: '/payroll', icon: <DollarCircleOutlined />, labelKey: 'nav.payroll' },
+    ],
+  },
+  {
+    key: 'group-system',
+    labelKey: 'nav.groups.system',
+    items: [
+      {
+        key: '/settings',
+        icon: <SettingOutlined />,
+        labelKey: 'nav.settings',
+        children: SETTINGS_SECTIONS.map((section) => ({
+          key: section.path,
+          labelKey: section.titleKey,
+          adminOnly: section.adminOnly,
+        })),
+      },
+    ],
   },
 ];
+
+const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
 
 /** Longest-prefix match, so `/employees/42` keeps its parent item highlighted. */
 function matchNavKey(pathname: string, keys: string[]): string | undefined {
@@ -111,7 +144,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
    * toàn 403 — bày ra một lối đi chắc chắn cụt.
    */
   const canReadPayroll = useCanReadPayroll();
-  const visibleItems = NAV_ITEMS.filter((item) => {
+
+  const isVisible = (item: NavItem): boolean => {
     if (item.key === '/settings') {
       return canWriteMasterData;
     }
@@ -121,20 +155,45 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     }
 
     return true;
-  });
+  };
+
+  /** Nhóm đã lọc quyền; nhóm rỗng bị bỏ luôn để không còn tiêu đề trống. */
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(isVisible),
+  })).filter((group) => group.items.length > 0);
+
+  const visibleItems = visibleGroups.flatMap((group) => group.items);
 
   // The Drawer always renders the full sidebar, even while the persisted
   // `sidebarCollapsed` flag is what opened it.
   const collapsed = sidebarCollapsed && !onNavigate;
 
-  const items: MenuProps['items'] = visibleItems.map(({ key, icon, labelKey, children }) => ({
+  const toMenuItem = ({ key, icon, labelKey, children }: NavItem) => ({
     key,
     icon,
     label: t(labelKey),
     children: children
       ?.filter((child) => !child.adminOnly || canManageSettings)
       .map((child) => ({ key: child.key, label: t(child.labelKey) })),
-  }));
+  });
+
+  /*
+   * Thu gọn thì chỉ còn dãy icon, không còn chỗ cho tiêu đề nhóm — AntD vẫn vẽ
+   * tiêu đề và nó tràn ra ngoài cột 80px. Nên ở trạng thái đó dùng đường kẻ
+   * thay cho chữ: vẫn thấy được ranh giới giữa các nhóm.
+   */
+  const items: MenuProps['items'] = collapsed
+    ? visibleGroups.flatMap((group, index) => [
+        ...(index > 0 ? [{ type: 'divider' as const, key: `${group.key}-divider` }] : []),
+        ...group.items.map(toMenuItem),
+      ])
+    : visibleGroups.map((group) => ({
+        key: group.key,
+        type: 'group' as const,
+        label: t(group.labelKey),
+        children: group.items.map(toMenuItem),
+      }));
 
   const allKeys = visibleItems.flatMap((item) => [
     item.key,

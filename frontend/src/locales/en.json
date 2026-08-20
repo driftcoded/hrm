@@ -314,7 +314,13 @@
     "holidays": "Public holidays",
     "reports": "Reports",
     "branding": "Branding",
-    "mailSettings": "Email settings"
+    "mailSettings": "Email settings",
+    "groups": {
+      "overview": "Overview",
+      "people": "People",
+      "timePay": "Time & pay",
+      "system": "System"
+    }
   },
   "profile": {
     "title": "My profile",
