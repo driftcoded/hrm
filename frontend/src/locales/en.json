@@ -1052,6 +1052,32 @@
     "title": "Attendance",
     "subtitle": "The monthly timesheet from the external clocking platform. Overtime is derived from the clock times.",
     "loadError": "Could not load attendance data.",
+    "charts": {
+      "loadError": "Could not load the attendance chart data.",
+      "dailyTitle": "Working ratio for the day",
+      "dailyEmpty": "No attendance data for this day.",
+      "dailyFigureLabel": "Attendance status breakdown for {{date}}",
+      "datePickerLabel": "Pick the day to break down",
+      "centerLabel": "Total",
+      "unit": "people",
+      "legendValue": "{{count}} ({{percent}})",
+      "bucket": {
+        "present": "Present",
+        "wfh": "Remote",
+        "late": "Late / left early",
+        "leave": "On leave",
+        "absent": "Absent",
+        "holiday": "Public holiday",
+        "noData": "No data yet"
+      },
+      "denominator": "Out of {{count}} people still employed",
+      "monthStats": "This month",
+      "workHours": "Total work hours",
+      "overtimeHours": "Overtime hours",
+      "employeeCount": "People",
+      "daysWithData": "Days with data",
+      "daysWithDataValue": "{{covered}}/{{total}} days"
+    },
     "status": {
       "present": "Present",
       "absent": "Absent",
@@ -1136,6 +1162,16 @@
       "dateRequired": "Please pick a date",
       "success": "Working day added.",
       "statusRequired": "Pick a status when there is no check-in time"
+    },
+    "tiles": {
+      "records": "Days recorded",
+      "recordsCaption": "Across {{count}} people still employed",
+      "working": "Present",
+      "workingCaption": "{{percent}} of the days recorded",
+      "irregular": "Late / left early",
+      "irregularCaption": "{{absent}} absent · {{leave}} on leave",
+      "overtime": "Overtime hours",
+      "overtimeCaption": "Total work hours: {{hours}}"
     }
   },
   "leave": {
@@ -1209,6 +1245,20 @@
         "pendingShortcut": "Pending only"
       },
       "loadError": "Could not load leave requests.",
+      "stats": {
+        "scopeNote": "Counted against the current filters, ignoring the status filter.",
+        "loadError": "Could not load the leave request statistics.",
+        "total": "Total requests",
+        "totalHint": "Every leave request, whatever its status.",
+        "pending": "Awaiting approval",
+        "pendingHint": "Recorded but neither approved nor rejected. The days are held against the balance, not yet deducted.",
+        "approved": "Approved",
+        "approvedHint": "Approved requests — the balance is deducted and the days are written to attendance.",
+        "closed": "Rejected / withdrawn",
+        "closedHint": "Requests no longer in effect: rejected, or withdrawn by whoever recorded them. No leave days deducted.",
+        "share": "{{percent}}% of all requests",
+        "closedBreakdown": "{{rejected}} rejected · {{cancelled}} withdrawn"
+      },
       "reasonTooShort": "Reason is too short",
       "reject": "Reject",
       "rejectReason": "Reason for rejection",

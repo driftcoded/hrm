@@ -3,7 +3,7 @@ import { Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import styles from './StatCard.module.css';
 
-export type StatCardTone = 'blue' | 'teal' | 'purple' | 'green';
+export type StatCardTone = 'blue' | 'teal' | 'purple' | 'green' | 'amber';
 
 export interface StatCardProps {
   icon: ReactNode;

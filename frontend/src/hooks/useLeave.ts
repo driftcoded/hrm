@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   adjustLeaveBalance,
   deleteLeaveBalance,
@@ -13,12 +18,14 @@ import {
   rejectLeaveRequest,
   updateLeaveRequest,
 } from '@/services/leave.service';
+import { LEAVE_STATUSES } from '@/types/leave.types';
 import type {
   AdjustLeaveBalancePayload,
   CreateLeaveRequestPayload,
   InitLeaveBalancePayload,
   LeaveBalanceFilters,
   LeaveRequestFilters,
+  LeaveStatus,
   UpdateLeaveRequestPayload,
 } from '@/types/leave.types';
 
@@ -43,6 +50,77 @@ export function useLeaveRequests(filters?: LeaveRequestFilters) {
     queryKey: LEAVE_KEYS.requests(filters),
     queryFn: () => listLeaveRequests(filters),
   });
+}
+
+/**
+ * Phạm vi đếm của `useLeaveRequestStats` — CỐ TÌNH không có `status`.
+ *
+ * Thẻ thống kê chính là bảng phân tích theo trạng thái, nên nó phải đếm trên
+ * cùng một phạm vi bất kể người dùng đang lọc trạng thái nào. Nếu để `status`
+ * lọt vào đây thì lọc "Chờ duyệt" sẽ làm ba thẻ còn lại về 0 — hàng thẻ tự phủ
+ * định chính nó.
+ */
+export type LeaveRequestStatsFilters = Pick<
+  LeaveRequestFilters,
+  'employeeId' | 'departmentId' | 'leaveTypeId' | 'from' | 'to'
+>;
+
+export interface LeaveRequestStats extends Record<LeaveStatus, number> {
+  total: number;
+}
+
+/**
+ * Đếm đơn nghỉ theo trạng thái trong phạm vi đang lọc.
+ *
+ * Backend chưa có endpoint tổng hợp, nên đây là bốn truy vấn `limit: 1` chạy
+ * song song, chỉ đọc `meta.total` — KHÔNG phải tải hết đơn về rồi đếm ở client.
+ * Đếm trên `items` của bảng thì chỉ ra được số của TRANG hiện tại, một con số
+ * trông như tổng nhưng đổi theo mỗi lần bấm sang trang.
+ *
+ * Query key nằm dưới `LEAVE_KEYS.requests` nên `invalidateQueries(root)` sau mỗi
+ * lần duyệt/từ chối/xoá làm mới luôn các thẻ — số trên thẻ không bao giờ cũ hơn
+ * bảng ngay dưới nó.
+ *
+ * Khi backend có `GET /leave-requests/stats`, thay ruột hàm này là xong; màn
+ * hình không phải sửa gì.
+ */
+export function useLeaveRequestStats(filters: LeaveRequestStatsFilters) {
+  const results = useQueries({
+    queries: LEAVE_STATUSES.map((status) => {
+      const query: LeaveRequestFilters = { ...filters, status, page: 1, limit: 1 };
+      return {
+        queryKey: LEAVE_KEYS.requests(query),
+        queryFn: () => listLeaveRequests(query),
+      };
+    }),
+  });
+
+  const isLoading = results.some((result) => result.isLoading);
+  const isError = results.some((result) => result.isError);
+
+  let data: LeaveRequestStats | undefined;
+
+  if (!isLoading && !isError) {
+    const counts = {} as Record<LeaveStatus, number>;
+    let total = 0;
+
+    LEAVE_STATUSES.forEach((status, index) => {
+      const count = results[index].data?.meta.total ?? 0;
+      counts[status] = count;
+      total += count;
+    });
+
+    data = { ...counts, total };
+  }
+
+  return {
+    data,
+    isLoading,
+    isError,
+    refetch: () => {
+      results.forEach((result) => void result.refetch());
+    },
+  };
 }
 
 export function useLeaveBalances(filters?: LeaveBalanceFilters) {

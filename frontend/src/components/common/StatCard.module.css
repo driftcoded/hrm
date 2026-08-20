@@ -40,6 +40,13 @@
   color: var(--hrm-color-success-strong);
 }
 
+/* Pending / waiting-on-someone. Same amber the `pending` status tag uses, so a
+   "chờ duyệt" tile and a "Chờ duyệt" tag read as the same state. */
+.amber {
+  background: var(--hrm-color-warning-soft);
+  color: var(--hrm-color-warning-strong);
+}
+
 .body {
   min-width: 0;
   flex: 1;

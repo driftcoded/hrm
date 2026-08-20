@@ -4,6 +4,24 @@
   gap: var(--hrm-grid-gap);
 }
 
+/* Bốn thẻ số liệu, cùng lưới với các màn hình KPI khác (§3). */
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--hrm-grid-gap);
+}
+
+/*
+ * Khung xương phải mang đúng viền, nền và padding của StatCard: nếu không, lúc
+ * số liệu về xong hàng thẻ sẽ nhảy chiều cao và đẩy cả bảng bên dưới xuống.
+ */
+.kpiSkeleton {
+  padding: var(--hrm-card-padding);
+  background: var(--hrm-card-bg);
+  border: var(--hrm-card-border);
+  border-radius: var(--hrm-card-radius);
+}
+
 /*
  * Một hàng duy nhất, tự xuống dòng khi hẹp. Không bọc card: đây là dải điều
  * khiển của bảng ngay bên dưới, không phải một panel nội dung riêng.
@@ -45,6 +63,14 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Tablet trở xuống (§10): bốn thẻ trên một hàng bóp mỗi thẻ xuống dưới 200px,
+   con số bị xuống dòng ngay giữa chừng. */
+@media (max-width: 1199px) {
+  .kpiRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 767px) {
   .spacer {
     flex-basis: 100%;
@@ -53,5 +79,11 @@
   .filterSelect {
     flex: 1 1 150px;
     min-width: 150px;
+  }
+}
+
+@media (max-width: 575px) {
+  .kpiRow {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

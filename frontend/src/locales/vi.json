@@ -1052,6 +1052,32 @@
     "title": "Chấm công",
     "subtitle": "Bảng công tháng từ nền tảng chấm công bên ngoài. Giờ làm thêm suy ra từ giờ vào/ra.",
     "loadError": "Không tải được dữ liệu chấm công.",
+    "charts": {
+      "loadError": "Không tải được số liệu biểu đồ chấm công.",
+      "dailyTitle": "Tỉ lệ làm việc trong ngày",
+      "dailyEmpty": "Ngày này chưa có dữ liệu chấm công.",
+      "dailyFigureLabel": "Tỉ lệ trạng thái chấm công ngày {{date}}",
+      "datePickerLabel": "Chọn ngày xem tỉ lệ",
+      "centerLabel": "Tổng",
+      "unit": "nhân sự",
+      "legendValue": "{{count}} ({{percent}})",
+      "bucket": {
+        "present": "Đi làm",
+        "wfh": "Làm từ xa",
+        "late": "Đi muộn / về sớm",
+        "leave": "Nghỉ phép",
+        "absent": "Vắng",
+        "holiday": "Ngày lễ",
+        "noData": "Chưa có dữ liệu"
+      },
+      "denominator": "Tính trên {{count}} nhân viên còn làm việc",
+      "monthStats": "Số liệu tháng",
+      "workHours": "Tổng giờ công",
+      "overtimeHours": "Giờ làm thêm",
+      "employeeCount": "Nhân viên",
+      "daysWithData": "Ngày có dữ liệu",
+      "daysWithDataValue": "{{covered}}/{{total}} ngày"
+    },
     "status": {
       "present": "Đi làm",
       "absent": "Vắng",
@@ -1136,6 +1162,16 @@
       "dateRequired": "Vui lòng chọn ngày",
       "success": "Đã thêm ngày công.",
       "statusRequired": "Không có giờ vào thì phải chọn trạng thái"
+    },
+    "tiles": {
+      "records": "Ngày công đã chấm",
+      "recordsCaption": "Trên {{count}} nhân viên còn làm việc",
+      "working": "Đi làm",
+      "workingCaption": "{{percent}} số ngày công đã chấm",
+      "irregular": "Đi muộn / về sớm",
+      "irregularCaption": "{{absent}} vắng · {{leave}} nghỉ phép",
+      "overtime": "Giờ làm thêm",
+      "overtimeCaption": "Tổng giờ công: {{hours}}"
     }
   },
   "leave": {
@@ -1209,6 +1245,20 @@
         "pendingShortcut": "Chỉ xem đơn chờ duyệt"
       },
       "loadError": "Không tải được danh sách đơn nghỉ phép.",
+      "stats": {
+        "scopeNote": "Đếm theo bộ lọc hiện tại, bỏ qua lọc trạng thái.",
+        "loadError": "Không tải được số liệu thống kê đơn nghỉ phép.",
+        "total": "Tổng đơn",
+        "totalHint": "Tất cả đơn nghỉ phép, không phân biệt trạng thái.",
+        "pending": "Chờ duyệt",
+        "pendingHint": "Đơn đã ghi nhận nhưng chưa duyệt cũng chưa từ chối. Ngày phép đang bị giữ chỗ, chưa trừ hẳn.",
+        "approved": "Đã duyệt",
+        "approvedHint": "Đơn đã duyệt — đã trừ quỹ phép và ghi ngày nghỉ vào bảng chấm công.",
+        "closed": "Từ chối / đã rút",
+        "closedHint": "Đơn không còn hiệu lực: bị từ chối hoặc người ghi đã rút lại. Không trừ ngày phép nào.",
+        "share": "Chiếm {{percent}}% tổng đơn",
+        "closedBreakdown": "{{rejected}} từ chối · {{cancelled}} đã rút"
+      },
       "reasonTooShort": "Lý do quá ngắn",
       "reject": "Từ chối",
       "rejectReason": "Lý do từ chối",

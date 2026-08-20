@@ -1,23 +1,42 @@
 import { useMemo, useState } from 'react';
-import { App, Button, DatePicker, Popconfirm, Select, Space, Tooltip } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  DatePicker,
+  Popconfirm,
+  Select,
+  Skeleton,
+  Space,
+  Tooltip,
+} from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
+  CheckCircleOutlined,
   CheckOutlined,
+  ClockCircleOutlined,
   CloseOutlined,
   DeleteOutlined,
   EditOutlined,
+  FileTextOutlined,
   PlusOutlined,
   ReloadOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { LeaveRequestFormModal } from '@/components/leave/LeaveRequestFormModal';
 import { LeaveStatusTag } from '@/components/leave/LeaveStatusTag';
 import { RejectLeaveModal } from '@/components/leave/RejectLeaveModal';
+import { StatCard } from '@/components/common/StatCard';
 import { DataTableCard } from '@/components/crud/DataTableCard';
 import { useAllDepartments } from '@/hooks/useDepartments';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
-import { useLeaveRequestMutations, useLeaveRequests } from '@/hooks/useLeave';
+import {
+  useLeaveRequestMutations,
+  useLeaveRequests,
+  useLeaveRequestStats,
+} from '@/hooks/useLeave';
 import { useLeaveTypes } from '@/hooks/useLeaveTypes';
 import {
   useCanApproveLeave,
@@ -26,6 +45,7 @@ import {
 import { useTableQuery } from '@/hooks/useTableQuery';
 import { useAuthStore } from '@/store/authStore';
 import { flattenDepartmentTree } from '@/utils/departmentTree';
+import { formatNumber } from '@/utils/format';
 import { LEAVE_STATUSES, type LeaveRequest, type LeaveStatus } from '@/types/leave.types';
 import styles from './LeaveRequestsPage.module.css';
 
@@ -84,6 +104,13 @@ export function LeaveRequestsPage() {
     from,
     to,
   });
+
+  /*
+   * KHÔNG truyền `status`. Hàng thẻ là bảng phân tích theo trạng thái, nên nó
+   * đếm trên cùng một phạm vi dù người dùng đang lọc trạng thái nào — lọc "Chờ
+   * duyệt" mà ba thẻ kia về 0 thì hàng thẻ tự phủ định chính nó.
+   */
+  const stats = useLeaveRequestStats({ departmentId, leaveTypeId, from, to });
 
   const mutations = useLeaveRequestMutations();
   const [isFormOpen, setFormOpen] = useState(false);
@@ -347,8 +374,80 @@ export function LeaveRequestsPage() {
     },
   ];
 
+  /**
+   * Tỉ trọng của một trạng thái trên tổng đơn.
+   *
+   * `null` khi chưa có đơn nào: "0% tổng đơn" trong khi tổng bằng 0 là một phép
+   * chia không có thật, và thẻ không có caption thì không hiện caption.
+   */
+  const share = (count: number, total: number) =>
+    total > 0
+      ? t('leave.requests.stats.share', { percent: Math.round((count / total) * 100) })
+      : null;
+
+  const scopeNote = t('leave.requests.stats.scopeNote');
+  const hint = (key: string) => `${t(key)} ${scopeNote}`;
+
   return (
     <div className={styles.page}>
+      {stats.isError ? (
+        <Alert
+          type="error"
+          showIcon
+          title={t('leave.requests.stats.loadError')}
+          action={
+            <Button size="small" onClick={stats.refetch}>
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      ) : stats.isLoading || !stats.data ? (
+        <div className={styles.kpiRow}>
+          {[0, 1, 2, 3].map((slot) => (
+            <div key={slot} className={styles.kpiSkeleton}>
+              <Skeleton active title={false} paragraph={{ rows: 2 }} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className={styles.kpiRow}>
+          <StatCard
+            tone="blue"
+            icon={<FileTextOutlined />}
+            label={t('leave.requests.stats.total')}
+            hint={hint('leave.requests.stats.totalHint')}
+            value={formatNumber(stats.data.total)}
+          />
+          <StatCard
+            tone="amber"
+            icon={<ClockCircleOutlined />}
+            label={t('leave.requests.stats.pending')}
+            hint={hint('leave.requests.stats.pendingHint')}
+            value={formatNumber(stats.data.pending)}
+            caption={share(stats.data.pending, stats.data.total)}
+          />
+          <StatCard
+            tone="green"
+            icon={<CheckCircleOutlined />}
+            label={t('leave.requests.stats.approved')}
+            hint={hint('leave.requests.stats.approvedHint')}
+            value={formatNumber(stats.data.approved)}
+            caption={share(stats.data.approved, stats.data.total)}
+          />
+          <StatCard
+            tone="purple"
+            icon={<StopOutlined />}
+            label={t('leave.requests.stats.closed')}
+            hint={hint('leave.requests.stats.closedHint')}
+            value={formatNumber(stats.data.rejected + stats.data.cancelled)}
+            caption={t('leave.requests.stats.closedBreakdown', {
+              rejected: formatNumber(stats.data.rejected),
+              cancelled: formatNumber(stats.data.cancelled),
+            })}
+          />
+        </div>
+      )}
+
       <div className={styles.filterRow}>
         <Select
           allowClear
@@ -443,6 +542,8 @@ export function LeaveRequestsPage() {
         errorMessage={t('leave.requests.loadError')}
         hasFilters={hasFilters}
         total={total}
+        // Phân trang dưới bảng đã in "Tổng N bản ghi" rồi.
+        showCount={false}
         scrollX={1210}
         pagination={{
           page: table.page,
