@@ -34,6 +34,7 @@ users ──── employees ──┬── departments (self-ref, có manager_
                        ├── leave_requests ── leave_types
                        ├── leave_balances ── leave_types
                        ├── salaries ──────── salary_components
+                       ├── salary_advances
                        ├── dependents
                        ├── family_members
                        ├── work_history
@@ -43,6 +44,9 @@ users ──── employees ──┬── departments (self-ref, có manager_
 holidays    (standalone – lịch nghỉ lễ VN)
 audit_logs  (standalone – ghi log mọi thao tác, chỉ INSERT)
 announcements (standalone – thông báo nội bộ)
+
+Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
+                          system_mail_settings
 ```
 
 ---
@@ -612,6 +616,51 @@ Lưu breakdown chi tiết từng dòng của phiếu lương, liên kết với 
 
 ---
 
+### 6.3. `salary_advances` – Tạm ứng lương
+
+> `deduct_month` / `deduct_year` là **kỳ lương bị trừ**, tách khỏi `advance_date`
+> là ngày chi tiền: ứng ngày 28/07 để trừ vào lương tháng 8 là bình thường.
+> `deducted_amount` cho phép thu hồi làm nhiều lần — bảng lương không trừ quá
+> phần lương còn lại của tháng đó.
+
+| Cột | Kiểu | Bắt buộc | Mô tả |
+|-----|------|:--------:|-------|
+| id | ID tự tăng | ✅ | Khóa chính |
+| employee_id | FK → employees | ✅ | Người ứng |
+| amount | tiền VNĐ | ✅ | Số tiền ứng. CHECK > 0 |
+| deducted_amount | tiền VNĐ | ✅ | Đã thu hồi được bao nhiêu. Mặc định 0 |
+| advance_date | ngày | ✅ | Ngày chi tiền |
+| deduct_month | số nhỏ | ✅ | Tháng của kỳ lương bị trừ. CHECK 1–12 |
+| deduct_year | số nhỏ | ✅ | Năm của kỳ lương bị trừ |
+| reason | text (255) | ✅ | Lý do ứng |
+| status | enum | ✅ | `pending` · `approved` · `rejected` · `deducted` · `cancelled` |
+| rejected_reason | văn bản dài | ❌ | Lý do từ chối |
+| recorded_by | FK → employees | ❌ | Người ghi phiếu (không được tự duyệt phiếu mình ghi) |
+| approved_by | FK → employees | ❌ | Người duyệt |
+| approved_at | thời điểm | ❌ | – |
+| created_at / updated_at | thời điểm | ✅ | Tự động |
+
+---
+
+### 6.4. `payroll_settings` – Cấu hình lương của công ty
+
+> **Chỉ 1 dòng** (`id = 1`, ràng buộc CHECK). Ở đây là thứ giống nhau cho mọi
+> người; khoản thoả thuận riêng với từng người nằm ở `contracts`.
+
+| Cột | Kiểu | Bắt buộc | Mô tả |
+|-----|------|:--------:|-------|
+| id | số rất nhỏ | ✅ | Luôn = 1 |
+| minimum_wage_region | số rất nhỏ | ✅ | Vùng lương tối thiểu (1–4) → trần đóng BHTN |
+| meal_allowance | tiền VNĐ | ✅ | Phụ cấp ăn ca. Mặc định 730.000 (ngưỡng miễn thuế) |
+| transport_allowance | tiền VNĐ | ✅ | Phụ cấp đi lại |
+| phone_allowance | tiền VNĐ | ✅ | Phụ cấp điện thoại |
+| attendance_allowance | tiền VNĐ | ✅ | Phụ cấp chuyên cần |
+| pay_overtime | boolean | ✅ | Có trả tiền làm thêm suy ra từ chấm công không |
+| updated_by | FK → users | ❌ | Người sửa gần nhất |
+| updated_at | thời điểm | ✅ | Tự động |
+
+---
+
 ## Nhóm 7 – Khen thưởng & Kỷ luật
 
 ### 7.1. `disciplines_rewards` – Khen thưởng & Kỷ luật
@@ -725,18 +774,58 @@ Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên t�
 
 ---
 
+### 8.5. `system_branding_settings` – Thương hiệu
+
+> **Chỉ 1 dòng** (`id = 1`). Tên công ty, logo và favicon hiện trên giao diện.
+
+| Cột | Kiểu | Bắt buộc | Mô tả |
+|-----|------|:--------:|-------|
+| id | số rất nhỏ | ✅ | Luôn = 1 |
+| company_name | text (150) | ✅ | Mặc định `HRM` |
+| logo_url | text (500) | ❌ | – |
+| favicon_url | text (500) | ❌ | – |
+| updated_by | FK → users | ❌ | – |
+| updated_at | thời điểm | ✅ | Tự động |
+
+---
+
+### 8.6. `system_mail_settings` – Cấu hình gửi email
+
+> **Chỉ 1 dòng** (`id = 1`). Mật khẩu SMTP lưu **đã mã hoá**, không lưu thô.
+
+| Cột | Kiểu | Bắt buộc | Mô tả |
+|-----|------|:--------:|-------|
+| id | số rất nhỏ | ✅ | Luôn = 1 |
+| smtp_host | text (255) | ❌ | – |
+| smtp_port | số nhỏ | ❌ | – |
+| smtp_secure | boolean | ✅ | Mặc định `true` |
+| smtp_username | text (255) | ❌ | – |
+| smtp_password_encrypted | văn bản dài | ❌ | Đã mã hoá |
+| smtp_from_email | text (150) | ❌ | – |
+| smtp_from_name | text (150) | ❌ | – |
+| updated_by | FK → users | ❌ | – |
+| updated_at | thời điểm | ✅ | Tự động |
+
+---
+
 ## Thứ tự Migration
+
+> **Dự án chỉ có MỘT migration.** Khi còn ở giai đoạn phát triển, chưa môi
+> trường nào mang dữ liệu thật, mọi thay đổi schema được gộp thẳng vào
+> `1787061755739-InitSchema` thay vì xếp thành chuỗi migration tăng dần — đọc
+> một file là thấy đúng schema đang chạy. Lên môi trường thật thì quy tắc đổi
+> lại: từ lúc đó mỗi thay đổi phải là một migration riêng.
 
 Tạo bảng theo thứ tự sau để tránh lỗi Foreign Key constraint:
 
 1. `roles`
 2. `permissions`
 3. `role_permissions`
-4. `users`
+4. `users` *(chưa thêm FK employee_id → employees)*
 5. `refresh_tokens`
 6. `departments` *(chưa thêm FK manager_id → employees)*
 7. `positions`
-8. `employees` → sau đó **ALTER** `departments` thêm FK `manager_id`
+8. `employees` → sau đó **ALTER** `departments` và `users` thêm FK
 9. `family_members`
 10. `dependents`
 11. `contracts`
@@ -747,11 +836,15 @@ Tạo bảng theo thứ tự sau để tránh lỗi Foreign Key constraint:
 16. `attendances`
 17. `salaries`
 18. `salary_components`
-19. `disciplines_rewards`
-20. `work_history`
-21. `documents`
-22. `announcements`
-23. `audit_logs`
+19. `payroll_settings`
+20. `salary_advances`
+21. `system_branding_settings`
+22. `system_mail_settings`
+23. `disciplines_rewards`
+24. `work_history`
+25. `documents`
+26. `announcements`
+27. `audit_logs`
 
 > Sau bước 8: `ALTER TABLE departments ADD CONSTRAINT fk_dept_manager FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL;`
 

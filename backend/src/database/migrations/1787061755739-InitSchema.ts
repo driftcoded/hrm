@@ -1,8 +1,14 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * Migration that creates all 26 tables in the exact order defined in
+ * Migration that creates all 27 tables in the exact order defined in
  * docs/database-schema.md §"Migration Order" (to avoid FK constraint errors).
+ *
+ * ĐÂY LÀ MIGRATION DUY NHẤT CỦA DỰ ÁN. Dự án còn ở giai đoạn phát triển, chưa
+ * có môi trường nào mang dữ liệu thật, nên mọi thay đổi schema trước đây đã
+ * được gộp thẳng vào đây thay vì xếp thành một chuỗi migration tăng dần: đọc
+ * một file là thấy đúng schema đang chạy. Khi hệ thống lên môi trường thật thì
+ * quy tắc đổi lại — từ lúc đó mỗi thay đổi phải là một migration riêng.
  *
  * Written by hand (raw SQL) instead of using `migration:generate` because of
  * several self-references (departments.parent_id, employees.direct_manager_id)
@@ -170,7 +176,8 @@ export class InitSchema1787061755739 implements MigrationInterface {
         permanent_address VARCHAR(500) NOT NULL,
         current_address VARCHAR(500) NULL,
         province_code VARCHAR(10) NOT NULL,
-        district_code VARCHAR(10) NOT NULL,
+        -- Bỏ cấp huyện từ 01/07/2025 (Luật 72/2025/QH15); giữ cột cho hồ sơ cũ.
+        district_code VARCHAR(10) NULL,
         ward_code VARCHAR(10) NOT NULL,
 
         phone VARCHAR(15) NOT NULL,
@@ -322,6 +329,8 @@ export class InitSchema1787061755739 implements MigrationInterface {
         description TEXT NULL,
         is_active BOOLEAN NOT NULL DEFAULT TRUE,
         sort_order SMALLINT NOT NULL DEFAULT 0,
+        -- Loại phép do luật quy định: sửa được cấu hình nhưng không xoá được.
+        is_system BOOLEAN NOT NULL DEFAULT FALSE,
         UNIQUE KEY uq_leave_types_code (code)
       ) ${charset};
     `);
@@ -352,6 +361,7 @@ export class InitSchema1787061755739 implements MigrationInterface {
         end_half ENUM('full','morning','afternoon') NOT NULL DEFAULT 'full',
         total_days DECIMAL(5,1) NOT NULL,
         reason TEXT NOT NULL,
+        recorded_by BIGINT UNSIGNED NULL,
         status ENUM('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
         approved_by BIGINT UNSIGNED NULL,
         approved_at TIMESTAMP NULL,
@@ -361,7 +371,8 @@ export class InitSchema1787061755739 implements MigrationInterface {
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         CONSTRAINT fk_leave_requests_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
         CONSTRAINT fk_leave_requests_type FOREIGN KEY (leave_type_id) REFERENCES leave_types(id) ON DELETE RESTRICT,
-        CONSTRAINT fk_leave_requests_approver FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE SET NULL
+        CONSTRAINT fk_leave_requests_approver FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE SET NULL,
+        CONSTRAINT fk_leave_requests_recorder FOREIGN KEY (recorded_by) REFERENCES employees(id) ON DELETE SET NULL
       ) ${charset};
     `);
 
@@ -392,6 +403,8 @@ export class InitSchema1787061755739 implements MigrationInterface {
         work_date DATE NOT NULL,
         check_in TIME NULL,
         check_out TIME NULL,
+        break_start TIME NULL,
+        break_end TIME NULL,
         work_hours DECIMAL(4,2) NULL,
         overtime_hours DECIMAL(4,2) NOT NULL DEFAULT 0,
         is_late BOOLEAN NOT NULL DEFAULT FALSE,
@@ -442,7 +455,7 @@ export class InitSchema1787061755739 implements MigrationInterface {
         total_insurance DECIMAL(15,2) NOT NULL DEFAULT 0,
 
         dependent_count SMALLINT NOT NULL DEFAULT 0,
-        self_deduction DECIMAL(15,2) NOT NULL DEFAULT 11000000,
+        self_deduction DECIMAL(15,2) NOT NULL DEFAULT 15500000,
         dependent_deduction DECIMAL(15,2) NOT NULL DEFAULT 0,
         taxable_income DECIMAL(15,2) NOT NULL DEFAULT 0,
         personal_income_tax DECIMAL(15,2) NOT NULL DEFAULT 0,
@@ -481,79 +494,112 @@ export class InitSchema1787061755739 implements MigrationInterface {
       ) ${charset};
     `);
 
-    // 19. trainings
+    // 19. payroll_settings (1 dòng duy nhất — cấu hình lương của công ty)
     await queryRunner.query(`
-      CREATE TABLE trainings (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        code VARCHAR(30) NOT NULL,
-        name VARCHAR(200) NOT NULL,
-        type ENUM('internal','external','online','on_the_job') NOT NULL,
-        description TEXT NULL,
-        start_date DATE NULL,
-        end_date DATE NULL,
-        location VARCHAR(200) NULL,
-        trainer VARCHAR(200) NULL,
-        cost DECIMAL(15,2) NOT NULL DEFAULT 0,
-        max_participants SMALLINT NULL,
-        status ENUM('planned','ongoing','completed','cancelled') NOT NULL DEFAULT 'planned',
-        attachment_url VARCHAR(500) NULL,
-        note TEXT NULL,
-        created_by BIGINT UNSIGNED NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CREATE TABLE payroll_settings (
+        id TINYINT UNSIGNED NOT NULL,
+        minimum_wage_region TINYINT UNSIGNED NOT NULL DEFAULT 1,
+        meal_allowance DECIMAL(15,2) NOT NULL DEFAULT 730000,
+        transport_allowance DECIMAL(15,2) NOT NULL DEFAULT 0,
+        phone_allowance DECIMAL(15,2) NOT NULL DEFAULT 0,
+        attendance_allowance DECIMAL(15,2) NOT NULL DEFAULT 0,
+        pay_overtime BOOLEAN NOT NULL DEFAULT TRUE,
+        updated_by BIGINT UNSIGNED NULL,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY uq_trainings_code (code),
-        CONSTRAINT fk_trainings_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+        PRIMARY KEY (id),
+        CONSTRAINT chk_payroll_settings_singleton CHECK (id = 1),
+        CONSTRAINT chk_payroll_settings_region CHECK (minimum_wage_region BETWEEN 1 AND 4),
+        CONSTRAINT fk_payroll_settings_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
       ) ${charset};
     `);
 
-    // 20. employee_trainings
+    // Vùng I và mức ăn ca 730.000 — đúng ngưỡng miễn thuế TNCN của
+    // TT 111/2013/TT-BTC, để mặc định không tự tạo ra một khoản chịu thuế.
     await queryRunner.query(`
-      CREATE TABLE employee_trainings (
+      INSERT INTO payroll_settings (id, minimum_wage_region, meal_allowance)
+      VALUES (1, 1, 730000);
+    `);
+
+    /*
+     * 20. salary_advances
+     *
+     * `deduct_month`/`deduct_year` là KỲ LƯƠNG bị trừ, tách khỏi `advance_date`
+     * là ngày ứng tiền: ứng ngày 28/07 để trừ vào lương tháng 8 là chuyện bình
+     * thường, và suy kỳ trừ từ ngày ứng sẽ đoán sai đúng những trường hợp đó.
+     *
+     * `deducted_amount` cho phép thu hồi làm nhiều lần: bảng lương không trừ
+     * quá phần lương còn lại của tháng đó.
+     */
+    await queryRunner.query(`
+      CREATE TABLE salary_advances (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
         employee_id BIGINT UNSIGNED NOT NULL,
-        training_id BIGINT UNSIGNED NOT NULL,
-        registration_date DATE NOT NULL,
-        completion_date DATE NULL,
-        result ENUM('passed','failed','incomplete','exempted') NULL,
-        score DECIMAL(5,2) NULL,
-        certificate_url VARCHAR(500) NULL,
-        note TEXT NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY uq_employee_training (employee_id, training_id),
-        CONSTRAINT fk_employee_trainings_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
-        CONSTRAINT fk_employee_trainings_training FOREIGN KEY (training_id) REFERENCES trainings(id) ON DELETE CASCADE
-      ) ${charset};
-    `);
-
-    // 21. performance_reviews
-    await queryRunner.query(`
-      CREATE TABLE performance_reviews (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        employee_id BIGINT UNSIGNED NOT NULL,
-        reviewer_id BIGINT UNSIGNED NOT NULL,
-        review_period ENUM('monthly','quarterly','biannual','annual') NOT NULL,
-        period_year SMALLINT NOT NULL,
-        period_quarter SMALLINT NULL,
-        period_month SMALLINT NULL,
-        kpi_score DECIMAL(5,2) NULL,
-        attitude_score DECIMAL(5,2) NULL,
-        skill_score DECIMAL(5,2) NULL,
-        overall_score DECIMAL(5,2) NULL,
-        rating ENUM('excellent','good','average','below_average','poor') NULL,
-        strengths TEXT NULL,
-        weaknesses TEXT NULL,
-        recommendations TEXT NULL,
-        status ENUM('draft','submitted','acknowledged') NOT NULL DEFAULT 'draft',
-        acknowledged_at TIMESTAMP NULL,
-        note TEXT NULL,
+        amount DECIMAL(15,2) NOT NULL,
+        deducted_amount DECIMAL(15,2) NOT NULL DEFAULT 0,
+        advance_date DATE NOT NULL,
+        deduct_month SMALLINT NOT NULL,
+        deduct_year SMALLINT NOT NULL,
+        reason VARCHAR(255) NOT NULL,
+        status ENUM('pending','approved','rejected','deducted','cancelled') NOT NULL DEFAULT 'pending',
+        rejected_reason TEXT NULL,
+        recorded_by BIGINT UNSIGNED NULL,
+        approved_by BIGINT UNSIGNED NULL,
+        approved_at TIMESTAMP NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_performance_reviews_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
-        CONSTRAINT fk_performance_reviews_reviewer FOREIGN KEY (reviewer_id) REFERENCES employees(id) ON DELETE RESTRICT
+        KEY idx_salary_advances_period (deduct_year, deduct_month),
+        KEY idx_salary_advances_employee (employee_id, deduct_year, deduct_month),
+        CONSTRAINT chk_salary_advances_amount CHECK (amount > 0),
+        CONSTRAINT chk_salary_advances_month CHECK (deduct_month BETWEEN 1 AND 12),
+        CONSTRAINT fk_salary_advances_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+        CONSTRAINT fk_salary_advances_recorder FOREIGN KEY (recorded_by) REFERENCES employees(id) ON DELETE SET NULL,
+        CONSTRAINT fk_salary_advances_approver FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE SET NULL
       ) ${charset};
     `);
 
-    // 22. disciplines_rewards
+    // 21. system_branding_settings (1 dòng duy nhất)
+    await queryRunner.query(`
+      CREATE TABLE system_branding_settings (
+        id TINYINT UNSIGNED NOT NULL,
+        company_name VARCHAR(150) NOT NULL DEFAULT 'HRM',
+        logo_url VARCHAR(500) NULL,
+        favicon_url VARCHAR(500) NULL,
+        updated_by BIGINT UNSIGNED NULL,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        CONSTRAINT chk_branding_settings_singleton CHECK (id = 1),
+        CONSTRAINT fk_branding_settings_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
+      ) ${charset};
+    `);
+
+    await queryRunner.query(`
+      INSERT INTO system_branding_settings (id, company_name) VALUES (1, 'HRM');
+    `);
+
+    // 22. system_mail_settings (1 dòng duy nhất; mật khẩu SMTP lưu đã mã hoá)
+    await queryRunner.query(`
+      CREATE TABLE system_mail_settings (
+        id TINYINT UNSIGNED NOT NULL,
+        smtp_host VARCHAR(255) NULL,
+        smtp_port SMALLINT UNSIGNED NULL,
+        smtp_secure BOOLEAN NOT NULL DEFAULT TRUE,
+        smtp_username VARCHAR(255) NULL,
+        smtp_password_encrypted TEXT NULL,
+        smtp_from_email VARCHAR(150) NULL,
+        smtp_from_name VARCHAR(150) NULL,
+        updated_by BIGINT UNSIGNED NULL,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        CONSTRAINT chk_mail_settings_singleton CHECK (id = 1),
+        CONSTRAINT fk_mail_settings_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
+      ) ${charset};
+    `);
+
+    await queryRunner.query(`
+      INSERT INTO system_mail_settings (id) VALUES (1);
+    `);
+
+    // 27. disciplines_rewards
     await queryRunner.query(`
       CREATE TABLE disciplines_rewards (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -565,7 +611,6 @@ export class InitSchema1787061755739 implements MigrationInterface {
         decision_number VARCHAR(50) NULL,
         decision_date DATE NOT NULL,
         effective_date DATE NOT NULL,
-        amount DECIMAL(15,2) NULL,
         issued_by BIGINT UNSIGNED NULL,
         document_url VARCHAR(500) NULL,
         note TEXT NULL,
@@ -669,9 +714,10 @@ export class InitSchema1787061755739 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS documents;`);
     await queryRunner.query(`DROP TABLE IF EXISTS work_history;`);
     await queryRunner.query(`DROP TABLE IF EXISTS disciplines_rewards;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS performance_reviews;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS employee_trainings;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS trainings;`);
+    await queryRunner.query(`DROP TABLE IF EXISTS system_mail_settings;`);
+    await queryRunner.query(`DROP TABLE IF EXISTS system_branding_settings;`);
+    await queryRunner.query(`DROP TABLE IF EXISTS salary_advances;`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payroll_settings;`);
     await queryRunner.query(`DROP TABLE IF EXISTS salary_components;`);
     await queryRunner.query(`DROP TABLE IF EXISTS salaries;`);
     await queryRunner.query(`DROP TABLE IF EXISTS attendances;`);

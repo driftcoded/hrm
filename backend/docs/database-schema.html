@@ -136,6 +136,8 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h4"><a href="#khấu-trừ-khác-thực-nhận">Khấu trừ khác & Thực nhận</a></li>
 <li class="h4"><a href="#trạng-thái-phê-duyệt">Trạng thái & Phê duyệt</a></li>
 <li class="h3"><a href="#62-salary_components-chi-tiết-từng-khoản-phụ-cấp-khấu-trừ">6.2. `salary_components` – Chi tiết từng khoản phụ cấp / khấu trừ</a></li>
+<li class="h3"><a href="#63-salary_advances-tạm-ứng-lương">6.3. `salary_advances` – Tạm ứng lương</a></li>
+<li class="h3"><a href="#64-payroll_settings-cấu-hình-lương-của-công-ty">6.4. `payroll_settings` – Cấu hình lương của công ty</a></li>
 <li class="h2"><a href="#nhóm-7-khen-thưởng-kỷ-luật">Nhóm 7 – Khen thưởng & Kỷ luật</a></li>
 <li class="h3"><a href="#71-disciplines_rewards-khen-thưởng-kỷ-luật">7.1. `disciplines_rewards` – Khen thưởng & Kỷ luật</a></li>
 <li class="h2"><a href="#nhóm-8-tài-liệu-hệ-thống">Nhóm 8 – Tài liệu & Hệ thống</a></li>
@@ -143,6 +145,8 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h3"><a href="#82-documents-tài-liệu-hồ-sơ-nhân-viên">8.2. `documents` – Tài liệu hồ sơ nhân viên</a></li>
 <li class="h3"><a href="#83-announcements-thông-báo-nội-bộ">8.3. `announcements` – Thông báo nội bộ</a></li>
 <li class="h3"><a href="#84-audit_logs-nhật-ký-thao-tác">8.4. `audit_logs` – Nhật ký thao tác</a></li>
+<li class="h3"><a href="#85-system_branding_settings-thương-hiệu">8.5. `system_branding_settings` – Thương hiệu</a></li>
+<li class="h3"><a href="#86-system_mail_settings-cấu-hình-gửi-email">8.6. `system_mail_settings` – Cấu hình gửi email</a></li>
 <li class="h2"><a href="#thứ-tự-migration">Thứ tự Migration</a></li>
 <li class="h2"><a href="#seed-data-cần-chuẩn-bị">Seed Data cần chuẩn bị</a></li>
 </ul></nav>
@@ -180,6 +184,7 @@ users ──── employees ──┬── departments (self-ref, có manager_
                        ├── leave_requests ── leave_types
                        ├── leave_balances ── leave_types
                        ├── salaries ──────── salary_components
+                       ├── salary_advances
                        ├── dependents
                        ├── family_members
                        ├── work_history
@@ -189,6 +194,9 @@ users ──── employees ──┬── departments (self-ref, có manager_
 holidays    (standalone – lịch nghỉ lễ VN)
 audit_logs  (standalone – ghi log mọi thao tác, chỉ INSERT)
 announcements (standalone – thông báo nội bộ)
+
+Cấu hình 1 dòng (id = 1): payroll_settings, system_branding_settings,
+                          system_mail_settings
 </code></pre>
 <hr>
 <h2 id="nhóm-1-xác-thực-phân-quyền">Nhóm 1 – Xác thực & Phân quyền</h2>
@@ -732,6 +740,51 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>note</td><td>text (255)</td><td>❌</td><td>–</td></tr>
 </tbody></table>
 <hr>
+<h3 id="63-salary_advances-tạm-ứng-lương">6.3. <code>salary_advances</code> – Tạm ứng lương</h3>
+<blockquote>
+<p><code>deduct_month</code> / <code>deduct_year</code> là <strong>kỳ lương bị trừ</strong>, tách khỏi <code>advance_date</code></p>
+<p>là ngày chi tiền: ứng ngày 28/07 để trừ vào lương tháng 8 là bình thường.</p>
+<p><code>deducted_amount</code> cho phép thu hồi làm nhiều lần — bảng lương không trừ quá</p>
+<p>phần lương còn lại của tháng đó.</p>
+</blockquote>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
+<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Người ứng</td></tr>
+<tr><td>amount</td><td>tiền VNĐ</td><td>✅</td><td>Số tiền ứng. CHECK > 0</td></tr>
+<tr><td>deducted_amount</td><td>tiền VNĐ</td><td>✅</td><td>Đã thu hồi được bao nhiêu. Mặc định 0</td></tr>
+<tr><td>advance_date</td><td>ngày</td><td>✅</td><td>Ngày chi tiền</td></tr>
+<tr><td>deduct_month</td><td>số nhỏ</td><td>✅</td><td>Tháng của kỳ lương bị trừ. CHECK 1–12</td></tr>
+<tr><td>deduct_year</td><td>số nhỏ</td><td>✅</td><td>Năm của kỳ lương bị trừ</td></tr>
+<tr><td>reason</td><td>text (255)</td><td>✅</td><td>Lý do ứng</td></tr>
+<tr><td>status</td><td>enum</td><td>✅</td><td><code>pending</code> · <code>approved</code> · <code>rejected</code> · <code>deducted</code> · <code>cancelled</code></td></tr>
+<tr><td>rejected_reason</td><td>văn bản dài</td><td>❌</td><td>Lý do từ chối</td></tr>
+<tr><td>recorded_by</td><td>FK → employees</td><td>❌</td><td>Người ghi phiếu (không được tự duyệt phiếu mình ghi)</td></tr>
+<tr><td>approved_by</td><td>FK → employees</td><td>❌</td><td>Người duyệt</td></tr>
+<tr><td>approved_at</td><td>thời điểm</td><td>❌</td><td>–</td></tr>
+<tr><td>created_at / updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+</tbody></table>
+<hr>
+<h3 id="64-payroll_settings-cấu-hình-lương-của-công-ty">6.4. <code>payroll_settings</code> – Cấu hình lương của công ty</h3>
+<blockquote>
+<p><strong>Chỉ 1 dòng</strong> (<code>id = 1</code>, ràng buộc CHECK). Ở đây là thứ giống nhau cho mọi</p>
+<p>người; khoản thoả thuận riêng với từng người nằm ở <code>contracts</code>.</p>
+</blockquote>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>số rất nhỏ</td><td>✅</td><td>Luôn = 1</td></tr>
+<tr><td>minimum_wage_region</td><td>số rất nhỏ</td><td>✅</td><td>Vùng lương tối thiểu (1–4) → trần đóng BHTN</td></tr>
+<tr><td>meal_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp ăn ca. Mặc định 730.000 (ngưỡng miễn thuế)</td></tr>
+<tr><td>transport_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp đi lại</td></tr>
+<tr><td>phone_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp điện thoại</td></tr>
+<tr><td>attendance_allowance</td><td>tiền VNĐ</td><td>✅</td><td>Phụ cấp chuyên cần</td></tr>
+<tr><td>pay_overtime</td><td>boolean</td><td>✅</td><td>Có trả tiền làm thêm suy ra từ chấm công không</td></tr>
+<tr><td>updated_by</td><td>FK → users</td><td>❌</td><td>Người sửa gần nhất</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+</tbody></table>
+<hr>
 <h2 id="nhóm-7-khen-thưởng-kỷ-luật">Nhóm 7 – Khen thưởng & Kỷ luật</h2>
 <h3 id="71-disciplines_rewards-khen-thưởng-kỷ-luật">7.1. <code>disciplines_rewards</code> – Khen thưởng & Kỷ luật</h3>
 <blockquote>
@@ -839,17 +892,58 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
 </tbody></table>
 <hr>
+<h3 id="85-system_branding_settings-thương-hiệu">8.5. <code>system_branding_settings</code> – Thương hiệu</h3>
+<blockquote>
+<p><strong>Chỉ 1 dòng</strong> (<code>id = 1</code>). Tên công ty, logo và favicon hiện trên giao diện.</p>
+</blockquote>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>số rất nhỏ</td><td>✅</td><td>Luôn = 1</td></tr>
+<tr><td>company_name</td><td>text (150)</td><td>✅</td><td>Mặc định <code>HRM</code></td></tr>
+<tr><td>logo_url</td><td>text (500)</td><td>❌</td><td>–</td></tr>
+<tr><td>favicon_url</td><td>text (500)</td><td>❌</td><td>–</td></tr>
+<tr><td>updated_by</td><td>FK → users</td><td>❌</td><td>–</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+</tbody></table>
+<hr>
+<h3 id="86-system_mail_settings-cấu-hình-gửi-email">8.6. <code>system_mail_settings</code> – Cấu hình gửi email</h3>
+<blockquote>
+<p><strong>Chỉ 1 dòng</strong> (<code>id = 1</code>). Mật khẩu SMTP lưu <strong>đã mã hoá</strong>, không lưu thô.</p>
+</blockquote>
+<table><thead>
+<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
+</thead><tbody>
+<tr><td>id</td><td>số rất nhỏ</td><td>✅</td><td>Luôn = 1</td></tr>
+<tr><td>smtp_host</td><td>text (255)</td><td>❌</td><td>–</td></tr>
+<tr><td>smtp_port</td><td>số nhỏ</td><td>❌</td><td>–</td></tr>
+<tr><td>smtp_secure</td><td>boolean</td><td>✅</td><td>Mặc định <code>true</code></td></tr>
+<tr><td>smtp_username</td><td>text (255)</td><td>❌</td><td>–</td></tr>
+<tr><td>smtp_password_encrypted</td><td>văn bản dài</td><td>❌</td><td>Đã mã hoá</td></tr>
+<tr><td>smtp_from_email</td><td>text (150)</td><td>❌</td><td>–</td></tr>
+<tr><td>smtp_from_name</td><td>text (150)</td><td>❌</td><td>–</td></tr>
+<tr><td>updated_by</td><td>FK → users</td><td>❌</td><td>–</td></tr>
+<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
+</tbody></table>
+<hr>
 <h2 id="thứ-tự-migration">Thứ tự Migration</h2>
+<blockquote>
+<p><strong>Dự án chỉ có MỘT migration.</strong> Khi còn ở giai đoạn phát triển, chưa môi</p>
+<p>trường nào mang dữ liệu thật, mọi thay đổi schema được gộp thẳng vào</p>
+<p><code>1787061755739-InitSchema</code> thay vì xếp thành chuỗi migration tăng dần — đọc</p>
+<p>một file là thấy đúng schema đang chạy. Lên môi trường thật thì quy tắc đổi</p>
+<p>lại: từ lúc đó mỗi thay đổi phải là một migration riêng.</p>
+</blockquote>
 <p>Tạo bảng theo thứ tự sau để tránh lỗi Foreign Key constraint:</p>
 <ol>
 <li><code>roles</code></li>
 <li><code>permissions</code></li>
 <li><code>role_permissions</code></li>
-<li><code>users</code></li>
+<li><code>users</code> <em>(chưa thêm FK employee_id → employees)</em></li>
 <li><code>refresh_tokens</code></li>
 <li><code>departments</code> <em>(chưa thêm FK manager_id → employees)</em></li>
 <li><code>positions</code></li>
-<li><code>employees</code> → sau đó <strong>ALTER</strong> <code>departments</code> thêm FK <code>manager_id</code></li>
+<li><code>employees</code> → sau đó <strong>ALTER</strong> <code>departments</code> và <code>users</code> thêm FK</li>
 <li><code>family_members</code></li>
 <li><code>dependents</code></li>
 <li><code>contracts</code></li>
@@ -860,6 +954,10 @@ announcements (standalone – thông báo nội bộ)
 <li><code>attendances</code></li>
 <li><code>salaries</code></li>
 <li><code>salary_components</code></li>
+<li><code>payroll_settings</code></li>
+<li><code>salary_advances</code></li>
+<li><code>system_branding_settings</code></li>
+<li><code>system_mail_settings</code></li>
 <li><code>disciplines_rewards</code></li>
 <li><code>work_history</code></li>
 <li><code>documents</code></li>
