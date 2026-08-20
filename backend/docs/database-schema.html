@@ -136,17 +136,13 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li class="h4"><a href="#khấu-trừ-khác-thực-nhận">Khấu trừ khác & Thực nhận</a></li>
 <li class="h4"><a href="#trạng-thái-phê-duyệt">Trạng thái & Phê duyệt</a></li>
 <li class="h3"><a href="#62-salary_components-chi-tiết-từng-khoản-phụ-cấp-khấu-trừ">6.2. `salary_components` – Chi tiết từng khoản phụ cấp / khấu trừ</a></li>
-<li class="h2"><a href="#nhóm-7-đào-tạo-phát-triển">Nhóm 7 – Đào tạo & Phát triển</a></li>
-<li class="h3"><a href="#71-trainings-khoá-đào-tạo">7.1. `trainings` – Khoá đào tạo</a></li>
-<li class="h3"><a href="#72-employee_trainings-nhân-viên-tham-gia-đào-tạo">7.2. `employee_trainings` – Nhân viên tham gia đào tạo</a></li>
-<li class="h2"><a href="#nhóm-8-đánh-giá-kỷ-luật">Nhóm 8 – Đánh giá & Kỷ luật</a></li>
-<li class="h3"><a href="#81-performance_reviews-đánh-giá-hiệu-suất">8.1. `performance_reviews` – Đánh giá hiệu suất</a></li>
-<li class="h3"><a href="#82-disciplines_rewards-khen-thưởng-kỷ-luật">8.2. `disciplines_rewards` – Khen thưởng & Kỷ luật</a></li>
-<li class="h2"><a href="#nhóm-9-tài-liệu-hệ-thống">Nhóm 9 – Tài liệu & Hệ thống</a></li>
-<li class="h3"><a href="#91-work_history-lịch-sử-công-tác">9.1. `work_history` – Lịch sử công tác</a></li>
-<li class="h3"><a href="#92-documents-tài-liệu-hồ-sơ-nhân-viên">9.2. `documents` – Tài liệu hồ sơ nhân viên</a></li>
-<li class="h3"><a href="#93-announcements-thông-báo-nội-bộ">9.3. `announcements` – Thông báo nội bộ</a></li>
-<li class="h3"><a href="#94-audit_logs-nhật-ký-thao-tác">9.4. `audit_logs` – Nhật ký thao tác</a></li>
+<li class="h2"><a href="#nhóm-7-khen-thưởng-kỷ-luật">Nhóm 7 – Khen thưởng & Kỷ luật</a></li>
+<li class="h3"><a href="#71-disciplines_rewards-khen-thưởng-kỷ-luật">7.1. `disciplines_rewards` – Khen thưởng & Kỷ luật</a></li>
+<li class="h2"><a href="#nhóm-8-tài-liệu-hệ-thống">Nhóm 8 – Tài liệu & Hệ thống</a></li>
+<li class="h3"><a href="#81-work_history-lịch-sử-công-tác">8.1. `work_history` – Lịch sử công tác</a></li>
+<li class="h3"><a href="#82-documents-tài-liệu-hồ-sơ-nhân-viên">8.2. `documents` – Tài liệu hồ sơ nhân viên</a></li>
+<li class="h3"><a href="#83-announcements-thông-báo-nội-bộ">8.3. `announcements` – Thông báo nội bộ</a></li>
+<li class="h3"><a href="#84-audit_logs-nhật-ký-thao-tác">8.4. `audit_logs` – Nhật ký thao tác</a></li>
 <li class="h2"><a href="#thứ-tự-migration">Thứ tự Migration</a></li>
 <li class="h2"><a href="#seed-data-cần-chuẩn-bị">Seed Data cần chuẩn bị</a></li>
 </ul></nav>
@@ -168,9 +164,8 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li><a href="#nhóm-4--hợp-đồng-lao-động">Nhóm 4 – Hợp đồng lao động</a></li>
 <li><a href="#nhóm-5--chấm-công--nghỉ-phép">Nhóm 5 – Chấm công & Nghỉ phép</a></li>
 <li><a href="#nhóm-6--lương--phúc-lợi">Nhóm 6 – Lương & Phúc lợi</a></li>
-<li><a href="#nhóm-7--đào-tạo--phát-triển">Nhóm 7 – Đào tạo & Phát triển</a></li>
-<li><a href="#nhóm-8--đánh-giá--kỷ-luật">Nhóm 8 – Đánh giá & Kỷ luật</a></li>
-<li><a href="#nhóm-9--tài-liệu--hệ-thống">Nhóm 9 – Tài liệu & Hệ thống</a></li>
+<li><a href="#nhóm-7--khen-thưởng--kỷ-luật">Nhóm 7 – Khen thưởng & Kỷ luật</a></li>
+<li><a href="#nhóm-8--tài-liệu--hệ-thống">Nhóm 8 – Tài liệu & Hệ thống</a></li>
 <li><a href="#thứ-tự-migration">Thứ tự Migration</a></li>
 <li><a href="#seed-data-cần-chuẩn-bị">Seed Data cần chuẩn bị</a></li>
 </ol>
@@ -188,8 +183,6 @@ users ──── employees ──┬── departments (self-ref, có manager_
                        ├── dependents
                        ├── family_members
                        ├── work_history
-                       ├── employee_trainings ── trainings
-                       ├── performance_reviews
                        ├── disciplines_rewards
                        └── documents
 
@@ -739,75 +732,8 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>note</td><td>text (255)</td><td>❌</td><td>–</td></tr>
 </tbody></table>
 <hr>
-<h2 id="nhóm-7-đào-tạo-phát-triển">Nhóm 7 – Đào tạo & Phát triển</h2>
-<h3 id="71-trainings-khoá-đào-tạo">7.1. <code>trainings</code> – Khoá đào tạo</h3>
-<table><thead>
-<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
-</thead><tbody>
-<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
-<tr><td>code</td><td>text (30)</td><td>✅</td><td>Duy nhất. Ví dụ: <code>TRN-2026-001</code></td></tr>
-<tr><td>name</td><td>text (200)</td><td>✅</td><td>Tên khoá đào tạo</td></tr>
-<tr><td>type</td><td>enum</td><td>✅</td><td><code>internal</code> · <code>external</code> · <code>online</code> · <code>on_the_job</code></td></tr>
-<tr><td>description</td><td>văn bản dài</td><td>❌</td><td>Nội dung, mục tiêu</td></tr>
-<tr><td>start_date</td><td>ngày</td><td>❌</td><td>–</td></tr>
-<tr><td>end_date</td><td>ngày</td><td>❌</td><td>–</td></tr>
-<tr><td>location</td><td>text (200)</td><td>❌</td><td>Địa điểm tổ chức</td></tr>
-<tr><td>trainer</td><td>text (200)</td><td>❌</td><td>Tên giảng viên hoặc đơn vị đào tạo</td></tr>
-<tr><td>cost</td><td>tiền VNĐ</td><td>✅</td><td>Chi phí. Mặc định <code>0</code></td></tr>
-<tr><td>max_participants</td><td>số nhỏ</td><td>❌</td><td>Số học viên tối đa. <code>NULL</code> = không giới hạn</td></tr>
-<tr><td>status</td><td>enum</td><td>✅</td><td><code>planned</code> · <code>ongoing</code> · <code>completed</code> · <code>cancelled</code>. Mặc định <code>planned</code></td></tr>
-<tr><td>attachment_url</td><td>text (500)</td><td>❌</td><td>Tài liệu đào tạo trên S3</td></tr>
-<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
-<tr><td>created_by</td><td>FK → users</td><td>❌</td><td>–</td></tr>
-<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
-<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
-</tbody></table>
-<hr>
-<h3 id="72-employee_trainings-nhân-viên-tham-gia-đào-tạo">7.2. <code>employee_trainings</code> – Nhân viên tham gia đào tạo</h3>
-<p>Bảng trung gian many-to-many giữa <code>employees</code> và <code>trainings</code>, có thêm thông tin kết quả.</p>
-<table><thead>
-<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
-</thead><tbody>
-<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
-<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td><strong>Unique</strong> theo cặp (employee_id, training_id)</td></tr>
-<tr><td>training_id</td><td>FK → trainings</td><td>✅</td><td>–</td></tr>
-<tr><td>registration_date</td><td>ngày</td><td>✅</td><td>Ngày đăng ký. Mặc định ngày hiện tại</td></tr>
-<tr><td>completion_date</td><td>ngày</td><td>❌</td><td>Ngày hoàn thành khoá học</td></tr>
-<tr><td>result</td><td>enum</td><td>❌</td><td><code>passed</code> · <code>failed</code> · <code>incomplete</code> · <code>exempted</code></td></tr>
-<tr><td>score</td><td>số thập phân</td><td>❌</td><td>Điểm số (nếu có thi)</td></tr>
-<tr><td>certificate_url</td><td>text (500)</td><td>❌</td><td>Link chứng chỉ trên S3</td></tr>
-<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
-<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
-</tbody></table>
-<hr>
-<h2 id="nhóm-8-đánh-giá-kỷ-luật">Nhóm 8 – Đánh giá & Kỷ luật</h2>
-<h3 id="81-performance_reviews-đánh-giá-hiệu-suất">8.1. <code>performance_reviews</code> – Đánh giá hiệu suất</h3>
-<table><thead>
-<tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
-</thead><tbody>
-<tr><td>id</td><td>ID tự tăng</td><td>✅</td><td>Khóa chính</td></tr>
-<tr><td>employee_id</td><td>FK → employees</td><td>✅</td><td>Người được đánh giá</td></tr>
-<tr><td>reviewer_id</td><td>FK → employees</td><td>✅</td><td>Người đánh giá (quản lý trực tiếp)</td></tr>
-<tr><td>review_period</td><td>enum</td><td>✅</td><td><code>monthly</code> · <code>quarterly</code> · <code>biannual</code> · <code>annual</code></td></tr>
-<tr><td>period_year</td><td>năm</td><td>✅</td><td>Năm đánh giá</td></tr>
-<tr><td>period_quarter</td><td>số nhỏ</td><td>❌</td><td>Quý (1–4). <code>NULL</code> nếu là annual</td></tr>
-<tr><td>period_month</td><td>số nhỏ</td><td>❌</td><td>Tháng (1–12). <code>NULL</code> nếu là quarterly</td></tr>
-<tr><td>kpi_score</td><td>số thập phân</td><td>❌</td><td>Điểm KPI (thang 0–100)</td></tr>
-<tr><td>attitude_score</td><td>số thập phân</td><td>❌</td><td>Điểm thái độ (thang 0–100)</td></tr>
-<tr><td>skill_score</td><td>số thập phân</td><td>❌</td><td>Điểm kỹ năng (thang 0–100)</td></tr>
-<tr><td>overall_score</td><td>số thập phân</td><td>❌</td><td>Điểm tổng – tính tự động từ 3 điểm trên</td></tr>
-<tr><td>rating</td><td>enum</td><td>❌</td><td><code>excellent</code> · <code>good</code> · <code>average</code> · <code>below_average</code> · <code>poor</code></td></tr>
-<tr><td>strengths</td><td>văn bản dài</td><td>❌</td><td>Điểm mạnh</td></tr>
-<tr><td>weaknesses</td><td>văn bản dài</td><td>❌</td><td>Điểm cần cải thiện</td></tr>
-<tr><td>recommendations</td><td>văn bản dài</td><td>❌</td><td>Đề xuất (đào tạo, thăng chức…)</td></tr>
-<tr><td>status</td><td>enum</td><td>✅</td><td><code>draft</code> · <code>submitted</code> · <code>acknowledged</code>. Mặc định <code>draft</code></td></tr>
-<tr><td>acknowledged_at</td><td>thời điểm</td><td>❌</td><td>Thời điểm nhân viên xác nhận đã đọc</td></tr>
-<tr><td>note</td><td>văn bản dài</td><td>❌</td><td>–</td></tr>
-<tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
-<tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
-</tbody></table>
-<hr>
-<h3 id="82-disciplines_rewards-khen-thưởng-kỷ-luật">8.2. <code>disciplines_rewards</code> – Khen thưởng & Kỷ luật</h3>
+<h2 id="nhóm-7-khen-thưởng-kỷ-luật">Nhóm 7 – Khen thưởng & Kỷ luật</h2>
+<h3 id="71-disciplines_rewards-khen-thưởng-kỷ-luật">7.1. <code>disciplines_rewards</code> – Khen thưởng & Kỷ luật</h3>
 <blockquote>
 <p>Bảng này <strong>không mang tiền</strong>. Điều 128 BLLĐ 2019 cấm phạt tiền thay cho kỷ</p>
 <p>luật, còn tiền thưởng thực trả đi qua <code>salaries.performance_bonus</code>. Cột</p>
@@ -832,8 +758,8 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
 </tbody></table>
 <hr>
-<h2 id="nhóm-9-tài-liệu-hệ-thống">Nhóm 9 – Tài liệu & Hệ thống</h2>
-<h3 id="91-work_history-lịch-sử-công-tác">9.1. <code>work_history</code> – Lịch sử công tác</h3>
+<h2 id="nhóm-8-tài-liệu-hệ-thống">Nhóm 8 – Tài liệu & Hệ thống</h2>
+<h3 id="81-work_history-lịch-sử-công-tác">8.1. <code>work_history</code> – Lịch sử công tác</h3>
 <p>Ghi lại <strong>mọi thay đổi quan trọng</strong> trong sự nghiệp nhân viên tại công ty. Chỉ INSERT, không UPDATE.</p>
 <table><thead>
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
@@ -855,7 +781,7 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
 </tbody></table>
 <hr>
-<h3 id="92-documents-tài-liệu-hồ-sơ-nhân-viên">9.2. <code>documents</code> – Tài liệu hồ sơ nhân viên</h3>
+<h3 id="82-documents-tài-liệu-hồ-sơ-nhân-viên">8.2. <code>documents</code> – Tài liệu hồ sơ nhân viên</h3>
 <table><thead>
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
 </thead><tbody>
@@ -874,7 +800,7 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>created_at</td><td>thời điểm</td><td>✅</td><td>Tự động</td></tr>
 </tbody></table>
 <hr>
-<h3 id="93-announcements-thông-báo-nội-bộ">9.3. <code>announcements</code> – Thông báo nội bộ</h3>
+<h3 id="83-announcements-thông-báo-nội-bộ">8.3. <code>announcements</code> – Thông báo nội bộ</h3>
 <table><thead>
 <tr><th>Cột</th><th>Kiểu</th><th>Bắt buộc</th><th>Mô tả</th></tr>
 </thead><tbody>
@@ -893,7 +819,7 @@ announcements (standalone – thông báo nội bộ)
 <tr><td>updated_at</td><td>thời điểm</td><td>✅</td><td>Tự động cập nhật</td></tr>
 </tbody></table>
 <hr>
-<h3 id="94-audit_logs-nhật-ký-thao-tác">9.4. <code>audit_logs</code> – Nhật ký thao tác</h3>
+<h3 id="84-audit_logs-nhật-ký-thao-tác">8.4. <code>audit_logs</code> – Nhật ký thao tác</h3>
 <blockquote>
 <p><strong>Bảng này chỉ INSERT, tuyệt đối không UPDATE hay DELETE. Giữ tối thiểu 2 năm.</strong></p>
 </blockquote>
@@ -934,9 +860,6 @@ announcements (standalone – thông báo nội bộ)
 <li><code>attendances</code></li>
 <li><code>salaries</code></li>
 <li><code>salary_components</code></li>
-<li><code>trainings</code></li>
-<li><code>employee_trainings</code></li>
-<li><code>performance_reviews</code></li>
 <li><code>disciplines_rewards</code></li>
 <li><code>work_history</code></li>
 <li><code>documents</code></li>

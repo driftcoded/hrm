@@ -10,9 +10,6 @@ import {
   PAYROLL_WRITE_ROLES,
   ADVANCE_RECORD_ROLES,
   ADVANCE_APPROVE_ROLES,
-  REVIEW_WRITE_ROLES,
-  REVIEW_ACKNOWLEDGE_ROLES,
-  TRAINING_WRITE_ROLES,
   LEAVE_RECORD_ROLES,
   EMPLOYEE_EXPORT_ROLES,
   EMPLOYEE_DELETE_ROLES,
@@ -169,19 +166,4 @@ export function useCanRecordAdvance(): boolean {
 /** May the user approve or reject a salary advance? */
 export function useCanApproveAdvance(): boolean {
   return useHasRole(ADVANCE_APPROVE_ROLES);
-}
-
-/** May the user write a performance review? */
-export function useCanWriteReview(): boolean {
-  return useHasRole(REVIEW_WRITE_ROLES);
-}
-
-/** May the user record that an employee acknowledged their review? */
-export function useCanAcknowledgeReview(): boolean {
-  return useHasRole(REVIEW_ACKNOWLEDGE_ROLES);
-}
-
-/** May the user create courses, enrol people and record results? */
-export function useCanWriteTraining(): boolean {
-  return useHasRole(TRAINING_WRITE_ROLES);
 }

@@ -15,11 +15,10 @@
 5. [Nhóm 4 – Hợp đồng lao động](#nhóm-4--hợp-đồng-lao-động)
 6. [Nhóm 5 – Chấm công & Nghỉ phép](#nhóm-5--chấm-công--nghỉ-phép)
 7. [Nhóm 6 – Lương & Phúc lợi](#nhóm-6--lương--phúc-lợi)
-8. [Nhóm 7 – Đào tạo & Phát triển](#nhóm-7--đào-tạo--phát-triển)
-9. [Nhóm 8 – Đánh giá & Kỷ luật](#nhóm-8--đánh-giá--kỷ-luật)
-10. [Nhóm 9 – Tài liệu & Hệ thống](#nhóm-9--tài-liệu--hệ-thống)
-11. [Thứ tự Migration](#thứ-tự-migration)
-12. [Seed Data cần chuẩn bị](#seed-data-cần-chuẩn-bị)
+8. [Nhóm 7 – Khen thưởng & Kỷ luật](#nhóm-7--khen-thưởng--kỷ-luật)
+9. [Nhóm 8 – Tài liệu & Hệ thống](#nhóm-8--tài-liệu--hệ-thống)
+10. [Thứ tự Migration](#thứ-tự-migration)
+11. [Seed Data cần chuẩn bị](#seed-data-cần-chuẩn-bị)
 
 ---
 
@@ -38,8 +37,6 @@ users ──── employees ──┬── departments (self-ref, có manager_
                        ├── dependents
                        ├── family_members
                        ├── work_history
-                       ├── employee_trainings ── trainings
-                       ├── performance_reviews
                        ├── disciplines_rewards
                        └── documents
 
@@ -615,81 +612,9 @@ Lưu breakdown chi tiết từng dòng của phiếu lương, liên kết với 
 
 ---
 
-## Nhóm 7 – Đào tạo & Phát triển
+## Nhóm 7 – Khen thưởng & Kỷ luật
 
-### 7.1. `trainings` – Khoá đào tạo
-
-| Cột | Kiểu | Bắt buộc | Mô tả |
-|-----|------|:--------:|-------|
-| id | ID tự tăng | ✅ | Khóa chính |
-| code | text (30) | ✅ | Duy nhất. Ví dụ: `TRN-2026-001` |
-| name | text (200) | ✅ | Tên khoá đào tạo |
-| type | enum | ✅ | `internal` · `external` · `online` · `on_the_job` |
-| description | văn bản dài | ❌ | Nội dung, mục tiêu |
-| start_date | ngày | ❌ | – |
-| end_date | ngày | ❌ | – |
-| location | text (200) | ❌ | Địa điểm tổ chức |
-| trainer | text (200) | ❌ | Tên giảng viên hoặc đơn vị đào tạo |
-| cost | tiền VNĐ | ✅ | Chi phí. Mặc định `0` |
-| max_participants | số nhỏ | ❌ | Số học viên tối đa. `NULL` = không giới hạn |
-| status | enum | ✅ | `planned` · `ongoing` · `completed` · `cancelled`. Mặc định `planned` |
-| attachment_url | text (500) | ❌ | Tài liệu đào tạo trên S3 |
-| note | văn bản dài | ❌ | – |
-| created_by | FK → users | ❌ | – |
-| created_at | thời điểm | ✅ | Tự động |
-| updated_at | thời điểm | ✅ | Tự động cập nhật |
-
----
-
-### 7.2. `employee_trainings` – Nhân viên tham gia đào tạo
-
-Bảng trung gian many-to-many giữa `employees` và `trainings`, có thêm thông tin kết quả.
-
-| Cột | Kiểu | Bắt buộc | Mô tả |
-|-----|------|:--------:|-------|
-| id | ID tự tăng | ✅ | Khóa chính |
-| employee_id | FK → employees | ✅ | **Unique** theo cặp (employee_id, training_id) |
-| training_id | FK → trainings | ✅ | – |
-| registration_date | ngày | ✅ | Ngày đăng ký. Mặc định ngày hiện tại |
-| completion_date | ngày | ❌ | Ngày hoàn thành khoá học |
-| result | enum | ❌ | `passed` · `failed` · `incomplete` · `exempted` |
-| score | số thập phân | ❌ | Điểm số (nếu có thi) |
-| certificate_url | text (500) | ❌ | Link chứng chỉ trên S3 |
-| note | văn bản dài | ❌ | – |
-| created_at | thời điểm | ✅ | Tự động |
-
----
-
-## Nhóm 8 – Đánh giá & Kỷ luật
-
-### 8.1. `performance_reviews` – Đánh giá hiệu suất
-
-| Cột | Kiểu | Bắt buộc | Mô tả |
-|-----|------|:--------:|-------|
-| id | ID tự tăng | ✅ | Khóa chính |
-| employee_id | FK → employees | ✅ | Người được đánh giá |
-| reviewer_id | FK → employees | ✅ | Người đánh giá (quản lý trực tiếp) |
-| review_period | enum | ✅ | `monthly` · `quarterly` · `biannual` · `annual` |
-| period_year | năm | ✅ | Năm đánh giá |
-| period_quarter | số nhỏ | ❌ | Quý (1–4). `NULL` nếu là annual |
-| period_month | số nhỏ | ❌ | Tháng (1–12). `NULL` nếu là quarterly |
-| kpi_score | số thập phân | ❌ | Điểm KPI (thang 0–100) |
-| attitude_score | số thập phân | ❌ | Điểm thái độ (thang 0–100) |
-| skill_score | số thập phân | ❌ | Điểm kỹ năng (thang 0–100) |
-| overall_score | số thập phân | ❌ | Điểm tổng – tính tự động từ 3 điểm trên |
-| rating | enum | ❌ | `excellent` · `good` · `average` · `below_average` · `poor` |
-| strengths | văn bản dài | ❌ | Điểm mạnh |
-| weaknesses | văn bản dài | ❌ | Điểm cần cải thiện |
-| recommendations | văn bản dài | ❌ | Đề xuất (đào tạo, thăng chức…) |
-| status | enum | ✅ | `draft` · `submitted` · `acknowledged`. Mặc định `draft` |
-| acknowledged_at | thời điểm | ❌ | Thời điểm nhân viên xác nhận đã đọc |
-| note | văn bản dài | ❌ | – |
-| created_at | thời điểm | ✅ | Tự động |
-| updated_at | thời điểm | ✅ | Tự động cập nhật |
-
----
-
-### 8.2. `disciplines_rewards` – Khen thưởng & Kỷ luật
+### 7.1. `disciplines_rewards` – Khen thưởng & Kỷ luật
 
 > Bảng này **không mang tiền**. Điều 128 BLLĐ 2019 cấm phạt tiền thay cho kỷ
 > luật, còn tiền thưởng thực trả đi qua `salaries.performance_bonus`. Cột
@@ -714,9 +639,9 @@ Bảng trung gian many-to-many giữa `employees` và `trainings`, có thêm th�
 
 ---
 
-## Nhóm 9 – Tài liệu & Hệ thống
+## Nhóm 8 – Tài liệu & Hệ thống
 
-### 9.1. `work_history` – Lịch sử công tác
+### 8.1. `work_history` – Lịch sử công tác
 
 Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên tại công ty. Chỉ INSERT, không UPDATE.
 
@@ -740,7 +665,7 @@ Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên t�
 
 ---
 
-### 9.2. `documents` – Tài liệu hồ sơ nhân viên
+### 8.2. `documents` – Tài liệu hồ sơ nhân viên
 
 | Cột | Kiểu | Bắt buộc | Mô tả |
 |-----|------|:--------:|-------|
@@ -760,7 +685,7 @@ Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên t�
 
 ---
 
-### 9.3. `announcements` – Thông báo nội bộ
+### 8.3. `announcements` – Thông báo nội bộ
 
 | Cột | Kiểu | Bắt buộc | Mô tả |
 |-----|------|:--------:|-------|
@@ -780,7 +705,7 @@ Ghi lại **mọi thay đổi quan trọng** trong sự nghiệp nhân viên t�
 
 ---
 
-### 9.4. `audit_logs` – Nhật ký thao tác
+### 8.4. `audit_logs` – Nhật ký thao tác
 
 > **Bảng này chỉ INSERT, tuyệt đối không UPDATE hay DELETE. Giữ tối thiểu 2 năm.**
 
@@ -822,14 +747,11 @@ Tạo bảng theo thứ tự sau để tránh lỗi Foreign Key constraint:
 16. `attendances`
 17. `salaries`
 18. `salary_components`
-19. `trainings`
-20. `employee_trainings`
-21. `performance_reviews`
-22. `disciplines_rewards`
-23. `work_history`
-24. `documents`
-25. `announcements`
-26. `audit_logs`
+19. `disciplines_rewards`
+20. `work_history`
+21. `documents`
+22. `announcements`
+23. `audit_logs`
 
 > Sau bước 8: `ALTER TABLE departments ADD CONSTRAINT fk_dept_manager FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL;`
 

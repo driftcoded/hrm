@@ -26,13 +26,11 @@ import { ComingSoonTab } from './tabs/ComingSoonTab';
 import { ContractsTab } from './tabs/ContractsTab';
 import { FamilyTab } from './tabs/FamilyTab';
 import { PersonalTab } from './tabs/PersonalTab';
-import { ReviewsTab } from './tabs/ReviewsTab';
 import { RewardsTab } from './tabs/RewardsTab';
-import { TrainingsTab } from './tabs/TrainingsTab';
 import styles from './EmployeeDetailPage.module.css';
 
 /**
- * `/employees/:id` — one employee, in nine tabs.
+ * `/employees/:id` — one employee, in six tabs.
  *
  * TABS KEEP THEIR STATE (PLAN test §3.2 "click tab không reload lại tab khác").
  * Two things make that true: AntD keeps a rendered pane mounted once visited
@@ -45,7 +43,7 @@ import styles from './EmployeeDetailPage.module.css';
  *
  * Ba tab còn trống — lương, phép, chấm công — có backend rồi nhưng chưa có bản
  * xem theo từng người; chúng render `ComingSoonTab` nêu rõ giai đoạn thay vì bị
- * ẩn đi, vì chín tab là hình dạng của một hồ sơ nhân viên ở đây và giấu bớt sẽ
+ * ẩn đi, vì sáu tab là hình dạng của một hồ sơ nhân viên ở đây và giấu bớt sẽ
  * làm màn hình trông như đã xong.
  */
 
@@ -179,16 +177,6 @@ export function EmployeeDetailPage() {
             canDelete={canDelete}
           />
         ),
-      },
-      {
-        key: 'reviews',
-        label: t('employees.tabs.reviews'),
-        children: <ReviewsTab employeeId={employee.id} />,
-      },
-      {
-        key: 'trainings',
-        label: t('employees.tabs.trainings'),
-        children: <TrainingsTab employeeId={employee.id} />,
       },
       {
         key: 'family',

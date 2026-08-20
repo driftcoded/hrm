@@ -136,25 +136,3 @@ export const ADVANCE_RECORD_ROLES: string[] = [
 
 /** Vai trò được DUYỆT phiếu tạm ứng — tiền ra khỏi công ty, hẹp hơn người ghi. */
 export const ADVANCE_APPROVE_ROLES: string[] = [ROLE_ADMIN, ROLE_HR_MANAGER];
-
-/** Vai trò được CHẤM đánh giá hiệu suất. `manager` bị `resolveScope` giới hạn trong phòng mình. */
-export const REVIEW_WRITE_ROLES: string[] = [
-  ROLE_ADMIN,
-  ROLE_HR_MANAGER,
-  ROLE_HR_STAFF,
-  ROLE_MANAGER,
-];
-
-/** Vai trò được GHI NHẬN nhân viên đã ký nhận bản đánh giá. Không có `manager`. */
-export const REVIEW_ACKNOWLEDGE_ROLES: string[] = [
-  ROLE_ADMIN,
-  ROLE_HR_MANAGER,
-  ROLE_HR_STAFF,
-];
-
-/** Vai trò được QUẢN LÝ khoá đào tạo: tạo, sửa, huỷ, ghi danh, ghi kết quả. */
-export const TRAINING_WRITE_ROLES: string[] = [
-  ROLE_ADMIN,
-  ROLE_HR_MANAGER,
-  ROLE_HR_STAFF,
-];

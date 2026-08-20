@@ -153,25 +153,3 @@ export const ADVANCE_APPROVE_ROLES: readonly UserRole[] = [
   'admin',
   'hr_manager',
 ];
-
-/** Vai trò được CHẤM đánh giá hiệu suất — mirrors `REVIEW_WRITE_ROLES`. */
-export const REVIEW_WRITE_ROLES: readonly UserRole[] = [
-  'admin',
-  'hr_manager',
-  'hr_staff',
-  'manager',
-];
-
-/** Vai trò được GHI NHẬN nhân viên đã ký nhận bản đánh giá. Không có `manager`. */
-export const REVIEW_ACKNOWLEDGE_ROLES: readonly UserRole[] = [
-  'admin',
-  'hr_manager',
-  'hr_staff',
-];
-
-/** Vai trò được QUẢN LÝ khoá đào tạo — mirrors `TRAINING_WRITE_ROLES`. */
-export const TRAINING_WRITE_ROLES: readonly UserRole[] = [
-  'admin',
-  'hr_manager',
-  'hr_staff',
-];

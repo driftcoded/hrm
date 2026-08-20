@@ -44,7 +44,7 @@ Menu **thật** hiện tại (`Sidebar.tsx`):
 | Báo cáo | `BarChartOutlined` | `/reports` | ⏳ ComingSoonPage |
 | Cài đặt | `SettingOutlined` | `/settings` (+ submenu từ `constants/settingsSections.ts`) | ✅ |
 
-> ⚠️ **Menu hiện KHÔNG ẩn theo quyền** — mọi role đã đăng nhập đều thấy đủ các mục trên. Việc ẩn/hiện theo quyền mới chỉ áp dụng cho **nút thao tác** bên trong từng trang (`hooks/usePermissions.ts`). Các mục "Khen thưởng / Kỷ luật", "Đánh giá", "Đào tạo", "Thông báo" ở phiên bản trước của bảng này chưa tồn tại ở bất kỳ dạng nào.
+> ⚠️ **Menu hiện KHÔNG ẩn theo quyền** — mọi role đã đăng nhập đều thấy đủ các mục trên. Việc ẩn/hiện theo quyền mới chỉ áp dụng cho **nút thao tác** bên trong từng trang (`hooks/usePermissions.ts`). Mục "Thông báo" ở phiên bản trước của bảng này chưa tồn tại ở bất kỳ dạng nào. Đánh giá hiệu suất và Đào tạo đã bị bỏ khỏi phạm vi sản phẩm (PLAN giai đoạn 7).
 >
 > Ngoài Sidebar còn có `NavTabs` — thanh tab các trang đang mở, lấy state từ `tabsStore`.
 
@@ -177,7 +177,7 @@ Hiển thị ngày theo định dạng VN. Props: `value` (ISO string), `format`
 
 Wizard dùng **một** instance `Form` cho cả 4 bước (ẩn pane không hoạt động thay vì unmount) nên không mất dữ liệu người dùng đã gõ; nút "Tiếp" chỉ validate field của **bước hiện tại**.
 
-**EmployeeDetailPage** dùng Tabs — hiện có `PersonalTab`, `ContractsTab`, `FamilyTab` (kèm `DependentsSection`); các tab còn lại (Lương & Phụ cấp, Phép năm, Chấm công, Khen thưởng/Kỷ luật, Đánh giá hiệu suất) render `ComingSoonTab` cho tới khi module tương ứng ra đời.
+**EmployeeDetailPage** dùng Tabs — hiện có `PersonalTab`, `ContractsTab`, `RewardsTab`, `FamilyTab` (kèm `DependentsSection`); ba tab còn lại (Lương & Phụ cấp, Phép năm, Chấm công) render `ComingSoonTab` cho tới khi có bản xem theo từng nhân viên.
 
 ### 4.2 Attendance (Chấm công)
 

@@ -16,10 +16,10 @@
 | 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
 | 5 | Phép | 41 / 41 | ✅ Hoàn thành |
 | 6 | Lương | 33 / 35 | 🟡 Đã kiểm chứng qua API; 2 mục cần mở trình duyệt |
-| 7 | HR Processes | 27 / 27 | ✅ Hoàn thành |
+| 7 | Khen thưởng & Kỷ luật | 11 / 11 | ✅ Hoàn thành (đã bỏ Đánh giá + Đào tạo khỏi phạm vi) |
 | 8 | Thông báo & Hoàn thiện | 0 / 34 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 242 / 295 tasks hoàn thành
+**Tổng:** 226 / 279 tasks hoàn thành
 
 > ### Cách đếm
 >
@@ -650,63 +650,50 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 
 ---
 
-## Giai đoạn 7 — HR Processes
+## Giai đoạn 7 — Khen thưởng & Kỷ luật
 
+> ### Đánh giá hiệu suất và Đào tạo đã bị bỏ khỏi phạm vi
+>
+> Hai phân hệ này từng được dựng xong cả backend lẫn giao diện, rồi **bị gỡ bỏ
+> hoàn toàn** — bảng trong DB, module, màn hình, mã lỗi, tài liệu (migration
+> `1787290000000-DropReviewsAndTrainings`).
+>
+> Lý do: một phiếu đánh giá chỉ có nghĩa khi có **bộ tiêu chí** để đối chiếu, và
+> bộ tiêu chí thì mỗi phòng ban một khác — phòng Kinh doanh chấm theo doanh số,
+> phòng Kế toán chấm theo độ chính xác sổ sách. Bản đã dựng chấm cả công ty bằng
+> ba con số cứng (KPI / thái độ / kỹ năng, thang 0–100) nên không nói được "80
+> điểm là đạt hay chưa đạt". Làm cho đúng thì phải cho công ty **tự cấu hình**
+> thang điểm, nhóm tiêu chí, trọng số và ngưỡng xếp loại — một phân hệ riêng,
+> lớn hơn hẳn phần đã có. Công ty quyết định không dùng, nên gỡ thay vì để lại
+> một màn hình chấm điểm không ai tin được con số.
+>
+> Đào tạo đi kèm: giá trị chính của nó là **lấp khoảng cách năng lực mà đánh giá
+> chỉ ra**. Không còn đánh giá thì danh mục khoá học chỉ là một cái bảng rời.
+>
 > ### Nhân viên không tự thao tác
 >
-> Bản cũ của mục này viết "NV tự đánh", "NV nhận thông báo", "NV submit →
-> Manager review", "đăng ký tham gia". Nhân viên **không đăng nhập hệ thống
-> này** — quyết định đã chốt từ giai đoạn 4. Schema cũng đã dựng theo hướng đó:
-> `performance_reviews.reviewer_id` là NOT NULL và không có cột nào cho điểm tự
-> chấm; `employee_trainings` không có cột "người đăng ký".
->
-> Mô hình thật: **quản lý chấm, nhân sự ghi nhận việc ký nhận, nhân sự ghi
-> danh.** Phiếu tự đánh giá nếu công ty có thì nằm ngoài phần mềm, người chấm
-> tham khảo khi nhập.
+> Nhân viên **không đăng nhập hệ thống này** — quyết định đã chốt từ giai đoạn 4.
+> Quyết định khen thưởng / kỷ luật do nhân sự nhập, không có luồng "NV tự khai".
 
-### 7.1 Backend HR Processes
+### 7.1 Backend Khen thưởng & Kỷ luật
 - [x] `DisciplinesRewardsModule`: CRUD khen thưởng / kỷ luật theo NV
-- [x] `PerformanceReviewsModule`: người chấm viết, `draft` → `submitted` → `acknowledged`
-- [x] `TrainingsModule`: CRUD khoá đào tạo, ghi danh hàng loạt, ghi kết quả học
-- [x] Điểm tổng và xếp loại do server tính từ ba tiêu chí, không nhận từ client
+- [x] Bản ghi KHÔNG mang tiền — Điều 128 BLLĐ 2019 cấm phạt tiền thay kỷ luật;
+      tiền thưởng thực trả đi qua `salaries.performance_bonus`
+- [x] Phạm vi dữ liệu bám theo `resolveScope` của hồ sơ nhân viên
 
-**Tests (7.1):** *(69 unit test)*
+**Tests (7.1):**
 - [x] Ngày hiệu lực trước ngày ký → 422 `EFFECTIVE_BEFORE_DECISION`
 - [x] Đổi loại quyết định giữa khen thưởng và kỷ luật
 - [x] Bản ghi của nhân viên khác trên cùng đường dẫn → 404, không sửa được
-- [x] Điểm tổng = trung bình các tiêu chí ĐÃ chấm; tiêu chí chưa chấm không tính là 0
-- [x] Sửa một tiêu chí → điểm tổng và xếp loại tính lại theo
-- [x] Ngưỡng xếp loại liền mạch, phủ kín 0–100
-- [x] Trùng kỳ đánh giá của cùng một người → 409 `REVIEW_PERIOD_TAKEN`
-- [x] Kỳ `quarterly` kèm tháng, hoặc thiếu quý → 422 `REVIEW_PERIOD_MISMATCH`
-- [x] Chốt bản chưa chấm điểm nào → 422 `REVIEW_HAS_NO_SCORE`
-- [x] `manager` không ghi nhận được việc ký nhận; tài khoản không gắn hồ sơ NV không chấm được
-- [x] Đào tạo: ghi danh vượt sức chứa → 422 `TRAINING_FULL`; người đã có thì bỏ qua
-- [x] Đào tạo: `completed`/`cancelled` là điểm cuối, không quay lại được
-- [x] Đào tạo: gỡ người đã có kết quả → 422; xoá khoá đã có người → 422
 
-### 7.2 Frontend HR Processes
+### 7.2 Frontend Khen thưởng & Kỷ luật
 - [x] Tab Khen thưởng/kỷ luật trong chi tiết NV
-- [x] Trang `/performance`: danh sách kỳ đánh giá, form chấm điểm
-- [x] Trang `/trainings`: danh sách khoá đào tạo, ghi danh, ghi kết quả
-- [x] Tab Đào tạo trong chi tiết NV
-- [x] Tab Đánh giá trong chi tiết NV — cùng form, khoá sẵn nhân viên
-- [x] 19 mã lỗi của ba phân hệ có câu tiếng Việt riêng, không rơi về câu chung
+- [x] Lọc khen thưởng / kỷ luật, mở rộng dòng để đọc nội dung quyết định
+- [x] Gợi ý hình thức kỷ luật theo Điều 124 BLLĐ 2019 (3 hình thức), cho gõ tự do
 
 **Tests (7.2):**
-- [x] Chấm điểm → điểm tổng và xếp loại hiện lại ngay
-- [x] Bản đã chốt → ẩn nút Sửa
-- [x] Ghi danh vượt sức chứa → báo lỗi rõ ràng
-- [x] Lịch sử đào tạo hiển thị đúng trong tab NV
-
-> **Lịch sử đào tạo phải nói TÊN KHOÁ.** `GET /employees/:id/trainings` trước
-> chỉ trả thông tin học viên — đúng cho danh sách người của một khoá, nhưng ở
-> tab hồ sơ thì câu hỏi là "người này học khoá nào". Đã thêm `training` (mã,
-> tên, hình thức, thời gian) vào phần trả về của riêng đường dẫn đó.
->
-> **Nút nào backend chắc chắn từ chối thì không bày ra.** Học viên đã chấm kết
-> quả không gỡ khỏi khoá được (`TRAINING_RESULT_RECORDED`), nên nút gỡ chỉ hiện
-> khi chưa chấm.
+- [x] Thêm / sửa / xoá quyết định, danh sách cập nhật ngay
+- [x] Vai trò không có quyền xoá thì không thấy nút xoá
 
 ---
 

@@ -169,7 +169,7 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <tr><td>Cài đặt</td><td><code>SettingOutlined</code></td><td><code>/settings</code> (+ submenu từ <code>constants/settingsSections.ts</code>)</td><td>✅</td></tr>
 </tbody></table>
 <blockquote>
-<p>⚠️ <strong>Menu hiện KHÔNG ẩn theo quyền</strong> — mọi role đã đăng nhập đều thấy đủ các mục trên. Việc ẩn/hiện theo quyền mới chỉ áp dụng cho <strong>nút thao tác</strong> bên trong từng trang (<code>hooks/usePermissions.ts</code>). Các mục "Khen thưởng / Kỷ luật", "Đánh giá", "Đào tạo", "Thông báo" ở phiên bản trước của bảng này chưa tồn tại ở bất kỳ dạng nào.</p>
+<p>⚠️ <strong>Menu hiện KHÔNG ẩn theo quyền</strong> — mọi role đã đăng nhập đều thấy đủ các mục trên. Việc ẩn/hiện theo quyền mới chỉ áp dụng cho <strong>nút thao tác</strong> bên trong từng trang (<code>hooks/usePermissions.ts</code>). Mục "Thông báo" ở phiên bản trước của bảng này chưa tồn tại ở bất kỳ dạng nào. Đánh giá hiệu suất và Đào tạo đã bị bỏ khỏi phạm vi sản phẩm (PLAN giai đoạn 7).</p>
 <p></p>
 <p>Ngoài Sidebar còn có <code>NavTabs</code> — thanh tab các trang đang mở, lấy state từ <code>tabsStore</code>.</p>
 </blockquote>
@@ -288,7 +288,7 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <li>Tài khoản đăng nhập (email, mật khẩu tạm) — <strong>chỉ hiện với <code>admin</code></strong>; role khác chỉ thấy 3 bước, vì <code>POST /users</code> là endpoint admin-only</li>
 </ol>
 <p>Wizard dùng <strong>một</strong> instance <code>Form</code> cho cả 4 bước (ẩn pane không hoạt động thay vì unmount) nên không mất dữ liệu người dùng đã gõ; nút "Tiếp" chỉ validate field của <strong>bước hiện tại</strong>.</p>
-<p><strong>EmployeeDetailPage</strong> dùng Tabs — hiện có <code>PersonalTab</code>, <code>ContractsTab</code>, <code>FamilyTab</code> (kèm <code>DependentsSection</code>); các tab còn lại (Lương & Phụ cấp, Phép năm, Chấm công, Khen thưởng/Kỷ luật, Đánh giá hiệu suất) render <code>ComingSoonTab</code> cho tới khi module tương ứng ra đời.</p>
+<p><strong>EmployeeDetailPage</strong> dùng Tabs — hiện có <code>PersonalTab</code>, <code>ContractsTab</code>, <code>RewardsTab</code>, <code>FamilyTab</code> (kèm <code>DependentsSection</code>); ba tab còn lại (Lương & Phụ cấp, Phép năm, Chấm công) render <code>ComingSoonTab</code> cho tới khi có bản xem theo từng nhân viên.</p>
 <h3 id="42-attendance-chấm-công">4.2 Attendance (Chấm công)</h3>
 <table><thead>
 <tr><th>File</th><th>Mô tả</th></tr>

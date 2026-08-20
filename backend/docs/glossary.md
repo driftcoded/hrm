@@ -11,7 +11,6 @@
 |------------|---------|-----------|-----------------|
 | Ứng tuyển | – | Application | Hồ sơ xin việc |
 | Điều chuyển | – | Transfer | Chuyển nhân viên sang phòng ban / vị trí khác |
-| Đánh giá | – | Review / Appraisal | Đánh giá hiệu suất công việc |
 
 ---
 
@@ -234,7 +233,6 @@
 | `bonus` | Thưởng | |
 | `deduction` | Khấu trừ | |
 | `payslip` | Phiếu lương | |
-| `performanceReview` | Đánh giá hiệu suất | |
 | `disciplineReward` | Khen thưởng / Kỷ luật | |
 | `workHistory` | Lịch sử công tác | |
 | `dependent` | Người phụ thuộc | |

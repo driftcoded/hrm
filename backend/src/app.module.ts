@@ -33,8 +33,6 @@ import { LeaveBalancesModule } from './modules/leave-balances/leave-balances.mod
 import { LeaveRequestsModule } from './modules/leave-requests/leave-requests.module';
 import { SalariesModule } from './modules/salaries/salaries.module';
 import { DisciplinesRewardsModule } from './modules/disciplines-rewards/disciplines-rewards.module';
-import { PerformanceReviewsModule } from './modules/performance-reviews/performance-reviews.module';
-import { TrainingsModule } from './modules/trainings/trainings.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { HolidaysModule } from './modules/system/holidays.module';
 import { SystemModule } from './modules/system/system.module';
@@ -84,8 +82,6 @@ import { UsersModule } from './modules/users/users.module';
     SalariesModule,
 
     DisciplinesRewardsModule,
-    PerformanceReviewsModule,
-    TrainingsModule,
 
     ReportsModule,
   ],

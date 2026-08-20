@@ -233,10 +233,9 @@ src/
     ├── users/         ✅          ├── leave-balances/    (chỉ entity)
     ├── employees/     ✅          ├── salaries/          (chỉ entity)
     ├── departments/   ✅          ├── documents/         (chỉ entity)
-    ├── positions/     ✅          ├── trainings/         (chỉ entity)
-    ├── contracts/     ✅          ├── performance-reviews/ (chỉ entity)
-    ├── leaves/        ✅ (chỉ leave-types)  ├── disciplines-rewards/ (chỉ entity)
-    ├── system/        ✅ (provinces/wards/holidays)  ├── work-history/ (chỉ entity)
+    ├── contracts/     ✅          ├── work-history/      (chỉ entity)
+    ├── leaves/        ✅ (chỉ leave-types)  ├── disciplines-rewards/ ✅
+    ├── system/        ✅ (provinces/wards/holidays)
     ├── family-members/✅          ├── announcements/     (chỉ entity)
     ├── dependents/    ✅          └── audit-logs/        (chỉ entity)
     └── reports/       ✅ (xuất Excel nhân viên + bảng công)

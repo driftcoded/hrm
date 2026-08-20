@@ -26,13 +26,11 @@
 12. [Documents – Tài liệu](#12-documents--tài-liệu)
 13. [Users – Tài khoản](#13-users--tài-khoản)
 14. [Disciplines & Rewards – Khen thưởng & Kỷ luật](#14-disciplines--rewards--khen-thưởng--kỷ-luật)
-15. [Performance Reviews – Đánh giá hiệu suất](#15-performance-reviews--đánh-giá-hiệu-suất)
-16. [Trainings – Đào tạo](#16-trainings--đào-tạo)
-17. [Announcements – Thông báo nội bộ](#17-announcements--thông-báo-nội-bộ)
-18. [Leave Balances – Quản lý ngày phép (Admin)](#18-leave-balances--quản-lý-ngày-phép-admin)
-19. [Reports – Báo cáo](#19-reports--báo-cáo)
-20. [System – Dữ liệu hệ thống](#20-system--dữ-liệu-hệ-thống)
-21. [Error Codes](#21-error-codes)
+15. [Announcements – Thông báo nội bộ](#15-announcements--thông-báo-nội-bộ)
+16. [Leave Balances – Quản lý ngày phép (Admin)](#16-leave-balances--quản-lý-ngày-phép-admin)
+17. [Reports – Báo cáo](#17-reports--báo-cáo)
+18. [System – Dữ liệu hệ thống](#18-system--dữ-liệu-hệ-thống)
+19. [Error Codes](#19-error-codes)
 
 ---
 
@@ -160,7 +158,7 @@ GET  /roles             POST /users
 
 Các endpoint được mô tả trong tài liệu nhưng **chưa hiện thực**: §12 (Documents), §17 (Announcements), `GET /employees/:id/work-history` (§3), `GET /users` · `PATCH /users/:id` · `PATCH /users/:id/reset-password` (§13), và mọi report ngoài `GET /reports/employees/export` (§19).
 
-Đã hiện thực từ khi dòng này được viết: §7 (Attendances, giai đoạn 4), §8 (Leaves, giai đoạn 5), §9 (Salaries, giai đoạn 6), §14–§16 (Khen thưởng/kỷ luật, Đánh giá, Đào tạo — giai đoạn 7).
+Đã hiện thực từ khi dòng này được viết: §7 (Attendances, giai đoạn 4), §8 (Leaves, giai đoạn 5), §9 (Salaries, giai đoạn 6), §14 (Khen thưởng/kỷ luật — giai đoạn 7).
 
 ---
 
@@ -1618,157 +1616,7 @@ Mọi trường tuỳ chọn, kể cả `type`. Hiệu lực vẫn không đư�
 
 ---
 
-## 15. Performance Reviews – Đánh giá hiệu suất
-
-> **Người chấm viết; nhân viên không tự chấm** — họ không đăng nhập hệ thống
-> này. Không có `GET /performance-reviews/me`.
->
-> Vòng đời: `draft` (còn sửa) → `submitted` (đã chốt) → `acknowledged` (nhân sự
-> ghi nhận nhân viên đã ký nhận bản giấy).
->
-> | | Vai trò |
-> |---|---|
-> | Chấm, sửa, chốt, xoá nháp | `admin`, `hr_manager`, `hr_staff`, `manager` |
-> | Ghi nhận ký nhận | `admin`, `hr_manager`, `hr_staff` |
->
-> `manager` bị `resolveScope` giới hạn trong phòng ban mình quản.
-
-### POST `/performance-reviews`
-
-```json
-{
-  "employeeId": 51, "reviewPeriod": "quarterly",
-  "periodYear": 2026, "periodQuarter": 2,
-  "kpiScore": 85.5, "attitudeScore": 90, "skillScore": 88,
-  "strengths": "Chủ động, hoàn thành đúng deadline",
-  "weaknesses": "Cần cải thiện kỹ năng trình bày",
-  "recommendations": "Đề xuất tham gia khoá đào tạo presentation"
-}
-```
-
-**Người chấm lấy từ token**, không nhận `reviewerId` trong body.
-**`overallScore` và `rating` do server tính**: trung bình các tiêu chí ĐÃ chấm
-(trọng số bằng nhau), tiêu chí chưa chấm không tính là 0.
-
-Ngưỡng xếp loại (quy ước nội bộ, không phải luật): ≥90 `excellent` · ≥75 `good`
-· ≥60 `average` · ≥40 `below_average` · còn lại `poor`.
-
-Trường kỳ phải khớp loại kỳ: `monthly` cần `periodMonth`; `quarterly` và
-`biannual` cần `periodQuarter` (nửa năm dùng 1 hoặc 2); `annual` không cần gì.
-
-**Errors:** `409 REVIEW_PERIOD_TAKEN` · `422 REVIEW_PERIOD_MISMATCH` ·
-`422 REVIEWER_HAS_NO_EMPLOYEE_RECORD`
-
-### GET `/performance-reviews`
-
-**Query:** `?employeeId=51&departmentId=2&periodYear=2026&reviewPeriod=quarterly&status=submitted&rating=good`,
-phân trang chuẩn §1.2. Kỳ mới nhất trước.
-
-### GET `/performance-reviews/:id`
-
-### PATCH `/performance-reviews/:id`
-
-Chỉ khi còn `draft`; không đổi được `employeeId`. Sửa một tiêu chí thì điểm tổng
-và xếp loại được tính lại.
-
-**Errors:** `409 REVIEW_NOT_DRAFT`
-
-### PATCH `/performance-reviews/:id/submit`
-
-`draft` → `submitted`. Bản chưa chấm điểm nào thì không chốt được.
-
-**Errors:** `409 REVIEW_NOT_DRAFT` · `422 REVIEW_HAS_NO_SCORE`
-
-### PATCH `/performance-reviews/:id/acknowledge`
-> 🔒 Roles: `admin`, `hr_manager`, `hr_staff` — **không** có `manager`.
-
-Ghi lại việc nhân viên đã ký nhận bản giấy. `submitted` → `acknowledged`.
-
-**Errors:** `409 REVIEW_NOT_SUBMITTED`
-
-### DELETE `/performance-reviews/:id`
-
-Chỉ xoá được bản còn `draft`.
-
----
-
-## 16. Trainings – Đào tạo
-
-> **Nhân sự ghi danh; nhân viên không tự đăng ký.** Việc đăng ký diễn ra ngoài
-> phần mềm, ở đây ghi lại danh sách cuối cùng.
->
-> Vòng đời khoá học: `planned` → `ongoing` → `completed`, hoặc `cancelled` khi
-> chưa kết thúc. `completed` và `cancelled` là điểm cuối.
-
-### GET `/trainings`
-> 🔒 Auth required — danh mục khoá học là thông tin chung.
-
-**Query:** `?status=ongoing&type=internal&search=lãnh đạo`, phân trang chuẩn §1.2.
-
-Khoá có ngày lên trước, mới nhất trước; khoá chưa có ngày xuống cuối. Mỗi dòng
-kèm `participantCount` để biết còn bao nhiêu chỗ.
-
-### GET `/trainings/:id` | POST `/trainings` | PATCH `/trainings/:id` | DELETE `/trainings/:id`
-> 🔒 Ghi: `admin`, `hr_manager`, `hr_staff`
-
-```json
-{
-  "code": "TRN-2026-001", "name": "Kỹ năng lãnh đạo", "type": "external",
-  "startDate": "2026-06-10", "endDate": "2026-06-12",
-  "location": "Hà Nội", "trainer": "Học viện Kỹ năng PACE",
-  "cost": 5000000, "maxParticipants": 20
-}
-```
-
-`POST` không nhận `status` — khoá mới luôn là `planned`. `PATCH` thì nhận, và
-vòng đời đi bằng chính ô đó. `maxParticipants` bỏ trống = không giới hạn, và
-không hạ được xuống dưới số người đã ghi danh.
-
-`DELETE` chỉ xoá được khoá **chưa có ai ghi danh** — FK là `ON DELETE CASCADE`,
-xoá khoá đã có người sẽ kéo theo lịch sử đào tạo của họ. Khoá đã có người thì
-chuyển sang `cancelled`.
-
-**Errors:** `409 TRAINING_CODE_TAKEN` · `409 TRAINING_INVALID_TRANSITION` ·
-`422 TRAINING_CAPACITY_BELOW_ENROLLED` · `422 TRAINING_HAS_PARTICIPANTS` ·
-`422 INVALID_TRAINING_RANGE`
-
-### GET `/trainings/:id/participants` | POST `/trainings/:id/participants`
-
-```json
-{ "employeeIds": [51, 52, 53] }
-```
-
-Nhận cả danh sách trong một lần gọi. Người đã có trong khoá được **bỏ qua**, không
-làm hỏng cả lô:
-
-```json
-{ "enrolled": 2, "alreadyEnrolled": ["NV0051"] }
-```
-
-**Errors:** `409 TRAINING_CLOSED` · `422 TRAINING_FULL`
-
-### PATCH `/trainings/:id/participants/:employeeId`
-
-```json
-{ "result": "passed", "score": 8.5, "certificateUrl": "https://.../cc.pdf" }
-```
-
-`result` bắt buộc. Bỏ trống `completionDate` thì lấy ngày kết thúc khoá học.
-
-### DELETE `/trainings/:id/participants/:employeeId`
-
-Chỉ gỡ được khi người đó **chưa có kết quả**.
-
-**Errors:** `422 TRAINING_RESULT_RECORDED`
-
-### GET `/employees/:employeeId/trainings`
-> 🔒 Auth required — phạm vi theo hồ sơ nhân viên.
-
-Lịch sử đào tạo của một nhân viên, mới nhất trước.
-
----
-
-## 17. Announcements – Thông báo nội bộ
+## 15. Announcements – Thông báo nội bộ
 
 > ⏳ **Toàn bộ §17 chưa hiện thực** (Giai đoạn 8).
 
@@ -1830,7 +1678,7 @@ Lấy thông báo theo đối tượng của người dùng hiện tại.
 
 ---
 
-## 18. Leave Balances – Quản lý ngày phép
+## 16. Leave Balances – Quản lý ngày phép
 
 > **Đã gộp vào [§8](#8-leaves--nghỉ-phép).** Mục này từng mô tả một API khác với
 > API thật — `POST /leave-balances/init-year` với `carryOverLimit`, `PATCH` với
@@ -1842,7 +1690,7 @@ Lấy thông báo theo đối tượng của người dùng hiện tại.
 
 ---
 
-## 19. Reports – Báo cáo
+## 17. Reports – Báo cáo
 
 > **Trạng thái:** chỉ `GET /reports/employees/export` đã hiện thực. Các report còn lại của §19 chưa có. (Số liệu tổng quan nhân sự hiện lấy qua `GET /employees/stats` — xem §3.)
 
@@ -1923,7 +1771,7 @@ Xuất danh sách nhân viên ra Excel (`.xlsx`), 3 sheet theo đúng thứ tự
 
 ---
 
-## 20. System – Dữ liệu hệ thống
+## 18. System – Dữ liệu hệ thống
 
 > 🔒 **Mọi endpoint `/system/*` đều yêu cầu đăng nhập.** Tài liệu này từng ghi `/system/leave-types` là public; thực tế guard mặc định vẫn áp dụng (PLAN 2.1).
 >
@@ -2026,7 +1874,7 @@ Không nằm trong §20 gốc nhưng đã hiện thực, nên ghi lại ở đâ
 
 ---
 
-## 21. Error Codes
+## 19. Error Codes
 
 ### HTTP Status Codes
 
@@ -2178,15 +2026,6 @@ SALARY
   SALARY_NOT_FOUND
   SALARY_ALREADY_APPROVED    Không thể sửa bảng lương đã duyệt
   NO_ACTIVE_CONTRACT         Nhân viên không có hợp đồng hiệu lực
-
-TRAINING
-  TRAINING_NOT_FOUND
-  TRAINING_FULL              Khoá đào tạo đã đủ chỗ
-  ALREADY_ENROLLED           Nhân viên đã đăng ký khoá này
-
-PERFORMANCE
-  REVIEW_NOT_FOUND
-  REVIEW_ALREADY_SUBMITTED   Không thể sửa đánh giá đã submit
 
 LEAVE_BALANCE
   BALANCE_ALREADY_INITIALIZED  Đã khởi tạo ngày phép cho năm này

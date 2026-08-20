@@ -1,8 +1,0 @@
-/* Ô số/ngày trong lưới 3 cột phải chiếm hết bề ngang cột. */
-.control {
-  width: 100%;
-}
-
-.error {
-  margin-bottom: var(--hrm-space-4);
-}
