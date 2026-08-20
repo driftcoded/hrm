@@ -316,6 +316,8 @@ export function LeaveBalancesPage() {
         errorMessage={t('leave.balances.loadError')}
         hasFilters={hasFilters}
         total={total}
+        // Phân trang dưới bảng đã in "Tổng N bản ghi" rồi.
+        showCount={false}
         scrollX={1100}
         pagination={{
           page: table.page,

@@ -164,17 +164,22 @@ export function DataTableCard<TRow extends object>({
   const count = showCount ? (
     <span className={styles.count}>{t('crud.totalRecords', { total })}</span>
   ) : null;
+  const countNode = countSlot ?? count;
 
+  // Không có bộ lọc, hành động lẫn số đếm thì bỏ hẳn thanh công cụ — giữ lại
+  // chỉ để lại một hàng rỗng có margin, đẩy bảng xuống không vì gì cả.
   const toolbar = (
     <>
       {title && <h2 className={styles.title}>{title}</h2>}
-      <div className={styles.toolbar}>
-        <div className={styles.filters}>{filters}</div>
-        <div className={styles.actions}>
-          {countSlot ?? count}
-          {actions}
+      {(filters || actions || countNode) && (
+        <div className={styles.toolbar}>
+          <div className={styles.filters}>{filters}</div>
+          <div className={styles.actions}>
+            {countNode}
+            {actions}
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 

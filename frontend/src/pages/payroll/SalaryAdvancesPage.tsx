@@ -335,6 +335,8 @@ export function SalaryAdvancesPage() {
         errorMessage={t('payroll.advances.loadError')}
         hasFilters={hasFilters}
         total={total}
+        // Phân trang dưới bảng đã in "Tổng N bản ghi" rồi.
+        showCount={false}
         scrollX={1300}
         pagination={{
           page: table.page,
