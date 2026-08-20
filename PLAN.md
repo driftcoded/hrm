@@ -16,18 +16,29 @@
 | 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
 | 5 | Phép | 41 / 41 | ✅ Hoàn thành |
 | 6 | Lương | 33 / 35 | 🟡 Đã kiểm chứng qua API; 2 mục cần mở trình duyệt |
-| 7 | HR Processes | 0 / 10 | ⬜ Chưa bắt đầu |
-| 8 | Thông báo & Hoàn thiện | 0 / 21 | ⬜ Chưa bắt đầu |
+| 7 | HR Processes | 0 / 14 | ⬜ Chưa bắt đầu |
+| 8 | Thông báo & Hoàn thiện | 0 / 34 | ⬜ Chưa bắt đầu |
 
-**Tổng:** 118 / 128 tasks hoàn thành *(xem lưu ý đếm bên dưới — tổng 128 gốc không khớp số checkbox thực tế)*
+**Tổng:** 215 / 265 tasks hoàn thành
 
-> ⚠️ **Lưu ý đếm.** Con số trong bảng gốc không khớp số dòng checkbox thực tế:
-> - Giai đoạn 0: bảng ghi 14, thực tế 28 dòng (0.1 và 0.2 mỗi mục 14).
-> - Giai đoạn 1: bảng ghi 21, thực tế 43 dòng (1.1 = 13 task + 14 test, 1.2 = 8 task + 8 test).
-> - Giai đoạn 2: bảng ghi 11, thực tế 18 dòng (2.1 = 6 task + 3 test, 2.2 = 6 task + 3 test).
-> - Giai đoạn 3: bảng ghi 16, thực tế 29 dòng (3.1 = 8 task + 9 test, 3.2 = 7 task + 5 test).
+> ### Cách đếm
 >
-> Đã sửa 2 dòng trên theo số thực tế. Cột "Tổng: /128" vì thế cũng sai theo — cần rà lại toàn bộ các giai đoạn còn lại rồi chốt lại một cách đếm duy nhất (đếm cả test hay chỉ đếm task).
+> **Một dòng `- [ ]` là một task, kể cả dòng test.** Không tách "task" khỏi
+> "test" nữa: bộ test của một mục là điều kiện để tick mục đó, nên đếm riêng chỉ
+> tạo ra hai con số mà không con số nào trả lời được câu "còn bao nhiêu việc".
+>
+> Bảng gốc đếm theo một cách khác và lệch ở **mọi** giai đoạn — 128 so với 265
+> dòng thật. Toàn bộ con số trong bảng nay lấy trực tiếp từ số dòng checkbox.
+> **Checklist Go-live không tính vào tổng** — đó là danh sách phát hành, không
+> phải việc của giai đoạn nào, nên biến đếm phải reset ở MỌI heading `##` chứ
+> không chỉ ở heading giai đoạn:
+>
+> ```
+> awk '/^## /{n = /^## Giai đoạn/ ? $0 : ""; if (n) seen[n]=1}
+>      n && /^- \[x\]/{d[n]++}
+>      n && /^- \[ \]/{t[n]++}
+>      END{for (k in seen) print k": "d[k]+0"/"d[k]+t[k]+0}' PLAN.md | sort
+> ```
 
 ---
 
