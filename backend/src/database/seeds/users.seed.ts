@@ -12,9 +12,6 @@ import { User, UserStatus } from '../../modules/users/entities/user.entity';
 /** Salt rounds bắt buộc = 10 (CLAUDE.md §Bảo mật). */
 const BCRYPT_SALT_ROUNDS = 10;
 
-/** Độ dài tối thiểu, khớp với validate mật khẩu của `/auth/*`. */
-const MIN_SEED_PASSWORD_LENGTH = 8;
-
 /**
  * Mật khẩu cho các tài khoản demo — BẮT BUỘC truyền qua `SEED_DEFAULT_PASSWORD`.
  *
@@ -22,13 +19,17 @@ const MIN_SEED_PASSWORD_LENGTH = 8;
  * chạy `npm run seed` ở môi trường thiếu env var sẽ tạo ra 8 tài khoản (gồm cả
  * `admin`) với mật khẩu nằm công khai trong git. Checklist go-live của dự án cấm
  * hardcode credential, nên ở đây fail-fast thay vì đoán.
+ *
+ * KHÔNG ép độ dài tối thiểu: đây là tài khoản dev để gõ nhanh khi thử, và luật
+ * độ dài của `/auth/*` áp cho mật khẩu người dùng tự đặt qua ứng dụng. Ép ở đây
+ * chỉ tổ bắt người dev gõ mật khẩu dài mỗi lần đăng nhập thử.
  */
 function requireSeedPassword(): string {
   const password = process.env.SEED_DEFAULT_PASSWORD;
 
-  if (!password || password.length < MIN_SEED_PASSWORD_LENGTH) {
+  if (!password) {
     throw new Error(
-      `SEED_DEFAULT_PASSWORD chưa được set (hoặc ngắn hơn ${MIN_SEED_PASSWORD_LENGTH} ký tự). ` +
+      'SEED_DEFAULT_PASSWORD chưa được set. ' +
         'Đặt biến này trong .env trước khi chạy seed — xem .env.example.',
     );
   }

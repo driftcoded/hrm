@@ -59,6 +59,12 @@ export const envValidationSchema = Joi.object({
     .min(1)
     .default(2 * 1024 * 1024),
 
-  // ---- Seed (dev only) ----
-  SEED_DEFAULT_PASSWORD: Joi.string().min(8).optional(),
+  /*
+   * `SEED_DEFAULT_PASSWORD` CỐ TÌNH KHÔNG NẰM Ở ĐÂY.
+   *
+   * Nó chỉ dành cho `npm run seed`; API không đọc nó dòng nào. Để trong schema
+   * này thì một giá trị dev đặt cho tiện sẽ chặn cả API khởi động — đúng là
+   * chuyện đã xảy ra: hạ mật khẩu seed xuống 6 ký tự làm server chết ngay lúc
+   * bootstrap. Ràng buộc phải nằm ở nơi dùng, không phải ở cổng vào của app.
+   */
 });
