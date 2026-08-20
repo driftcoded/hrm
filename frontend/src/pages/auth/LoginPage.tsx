@@ -10,7 +10,7 @@ import { SsoButtons } from '@/components/auth/SsoButtons';
 import { useLogin } from '@/hooks/useAuth';
 import { useLoginErrorMessage } from '@/hooks/useApiErrorMessage';
 import { useAuthStore } from '@/store/authStore';
-import { PASSWORD_MIN_LENGTH, type LoginFormValues } from '@/types/auth.types';
+import type { LoginFormValues } from '@/types/auth.types';
 import { isValidLoginIdentifier, sanitizeRedirectPath } from '@/utils/validators';
 import styles from './authForm.module.css';
 
@@ -53,12 +53,18 @@ export function LoginPage() {
     },
   ];
 
+  /*
+   * CHỈ KIỂM "CÓ NHẬP HAY KHÔNG". Màn hình đăng nhập không phải chỗ áp luật đặt
+   * mật khẩu: mật khẩu ở đây là thứ ĐÃ tồn tại, và luật có thể đã khác lúc nó
+   * được đặt. Bắt tối thiểu 8 ký tự ở đây nghĩa là một tài khoản có mật khẩu 6
+   * ký tự không bấm gửi được, và người dùng nhận thông báo "mật khẩu quá ngắn"
+   * cho một mật khẩu hoàn toàn đúng — hệ thống tự khoá chính mình.
+   *
+   * Luật độ dài vẫn còn nguyên ở nơi ĐẶT mật khẩu: đổi mật khẩu trong hồ sơ cá
+   * nhân và đặt lại qua email.
+   */
   const passwordRules: FormRule[] = [
     { required: true, message: t('auth.validation.passwordRequired') },
-    {
-      min: PASSWORD_MIN_LENGTH,
-      message: t('auth.validation.passwordMin', { min: PASSWORD_MIN_LENGTH }),
-    },
   ];
 
   const handleFinish = async (values: LoginFormValues) => {
