@@ -184,9 +184,6 @@ h1, h2, h3, h4 { scroll-margin-top: 20px; }
 <h2 id="1-tổng-quan-hệ-thống">1. Tổng quan hệ thống</h2>
 <p>HRM Backend là REST API xây dựng bằng <strong>NestJS</strong> phục vụ ứng dụng quản lý nhân sự cho công ty Việt Nam. Hệ thống xử lý: quản lý nhân viên, chấm công, nghỉ phép, tính lương theo pháp luật VN, hợp đồng lao động và báo cáo.</p>
 <p><strong>Tech stack:</strong></p>
-<blockquote>
-<p>Cột <strong>Trạng thái</strong> phân biệt cái đã chạy trong code với cái là <em>kiến trúc mục tiêu</em> khi lên production. Tài liệu này mô tả cả hai; chỗ nào chưa có thì nói rõ.</p>
-</blockquote>
 <table><thead>
 <tr><th>Thành phần</th><th>Công nghệ</th><th>Trạng thái</th></tr>
 </thead><tbody>
@@ -242,9 +239,6 @@ PM2 Cluster (NestJS – nhiều worker process trên 1 EC2)
 CloudWatch Logs ◄─── NestJS Winston logger
 Sentry          ◄─── NestJS exception filter
 </code></pre>
-<blockquote>
-<p><strong>Tại sao tách RDS?</strong> Nếu EC2 restart, database không bị ảnh hưởng. Dễ scale độc lập. RDS tự động backup, failover.</p>
-</blockquote>
 <blockquote>
 <p>⚠️ <strong>Chặn đường lên production:</strong> PM2 cluster mode có nhiều worker process, mà driver cache hiện tại là in-memory <em>trong từng process</em>. Bật cluster trước khi thay driver sẽ làm hỏng đếm lockout đăng nhập và token reset password (§8). Tương tự, driver storage <code>local</code> ghi lên đĩa của <strong>một</strong> instance.</p>
 </blockquote>
@@ -374,9 +368,9 @@ HTTP Response  { success, data, timestamp }
     ├── employees/     ✅          ├── salaries/          (chỉ entity)
     ├── departments/   ✅          ├── documents/         (chỉ entity)
     ├── contracts/     ✅          ├── work-history/      (chỉ entity)
-    ├── leaves/        ✅ (chỉ leave-types)  ├── disciplines-rewards/ ✅
+    ├── leaves/        ✅ (chỉ leave-types)  ├── announcements/     (chỉ entity)
     ├── system/        ✅ (provinces/wards/holidays)
-    ├── family-members/✅          ├── announcements/     (chỉ entity)
+    ├── family-members/✅
     ├── dependents/    ✅          └── audit-logs/        (chỉ entity)
     └── reports/       ✅ (xuất Excel nhân viên + bảng công)
 </code></pre>
@@ -509,9 +503,6 @@ HTTP Response  { success, data, timestamp }
 <p>Mỗi lần refresh: revoke token cũ, cấp token mới. Nếu phát hiện dùng token đã bị revoke → revoke <strong>tất cả</strong> token của user đó (dấu hiệu bị đánh cắp).</p>
 <hr>
 <h2 id="8-caching">8. Caching</h2>
-<blockquote>
-<p><strong>Không có Redis, và không có tầng cache dữ liệu nào.</strong> Phiên bản trước của mục này liệt kê các key <code>provinces</code> / <code>districts:{provinceCode}</code> / <code>wards:{districtCode}</code> cùng "63 tỉnh/thành" — <strong>không có gì trong đó được hiện thực</strong>, và cấp huyện thì đã không còn tồn tại (§8.2).</p>
-</blockquote>
 <h3 id="81-cacheservice-cái-đang-thực-sự-chạy">8.1. <code>CacheService</code> – cái đang thực sự chạy</h3>
 <p><code>src/shared/cache/</code> là một <code>@Global</code> module cung cấp abstract class <code>CacheService</code>:</p>
 <table><thead>
@@ -892,7 +883,7 @@ Không bao giờ throw Error trần. Luôn dùng HttpException có code cụ th�
 <tr><td>7</td><td>Chuyển log ra CloudWatch + tích hợp Sentry</td><td>Log đang nằm trên đĩa instance, không có alert (§13)</td></tr>
 </tbody></table>
 <hr>
-<p><em>Cập nhật: 19/08/2026 – Version 1.1 – Đồng bộ với code sau Giai đoạn 0–3: phân biệt "đã chạy" vs "kế hoạch" trong toàn tài liệu; §7.2 reset token nằm ở <code>CacheService</code> in-memory (KHÔNG Redis) kèm 2 giới hạn; §8 viết lại (bỏ cache tỉnh/huyện/xã, mô tả dữ liệu JSON tĩnh 34 tỉnh/3.321 phường-xã); §4 cập nhật cây thư mục thật (<code>shared/cache|mail|storage</code>, <code>modules/reports|contracts|family-members|dependents|system</code>); §9/§11 nói rõ S3 và SES chưa từng chạy; §14/§17 theo code hiện tại; thêm §19 checklist tiền-production</em></p>
+<p><em>Cập nhật: 19/08/2026 – Version 1.1</em></p>
 
 </main>
 <script>

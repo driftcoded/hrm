@@ -833,4 +833,4 @@ Tạo bảng theo thứ tự sau để tránh lỗi Foreign Key constraint:
 
 ---
 
-*Cập nhật: 19/08/2026 – Version 1.3 – Bổ sung cột `leave_types.is_system` (migration `AddIsSystemToLeaveTypes`) và làm rõ nó chỉ mang tính thông tin, chốt chặn xoá duy nhất là `LEAVE_TYPE_IN_USE`; ghi rõ `departments.code` / `positions.code` / `leave_types.code` do server sinh (`PB`/`CV`/`NP`)*
+*Cập nhật: 19/08/2026 – Version 1.3*

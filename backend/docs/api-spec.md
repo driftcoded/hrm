@@ -182,12 +182,6 @@ PDF/Excel payslip export, email SES thật, và mọi report ngoài danh sách t
 
 ## 2. Authentication
 
-> **Refresh token KHÔNG BAO GIỜ nằm trong response body.** Nó chỉ được giao qua cookie HttpOnly.
-> Tài liệu này trước đây mô tả `refreshToken` trong body login và trong body `/auth/refresh`;
-> điều đó đã sai từ khi Giai đoạn 1 hiện thực hoá `RefreshCookieService` — JS đọc được token
-> nghĩa là một lỗ XSS đọc được luôn phiên đăng nhập 7 ngày, nên token được đưa ra khỏi tầm với
-> của JS hoàn toàn.
-
 ### Cookie refresh token
 
 `POST /auth/login` và `POST /auth/refresh` đều trả header:
@@ -333,8 +327,6 @@ Thông tin user đang đăng nhập. Trả về **đúng object `user`** của r
   }
 }
 ```
-
-**Vì sao endpoint này tồn tại:** frontend giữ access token trong memory (không localStorage), nên sau F5 store rỗng. Luồng khôi phục phiên là `POST /auth/refresh` → `GET /auth/me`. Không có endpoint này thì mỗi lần tải lại trang người dùng phải đăng nhập lại.
 
 **Errors:** `401 TOKEN_INVALID` (user đã bị xoá), `401 TOKEN_EXPIRED`.
 
@@ -490,11 +482,7 @@ Gửi email chứa link đặt lại mật khẩu (link có hiệu lực 30 phú
 }
 ```
 
-> **Địa chỉ – chỉ còn 2 cấp.** Từ **01/07/2025** (Luật 72/2025/QH15) cấp huyện chấm dứt hoạt động:
-> cả nước còn **34 tỉnh/thành** và **3.321 phường/xã/đặc khu**, không có gì ở giữa.
-> - `provinceCode` (bắt buộc): mã tỉnh Bộ Nội Vụ, `01`–`34` — lấy từ `GET /system/provinces`.
-> - `wardCode` (bắt buộc): mã phường/xã/đặc khu theo danh mục **cơ quan thuế (TMS)**, ví dụ `10105001` — lấy từ `GET /system/wards?provinceCode=01`.
-> - `districtCode`: **ĐÃ LỖI THỜI**, nullable, tuỳ chọn. Giữ lại chỉ để nhập/đọc hồ sơ tạo trước 01/07/2025; hồ sơ mới bỏ trống. Không có endpoint danh mục quận/huyện.
+> **Địa chỉ – 2 cấp:** `provinceCode` (34 tỉnh/thành, mã Bộ Nội Vụ `01`–`34`, lấy từ `GET /system/provinces`) và `wardCode` (3.321 phường/xã/đặc khu, mã cơ quan thuế TMS, lấy từ `GET /system/wards?provinceCode=01`). Không có cấp huyện. `districtCode` nullable — chỉ dùng để đọc hồ sơ cũ, hồ sơ mới bỏ trống.
 >
 > `employeeCode` do **server sinh** (`NV0001`, `NV0002`…), client không gửi.
 
@@ -600,14 +588,7 @@ Nhân viên xem hồ sơ cá nhân của chính mình.
 
 ## 4. Departments – Phòng ban
 
-> **Mã phòng ban do server sinh.** `departments.code` là `PB0001`, `PB0002`… — client **không** gửi
-> `code` khi tạo và **không** sửa được nó. Trước đây mã do người dùng tự nhập; đổi vì bắt người dùng
-> nghĩ ra một định danh duy nhất trước khi lưu được là một cái giá vô lý, và mã nhập tay thì trôi
-> dạt trong thực tế (`IT`, `it`, `CNTT`, `IT_DEPT` cùng chỉ một phòng). Mã **không bao giờ được
-> dùng lại**: số kế tiếp tính từ mã lớn nhất từng cấp, **kể cả bản ghi đã xoá mềm**.
-> `ValidationPipe` chạy với `whitelist: true` nên client nào vẫn gửi `code` sẽ bị **strip** chứ
-> không báo lỗi. Cùng quy tắc áp dụng cho `positions` (`CV0001`) và `leave_types` (`NP0001`);
-> `employees` đã dùng `NV0001` từ trước.
+> **Mã do server sinh.** `departments.code` = `PB0001`…, `positions.code` = `CV0001`…, `leave_types.code` = `NP0001`…, `employees.code` = `NV0001`…  — client **không** gửi `code` khi tạo và **không** sửa được. Mã **không bao giờ được dùng lại** (kể cả bản ghi đã xoá mềm). Gửi `code` trong body sẽ bị `ValidationPipe` tự strip, không báo lỗi.
 
 ### GET `/departments`
 > 🔒 Auth required (mọi role đã đăng nhập đều đọc được)
@@ -767,10 +748,6 @@ Trả về mảng phẳng 4 giá trị của enum `contracts.contract_type` kèm
 }
 ```
 
-> **Vì sao không phải master data.** Không có bảng `contract_types` trong schema 26 bảng và **không có endpoint ghi**. Bốn loại này do **BLLĐ 2019** định nghĩa, và mỗi loại kéo theo hệ quả pháp lý khác nhau về **bảo hiểm xã hội**, **trần thời gian thử việc** và **thời hạn báo trước khi chấm dứt**. Nếu HR tự thêm được loại thứ 5 thì logic hợp đồng và tính lương sẽ không biết xử lý nó ra sao — nên đây là enum, không phải danh mục công ty tự cấu hình.
->
-> Lưu ý pháp lý: Điều 20 BLLĐ 2019 chỉ công nhận **2** loại hợp đồng lao động (không xác định thời hạn / xác định thời hạn ≤ 36 tháng). `probation` là **thoả thuận thử việc** (Điều 24–27) và `seasonal` là loại của BLLĐ 2012 đã bị bãi bỏ; cả hai vẫn nằm trong enum để đọc được dữ liệu cũ.
-
 ---
 
 ### GET `/contracts`
@@ -845,14 +822,7 @@ Partial update. **Errors:** `404 CONTRACT_NOT_FOUND`, `409 DUPLICATE_CONTRACT_NU
 
 ## 7. Attendances – Chấm công
 
-> ⚠️ **KHÔNG có endpoint tự chấm công.** Nhân viên thường không đăng nhập hệ
-> thống này (`403 PORTAL_ACCESS_DENIED` ngay ở `POST /auth/login`). Việc chấm
-> công diễn ra trên nền tảng bên ngoài; dữ liệu vào hệ thống bằng **file Excel**
-> (`POST /attendances/bulk-import`, đường chính) hoặc **nhập tay từng dòng**
-> (`POST /attendances`, cho các ca lẻ).
->
-> Các endpoint `POST /attendances/check-in`, `POST /attendances/check-out` và
-> `GET /attendances/me` của bản thiết kế trước đã bị **gỡ bỏ**.
+> ⚠️ **KHÔNG có endpoint tự chấm công.** Nhân viên không đăng nhập hệ thống này (`403 PORTAL_ACCESS_DENIED`). Dữ liệu chấm công nạp vào qua **file Excel** (`POST /attendances/bulk-import`) hoặc **nhập tay từng dòng** (`POST /attendances`).
 
 ### POST `/attendances`
 > 🔒 Roles: `admin`, `hr_manager`, `hr_staff`
@@ -1640,13 +1610,7 @@ Lấy thông báo theo đối tượng của người dùng hiện tại.
 
 ## 15. Leave Balances – Quản lý ngày phép
 
-> **Đã gộp vào [§8](#8-leaves--nghỉ-phép).** Mục này từng mô tả một API khác với
-> API thật — `POST /leave-balances/init-year` với `carryOverLimit`, `PATCH` với
-> `note`, response `{ processed }`. Không cái nào tồn tại: endpoint là
-> `POST /leave-balances/init` (`carryOver` là cờ bật/tắt, có `dryRun`), `PATCH`
-> nhận `reason`, và init trả về `employeesConsidered` / `created` / `skipped`.
->
-> Xem §8 cho toàn bộ `/leave-types`, `/leave-balances`, `/leave-requests`.
+Xem [§8](#8-leaves--nghỉ-phép) — `/leave-types`, `/leave-balances`, `/leave-requests`.
 
 ---
 
@@ -1733,15 +1697,13 @@ Xuất danh sách nhân viên ra Excel (`.xlsx`), 3 sheet theo đúng thứ tự
 
 ## 17. System – Dữ liệu hệ thống
 
-> 🔒 **Mọi endpoint `/system/*` đều yêu cầu đăng nhập.** Tài liệu này từng ghi `/system/leave-types` là public; thực tế guard mặc định vẫn áp dụng (PLAN 2.1).
->
-> `/system/*` là các endpoint **chỉ đọc**, trả về **mảng phẳng** (không phân trang) để UI dùng thẳng. Phần CRUD ngày lễ ở cuối mục này nằm ở prefix riêng `/holidays` và có phân trang như bình thường.
+> 🔒 Mọi endpoint `/system/*` yêu cầu đăng nhập. Chỉ đọc, trả **mảng phẳng** (không phân trang). CRUD ngày lễ ở prefix `/holidays` có phân trang như bình thường.
 
 ### Địa giới hành chính – chỉ còn 2 cấp
 
 Từ **01/07/2025**, **Luật 72/2025/QH15** chấm dứt hoạt động của **cấp huyện**. Cả nước còn **34 tỉnh/thành phố** và **3.321 phường/xã/đặc khu** (687 phường, 2.621 xã, 13 đặc khu) — **không có gì ở giữa**.
 
-Vì vậy API chỉ có **hai** endpoint danh mục: `/system/provinces` và `/system/wards`. **Không có `/system/districts`** — endpoint đó từng được mô tả ở đây và đã bị gỡ bỏ cùng cấp hành chính mà nó phục vụ.
+API chỉ có **hai** endpoint danh mục: `/system/provinces` và `/system/wards`. Không có `/system/districts`.
 
 Dữ liệu đọc thẳng từ **file danh mục của cơ quan thuế** đi kèm app (`src/common/data/vn-administrative-units-2025.csv`), **không phải từ DB** và **không gọi API ngoài lúc chạy**. Danh sách bất biến trong một lần chạy nên frontend cache thoải mái.
 
@@ -1807,7 +1769,6 @@ Loại nghỉ phép đang áp dụng — **chỉ** những loại `isActive = tr
 
 ### Holidays – CRUD (`/holidays`)
 
-Không nằm trong §20 gốc nhưng đã hiện thực, nên ghi lại ở đây.
 
 | Method | Path | Quyền |
 |--------|------|-------|
@@ -1952,8 +1913,6 @@ INFRA
   MAIL_TRANSPORT_UNAVAILABLE 503 Driver mail không nạp được (vd SES chưa cài SDK)
   STORAGE_DRIVER_UNAVAILABLE 503 Driver lưu trữ không nạp được (vd S3 chưa cài SDK)
 
---- Từ đây trở xuống là các mã của giai đoạn SAU, chưa tồn tại trong code ---
-
 ATTENDANCE
   ATTENDANCE_NOT_FOUND
   ATTENDANCE_ALREADY_EXISTS  Ngày đó đã có bản ghi, hãy sửa thay vì tạo mới
@@ -1989,8 +1948,6 @@ SALARY
 
 LEAVE_BALANCE
   BALANCE_ALREADY_INITIALIZED  Đã khởi tạo ngày phép cho năm này
-
---- Đã hiện thực ---
 
 AUTH (reset password)
   RESET_TOKEN_INVALID    400 Token không hợp lệ / không tồn tại / đã dùng
@@ -2038,4 +1995,4 @@ type ValidationDetail = { field: string; code: string; message: string }
 
 ---
 
-*Cập nhật: 19/08/2026 – Version 1.3 – Đồng bộ với code sau Giai đoạn 0–3: refresh token chỉ nằm trong cookie HttpOnly (bỏ khỏi body login và body /auth/refresh), thêm `GET /auth/me` và `rememberMe`, lockout 429/423 + header `Retry-After`, mã master data do server sinh (`PB`/`CV`/`NP`) thay cho `DUPLICATE_*_CODE` → `CODE_ALLOCATION_FAILED`, `GET /contract-types` read-only, địa giới 2 cấp 34 tỉnh/3.321 phường-xã (bỏ `/system/districts`), `GET /reports/employees/export`, thêm mục §1.6 trạng thái triển khai*
+*Cập nhật: 19/08/2026 – Version 1.3*

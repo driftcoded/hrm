@@ -503,8 +503,7 @@ nào để so, nên người vào lúc 08:30 làm bù thứ Bảy không phải 
 > vi phạm, nên hệ thống phải tự tính và **cảnh báo** dựa trên bảng công — chứ
 > không phải chặn trả tiền cho giờ đã làm.
 >
-> ⚠️ **Chưa hiện thực:** cảnh báo vượt giới hạn §7.2 hiện KHÔNG có ở đâu cả —
-> phần kiểm này trước đây nằm trong luồng duyệt đơn và mất theo luồng đó.
+> ⚠️ **Chưa hiện thực:** cảnh báo vượt giới hạn §7.2 chưa có trong code.
 
 **KHÔNG có ngưỡng tối thiểu, KHÔNG làm tròn xuống.** Ở lại thêm 1 phút thì 1 phút
 đó được trả (1 phút = 0,02 giờ ở cột `DECIMAL(4,2)`). Đây là quyết định của chủ
@@ -634,4 +633,4 @@ Luật Thuế TNCN sửa đổi (Luật 109/2025/QH15), Nghị quyết 110/2025/
 Nghị định 293/2025/NĐ-CP (lương tối thiểu vùng 2026), Nghị định 161/2026/NĐ-CP (mức tham chiếu),
 Thông tư 111/2013/TT-BTC*
 
-*Cập nhật: 13/08/2026 – Version 2.0 (cập nhật luật 2026)*
+*Cập nhật: 13/08/2026 – Version 2.0*

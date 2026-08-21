@@ -376,13 +376,6 @@ GET  /roles             POST /users
 <p>PDF/Excel payslip export, email SES thật, và mọi report ngoài danh sách trên.</p>
 <hr>
 <h2 id="2-authentication">2. Authentication</h2>
-<blockquote>
-<p><strong>Refresh token KHÔNG BAO GIỜ nằm trong response body.</strong> Nó chỉ được giao qua cookie HttpOnly.</p>
-<p>Tài liệu này trước đây mô tả <code>refreshToken</code> trong body login và trong body <code>/auth/refresh</code>;</p>
-<p>điều đó đã sai từ khi Giai đoạn 1 hiện thực hoá <code>RefreshCookieService</code> — JS đọc được token</p>
-<p>nghĩa là một lỗ XSS đọc được luôn phiên đăng nhập 7 ngày, nên token được đưa ra khỏi tầm với</p>
-<p>của JS hoàn toàn.</p>
-</blockquote>
 <h3 id="cookie-refresh-token">Cookie refresh token</h3>
 <p><code>POST /auth/login</code> và <code>POST /auth/refresh</code> đều trả header:</p>
 <pre><code class="language-">Set-Cookie: refresh_token=&lt;opaque&gt;; Path=/api/v1/auth/refresh; HttpOnly; SameSite=Strict
@@ -509,7 +502,6 @@ GET  /roles             POST /users
   }
 }
 </code></pre>
-<p><strong>Vì sao endpoint này tồn tại:</strong> frontend giữ access token trong memory (không localStorage), nên sau F5 store rỗng. Luồng khôi phục phiên là <code>POST /auth/refresh</code> → <code>GET /auth/me</code>. Không có endpoint này thì mỗi lần tải lại trang người dùng phải đăng nhập lại.</p>
 <p><strong>Errors:</strong> <code>401 TOKEN_INVALID</code> (user đã bị xoá), <code>401 TOKEN_EXPIRED</code>.</p>
 <hr>
 <h3 id="post-authchange-password">POST <code>/auth/change-password</code></h3>
@@ -643,11 +635,7 @@ GET  /roles             POST /users
 }
 </code></pre>
 <blockquote>
-<p><strong>Địa chỉ – chỉ còn 2 cấp.</strong> Từ <strong>01/07/2025</strong> (Luật 72/2025/QH15) cấp huyện chấm dứt hoạt động:</p>
-<p>cả nước còn <strong>34 tỉnh/thành</strong> và <strong>3.321 phường/xã/đặc khu</strong>, không có gì ở giữa.</p>
-<p>- <code>provinceCode</code> (bắt buộc): mã tỉnh Bộ Nội Vụ, <code>01</code>–<code>34</code> — lấy từ <code>GET /system/provinces</code>.</p>
-<p>- <code>wardCode</code> (bắt buộc): mã phường/xã/đặc khu theo danh mục <strong>cơ quan thuế (TMS)</strong>, ví dụ <code>10105001</code> — lấy từ <code>GET /system/wards?provinceCode=01</code>.</p>
-<p>- <code>districtCode</code>: <strong>ĐÃ LỖI THỜI</strong>, nullable, tuỳ chọn. Giữ lại chỉ để nhập/đọc hồ sơ tạo trước 01/07/2025; hồ sơ mới bỏ trống. Không có endpoint danh mục quận/huyện.</p>
+<p><strong>Địa chỉ – 2 cấp:</strong> <code>provinceCode</code> (34 tỉnh/thành, mã Bộ Nội Vụ <code>01</code>–<code>34</code>, lấy từ <code>GET /system/provinces</code>) và <code>wardCode</code> (3.321 phường/xã/đặc khu, mã cơ quan thuế TMS, lấy từ <code>GET /system/wards?provinceCode=01</code>). Không có cấp huyện. <code>districtCode</code> nullable — chỉ dùng để đọc hồ sơ cũ, hồ sơ mới bỏ trống.</p>
 <p></p>
 <p><code>employeeCode</code> do <strong>server sinh</strong> (<code>NV0001</code>, <code>NV0002</code>…), client không gửi.</p>
 </blockquote>
@@ -735,14 +723,7 @@ GET  /roles             POST /users
 <hr>
 <h2 id="4-departments-phòng-ban">4. Departments – Phòng ban</h2>
 <blockquote>
-<p><strong>Mã phòng ban do server sinh.</strong> <code>departments.code</code> là <code>PB0001</code>, <code>PB0002</code>… — client <strong>không</strong> gửi</p>
-<p><code>code</code> khi tạo và <strong>không</strong> sửa được nó. Trước đây mã do người dùng tự nhập; đổi vì bắt người dùng</p>
-<p>nghĩ ra một định danh duy nhất trước khi lưu được là một cái giá vô lý, và mã nhập tay thì trôi</p>
-<p>dạt trong thực tế (<code>IT</code>, <code>it</code>, <code>CNTT</code>, <code>IT_DEPT</code> cùng chỉ một phòng). Mã **không bao giờ được</p>
-<p>dùng lại<strong>: số kế tiếp tính từ mã lớn nhất từng cấp, </strong>kể cả bản ghi đã xoá mềm**.</p>
-<p><code>ValidationPipe</code> chạy với <code>whitelist: true</code> nên client nào vẫn gửi <code>code</code> sẽ bị <strong>strip</strong> chứ</p>
-<p>không báo lỗi. Cùng quy tắc áp dụng cho <code>positions</code> (<code>CV0001</code>) và <code>leave_types</code> (<code>NP0001</code>);</p>
-<p><code>employees</code> đã dùng <code>NV0001</code> từ trước.</p>
+<p><strong>Mã do server sinh.</strong> <code>departments.code</code> = <code>PB0001</code>…, <code>positions.code</code> = <code>CV0001</code>…, <code>leave_types.code</code> = <code>NP0001</code>…, <code>employees.code</code> = <code>NV0001</code>…  — client <strong>không</strong> gửi <code>code</code> khi tạo và <strong>không</strong> sửa được. Mã <strong>không bao giờ được dùng lại</strong> (kể cả bản ghi đã xoá mềm). Gửi <code>code</code> trong body sẽ bị <code>ValidationPipe</code> tự strip, không báo lỗi.</p>
 </blockquote>
 <h3 id="get-departments">GET <code>/departments</code></h3>
 <blockquote>
@@ -882,11 +863,6 @@ GET  /roles             POST /users
   ]
 }
 </code></pre>
-<blockquote>
-<p><strong>Vì sao không phải master data.</strong> Không có bảng <code>contract_types</code> trong schema 26 bảng và <strong>không có endpoint ghi</strong>. Bốn loại này do <strong>BLLĐ 2019</strong> định nghĩa, và mỗi loại kéo theo hệ quả pháp lý khác nhau về <strong>bảo hiểm xã hội</strong>, <strong>trần thời gian thử việc</strong> và <strong>thời hạn báo trước khi chấm dứt</strong>. Nếu HR tự thêm được loại thứ 5 thì logic hợp đồng và tính lương sẽ không biết xử lý nó ra sao — nên đây là enum, không phải danh mục công ty tự cấu hình.</p>
-<p></p>
-<p>Lưu ý pháp lý: Điều 20 BLLĐ 2019 chỉ công nhận <strong>2</strong> loại hợp đồng lao động (không xác định thời hạn / xác định thời hạn ≤ 36 tháng). <code>probation</code> là <strong>thoả thuận thử việc</strong> (Điều 24–27) và <code>seasonal</code> là loại của BLLĐ 2012 đã bị bãi bỏ; cả hai vẫn nằm trong enum để đọc được dữ liệu cũ.</p>
-</blockquote>
 <hr>
 <h3 id="get-contracts">GET <code>/contracts</code></h3>
 <blockquote>
@@ -948,14 +924,7 @@ GET  /roles             POST /users
 <hr>
 <h2 id="7-attendances-chấm-công">7. Attendances – Chấm công</h2>
 <blockquote>
-<p>⚠️ <strong>KHÔNG có endpoint tự chấm công.</strong> Nhân viên thường không đăng nhập hệ</p>
-<p>thống này (<code>403 PORTAL_ACCESS_DENIED</code> ngay ở <code>POST /auth/login</code>). Việc chấm</p>
-<p>công diễn ra trên nền tảng bên ngoài; dữ liệu vào hệ thống bằng <strong>file Excel</strong></p>
-<p>(<code>POST /attendances/bulk-import</code>, đường chính) hoặc <strong>nhập tay từng dòng</strong></p>
-<p>(<code>POST /attendances</code>, cho các ca lẻ).</p>
-<p></p>
-<p>Các endpoint <code>POST /attendances/check-in</code>, <code>POST /attendances/check-out</code> và</p>
-<p><code>GET /attendances/me</code> của bản thiết kế trước đã bị <strong>gỡ bỏ</strong>.</p>
+<p>⚠️ <strong>KHÔNG có endpoint tự chấm công.</strong> Nhân viên không đăng nhập hệ thống này (<code>403 PORTAL_ACCESS_DENIED</code>). Dữ liệu chấm công nạp vào qua <strong>file Excel</strong> (<code>POST /attendances/bulk-import</code>) hoặc <strong>nhập tay từng dòng</strong> (<code>POST /attendances</code>).</p>
 </blockquote>
 <h3 id="post-attendances">POST <code>/attendances</code></h3>
 <blockquote>
@@ -1620,15 +1589,7 @@ expiryDate: (optional)
 </blockquote>
 <hr>
 <h2 id="15-leave-balances-quản-lý-ngày-phép">15. Leave Balances – Quản lý ngày phép</h2>
-<blockquote>
-<p><strong>Đã gộp vào <a href="#8-leaves--nghỉ-phép">§8</a>.</strong> Mục này từng mô tả một API khác với</p>
-<p>API thật — <code>POST /leave-balances/init-year</code> với <code>carryOverLimit</code>, <code>PATCH</code> với</p>
-<p><code>note</code>, response <code>{ processed }</code>. Không cái nào tồn tại: endpoint là</p>
-<p><code>POST /leave-balances/init</code> (<code>carryOver</code> là cờ bật/tắt, có <code>dryRun</code>), <code>PATCH</code></p>
-<p>nhận <code>reason</code>, và init trả về <code>employeesConsidered</code> / <code>created</code> / <code>skipped</code>.</p>
-<p></p>
-<p>Xem §8 cho toàn bộ <code>/leave-types</code>, <code>/leave-balances</code>, <code>/leave-requests</code>.</p>
-</blockquote>
+<p>Xem <a href="#8-leaves--nghỉ-phép">§8</a> — <code>/leave-types</code>, <code>/leave-balances</code>, <code>/leave-requests</code>.</p>
 <hr>
 <h2 id="16-reports-báo-cáo">16. Reports – Báo cáo</h2>
 <blockquote>
@@ -1704,13 +1665,11 @@ expiryDate: (optional)
 <hr>
 <h2 id="17-system-dữ-liệu-hệ-thống">17. System – Dữ liệu hệ thống</h2>
 <blockquote>
-<p>🔒 <strong>Mọi endpoint <code>/system/*</code> đều yêu cầu đăng nhập.</strong> Tài liệu này từng ghi <code>/system/leave-types</code> là public; thực tế guard mặc định vẫn áp dụng (PLAN 2.1).</p>
-<p></p>
-<p><code>/system/*</code> là các endpoint <strong>chỉ đọc</strong>, trả về <strong>mảng phẳng</strong> (không phân trang) để UI dùng thẳng. Phần CRUD ngày lễ ở cuối mục này nằm ở prefix riêng <code>/holidays</code> và có phân trang như bình thường.</p>
+<p>🔒 Mọi endpoint <code>/system/*</code> yêu cầu đăng nhập. Chỉ đọc, trả <strong>mảng phẳng</strong> (không phân trang). CRUD ngày lễ ở prefix <code>/holidays</code> có phân trang như bình thường.</p>
 </blockquote>
 <h3 id="địa-giới-hành-chính-chỉ-còn-2-cấp">Địa giới hành chính – chỉ còn 2 cấp</h3>
 <p>Từ <strong>01/07/2025</strong>, <strong>Luật 72/2025/QH15</strong> chấm dứt hoạt động của <strong>cấp huyện</strong>. Cả nước còn <strong>34 tỉnh/thành phố</strong> và <strong>3.321 phường/xã/đặc khu</strong> (687 phường, 2.621 xã, 13 đặc khu) — <strong>không có gì ở giữa</strong>.</p>
-<p>Vì vậy API chỉ có <strong>hai</strong> endpoint danh mục: <code>/system/provinces</code> và <code>/system/wards</code>. <strong>Không có <code>/system/districts</code></strong> — endpoint đó từng được mô tả ở đây và đã bị gỡ bỏ cùng cấp hành chính mà nó phục vụ.</p>
+<p>API chỉ có <strong>hai</strong> endpoint danh mục: <code>/system/provinces</code> và <code>/system/wards</code>. Không có <code>/system/districts</code>.</p>
 <p>Dữ liệu đọc thẳng từ <strong>file danh mục của cơ quan thuế</strong> đi kèm app (<code>src/common/data/vn-administrative-units-2025.csv</code>), <strong>không phải từ DB</strong> và <strong>không gọi API ngoài lúc chạy</strong>. Danh sách bất biến trong một lần chạy nên frontend cache thoải mái.</p>
 <hr>
 <h3 id="get-systemprovinces">GET <code>/system/provinces</code></h3>
@@ -1765,7 +1724,6 @@ expiryDate: (optional)
 <p>Loại nghỉ phép đang áp dụng — <strong>chỉ</strong> những loại <code>isActive = true</code>. CRUD nằm ở <code>/leave-types</code> (§8).</p>
 <hr>
 <h3 id="holidays-crud-holidays">Holidays – CRUD (<code>/holidays</code>)</h3>
-<p>Không nằm trong §20 gốc nhưng đã hiện thực, nên ghi lại ở đây.</p>
 <table><thead>
 <tr><th>Method</th><th>Path</th><th>Quyền</th></tr>
 </thead><tbody>
@@ -1905,8 +1863,6 @@ INFRA
   MAIL_TRANSPORT_UNAVAILABLE 503 Driver mail không nạp được (vd SES chưa cài SDK)
   STORAGE_DRIVER_UNAVAILABLE 503 Driver lưu trữ không nạp được (vd S3 chưa cài SDK)
 
---- Từ đây trở xuống là các mã của giai đoạn SAU, chưa tồn tại trong code ---
-
 ATTENDANCE
   ATTENDANCE_NOT_FOUND
   ATTENDANCE_ALREADY_EXISTS  Ngày đó đã có bản ghi, hãy sửa thay vì tạo mới
@@ -1942,8 +1898,6 @@ SALARY
 
 LEAVE_BALANCE
   BALANCE_ALREADY_INITIALIZED  Đã khởi tạo ngày phép cho năm này
-
---- Đã hiện thực ---
 
 AUTH (reset password)
   RESET_TOKEN_INVALID    400 Token không hợp lệ / không tồn tại / đã dùng
@@ -1983,7 +1937,7 @@ SYSTEM
 type ValidationDetail = { field: string; code: string; message: string }
 </code></pre>
 <hr>
-<p><em>Cập nhật: 19/08/2026 – Version 1.3 – Đồng bộ với code sau Giai đoạn 0–3: refresh token chỉ nằm trong cookie HttpOnly (bỏ khỏi body login và body /auth/refresh), thêm <code>GET /auth/me</code> và <code>rememberMe</code>, lockout 429/423 + header <code>Retry-After</code>, mã master data do server sinh (<code>PB</code>/<code>CV</code>/<code>NP</code>) thay cho <code>DUPLICATE_</em>_CODE</code> → <code>CODE_ALLOCATION_FAILED</code>, <code>GET /contract-types</code> read-only, địa giới 2 cấp 34 tỉnh/3.321 phường-xã (bỏ <code>/system/districts</code>), <code>GET /reports/employees/export</code>, thêm mục §1.6 trạng thái triển khai*</p>
+<p><em>Cập nhật: 19/08/2026 – Version 1.3</em></p>
 
 </main>
 <script>

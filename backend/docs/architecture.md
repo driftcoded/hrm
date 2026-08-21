@@ -32,8 +32,6 @@ HRM Backend là REST API xây dựng bằng **NestJS** phục vụ ứng dụng 
 
 **Tech stack:**
 
-> Cột **Trạng thái** phân biệt cái đã chạy trong code với cái là *kiến trúc mục tiêu* khi lên production. Tài liệu này mô tả cả hai; chỗ nào chưa có thì nói rõ.
-
 | Thành phần | Công nghệ | Trạng thái |
 |-----------|-----------|-----------|
 | Framework | NestJS 11 (Node.js) | ✅ đang chạy |
@@ -96,8 +94,6 @@ PM2 Cluster (NestJS – nhiều worker process trên 1 EC2)
 CloudWatch Logs ◄─── NestJS Winston logger
 Sentry          ◄─── NestJS exception filter
 ```
-
-> **Tại sao tách RDS?** Nếu EC2 restart, database không bị ảnh hưởng. Dễ scale độc lập. RDS tự động backup, failover.
 
 > ⚠️ **Chặn đường lên production:** PM2 cluster mode có nhiều worker process, mà driver cache hiện tại là in-memory *trong từng process*. Bật cluster trước khi thay driver sẽ làm hỏng đếm lockout đăng nhập và token reset password (§8). Tương tự, driver storage `local` ghi lên đĩa của **một** instance.
 
@@ -387,8 +383,6 @@ Mỗi lần refresh: revoke token cũ, cấp token mới. Nếu phát hiện dù
 ---
 
 ## 8. Caching
-
-> **Không có Redis, và không có tầng cache dữ liệu nào.** Phiên bản trước của mục này liệt kê các key `provinces` / `districts:{provinceCode}` / `wards:{districtCode}` cùng "63 tỉnh/thành" — **không có gì trong đó được hiện thực**, và cấp huyện thì đã không còn tồn tại (§8.2).
 
 ### 8.1. `CacheService` – cái đang thực sự chạy
 
@@ -811,4 +805,4 @@ Schema xác thực bằng **Joi** (`src/config/env.validation.ts`) với `abortE
 
 ---
 
-*Cập nhật: 19/08/2026 – Version 1.1 – Đồng bộ với code sau Giai đoạn 0–3: phân biệt "đã chạy" vs "kế hoạch" trong toàn tài liệu; §7.2 reset token nằm ở `CacheService` in-memory (KHÔNG Redis) kèm 2 giới hạn; §8 viết lại (bỏ cache tỉnh/huyện/xã, mô tả dữ liệu JSON tĩnh 34 tỉnh/3.321 phường-xã); §4 cập nhật cây thư mục thật (`shared/cache|mail|storage`, `modules/reports|contracts|family-members|dependents|system`); §9/§11 nói rõ S3 và SES chưa từng chạy; §14/§17 theo code hiện tại; thêm §19 checklist tiền-production*
+*Cập nhật: 19/08/2026 – Version 1.1*
