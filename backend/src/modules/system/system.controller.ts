@@ -8,7 +8,7 @@ import {
   WARDS,
   WARDS_BY_PROVINCE,
 } from '@/common/data/administrative-units';
-import { HolidayResponseDto } from './dto/holiday-response.dto';
+import { HolidayDateDto } from './dto/holiday-response.dto';
 import { ProvinceResponseDto } from './dto/province-response.dto';
 import { WardQueryDto, WardResponseDto } from './dto/ward-response.dto';
 import { SystemHolidayQueryDto } from './dto/system-holiday-query.dto';
@@ -41,10 +41,10 @@ export class SystemController {
     description:
       'Mảng phẳng, sắp xếp theo ngày. Không truyền `year` → lấy năm hiện tại.',
   })
-  @ApiOkResponse({ type: [HolidayResponseDto] })
+  @ApiOkResponse({ type: [HolidayDateDto] })
   findHolidays(
     @Query() query: SystemHolidayQueryDto,
-  ): Promise<HolidayResponseDto[]> {
+  ): Promise<HolidayDateDto[]> {
     return this.holidaysService.findByYear(query.year);
   }
 

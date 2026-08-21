@@ -10,15 +10,15 @@ export const MIN_HOLIDAY_YEAR = 1900;
 export const MAX_HOLIDAY_YEAR = 2200;
 
 /** Whitelist of sortable columns – prevents interpolating `sort` directly into SQL. */
-export const HOLIDAY_SORT_KEYS = ['holidayDate', 'name', 'year'] as const;
+export const HOLIDAY_SORT_KEYS = ['sortOrder', 'name', 'year'] as const;
 
 export type HolidaySortKey = (typeof HOLIDAY_SORT_KEYS)[number];
 
 export class FilterHolidayDto extends PaginationDto {
-  @ApiPropertyOptional({ enum: HOLIDAY_SORT_KEYS, default: 'holidayDate' })
+  @ApiPropertyOptional({ enum: HOLIDAY_SORT_KEYS, default: 'sortOrder' })
   @IsOptional()
   @IsIn(HOLIDAY_SORT_KEYS)
-  sort?: HolidaySortKey = 'holidayDate';
+  sort?: HolidaySortKey = 'sortOrder';
 
   @ApiPropertyOptional({ example: 2026, description: 'Lọc theo năm' })
   @IsOptional()
@@ -37,4 +37,9 @@ export class FilterHolidayDto extends PaginationDto {
   @IsOptional()
   @IsBooleanValue()
   isPaid?: boolean;
+
+  @ApiPropertyOptional({ description: 'Lọc theo trạng thái kích hoạt' })
+  @IsOptional()
+  @IsBooleanValue()
+  isActive?: boolean;
 }

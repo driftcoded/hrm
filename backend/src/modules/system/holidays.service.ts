@@ -14,6 +14,10 @@ import {
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { FilterHolidayDto } from './dto/filter-holiday.dto';
 import {
+  GenerateHolidaysDto,
+  GenerateHolidaysResultDto,
+} from './dto/generate-holidays.dto';
+import {
   HolidayDateDto,
   HolidayResponseDto,
 } from './dto/holiday-response.dto';
@@ -157,6 +161,103 @@ export class HolidaysService {
     }
 
     return this.findOne(id);
+  }
+
+  async generate(dto: GenerateHolidaysDto): Promise<GenerateHolidaysResultDto> {
+    const allRules = await this.holidaysRepository.findActiveRules();
+    const baseRules = allRules.map((r) => this.toRule(r));
+
+    const merged = baseRules.map((rule) => {
+      if (rule.code === 'TET' && dto.tetDaysBefore !== undefined) {
+        return { ...rule, offsetDays: -dto.tetDaysBefore, year: dto.year };
+      }
+      if (rule.code === 'NATIONAL_DAY' && dto.nationalDayExtra !== undefined) {
+        return {
+          ...rule,
+          offsetDays: dto.nationalDayExtra === 'before' ? -1 : 0,
+          year: dto.year,
+        };
+      }
+      return rule;
+    });
+
+    const resolved = resolveHolidays(merged, dto.year, {
+      compensateWeekends: dto.compensateWeekends ?? true,
+    });
+
+    const holidays: HolidayDateDto[] = resolved.map((h) => ({
+      holidayDate: h.date,
+      code: h.code,
+      name: h.name,
+      type: h.type as HolidayType,
+      year: dto.year,
+      isPaid: h.isPaid,
+      dayIndex: h.dayIndex,
+      dayCount: h.dayCount,
+      isCompensatory: h.isCompensatory,
+      note: h.note,
+    }));
+
+    let created = 0;
+    let skipped = 0;
+
+    if (!dto.preview) {
+      if (dto.tetDaysBefore !== undefined) {
+        const clash = await this.holidaysRepository.findByCodeAndYear('TET', dto.year);
+        if (clash) {
+          skipped++;
+        } else {
+          const base = allRules.find((r) => r.code === 'TET' && r.year === null);
+          if (base) {
+            await this.holidaysRepository.create({
+              code: base.code,
+              name: base.name,
+              type: base.type,
+              calendar: base.calendar,
+              month: base.month,
+              day: base.day,
+              offsetDays: -dto.tetDaysBefore,
+              durationDays: base.durationDays,
+              year: dto.year,
+              isPaid: base.isPaid,
+              isActive: base.isActive,
+              sortOrder: base.sortOrder,
+              note: base.note,
+            });
+            created++;
+          }
+        }
+      }
+
+      if (dto.nationalDayExtra !== undefined) {
+        const clash = await this.holidaysRepository.findByCodeAndYear('NATIONAL_DAY', dto.year);
+        if (clash) {
+          skipped++;
+        } else {
+          const base = allRules.find((r) => r.code === 'NATIONAL_DAY' && r.year === null);
+          if (base) {
+            await this.holidaysRepository.create({
+              code: base.code,
+              name: base.name,
+              type: base.type,
+              calendar: base.calendar,
+              month: base.month,
+              day: base.day,
+              offsetDays: dto.nationalDayExtra === 'before' ? -1 : 0,
+              durationDays: base.durationDays,
+              year: dto.year,
+              isPaid: base.isPaid,
+              isActive: base.isActive,
+              sortOrder: base.sortOrder,
+              note: base.note,
+            });
+            created++;
+          }
+        }
+      }
+    }
+
+    return { year: dto.year, created, skipped, preview: dto.preview ?? false, holidays };
   }
 
   /** Hard delete (table has no `deleted_at`); no other table references holidays. */

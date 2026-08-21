@@ -14,6 +14,11 @@ import {
  * nghỉ theo âm lịch mà năm nào cũng rơi vào ngày dương khác nhau.
  */
 
+export const DEFAULT_TET_DAYS_BEFORE = 1;
+export const TET_TOTAL_DAYS = 5;
+export const DEFAULT_NATIONAL_DAY_EXTRA = 'before' as const;
+export type NationalDayExtra = 'before' | 'after';
+
 /** Ngày nghỉ hằng tuần của công ty: thứ Bảy và Chủ nhật. */
 const WEEKLY_REST_DAYS = new Set([0, 6]);
 

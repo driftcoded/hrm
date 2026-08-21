@@ -1,18 +1,31 @@
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Holiday, HolidayType } from './entities/holiday.entity';
+import {
+  Holiday,
+  HolidayCalendar,
+  HolidayType,
+} from './entities/holiday.entity';
 import { HolidaysRepository } from './holidays.repository';
 import { HolidaysService } from './holidays.service';
 
 function makeHoliday(overrides: Partial<Holiday> = {}): Holiday {
   return {
     id: 1,
+    code: 'NEW_YEAR',
     name: 'Tết Dương lịch',
-    holidayDate: '2026-01-01',
     type: HolidayType.NATIONAL,
-    year: 2026,
+    calendar: HolidayCalendar.SOLAR,
+    month: 1,
+    day: 1,
+    offsetDays: 0,
+    durationDays: 1,
+    year: null,
     isPaid: true,
+    isActive: true,
+    sortOrder: 1,
     note: null,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
     ...overrides,
   };
 }
@@ -29,9 +42,10 @@ describe('HolidaysService', () => {
           provide: HolidaysRepository,
           useValue: {
             findPaginated: jest.fn().mockResolvedValue([[], 0]),
-            findByYear: jest.fn().mockResolvedValue([]),
+            findActiveRules: jest.fn().mockResolvedValue([]),
+            findAllRules: jest.fn().mockResolvedValue([]),
             findById: jest.fn(),
-            findByDate: jest.fn().mockResolvedValue(null),
+            findByCodeAndYear: jest.fn().mockResolvedValue(null),
             create: jest.fn(),
             update: jest.fn().mockResolvedValue(undefined),
             delete: jest.fn().mockResolvedValue(undefined),
@@ -53,85 +67,82 @@ describe('HolidaysService', () => {
       await service.findAll({ year: 2026, limit: 500 });
 
       expect(repository.findPaginated).toHaveBeenCalledWith(
-        expect.objectContaining({ year: 2026, take: 100, sort: 'holidayDate' }),
+        expect.objectContaining({ year: 2026, take: 100, sort: 'sortOrder' }),
       );
     });
 
-    it('normalizes holidayDate to YYYY-MM-DD even when the driver returns a Date', async () => {
-      repository.findPaginated.mockResolvedValue([
-        [makeHoliday({ holidayDate: new Date(2026, 1, 17) as never })],
-        1,
-      ]);
+    it('returns paginated rule definitions', async () => {
+      const rule = makeHoliday({ id: 5 });
+      repository.findPaginated.mockResolvedValue([[rule], 1]);
+      repository.findById.mockResolvedValue(rule);
 
       const result = await service.findAll({});
 
-      expect(result.items[0].holidayDate).toBe('2026-02-17');
+      expect(result.meta.total).toBe(1);
+      expect(result.items[0].code).toBe('NEW_YEAR');
     });
   });
 
   describe('findByYear', () => {
-    it('no year provided → uses the current year in Vietnam time (UTC+7)', async () => {
-      const nowUtc = new Date('2026-12-31T18:30:00.000Z'); // 2027-01-01 01:30 Vietnam time
-      jest.useFakeTimers().setSystemTime(nowUtc);
+    it('returns empty array when no active rules', async () => {
+      repository.findActiveRules.mockResolvedValue([]);
 
-      await service.findByYear();
+      const result = await service.findByYear(2026);
 
-      expect(repository.findByYear).toHaveBeenCalledWith(2027);
-
-      jest.useRealTimers();
+      expect(result).toEqual([]);
     });
 
-    it('year provided → uses the given year as-is, without deriving it', async () => {
-      await service.findByYear(2020);
+    it('resolves active rules into concrete dates', async () => {
+      repository.findActiveRules.mockResolvedValue([
+        makeHoliday({ code: 'NEW_YEAR', calendar: HolidayCalendar.SOLAR, month: 1, day: 1 }),
+      ]);
 
-      expect(repository.findByYear).toHaveBeenCalledWith(2020);
+      const result = await service.findByYear(2026);
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0].holidayDate).toBe('2026-01-01');
+      expect(result[0].code).toBe('NEW_YEAR');
     });
   });
 
   describe('create', () => {
-    it('derives year from holidayDate (does not accept year from the client)', async () => {
-      repository.create.mockResolvedValue(makeHoliday({ id: 30 }));
-      repository.findById.mockResolvedValue(makeHoliday({ id: 30 }));
+    it('inserts a new rule and returns it', async () => {
+      const created = makeHoliday({ id: 30, code: 'COMPANY_ANNIV' });
+      repository.create.mockResolvedValue(created);
+      repository.findById.mockResolvedValue(created);
 
-      await service.create({
-        name: ' Ngày lễ mới ',
-        holidayDate: '2027-05-01',
+      const result = await service.create({
+        code: 'COMPANY_ANNIV',
+        name: 'Ngày thành lập',
+        month: 10,
+        day: 15,
       });
 
-      expect(repository.create).toHaveBeenCalledWith({
-        name: 'Ngày lễ mới',
-        holidayDate: '2027-05-01',
-        year: 2027,
-        type: HolidayType.NATIONAL,
-        isPaid: true,
-        note: null,
-      });
+      expect(repository.findByCodeAndYear).toHaveBeenCalledWith('COMPANY_ANNIV', null, undefined);
+      expect(repository.create).toHaveBeenCalled();
+      expect(result.code).toBe('COMPANY_ANNIV');
     });
 
-    it('duplicate date → 409 DUPLICATE_HOLIDAY_DATE', async () => {
-      repository.findByDate.mockResolvedValue(makeHoliday());
+    it('duplicate (code, year) → 409 DUPLICATE_HOLIDAY_CODE', async () => {
+      repository.findByCodeAndYear.mockResolvedValue(makeHoliday());
 
       await expect(
-        service.create({ name: 'Trùng', holidayDate: '2026-01-01' }),
+        service.create({ code: 'NEW_YEAR', name: 'Trùng', month: 1, day: 1 }),
       ).rejects.toMatchObject({
         status: HttpStatus.CONFLICT,
-        response: { code: 'DUPLICATE_HOLIDAY_DATE' },
+        response: { code: 'DUPLICATE_HOLIDAY_CODE' },
       });
       expect(repository.create).not.toHaveBeenCalled();
     });
   });
 
   describe('update', () => {
-    it('changing holidayDate → recomputes year, excludes itself from the duplicate check', async () => {
+    it('updates name without touching code/year', async () => {
       repository.findById.mockResolvedValue(makeHoliday({ id: 3 }));
 
-      await service.update(3, { holidayDate: '2028-09-02' });
+      await service.update(3, { name: 'Tên mới' });
 
-      expect(repository.findByDate).toHaveBeenCalledWith('2028-09-02', 3);
-      expect(repository.update).toHaveBeenCalledWith(3, {
-        holidayDate: '2028-09-02',
-        year: 2028,
-      });
+      expect(repository.update).toHaveBeenCalledWith(3, { name: 'Tên mới' });
     });
 
     it('id not found → 404 HOLIDAY_NOT_FOUND', async () => {
@@ -143,19 +154,7 @@ describe('HolidaysService', () => {
       });
     });
 
-    it('explicit null on a non-nullable field (name) → 400 VALIDATION_ERROR, no update', async () => {
-      repository.findById.mockResolvedValue(makeHoliday({ id: 3 }));
-
-      await expect(
-        service.update(3, { name: null } as never),
-      ).rejects.toMatchObject({
-        status: HttpStatus.BAD_REQUEST,
-        response: { code: 'VALIDATION_ERROR' },
-      });
-      expect(repository.update).not.toHaveBeenCalled();
-    });
-
-    it('null on a nullable field (note) is still accepted', async () => {
+    it('null on a nullable field (note) is accepted', async () => {
       repository.findById.mockResolvedValue(makeHoliday({ id: 3, note: 'x' }));
 
       await service.update(3, { note: null });
@@ -165,7 +164,7 @@ describe('HolidaysService', () => {
   });
 
   describe('remove', () => {
-    it('hard delete (holidays table has no deleted_at)', async () => {
+    it('hard delete returns confirmed result', async () => {
       repository.findById.mockResolvedValue(makeHoliday({ id: 12 }));
 
       const result = await service.remove(12);

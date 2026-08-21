@@ -7,7 +7,7 @@ import {
   TET_TOTAL_DAYS,
   type NationalDayExtra,
 } from '@/common/utils/vietnam-holidays.util';
-import { HolidayResponseDto } from './holiday-response.dto';
+import { HolidayDateDto } from './holiday-response.dto';
 
 /**
  * Body của `POST /holidays/generate`.
@@ -81,8 +81,8 @@ export class GenerateHolidaysResultDto {
   preview: boolean;
 
   @ApiProperty({
-    type: [HolidayResponseDto],
+    type: [HolidayDateDto],
     description: 'Toàn bộ lịch nghỉ của năm sau khi sinh, đã sắp theo ngày.',
   })
-  holidays: HolidayResponseDto[];
+  holidays: HolidayDateDto[];
 }
