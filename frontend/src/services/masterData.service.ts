@@ -10,6 +10,7 @@ import type {
   GenerateHolidaysPayload,
   GenerateHolidaysResult,
   Holiday,
+  HolidayDate,
   HolidayFilters,
   HolidayPayload,
   LeaveType,
@@ -185,6 +186,10 @@ export function generateHolidays(
   payload: GenerateHolidaysPayload,
 ): Promise<GenerateHolidaysResult> {
   return post<GenerateHolidaysResult>('/holidays/generate', payload);
+}
+
+export function listHolidaysByYear(year?: number): Promise<HolidayDate[]> {
+  return get<HolidayDate[]>('/system/holidays', year !== undefined ? { year } : undefined);
 }
 
 // -------------------------------------------------------------------------

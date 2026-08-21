@@ -61,15 +61,63 @@
 }
 
 .calendarCell {
-  margin: 0;
-  padding: 0;
-  list-style: none;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 20px;
+}
+
+.lunarDay {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--hrm-color-text-tertiary);
+}
+
+.calendarDots {
+  display: flex;
   gap: 2px;
 }
 
 /* Nút trần: ô lịch đã có nền và viền riêng của AntD. */
+/* Ô lịch chế độ âm — fullCellRender thay toàn bộ nội dung */
+.lunarCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4px 0 2px;
+  min-height: 56px;
+  border-radius: 4px;
+  gap: 1px;
+}
+
+.lunarCell:hover {
+  background: var(--hrm-color-fill-secondary);
+}
+
+.lunarCellToday {
+  background: var(--ant-color-primary-bg);
+}
+
+.lunarCellToday .lunarCellDay {
+  color: var(--ant-color-primary);
+  font-weight: 600;
+}
+
+.lunarCellDay {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--hrm-color-text);
+}
+
+.lunarCellSolar {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--hrm-color-text-tertiary);
+}
+
 .calendarEntry {
   width: 100%;
   padding: 0;

@@ -10,17 +10,14 @@
  *     flat `managerId` and no counts at all;
  *   - a position response carries `department: { id, name }`, while
  *     create/update take a flat `departmentId`;
- *   - a holiday response carries a derived `year` — never send it, the backend
- *     computes it from `holidayDate`;
+ *   - holidays: `GET /holidays` returns RULE DEFINITIONS (one row per holiday
+ *     type); `GET /system/holidays?year=` returns RESOLVED DATES for that year.
+ *     `HolidayPayload.code` is set by the client (not auto-generated).
  *   - `GET /leave-types` returns a PLAIN ARRAY (no pagination envelope).
  *
- * CODES ARE READ-ONLY. `code` is on every response row below and on none of the
- * `*Payload` types: the server generates it (`PB0001` for a department, `CV0001`
- * for a position, `NP0001` for a leave type) and never accepts one. The create
- * and update DTOs dropped the field, and the API validates with
- * `whitelist: true`, so a `code` sent anyway is silently discarded rather than
- * honoured — which is why it is absent from the payload types instead of merely
- * unused: a future caller cannot reintroduce a field that would be ignored.
+ * Codes for departments, positions, and leave types ARE READ-ONLY — the server
+ * generates them and the API silently discards any `code` sent by the client.
+ * Holiday codes are the opposite: the client chooses and sends them.
  *
  * The `MAX_*` constants mirror the backend validators so the form can reject
  * obvious mistakes before a round trip. The backend stays the authority — these
@@ -218,6 +215,7 @@ export interface LeaveTypeFilters {
 // Holidays
 // --------------------------------------------------------------------------
 
+export const HOLIDAY_CODE_MAX_LENGTH = 40;
 export const HOLIDAY_NAME_MAX_LENGTH = 100;
 export const HOLIDAY_NOTE_MAX_LENGTH = 255;
 export const MIN_HOLIDAY_YEAR = 1900;
@@ -226,35 +224,59 @@ export const MAX_HOLIDAY_YEAR = 2200;
 export const HOLIDAY_TYPES = ['national', 'company', 'other'] as const;
 export type HolidayType = (typeof HOLIDAY_TYPES)[number];
 
+export const HOLIDAY_CALENDARS = ['solar', 'lunar'] as const;
+export type HolidayCalendar = (typeof HOLIDAY_CALENDARS)[number];
+
+/** Rule definition — one row per holiday type (GET /holidays). */
 export interface Holiday {
   id: number;
+  code: string;
   name: string;
-  /** `YYYY-MM-DD`, unique across the whole table. */
-  holidayDate: string;
   type: HolidayType | string;
-  /** Derived by the backend from `holidayDate` — read-only, never sent. */
-  year: number;
+  calendar: HolidayCalendar;
+  month: number;
+  day: number;
+  offsetDays: number;
+  durationDays: number;
+  /** null = applies every year; a number = only that year (overrides the every-year rule). */
+  year: number | null;
   isPaid: boolean;
+  isActive: boolean;
+  sortOrder: number;
   note: string | null;
 }
 
-/**
- * NOTE: there is deliberately NO "repeats annually" field. PLAN.md §2.2 says
- * "chọn ngày lặp lại hàng năm", but `holidays` stores one concrete date per row
- * (`holidayDate` is unique table-wide) and neither the entity nor the DTOs carry
- * a recurrence flag — Tết moves every year on the solar calendar, so a repeating
- * flag could not describe the Vietnamese holiday calendar anyway. Each year is
- * seeded/entered as its own row and filtered with `?year=`.
- */
-export interface HolidayPayload {
-  name: string;
+/** Resolved concrete date — returned by GET /system/holidays and POST /holidays/generate. */
+export interface HolidayDate {
   holidayDate: string;
+  code: string;
+  name: string;
+  type: string;
+  year: number;
+  isPaid: boolean;
+  dayIndex: number;
+  dayCount: number;
+  isCompensatory: boolean;
+  note: string | null;
+}
+
+export interface HolidayPayload {
+  code: string;
+  name: string;
   type?: HolidayType;
+  calendar?: HolidayCalendar;
+  month: number;
+  day: number;
+  offsetDays?: number;
+  durationDays?: number;
+  year?: number | null;
   isPaid?: boolean;
+  isActive?: boolean;
+  sortOrder?: number;
   note?: string | null;
 }
 
-export const HOLIDAY_SORT_KEYS = ['holidayDate', 'name', 'year'] as const;
+export const HOLIDAY_SORT_KEYS = ['sortOrder', 'name', 'year'] as const;
 export type HolidaySortKey = (typeof HOLIDAY_SORT_KEYS)[number];
 
 export interface HolidayFilters {
@@ -265,6 +287,8 @@ export interface HolidayFilters {
   year?: number;
   type?: HolidayType;
   isPaid?: boolean;
+  isActive?: boolean;
+  search?: string;
 }
 
 /** Tổng số ngày nghỉ Tết theo Điều 112 BLLĐ 2019. */
@@ -273,26 +297,20 @@ export const TET_TOTAL_DAYS = 5;
 export const NATIONAL_DAY_EXTRAS = ['before', 'after'] as const;
 export type NationalDayExtra = (typeof NATIONAL_DAY_EXTRAS)[number];
 
-/**
- * Hai tham số đầu là hai thứ luật không ấn định, Chính phủ chốt lại từng năm:
- * nghỉ Tết bắt đầu từ ngày nào, và nghỉ thêm 1/9 hay 3/9.
- */
 export interface GenerateHolidaysPayload {
   year: number;
   tetDaysBefore?: number;
   nationalDayExtra?: NationalDayExtra;
   compensateWeekends?: boolean;
-  /** Chỉ tính để xem trước, không ghi vào cơ sở dữ liệu. */
   preview?: boolean;
 }
 
 export interface GenerateHolidaysResult {
   year: number;
   created: number;
-  /** Ngày đã có sẵn nên bỏ qua — bản ghi cũ không bị ghi đè. */
   skipped: number;
   preview: boolean;
-  holidays: Holiday[];
+  holidays: HolidayDate[];
 }
 
 // --------------------------------------------------------------------------

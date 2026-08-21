@@ -1,8 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { PaginatedData } from '@/types/api.types';
 import type {
   GenerateHolidaysPayload,
   Holiday,
+  HolidayDate,
   HolidayFilters,
   HolidayPayload,
 } from '@/types/masterData.types';
@@ -11,6 +12,7 @@ import {
   deleteHoliday,
   generateHolidays,
   listHolidays,
+  listHolidaysByYear,
   updateHoliday,
 } from '@/services/masterData.service';
 import { useCrudResource, type CrudResource } from '@/hooks/useCrudResource';
@@ -33,6 +35,14 @@ export function useHolidays(
     create: createHoliday,
     update: updateHoliday,
     remove: deleteHoliday,
+  });
+}
+
+export function useHolidaysByYear(year?: number, enabled = true) {
+  return useQuery<HolidayDate[]>({
+    queryKey: ['holidays', 'by-year', year ?? 'current'],
+    queryFn: () => listHolidaysByYear(year),
+    enabled,
   });
 }
 

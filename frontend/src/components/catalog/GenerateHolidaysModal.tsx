@@ -20,7 +20,7 @@ import {
   NATIONAL_DAY_EXTRAS,
   TET_TOTAL_DAYS,
   type GenerateHolidaysResult,
-  type Holiday,
+  type HolidayDate,
   type NationalDayExtra,
 } from '@/types/masterData.types';
 import { formatDate } from '@/utils/format';
@@ -107,7 +107,7 @@ export function GenerateHolidaysModal({
     }
   };
 
-  const columns: TableProps<Holiday>['columns'] = [
+  const columns: TableProps<HolidayDate>['columns'] = [
     {
       title: t('settings.holidays.date'),
       dataIndex: 'holidayDate',
@@ -125,8 +125,6 @@ export function GenerateHolidaysModal({
       ),
     },
   ];
-
-  const isExisting = (row: Holiday) => row.id !== 0;
 
   return (
     <Modal
@@ -234,14 +232,13 @@ export function GenerateHolidaysModal({
             </span>
           </div>
 
-          <Table<Holiday>
+          <Table<HolidayDate>
             rowKey={(row) => row.holidayDate}
             size="small"
             columns={columns}
             dataSource={preview.holidays}
             pagination={false}
             scroll={{ y: 260 }}
-            rowClassName={(row) => (isExisting(row) ? styles.existingRow : '')}
           />
         </div>
       )}
