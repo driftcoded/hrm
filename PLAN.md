@@ -717,6 +717,85 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 
 ---
 
+## Giai đoạn 9 — PDF Phiếu lương, Excel & Email thật
+
+> Ba tính năng này liên kết chặt: phiếu lương PDF dùng để đính kèm email; Excel
+> dùng để kế toán nhận dữ liệu mà không cần vào hệ thống. Làm theo thứ tự:
+> PDF → Excel → Email (vì email cần PDF đính kèm).
+
+### 9.1 Backend — PDF Phiếu lương
+
+- [ ] Cài `pdfmake` (server-side, không cần browser); tạo `PdfModule` tái dùng được
+- [ ] `GET /payroll/:periodId/payslip/:employeeId/pdf` — xuất 1 phiếu lương PDF
+- [ ] `GET /payroll/:periodId/payslips/zip` — zip toàn bộ phiếu của 1 kỳ (stream, không load hết vào RAM)
+- [ ] Template phiếu lương đủ thông tin theo Điều 95 BLLĐ: tên, mã NV, kỳ lương, gross, từng khoản bảo hiểm, thuế TNCN, tạm ứng, thực nhận
+- [ ] Phiếu lương lưu lên S3 sau khi tạo (tránh tạo lại mỗi lần tải); URL presigned TTL 15 phút
+- [ ] Chỉ tạo được PDF khi bảng lương ở trạng thái `approved` hoặc `paid`
+
+**Tests (9.1):**
+- [ ] PDF tạo ra là file hợp lệ (magic bytes `%PDF`)
+- [ ] PDF có đủ 6 dòng số: gross, BHXH, BHYT, BHTN, thuế TNCN, net — số khớp DB
+- [ ] Gọi endpoint khi bảng lương còn `draft` → 409 `SALARY_NOT_APPROVED`
+- [ ] Gọi endpoint với `employeeId` không thuộc kỳ đó → 404
+- [ ] Tải 2 lần cùng phiếu → trả file S3 đã lưu sẵn, không tạo lại
+- [ ] ZIP 50 phiếu → không OOM, stream trả đúng 50 file bên trong
+
+### 9.2 Backend — Excel Export chuẩn kế toán
+
+- [ ] `GET /payroll/:periodId/export/excel` — Excel bảng lương kỳ
+  - Sheet 1: tóm tắt (mã NV, tên, phòng ban, gross, tổng BH, thuế, net)
+  - Sheet 2: chi tiết từng khoản (lương CB, phụ cấp, làm thêm, tạm ứng, khấu trừ khác)
+- [ ] `GET /payroll/:periodId/export/bank-transfer` — file lệnh chuyển tiền ngân hàng
+  - Cột: số tài khoản (đã giải mã AES-256), tên NV, ngân hàng, số tiền net
+  - Format: Excel chuẩn Vietcombank (dùng làm mẫu mặc định, có thể mở rộng)
+- [ ] Header Excel: format tiền tệ VN (`#,##0`), cột ngày `DD/MM/YYYY`, freeze row đầu
+- [ ] File tên có kỳ lương: `bang-luong-2026-07.xlsx`, `chuyen-khoan-2026-07.xlsx`
+
+**Tests (9.2):**
+- [ ] Excel tạo ra là file hợp lệ (magic bytes `PK`)
+- [ ] Sheet tóm tắt: tổng cột Net = tổng `net` trong DB của kỳ đó
+- [ ] Sheet bank transfer: số tài khoản đã giải mã, không lộ dữ liệu mã hóa
+- [ ] NV nghỉ không lương cả tháng (net = 0) → không có dòng trong file bank transfer
+
+### 9.3 Backend — Email thật qua AWS SES
+
+> Phase 1 đã dùng **dev file transport** (ghi file HTML vào `logs/mail/`). Phase này
+> chuyển sang SES thật nhưng giữ nguyên interface `MailService` — chỉ thay provider.
+
+- [ ] Cấu hình SES transport trong `MailModule` đọc từ env (`MAIL_TRANSPORT=ses|file`)
+- [ ] Template email HTML responsive (Handlebars): dùng chung layout header/footer công ty
+- [ ] **Email duyệt phép:** gửi cho NV khi đơn được duyệt/từ chối — có tên người duyệt, ngày nghỉ
+- [ ] **Email phiếu lương:** gửi cho từng NV cuối tháng — PDF đính kèm, hiển thị net ngay trong body
+- [ ] **Email reset mật khẩu:** nâng cấp từ link đơn giản (Phase 1) → template đẹp + có thời hạn rõ
+- [ ] Queue email bằng Bull (Redis): retry 3 lần, delay 5 giây — tránh SES throttle khi gửi hàng loạt
+- [ ] `POST /payroll/:periodId/send-payslips` — trigger gửi email phiếu lương cho toàn kỳ (admin only)
+- [ ] Dead-letter: email thất bại sau 3 retry → ghi log + cảnh báo, không crash job
+
+**Tests (9.3):**
+- [ ] Duyệt phép → `MailService.send()` được gọi đúng địa chỉ NV, đúng subject
+- [ ] Gửi phiếu lương: mỗi NV nhận đúng 1 email, PDF đính kèm đúng kỳ
+- [ ] Email reset password chứa link có `token` hợp lệ, không phải plain text
+- [ ] Gửi 100 email → queue xử lý tuần tự, không bị SES rate-limit (mock SES trong test)
+- [ ] SES trả lỗi lần 1, 2 → retry; lần 3 → vào dead-letter, không exception ra controller
+
+### 9.4 Frontend — UI cho PDF, Excel, Email
+
+- [ ] Nút **"Tải PDF"** trên từng hàng bảng lương → gọi endpoint, mở tab mới
+- [ ] Nút **"Tải tất cả (ZIP)"** trên đầu trang bảng lương — progress indicator khi đang zip
+- [ ] Nút **"Xuất Excel"** — tải `bang-luong-YYYY-MM.xlsx` ngay lập tức
+- [ ] Nút **"Xuất file chuyển khoản"** — tải `chuyen-khoan-YYYY-MM.xlsx`
+- [ ] Nút **"Gửi phiếu lương qua email"** (admin only) — confirm dialog trước khi gửi hàng loạt
+  - Chỉ hiện khi bảng lương đã `approved` hoặc `paid`
+  - Sau khi gửi: hiển thị "Đã gửi N phiếu" hoặc danh sách email thất bại nếu có
+
+**Tests (9.4 — mở Chrome):**
+- [ ] Tải PDF: file tải về, mở được, hiển thị đúng tên NV và số tiền net
+- [ ] Xuất Excel: file mở được trong Excel/Google Sheets, cột số định dạng đúng
+- [ ] Nút "Gửi email" không xuất hiện khi bảng lương còn `draft`
+- [ ] Nút "Gửi email" → confirm dialog → confirm → toast "Đã gửi thành công"
+
+---
+
 ## Checklist Go-live
 
 Trước khi đưa vào production, hoàn thành toàn bộ:
