@@ -71,7 +71,7 @@ export function useDepartmentTree(
  *
  * `refetch` / `isFetching` are exposed for the screens that SHOW this data rather
  * than only feeding a dropdown from it (the org chart and the KPI row on
- * `/settings/departments`): they need a "Thử lại" button and a way to dim while a
+ * `/catalog/departments`): they need a "Thử lại" button and a way to dim while a
  * save is being re-read (docs/ui-conventions.md §7).
  */
 export function useAllDepartments(enabled = true) {

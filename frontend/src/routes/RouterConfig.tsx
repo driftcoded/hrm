@@ -2,6 +2,7 @@ import { Suspense, lazy, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { FullPageLoader } from '@/components/common/FullPageLoader';
+import { MOVED_SETTINGS_PATHS } from '@/constants/navSections';
 import { GuestRoute } from './GuestRoute';
 import { PrivateRoute } from './PrivateRoute';
 
@@ -109,23 +110,23 @@ const SettingsIndexPage = lazy(() =>
   })),
 );
 const DepartmentsPage = lazy(() =>
-  import('@/pages/settings/DepartmentsPage').then((module) => ({
+  import('@/pages/catalog/DepartmentsPage').then((module) => ({
     default: module.DepartmentsPage,
   })),
 );
 const PositionsPage = lazy(() =>
-  import('@/pages/settings/PositionsPage').then((module) => ({ default: module.PositionsPage })),
+  import('@/pages/catalog/PositionsPage').then((module) => ({ default: module.PositionsPage })),
 );
 const ContractTypesPage = lazy(() =>
-  import('@/pages/settings/ContractTypesPage').then((module) => ({
+  import('@/pages/catalog/ContractTypesPage').then((module) => ({
     default: module.ContractTypesPage,
   })),
 );
 const LeaveTypesPage = lazy(() =>
-  import('@/pages/settings/LeaveTypesPage').then((module) => ({ default: module.LeaveTypesPage })),
+  import('@/pages/catalog/LeaveTypesPage').then((module) => ({ default: module.LeaveTypesPage })),
 );
 const HolidaysPage = lazy(() =>
-  import('@/pages/settings/HolidaysPage').then((module) => ({ default: module.HolidaysPage })),
+  import('@/pages/catalog/HolidaysPage').then((module) => ({ default: module.HolidaysPage })),
 );
 const BrandingSettingsPage = lazy(() =>
   import('@/pages/settings/BrandingSettingsPage').then((module) => ({
@@ -144,7 +145,7 @@ const MailSettingsPage = lazy(() =>
  * a dead link or a redirect that looks like a bug.
  *
  * `departments` left this list in Giai đoạn 2.2: departments are master data and
- * now live at `/settings/departments`. `employees` left it in Giai đoạn 3.2,
+ * now live at `/catalog/departments`. `employees` left it in Giai đoạn 3.2,
  * `attendance` in Giai đoạn 4.2, `leave` in 5.2 and `payroll` in 6.2 — all four
  * modules have real screens now.
  */
@@ -234,22 +235,39 @@ const router = createBrowserRouter([
               { path: 'settings', element: <PayrollSettingsPage /> },
             ],
           },
+          /*
+           * Danh mục nghiệp vụ, tách khỏi /settings: nhân sự sửa chúng hằng
+           * ngày và nhiều phân hệ dùng chung, khác hẳn cấu hình hệ thống vốn
+           * cài một lần. Xem constants/navSections.ts.
+           */
           {
-            path: 'settings',
+            path: 'catalog',
             children: [
-              { index: true, element: <SettingsIndexPage /> },
+              { index: true, element: <Navigate to="/catalog/departments" replace /> },
               { path: 'departments', element: <DepartmentsPage /> },
               { path: 'positions', element: <PositionsPage /> },
               { path: 'contract-types', element: <ContractTypesPage /> },
               { path: 'leave-types', element: <LeaveTypesPage /> },
               { path: 'holidays', element: <HolidaysPage /> },
+            ],
+          },
+          {
+            path: 'settings',
+            children: [
+              { index: true, element: <SettingsIndexPage /> },
               { path: 'branding', element: <BrandingSettingsPage /> },
               { path: 'mail', element: <MailSettingsPage /> },
+              // Năm màn danh mục rời /settings sang /catalog — giữ link cũ sống
+              // thay vì để bookmark và tab đang mở rơi về trang chủ.
+              ...MOVED_SETTINGS_PATHS.map(({ from, to }) => ({
+                path: from.replace('/settings/', ''),
+                element: <Navigate to={to} replace />,
+              })),
             ],
           },
           // Departments moved under /settings in Giai đoạn 2.2 — keep the old
           // path working instead of 404-ing bookmarks and open tabs.
-          { path: 'departments', element: <Navigate to="/settings/departments" replace /> },
+          { path: 'departments', element: <Navigate to="/catalog/departments" replace /> },
           ...UPCOMING_MODULES.map(({ path, titleKey, phase }) => ({
             path,
             element: <ComingSoonPage titleKey={titleKey} phase={phase} />,

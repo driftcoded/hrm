@@ -60,7 +60,7 @@ import { formatNumber, formatPercent } from '@/utils/format';
 import styles from './DepartmentsPage.module.css';
 
 /**
- * `/settings/departments` — the company's department hierarchy.
+ * `/catalog/departments` — the company's department hierarchy.
  *
  * The screen reads TWO endpoints and each answers a different question:
  *   - `GET /departments` (paginated) backs the list card: search, status filter,

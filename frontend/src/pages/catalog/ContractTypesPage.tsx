@@ -4,10 +4,10 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { DataTableCard } from '@/components/crud/DataTableCard';
 import { useContractTypes } from '@/hooks/useContractTypes';
 import type { ContractType } from '@/types/masterData.types';
-import styles from './settingsPage.module.css';
+import styles from './catalogPage.module.css';
 
 /**
- * `/settings/contract-types` — READ-ONLY on purpose.
+ * `/catalog/contract-types` — READ-ONLY on purpose.
  *
  * PLAN.md §2.2 asks for "bảng + modal", but there is deliberately no
  * `contract_types` table and no write endpoint in the backend: the four types are

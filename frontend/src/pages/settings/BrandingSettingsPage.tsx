@@ -26,7 +26,7 @@ interface CompanyNameFormValues {
  * `BrandMark`), but every mutation here is admin-gated by the backend; the
  * form controls are hidden for anyone else, matching how the other settings
  * screens go read-only for roles that cannot write (§Giai đoạn 2.2 note in
- * `constants/settingsSections.ts`).
+ * `constants/navSections.ts`).
  */
 export function BrandingSettingsPage() {
   const { t } = useTranslation();

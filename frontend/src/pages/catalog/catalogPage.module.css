@@ -44,3 +44,47 @@
 .notice {
   margin-bottom: var(--hrm-space-4);
 }
+
+/* --- chế độ xem lịch của màn hình Ngày lễ --- */
+
+.calendarBar {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  margin-bottom: var(--hrm-space-3);
+  flex-wrap: wrap;
+}
+
+.calendarCount {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.calendarCell {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Nút trần: ô lịch đã có nền và viền riêng của AntD. */
+.calendarEntry {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  line-height: var(--hrm-line-height-tight);
+}
+
+.calendarEntry:disabled {
+  cursor: default;
+}
+
+.calendarEntry:hover:not(:disabled) {
+  text-decoration: underline;
+}

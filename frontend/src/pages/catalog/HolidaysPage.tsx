@@ -1,7 +1,31 @@
-import { Button, DatePicker, Form, Input, Select, Switch, Tag, type TableProps } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { useMemo, useState } from 'react';
+import {
+  Badge,
+  Button,
+  Calendar,
+  Card,
+  DatePicker,
+  Empty,
+  Form,
+  Input,
+  Segmented,
+  Select,
+  Skeleton,
+  Space,
+  Switch,
+  Tag,
+  Tooltip,
+  type TableProps,
+} from 'antd';
+import {
+  BarsOutlined,
+  CalendarOutlined,
+  PlusOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { GenerateHolidaysModal } from '@/components/catalog/GenerateHolidaysModal';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BooleanTag } from '@/components/crud/BooleanTag';
 import { CrudFormModal } from '@/components/crud/CrudFormModal';
@@ -25,10 +49,10 @@ import {
   type HolidayType,
 } from '@/types/masterData.types';
 import { formatDate } from '@/utils/format';
-import styles from './settingsPage.module.css';
+import styles from './catalogPage.module.css';
 
 /**
- * `/settings/holidays` — the paid public-holiday calendar, one row per date.
+ * `/catalog/holidays` — the paid public-holiday calendar, one row per date.
  *
  * NO "repeats annually" CONTROL, and that is deliberate. PLAN.md §2.2 says
  * "chọn ngày lặp lại hàng năm", but the backend has no recurrence field: the
@@ -57,11 +81,16 @@ const TYPE_COLORS: Record<string, string> = {
   other: 'default',
 };
 
+/** Hai cách đọc cùng một lịch: bảng để tra cứu, lịch để thấy ngày rơi vào đâu. */
+type ViewMode = 'list' | 'calendar';
+
 export function HolidaysPage() {
   const { t } = useTranslation();
   const canWrite = useCanWriteMasterData();
   const table = useTableQuery({ sort: 'holidayDate', order: 'asc' });
   const [form] = Form.useForm<HolidayFormValues>();
+  const [view, setView] = useState<ViewMode>('list');
+  const [isGenerateOpen, setGenerateOpen] = useState(false);
 
   const search = table.filters.search;
   const rawYear = parseIntParam(table.filters.year);
@@ -76,15 +105,39 @@ export function HolidaysPage() {
   const sortKey = parseEnumParam<HolidaySortKey>(table.sort, HOLIDAY_SORT_KEYS) ?? 'holidayDate';
   const sortOrder = table.order ?? 'asc';
 
-  const resource = useHolidays({
-    page: table.page,
-    limit: table.pageSize,
-    sort: sortKey,
-    order: sortOrder,
-    year,
-    type,
-    ...(search ? { search } : {}),
-  });
+  const resource = useHolidays(
+    {
+      page: table.page,
+      limit: table.pageSize,
+      sort: sortKey,
+      order: sortOrder,
+      year,
+      type,
+      ...(search ? { search } : {}),
+    },
+    view === 'list',
+  );
+
+  /*
+   * Lịch cần CẢ NĂM trong một lần đọc: nó vẽ 12 tháng, không phân trang được.
+   * Chưa chọn năm thì lấy năm hiện tại — vẽ lịch "mọi năm" là vô nghĩa.
+   */
+  const calendarYear = year ?? dayjs().year();
+  const calendarResource = useHolidays(
+    { year: calendarYear, limit: 100, sort: 'holidayDate', order: 'asc', type },
+    view === 'calendar',
+  );
+
+  const holidaysByDate = useMemo(() => {
+    const map = new Map<string, Holiday[]>();
+
+    for (const holiday of calendarResource.data?.items ?? []) {
+      const key = holiday.holidayDate.slice(0, 10);
+      map.set(key, [...(map.get(key) ?? []), holiday]);
+    }
+
+    return map;
+  }, [calendarResource.data]);
 
   const screen = useCrudScreen<Holiday, HolidayPayload>({
     resource,
@@ -181,6 +234,70 @@ export function HolidaysPage() {
     </Button>
   ) : null;
 
+  const headerActions = (
+    <Space wrap>
+      <Segmented<ViewMode>
+        value={view}
+        onChange={setView}
+        options={[
+          {
+            value: 'list',
+            icon: <BarsOutlined />,
+            label: t('settings.holidays.view.list'),
+          },
+          {
+            value: 'calendar',
+            icon: <CalendarOutlined />,
+            label: t('settings.holidays.view.calendar'),
+          },
+        ]}
+      />
+      {canWrite && (
+        <Button
+          icon={<ThunderboltOutlined />}
+          onClick={() => setGenerateOpen(true)}
+        >
+          {t('settings.holidays.generate.action')}
+        </Button>
+      )}
+      {addButton}
+    </Space>
+  );
+
+  /** Một ô ngày trong lịch: chấm màu + tên ngày lễ, bấm vào thì sửa. */
+  const renderCalendarCell = (value: Dayjs) => {
+    const dayHolidays = holidaysByDate.get(value.format('YYYY-MM-DD')) ?? [];
+
+    if (dayHolidays.length === 0) {
+      return null;
+    }
+
+    return (
+      <ul className={styles.calendarCell}>
+        {dayHolidays.map((holiday) => (
+          <li key={holiday.id}>
+            <Tooltip title={holiday.note ?? holiday.name}>
+              <button
+                type="button"
+                className={styles.calendarEntry}
+                disabled={!canWrite}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  screen.openEdit(holiday);
+                }}
+              >
+                <Badge
+                  color={TYPE_COLORS[holiday.type] ?? 'default'}
+                  text={holiday.name}
+                />
+              </button>
+            </Tooltip>
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   const initialValues: Partial<HolidayFormValues> = screen.editing
     ? {
         name: screen.editing.name,
@@ -213,9 +330,59 @@ export function HolidaysPage() {
       <PageHeader
         title={t('nav.holidays')}
         subtitle={t('settings.holidays.subtitle')}
-        actions={addButton}
+        actions={headerActions}
       />
 
+      {view === 'calendar' && (
+        <Card variant="borderless">
+          {calendarResource.isLoading ? (
+            <Skeleton active paragraph={{ rows: 8 }} />
+          ) : (
+            <>
+              <div className={styles.calendarBar}>
+                <DatePicker
+                  picker="year"
+                  allowClear={false}
+                  value={dayjs().year(calendarYear)}
+                  onChange={(value) =>
+                    table.setFilter('year', value ? value.year() : undefined)
+                  }
+                  aria-label={t('settings.holidays.year')}
+                />
+                <span className={styles.calendarCount}>
+                  {t('settings.holidays.view.count', {
+                    count: calendarResource.data?.items.length ?? 0,
+                    year: calendarYear,
+                  })}
+                </span>
+              </div>
+
+              {(calendarResource.data?.items.length ?? 0) === 0 ? (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={t('settings.holidays.view.empty', {
+                    year: calendarYear,
+                  })}
+                />
+              ) : (
+                /* `validRange` khoá lịch trong đúng năm đang xem, khỏi lạc sang
+                   năm khác mà dữ liệu thì chưa nạp. */
+                <Calendar
+                  cellRender={(value, info) =>
+                    info.type === 'date' ? renderCalendarCell(value) : null
+                  }
+                  validRange={[
+                    dayjs().year(calendarYear).startOf('year'),
+                    dayjs().year(calendarYear).endOf('year'),
+                  ]}
+                />
+              )}
+            </>
+          )}
+        </Card>
+      )}
+
+      {view === 'list' && (
       <DataTableCard<Holiday>
         columns={columns}
         rows={rows}
@@ -260,6 +427,13 @@ export function HolidaysPage() {
           total,
           onChange: table.setPagination,
         }}
+      />
+      )}
+
+      <GenerateHolidaysModal
+        open={isGenerateOpen}
+        defaultYear={year}
+        onClose={() => setGenerateOpen(false)}
       />
 
       <CrudFormModal<HolidayFormValues>

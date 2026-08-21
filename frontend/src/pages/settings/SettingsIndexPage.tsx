@@ -1,41 +1,27 @@
 import { Card } from 'antd';
-import {
-  ApartmentOutlined,
-  CalendarOutlined,
-  FileProtectOutlined,
-  IdcardOutlined,
-  MailOutlined,
-  PictureOutlined,
-  SunOutlined,
-} from '@ant-design/icons';
+import { MailOutlined, PictureOutlined } from '@ant-design/icons';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { SETTINGS_SECTIONS } from '@/constants/settingsSections';
-import { useCanManageSettings, useCanWriteMasterData } from '@/hooks/usePermissions';
+import { SETTINGS_SECTIONS } from '@/constants/navSections';
+import { useCanManageSettings } from '@/hooks/usePermissions';
 import styles from './SettingsIndexPage.module.css';
 
 /**
- * `/settings` — the index of the master-data section.
+ * `/settings` — chỉ mục CẤU HÌNH HỆ THỐNG.
  *
- * The card list is generated from `constants/settingsSections.ts`, the same
- * registry the sidebar submenu reads, so a new settings screen appears in both
- * places from one edit.
+ * Danh mục nghiệp vụ (phòng ban, chức vụ, loại phép…) đã rời sang `/catalog`;
+ * ở đây chỉ còn thứ cài một lần lúc dựng hệ thống. Danh sách thẻ sinh từ
+ * `constants/navSections.ts`, cùng registry mà sidebar đọc.
  */
 const SECTION_ICONS: Record<string, ReactNode> = {
-  departments: <ApartmentOutlined />,
-  positions: <IdcardOutlined />,
-  'contract-types': <FileProtectOutlined />,
-  'leave-types': <SunOutlined />,
-  holidays: <CalendarOutlined />,
   branding: <PictureOutlined />,
   mail: <MailOutlined />,
 };
 
 export function SettingsIndexPage() {
   const { t } = useTranslation();
-  const canWrite = useCanWriteMasterData();
   const canManageSettings = useCanManageSettings();
   const visibleSections = SETTINGS_SECTIONS.filter(
     (section) => !section.adminOnly || canManageSettings,
@@ -45,7 +31,11 @@ export function SettingsIndexPage() {
     <>
       <PageHeader
         title={t('nav.settings')}
-        subtitle={canWrite ? t('settings.index.subtitle') : t('settings.index.subtitleReadOnly')}
+        subtitle={
+          canManageSettings
+            ? t('settings.index.subtitle')
+            : t('settings.index.subtitleReadOnly')
+        }
       />
 
       <div className={styles.grid}>

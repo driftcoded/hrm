@@ -319,8 +319,10 @@
       "overview": "Tổng quan",
       "people": "Nhân sự",
       "timePay": "Chấm công & lương",
-      "system": "Hệ thống"
-    }
+      "system": "Hệ thống",
+      "catalog": "Danh mục"
+    },
+    "catalog": "Danh mục"
   },
   "profile": {
     "title": "Hồ sơ cá nhân",
@@ -556,6 +558,35 @@
     "holidays": {
       "entity": "ngày lễ",
       "subtitle": "Lịch nghỉ lễ theo từng năm, dùng cho chấm công và tính lương. Mỗi ngày chỉ khai báo một lần.",
+      "view": {
+        "list": "Danh sách",
+        "calendar": "Lịch",
+        "count": "{{count}} ngày nghỉ trong năm {{year}}",
+        "empty": "Năm {{year}} chưa có ngày lễ nào. Bấm \"Sinh lịch nghỉ lễ\" để tạo theo luật."
+      },
+      "generate": {
+        "action": "Sinh lịch nghỉ lễ",
+        "title": "Sinh lịch nghỉ lễ theo luật",
+        "confirm": "Tạo các ngày này",
+        "notice": "Tính 11 ngày nghỉ pháp định theo Điều 112 BLLĐ 2019, gồm Tết và Giỗ Tổ Hùng Vương quy đổi từ âm lịch. Ngày đã có trong lịch được giữ nguyên, không bị ghi đè.",
+        "year": "Năm cần sinh lịch",
+        "tetDaysBefore": "Nghỉ Tết bắt đầu từ",
+        "tetHint": "Luật cho nghỉ {{total}} ngày nhưng không nói bắt đầu từ ngày nào — Chính phủ chốt lại mỗi năm.",
+        "tetOption": "{{before}} ngày trước Tết + {{after}} ngày từ mùng 1",
+        "nationalDay": "Ngày nghỉ thêm của Quốc khánh",
+        "nationalDayHint": "Quốc khánh nghỉ 2 ngày: 2/9 và một ngày liền kề do Chính phủ chọn.",
+        "nationalDayExtra": {
+          "before": "1/9 (liền trước)",
+          "after": "3/9 (liền sau)"
+        },
+        "compensate": "Nghỉ bù khi trùng cuối tuần",
+        "compensateHint": "Ngày lễ rơi vào thứ Bảy/Chủ nhật thì nghỉ bù ngày làm việc kế tiếp (Điều 111 khoản 3).",
+        "preview": "Xem trước danh sách ngày sẽ tạo",
+        "previewTitle": "Lịch nghỉ lễ năm {{year}}",
+        "willCreate": "Sẽ tạo {{count}} ngày",
+        "willSkip": "Bỏ qua {{count}} ngày đã có",
+        "success": "Đã tạo {{created}} ngày lễ, bỏ qua {{skipped}} ngày đã có"
+      },
       "add": "Thêm ngày lễ",
       "addTitle": "Thêm ngày lễ",
       "editTitle": "Sửa ngày lễ",

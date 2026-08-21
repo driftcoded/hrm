@@ -159,7 +159,7 @@ export async function uploadEmployeeAvatar(id: number, file: File): Promise<Avat
   return data.data;
 }
 
-/** Narrow search used by the `/settings/departments` manager picker. */
+/** Narrow search used by the `/catalog/departments` manager picker. */
 export function searchEmployees(
   filters: EmployeeSearchFilters = {},
 ): Promise<PaginatedData<EmployeePickerItem>> {

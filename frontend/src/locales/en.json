@@ -319,8 +319,10 @@
       "overview": "Overview",
       "people": "People",
       "timePay": "Time & pay",
-      "system": "System"
-    }
+      "system": "System",
+      "catalog": "Catalogue"
+    },
+    "catalog": "Catalogue"
   },
   "profile": {
     "title": "My profile",
@@ -556,6 +558,35 @@
     "holidays": {
       "entity": "holiday",
       "subtitle": "The public-holiday calendar per year, used by attendance and payroll. Each date can only appear once.",
+      "view": {
+        "list": "List",
+        "calendar": "Calendar",
+        "count": "{{count}} days off in {{year}}",
+        "empty": "No holidays recorded for {{year}} yet. Use \"Generate holidays\" to create them from the law."
+      },
+      "generate": {
+        "action": "Generate holidays",
+        "title": "Generate the statutory holiday calendar",
+        "confirm": "Create these dates",
+        "notice": "Computes the 11 statutory days under article 112 of the 2019 Labour Code, including Tết and Hùng Kings' day converted from the lunar calendar. Dates already in the calendar are kept, never overwritten.",
+        "year": "Year to generate",
+        "tetDaysBefore": "Tết leave starts",
+        "tetHint": "The law grants {{total}} days but does not say where they start — the Government decides each year.",
+        "tetOption": "{{before}} before Tết + {{after}} from day 1",
+        "nationalDay": "Extra National Day holiday",
+        "nationalDayHint": "National Day is two days: 2 September plus an adjacent day chosen by the Government.",
+        "nationalDayExtra": {
+          "before": "1 Sep (day before)",
+          "after": "3 Sep (day after)"
+        },
+        "compensate": "Compensate weekend clashes",
+        "compensateHint": "A holiday falling on Saturday or Sunday is taken on the next working day (article 111.3).",
+        "preview": "Preview the dates to be created",
+        "previewTitle": "Holiday calendar for {{year}}",
+        "willCreate": "{{count}} to create",
+        "willSkip": "{{count}} already there, skipped",
+        "success": "Created {{created}} holidays, skipped {{skipped}} already there"
+      },
       "add": "Add holiday",
       "addTitle": "Add holiday",
       "editTitle": "Edit holiday",

@@ -21,10 +21,10 @@ import {
   type LeaveType,
   type LeaveTypePayload,
 } from '@/types/masterData.types';
-import styles from './settingsPage.module.css';
+import styles from './catalogPage.module.css';
 
 /**
- * `/settings/leave-types` — leave categories and the policy attached to each
+ * `/catalog/leave-types` — leave categories and the policy attached to each
  * (entitlement per year, paid or not, notice period, gender applicability).
  *
  * `GET /leave-types` returns a PLAIN ARRAY: the table's primary key is a TINYINT,

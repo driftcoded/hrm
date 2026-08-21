@@ -27,10 +27,10 @@ import {
 } from '@/types/masterData.types';
 import { flattenDepartmentTree } from '@/utils/departmentTree';
 import { formatCurrency } from '@/utils/format';
-import styles from './settingsPage.module.css';
+import styles from './catalogPage.module.css';
 
 /**
- * `/settings/positions` — job titles, each owned by one department and graded
+ * `/catalog/positions` — job titles, each owned by one department and graded
  * 1-5 (Staff → Director).
  *
  * The department is a required link, so the picker is fed from the tree endpoint

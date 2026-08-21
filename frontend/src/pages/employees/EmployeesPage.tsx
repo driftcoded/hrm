@@ -726,7 +726,7 @@ export function EmployeesPage() {
             isLoading={stats.isLoading}
             isError={stats.isError}
             onRetry={stats.refetch}
-            onOpenDepartments={() => navigate('/settings/departments')}
+            onOpenDepartments={() => navigate('/catalog/departments')}
           />
         </aside>
       </div>

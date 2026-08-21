@@ -4,7 +4,7 @@
  * the `/users` + `/roles` calls the create wizard's last step needs.
  *
  * HISTORY — this file used to describe ONE dropdown. Giai đoạn 2.2 needed a
- * "pick a manager" field on `/settings/departments` and nothing else, so the
+ * "pick a manager" field on `/catalog/departments` and nothing else, so the
  * file deliberately declared four fields and carried a warning not to grow it
  * until the Employees module arrived with its own screens. It has now arrived
  * (Giai đoạn 3.2), so the warning is spent and this is the real model.
@@ -525,7 +525,7 @@ export interface CreatedUser {
 // ------------------------------------------------------ department picker ---
 
 /**
- * The four fields the `/settings/departments` manager dropdown renders.
+ * The four fields the `/catalog/departments` manager dropdown renders.
  *
  * A structural subset of `EmployeeListItem`, so `GET /employees` results are
  * assignable to it and the picker needs no mapping. `department` stays optional

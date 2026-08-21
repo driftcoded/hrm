@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
  * Two shapes, same behaviour:
  *   - `inline` (default) — the two icon buttons side by side. What the Settings
  *     tables with room to spare use.
- *   - `menu` — one `⋮` button opening a dropdown. Used by `/settings/departments`,
+ *   - `menu` — one `⋮` button opening a dropdown. Used by `/catalog/departments`,
  *     whose row already carries an icon tile, a two-line name and four other
  *     columns; a second pair of icons there reads as clutter.
  *

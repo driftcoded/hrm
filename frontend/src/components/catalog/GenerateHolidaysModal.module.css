@@ -1,0 +1,60 @@
+.control {
+  width: 100%;
+}
+
+.notice {
+  margin-bottom: var(--hrm-space-4);
+}
+
+/* Nút xem trước nằm dưới form, không phải nút chính của modal. */
+.previewButton {
+  width: 100%;
+  padding: var(--hrm-space-3);
+  border: 1px dashed var(--hrm-color-border);
+  border-radius: var(--hrm-radius-md);
+  background: transparent;
+  color: var(--hrm-color-primary);
+  cursor: pointer;
+  font: inherit;
+}
+
+.previewButton:hover:not(:disabled) {
+  border-color: var(--hrm-color-primary);
+  background: var(--hrm-color-bg-layout);
+}
+
+.previewButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.previewBox {
+  border: 1px solid var(--hrm-color-border-subtle);
+  border-radius: var(--hrm-radius-md);
+  padding: var(--hrm-space-3);
+}
+
+.previewHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hrm-space-3);
+  margin-bottom: var(--hrm-space-3);
+  flex-wrap: wrap;
+}
+
+.nameCell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.note {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+/* Ngày đã có trong lịch: sẽ bị bỏ qua, làm nhạt để phân biệt với ngày sắp tạo. */
+.existingRow {
+  opacity: 0.5;
+}

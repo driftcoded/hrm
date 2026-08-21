@@ -6,7 +6,7 @@ import { EMPLOYEE_SEARCH_LIMIT, type EmployeePickerItem } from '@/types/employee
 /**
  * Remote, debounced employee lookup for a "pick a person" dropdown.
  *
- * The only consumer is the manager field on `/settings/departments`. Together
+ * The only consumer is the manager field on `/catalog/departments`. Together
  * with `services/employee.service.ts` and `types/employee.types.ts` this is the
  * whole of the frontend's dependency on `GET /employees` — an endpoint that has
  * no automated tests yet and may be withdrawn. Nothing else may build on it.

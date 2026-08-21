@@ -7,6 +7,8 @@ import type {
   DepartmentFilters,
   DepartmentPayload,
   DepartmentTreeNode,
+  GenerateHolidaysPayload,
+  GenerateHolidaysResult,
   Holiday,
   HolidayFilters,
   HolidayPayload,
@@ -176,6 +178,13 @@ export function updateHoliday(id: number, payload: Partial<HolidayPayload>): Pro
 
 export function deleteHoliday(id: number): Promise<DeleteResult> {
   return del(`/holidays/${id}`);
+}
+
+/** Sinh lịch nghỉ lễ pháp định của một năm; ngày đã có được giữ nguyên. */
+export function generateHolidays(
+  payload: GenerateHolidaysPayload,
+): Promise<GenerateHolidaysResult> {
+  return post<GenerateHolidaysResult>('/holidays/generate', payload);
 }
 
 // -------------------------------------------------------------------------

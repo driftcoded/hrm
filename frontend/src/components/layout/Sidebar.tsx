@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Menu, Tooltip, type MenuProps } from 'antd';
 import {
+  ApartmentOutlined,
   BarChartOutlined,
   CalendarOutlined,
   ClockCircleOutlined,
@@ -8,14 +9,18 @@ import {
   DollarCircleOutlined,
   DoubleLeftOutlined,
   DoubleRightOutlined,
+  FileProtectOutlined,
+  IdcardOutlined,
+  ScheduleOutlined,
   SettingOutlined,
+  SunOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 import { BrandMark } from '@/components/common/BrandMark';
-import { SETTINGS_SECTIONS } from '@/constants/settingsSections';
+import { CATALOG_SECTIONS, SETTINGS_SECTIONS } from '@/constants/navSections';
 import {
   useCanManageSettings,
   useCanReadPayroll,
@@ -54,9 +59,20 @@ interface NavGroup {
  * `/profile` cố tình không có ở đây — nó vào từ dropdown người dùng trên header;
  * trộn một trang cá nhân vào danh sách phân hệ làm menu đọc không nhất quán.
  *
- * "Phòng ban" cũng không đứng cấp 1: nó là dữ liệu danh mục, nằm trong Cài đặt
- * cùng bốn màn danh mục còn lại. Để hai chỗ là cho một trang hai nhà.
+ * "Danh mục" tách khỏi "Cài đặt": năm màn trong đó là dữ liệu nghiệp vụ, nhân sự
+ * sửa hằng ngày và nhiều phân hệ dùng chung (ngày lễ vào cả chấm công, nghỉ phép
+ * lẫn lương). Cài đặt nay chỉ còn cấu hình hệ thống, cài một lần lúc dựng.
  */
+
+/** Icon của từng màn danh mục, khoá theo `NavSection.id`. */
+const CATALOG_ICONS: Record<string, ReactNode> = {
+  departments: <ApartmentOutlined />,
+  positions: <IdcardOutlined />,
+  'contract-types': <FileProtectOutlined />,
+  'leave-types': <SunOutlined />,
+  holidays: <ScheduleOutlined />,
+};
+
 const NAV_GROUPS: NavGroup[] = [
   {
     key: 'group-overview',
@@ -81,6 +97,15 @@ const NAV_GROUPS: NavGroup[] = [
       { key: '/leave', icon: <CalendarOutlined />, labelKey: 'nav.leave' },
       { key: '/payroll', icon: <DollarCircleOutlined />, labelKey: 'nav.payroll' },
     ],
+  },
+  {
+    key: 'group-catalog',
+    labelKey: 'nav.groups.catalog',
+    items: CATALOG_SECTIONS.map((section) => ({
+      key: section.path,
+      icon: CATALOG_ICONS[section.id],
+      labelKey: section.titleKey,
+    })),
   },
   {
     key: 'group-system',
@@ -146,7 +171,13 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const canReadPayroll = useCanReadPayroll();
 
   const isVisible = (item: NavItem): boolean => {
+    // Cài đặt giờ chỉ còn thương hiệu và email — cả hai đều `adminOnly`, nên
+    // mục cha đi theo đúng quyền đó thay vì quyền sửa danh mục như trước.
     if (item.key === '/settings') {
+      return canManageSettings;
+    }
+
+    if (item.key.startsWith('/catalog/')) {
       return canWriteMasterData;
     }
 
@@ -202,7 +233,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const selectedKey = matchNavKey(location.pathname, allKeys);
 
   /**
-   * `openKeys` is controlled so that landing on `/settings/holidays` from a link
+   * `openKeys` is controlled so that landing on `/catalog/holidays` from a link
    * or the browser address bar expands Cài đặt, not only clicking the submenu. It
    * stays user-controllable: `onOpenChange` still wins, so the submenu can be
    * folded away while a settings page is open.

@@ -267,6 +267,34 @@ export interface HolidayFilters {
   isPaid?: boolean;
 }
 
+/** Tổng số ngày nghỉ Tết theo Điều 112 BLLĐ 2019. */
+export const TET_TOTAL_DAYS = 5;
+
+export const NATIONAL_DAY_EXTRAS = ['before', 'after'] as const;
+export type NationalDayExtra = (typeof NATIONAL_DAY_EXTRAS)[number];
+
+/**
+ * Hai tham số đầu là hai thứ luật không ấn định, Chính phủ chốt lại từng năm:
+ * nghỉ Tết bắt đầu từ ngày nào, và nghỉ thêm 1/9 hay 3/9.
+ */
+export interface GenerateHolidaysPayload {
+  year: number;
+  tetDaysBefore?: number;
+  nationalDayExtra?: NationalDayExtra;
+  compensateWeekends?: boolean;
+  /** Chỉ tính để xem trước, không ghi vào cơ sở dữ liệu. */
+  preview?: boolean;
+}
+
+export interface GenerateHolidaysResult {
+  year: number;
+  created: number;
+  /** Ngày đã có sẵn nên bỏ qua — bản ghi cũ không bị ghi đè. */
+  skipped: number;
+  preview: boolean;
+  holidays: Holiday[];
+}
+
 // --------------------------------------------------------------------------
 // Shared
 // --------------------------------------------------------------------------

@@ -34,7 +34,7 @@ export interface DataTablePagination {
   total: number;
   onChange: (page: number, pageSize: number) => void;
   /**
-   * Replaces the default "Tổng N bản ghi" in the pager. `/settings/departments`
+   * Replaces the default "Tổng N bản ghi" in the pager. `/catalog/departments`
    * shows the visible range instead ("Hiển thị 1 đến 8 trong tổng số 12 phòng
    * ban"), which is the only footer text its layout has room for.
    */
@@ -93,7 +93,7 @@ export interface DataTableCardProps<TRow> {
   countSlot?: ReactNode;
   /**
    * Set to `false` when the count already appears somewhere else on the card, so
-   * the same number is not printed twice. `/settings/departments` puts the range
+   * the same number is not printed twice. `/catalog/departments` puts the range
    * summary in the footer and needs the toolbar free for its filters.
    */
   showCount?: boolean;

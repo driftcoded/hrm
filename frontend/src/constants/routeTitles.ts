@@ -13,13 +13,16 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/leave': 'nav.leave',
   '/reports': 'nav.reports',
   '/settings': 'nav.settings',
-  // Master-data screens (Giai đoạn 2.2). Registered individually so the tab bar
-  // and breadcrumb name each one, instead of five tabs all reading "Cài đặt".
-  '/settings/departments': 'nav.departments',
-  '/settings/positions': 'nav.positions',
-  '/settings/contract-types': 'nav.contractTypes',
-  '/settings/leave-types': 'nav.leaveTypes',
-  '/settings/holidays': 'nav.holidays',
+  '/settings/branding': 'nav.branding',
+  '/settings/mail': 'nav.mailSettings',
+  // Danh mục nghiệp vụ. Đăng ký từng màn để thanh tab và breadcrumb gọi đúng
+  // tên nó, thay vì năm tab cùng đọc là "Danh mục".
+  '/catalog': 'nav.catalog',
+  '/catalog/departments': 'nav.departments',
+  '/catalog/positions': 'nav.positions',
+  '/catalog/contract-types': 'nav.contractTypes',
+  '/catalog/leave-types': 'nav.leaveTypes',
+  '/catalog/holidays': 'nav.holidays',
   '/profile': 'nav.profile',
 };
 
@@ -50,9 +53,9 @@ export interface RouteCrumb {
 
 /**
  * The registered ancestors of a pathname, outermost first — e.g.
- * `/settings/departments` -> `[{/settings}, {/settings/departments}]`.
+ * `/catalog/departments` -> `[{/catalog}, {/catalog/departments}]`.
  *
- * This is what lets the header show "Trang chủ > Cài đặt > Phòng ban" for a
+ * This is what lets the header show "Trang chủ > Danh mục > Phòng ban" for a
  * nested route (up to 3 levels, docs/ui-conventions.md §3) while still reading
  * from this one registry rather than a second hand-written list.
  */
