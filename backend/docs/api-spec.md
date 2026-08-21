@@ -120,12 +120,13 @@ Authorization: Bearer <access_token>
 - Ví dụ: 25000000 (không phải "25,000,000" hay 25000000.00)
 ```
 
-### 1.6. Trạng thái triển khai (tính đến hết Giai đoạn 3)
+### 1.6. Trạng thái triển khai (tính đến hết Giai đoạn 6)
 
 Tài liệu này mô tả **toàn bộ** API dự kiến của hệ thống. Phần dưới đây là danh sách route **đã tồn tại trong code** — mọi endpoint không có trong bảng này là kế hoạch của các giai đoạn sau, chưa gọi được:
 
 ```
 GET  /health
+
 POST /auth/login  /auth/refresh  /auth/logout  /auth/change-password
      /auth/forgot-password  /auth/reset-password
 GET  /auth/me
@@ -142,22 +143,40 @@ PATCH/DELETE  /employees/:employeeId/dependents/:dependentId
 
 GET/POST      /contracts        GET/PATCH/DELETE /contracts/:id
 PATCH         /contracts/:id/terminate
-GET           /contract-types                (read-only, xem §6)
+GET           /contract-types
 
 GET/POST      /departments      GET /departments/tree
 GET/PATCH/DELETE /departments/:id
 GET/POST      /positions        GET/PATCH/DELETE /positions/:id
 GET/POST      /leave-types      GET/PATCH/DELETE /leave-types/:id
 GET/POST      /holidays         GET/PATCH/DELETE /holidays/:id
+POST          /holidays/generate
+
+GET/POST      /attendances      GET/PATCH/DELETE /attendances/:id
+POST          /attendances/bulk-import
+GET           /attendances/export
+
+GET/POST      /leaves           GET/PATCH/DELETE /leaves/:id
+POST          /leaves/:id/approve   POST /leaves/:id/reject
+GET           /leave-balances   POST /leave-balances/initialize
+GET           /leave-balances/:id/adjust
+
+GET           /salaries         POST /salaries/calculate
+GET/PATCH     /salaries/:id     POST /salaries/:id/approve  POST /salaries/:id/mark-paid
+GET           /salaries/:id/payslip
+GET/POST      /salary-advances  GET/PATCH /salary-advances/:id
+GET/PATCH     /payroll-settings
+
+GET/POST      /salary-advances  GET/PATCH /salary-advances/:id
 
 GET  /system/provinces  /system/wards  /system/holidays  /system/leave-types
-GET  /reports/employees/export
+GET  /reports/employees/export  GET /reports/attendance/export
 GET  /roles             POST /users
 ```
 
-Các endpoint được mô tả trong tài liệu nhưng **chưa hiện thực**: §12 (Documents), §17 (Announcements), `GET /employees/:id/work-history` (§3), `GET /users` · `PATCH /users/:id` · `PATCH /users/:id/reset-password` (§13), và mọi report ngoài `GET /reports/employees/export` (§19).
-
-Đã hiện thực từ khi dòng này được viết: §7 (Attendances, giai đoạn 4), §8 (Leaves, giai đoạn 5), §9 (Salaries, giai đoạn 6).
+**Chưa hiện thực** (kế hoạch Giai đoạn 7–8): §14 (Announcements), §12 (Documents),
+`GET /employees/:id/work-history` (§3), `GET /users` · `PATCH /users/:id` · `PATCH /users/:id/reset-password` (§13),
+PDF/Excel payslip export, email SES thật, và mọi report ngoài danh sách trên.
 
 ---
 

@@ -1,7 +1,7 @@
 # HRM Project — Kế hoạch xây dựng
 
 **Cập nhật lần cuối:** 19/08/2026  
-**Trạng thái tổng thể:** 🟢 Giai đoạn 0, 1, 2, 3 hoàn thành — sẵn sàng vào Giai đoạn 4 (Chấm công)
+**Trạng thái tổng thể:** 🟢 Giai đoạn 0–6 hoàn thành — đang vào Giai đoạn 7 (Thông báo & Hoàn thiện)
 
 ---
 
@@ -13,11 +13,11 @@
 | 1 | Auth & User | 43 / 43 | ✅ Hoàn thành (đã nghiệm thu) |
 | 2 | Master Data | 18 / 18 | ✅ Hoàn thành (đã nghiệm thu) |
 | 3 | Nhân viên | 29 / 29 | ✅ Hoàn thành |
-| 4 | Chấm công | 23 / 23 | ✅ Hoàn thành (đã sửa lại theo phạm vi thực tế) |
+| 4 | Chấm công | 23 / 23 | ✅ Hoàn thành |
 | 5 | Phép | 41 / 41 | ✅ Hoàn thành |
-| 6 | Lương | 33 / 35 | 🟡 Đã kiểm chứng qua API; 2 mục cần mở trình duyệt |
-| 7 | — | — | ⛔ Đã bỏ khỏi phạm vi (Đánh giá, Đào tạo, Khen thưởng/Kỷ luật) |
-| 8 | Thông báo & Hoàn thiện | 0 / 34 | ⬜ Chưa bắt đầu |
+| 6 | Lương | 33 / 35 | 🟡 2 mục cần kiểm tra trên trình duyệt |
+| 7 | Thông báo & Hoàn thiện | 0 / 34 | ⬜ Chưa bắt đầu |
+| 8 | PDF, Excel & Email thật | 0 / 33 | ⬜ Chưa bắt đầu |
 
 **Tổng:** 215 / 268 tasks hoàn thành
 
@@ -254,7 +254,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 > - `GET /system/provinces` — 34 tỉnh/thành từ file tĩnh, cho ô địa chỉ.
 >
 > **Cố ý KHÔNG làm giống mẫu thiết kế (và lý do):**
-> - **Không có dòng "+12 so với tháng trước"** trên các thẻ. Bảng `employees` chỉ lưu TRẠNG THÁI HIỆN TẠI, không có bảng lịch sử, nên không thể tính trung thực số "đang thử việc"/"đang nghỉ phép" của tháng trước. Mỗi thẻ ghi ý nghĩa con số của chính nó ("Hết hạn trong 30 ngày tới"); riêng "12 tuyển mới 30 ngày qua" là suy ra thật được từ `hire_date`. Muốn có delta đầy đủ phải đọc `work_history` (Giai đoạn 7+).
+> - **Không có dòng "+12 so với tháng trước"** trên các thẻ. Bảng `employees` chỉ lưu TRẠNG THÁI HIỆN TẠI, không có bảng lịch sử, nên không thể tính trung thực số "đang thử việc"/"đang nghỉ phép" của tháng trước. Mỗi thẻ ghi ý nghĩa con số của chính nó ("Hết hạn trong 30 ngày tới"); riêng "12 tuyển mới 30 ngày qua" là suy ra thật được từ `hire_date`. Delta đầy đủ qua `work_history` không thuộc phạm vi hiện tại.
 > - **Badge "Sắp hết hợp đồng" không phải một trạng thái nhân viên.** `employees.status` chỉ có 6 giá trị; hợp đồng sắp hết hạn là chuyện của HỢP ĐỒNG và dòng bảng không mang ngày hết hạn. Con số đó nằm ở thẻ tổng quan riêng.
 > - **3 nút hàng loạt (Gửi email / Xuất mục đã chọn / Đổi phòng ban) để `disabled` kèm tooltip "sắp có"** — chưa có endpoint ở bất kỳ giai đoạn nào. Giữ đúng bố cục mẫu nhưng không có nút bấm vào không làm gì. *(Xuất Excel THEO BỘ LỌC thì đã có, nằm ở nút trên đầu trang — `GET /reports/employees/export`. Nút trong thanh hàng loạt là xuất các dòng ĐANG CHỌN, cần filter theo id mà endpoint chưa có, nên vẫn `disabled` và đã đổi nhãn cho khỏi trùng tên.)*
 > - **Danh mục hành chính — đã làm xong, và phát hiện schema lỗi thời.** Việt Nam **bỏ hẳn cấp huyện từ 01/07/2025** (Luật 72/2025/QH15), còn **2 cấp**: 34 tỉnh/thành → 3.321 phường/xã/đặc khu. Form đang bắt HR nhập mã cho một cấp không còn tồn tại — tệ hơn thiếu dữ liệu, vì đó là dữ liệu sai. Đã xử lý:
@@ -650,30 +650,9 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 
 ---
 
-## Giai đoạn 7 — (đã bỏ khỏi phạm vi)
+## Giai đoạn 7 — Thông báo & Hoàn thiện
 
-> Giai đoạn này từng gồm ba phân hệ: **Đánh giá hiệu suất**, **Đào tạo** và
-> **Khen thưởng / Kỷ luật**. Cả ba đã dựng xong backend lẫn giao diện, rồi bị
-> **gỡ bỏ hoàn toàn** — bảng trong DB, module, màn hình, mã lỗi, tài liệu.
->
-> Đánh giá và đào tạo bị bỏ trước: một phiếu đánh giá chỉ có nghĩa khi có bộ
-> tiêu chí để đối chiếu, mà bộ tiêu chí thì mỗi phòng ban một khác và phải để
-> công ty tự cấu hình (thang điểm, nhóm tiêu chí, trọng số, ngưỡng xếp loại) —
-> một phân hệ lớn hơn hẳn phần đã dựng. Đào tạo đi kèm vì giá trị chính của nó
-> là lấp khoảng cách năng lực mà đánh giá chỉ ra.
->
-> Khen thưởng / kỷ luật bị bỏ sau, theo cùng quyết định phạm vi. Quy định pháp
-> luật liên quan (Điều 124–128 BLLĐ 2019) vẫn giữ trong `docs/business-rules.md`
-> §14 để dùng lại nếu sau này công ty cần.
->
-> Số thứ tự các giai đoạn giữ nguyên: đổi số sẽ làm sai mọi tham chiếu "Giai
-> đoạn 8" đang nằm rải rác trong code và tài liệu.
-
----
-
-## Giai đoạn 8 — Thông báo & Hoàn thiện
-
-### 8.1 Backend Announcements & Email
+### 7.1 Backend Announcements & Email
 - [ ] `AnnouncementsModule`: CRUD, gắn file, gửi đến phòng ban/toàn công ty
 - [ ] Email service (SES): duyệt phép, thông báo lương, reset mật khẩu
 - [ ] Rate limiting per endpoint (Throttler)
@@ -700,7 +679,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [ ] `pageSize=99999` → server trả tối đa 100 records
 - [ ] Lưu tên NV có `<script>alert(1)</script>` → lấy ra không có thẻ script
 
-### 8.2 Frontend Dashboard & Polish
+### 7.2 Frontend Dashboard & Polish
 - [ ] Dashboard: tổng NV đang làm, đơn phép chờ duyệt, lương tháng gần nhất
 - [ ] Trang `/announcements`: danh sách thông báo, đọc chi tiết
 - [ ] Empty states đầy đủ: bảng rỗng, lỗi tải
@@ -717,13 +696,13 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 
 ---
 
-## Giai đoạn 9 — PDF Phiếu lương, Excel & Email thật
+## Giai đoạn 8 — PDF Phiếu lương, Excel & Email thật
 
 > Ba tính năng này liên kết chặt: phiếu lương PDF dùng để đính kèm email; Excel
 > dùng để kế toán nhận dữ liệu mà không cần vào hệ thống. Làm theo thứ tự:
 > PDF → Excel → Email (vì email cần PDF đính kèm).
 
-### 9.1 Backend — PDF Phiếu lương
+### 8.1 Backend — PDF Phiếu lương
 
 - [ ] Cài `pdfmake` (server-side, không cần browser); tạo `PdfModule` tái dùng được
 - [ ] `GET /payroll/:periodId/payslip/:employeeId/pdf` — xuất 1 phiếu lương PDF
@@ -740,7 +719,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [ ] Tải 2 lần cùng phiếu → trả file S3 đã lưu sẵn, không tạo lại
 - [ ] ZIP 50 phiếu → không OOM, stream trả đúng 50 file bên trong
 
-### 9.2 Backend — Excel Export chuẩn kế toán
+### 8.2 Backend — Excel Export chuẩn kế toán
 
 - [ ] `GET /payroll/:periodId/export/excel` — Excel bảng lương kỳ
   - Sheet 1: tóm tắt (mã NV, tên, phòng ban, gross, tổng BH, thuế, net)
@@ -757,7 +736,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [ ] Sheet bank transfer: số tài khoản đã giải mã, không lộ dữ liệu mã hóa
 - [ ] NV nghỉ không lương cả tháng (net = 0) → không có dòng trong file bank transfer
 
-### 9.3 Backend — Email thật qua AWS SES
+### 8.3 Backend — Email thật qua AWS SES
 
 > Phase 1 đã dùng **dev file transport** (ghi file HTML vào `logs/mail/`). Phase này
 > chuyển sang SES thật nhưng giữ nguyên interface `MailService` — chỉ thay provider.
@@ -778,7 +757,7 @@ Mỗi task BE/FE đều có **Test checklist** riêng. Chỉ tick `[x]` khi **te
 - [ ] Gửi 100 email → queue xử lý tuần tự, không bị SES rate-limit (mock SES trong test)
 - [ ] SES trả lỗi lần 1, 2 → retry; lần 3 → vào dead-letter, không exception ra controller
 
-### 9.4 Frontend — UI cho PDF, Excel, Email
+### 8.4 Frontend — UI cho PDF, Excel, Email
 
 - [ ] Nút **"Tải PDF"** trên từng hàng bảng lương → gọi endpoint, mở tab mới
 - [ ] Nút **"Tải tất cả (ZIP)"** trên đầu trang bảng lương — progress indicator khi đang zip
