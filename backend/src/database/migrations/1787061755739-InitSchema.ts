@@ -337,15 +337,37 @@ export class InitSchema1787061755739 implements MigrationInterface {
 
     // 13. holidays
     await queryRunner.query(`
+      /*
+       * ĐỊNH NGHĨA kỳ nghỉ, không phải từng ngày của từng năm.
+       *
+       * Một kỳ nghỉ = neo vào (anchor_calendar, anchor_month, anchor_day),
+       * dịch offset_days ngày, kéo dài duration_days ngày. Ngày cụ thể của mỗi
+       * năm do service tính ra, kể cả Tết và Giỗ Tổ theo âm lịch.
+       *
+       * year NULL = áp dụng mọi năm; có giá trị = chỉ năm đó và đè lên dòng mọi
+       * năm cùng code — chỗ ghi những năm Chính phủ chốt khác lệ thường.
+       */
       CREATE TABLE holidays (
         id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        code VARCHAR(40) NOT NULL,
         name VARCHAR(100) NOT NULL,
-        holiday_date DATE NOT NULL,
         type ENUM('national','company','other') NOT NULL DEFAULT 'national',
-        year SMALLINT NOT NULL,
+        anchor_calendar ENUM('solar','lunar') NOT NULL DEFAULT 'solar',
+        anchor_month TINYINT UNSIGNED NOT NULL,
+        anchor_day TINYINT UNSIGNED NOT NULL,
+        offset_days SMALLINT NOT NULL DEFAULT 0,
+        duration_days SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+        year SMALLINT NULL,
         is_paid BOOLEAN NOT NULL DEFAULT TRUE,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        sort_order SMALLINT NOT NULL DEFAULT 0,
         note VARCHAR(255) NULL,
-        UNIQUE KEY uq_holidays_date (holiday_date)
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_holiday_code_year (code, year),
+        CONSTRAINT chk_holidays_month CHECK (anchor_month BETWEEN 1 AND 12),
+        CONSTRAINT chk_holidays_day CHECK (anchor_day BETWEEN 1 AND 31),
+        CONSTRAINT chk_holidays_duration CHECK (duration_days BETWEEN 1 AND 30)
       ) ${charset};
     `);
 

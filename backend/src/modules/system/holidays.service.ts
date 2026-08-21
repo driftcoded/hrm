@@ -4,27 +4,32 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PaginatedResponseDto } from '@/common/dto/pagination-response.dto';
-import {
-  currentYearInVietnam,
-  toDateOnlyString,
-  yearOfDateString,
-} from '@/common/utils/date.util';
+import { currentYearInVietnam } from '@/common/utils/date.util';
 import { resolvePagination } from '@/common/utils/pagination.util';
 import { rejectUnexpectedNulls } from '@/common/utils/reject-null.util';
+import {
+  resolveHolidays,
+  type HolidayRule,
+} from '@/common/utils/vietnam-holidays.util';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { FilterHolidayDto } from './dto/filter-holiday.dto';
-import { HolidayResponseDto } from './dto/holiday-response.dto';
+import {
+  HolidayDateDto,
+  HolidayResponseDto,
+} from './dto/holiday-response.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
-import { Holiday, HolidayType } from './entities/holiday.entity';
+import { Holiday, HolidayCalendar, HolidayType } from './entities/holiday.entity';
 import { HolidaysRepository } from './holidays.repository';
 
 /**
- * All business logic for the holiday calendar (CLAUDE.md §Module architecture).
+ * Ngày lễ được khai một lần dưới dạng ĐỊNH NGHĨA, lịch của từng năm suy ra sau.
  *
- * Note: the `holidays` table has NO "recurring yearly" column (schema §5.5 only
- * has name/holiday_date/type/year/is_paid/note) — most Vietnamese holidays follow
- * the lunar calendar, so each year has to be seeded/entered separately. Filtering
- * by `year` stands in for that flag.
+ * `findAll` / `create` / `update` / `remove` làm việc với định nghĩa — sáu dòng
+ * cho toàn bộ ngày lễ pháp định, gần như không đổi.
+ *
+ * `findByYear` trả về NGÀY CỤ THỂ đã tính cho năm đó. Chấm công, nghỉ phép và
+ * bảng lương đều đọc qua hàm này, nên đổi cách lưu trữ bên dưới không đụng tới
+ * ba phân hệ đó.
  */
 @Injectable()
 export class HolidaysService {
@@ -39,11 +44,11 @@ export class HolidaysService {
     const [holidays, total] = await this.holidaysRepository.findPaginated({
       skip,
       take: limit,
-      sort: filter.sort ?? 'holidayDate',
+      sort: filter.sort ?? 'sortOrder',
       order: filter.order === 'desc' ? 'DESC' : 'ASC',
       year: filter.year,
       type: filter.type,
-      isPaid: filter.isPaid,
+      isActive: filter.isActive,
       search: search && search.length > 0 ? search : undefined,
     });
 
@@ -56,18 +61,30 @@ export class HolidaysService {
   }
 
   /**
-   * Flat list for a given year – used by `GET /system/holidays?year=`.
-   * The default `year` is resolved using Vietnam time (UTC+7), NOT the
-   * server's `new Date().getFullYear()` (the server's timezone may be UTC,
-   * which would be off by a year during the ~7-hour window around New Year's
-   * midnight).
+   * Lịch nghỉ đã tính của một năm, sắp theo ngày.
+   *
+   * Năm mặc định lấy theo giờ Việt Nam (UTC+7) chứ không phải
+   * `new Date().getFullYear()` của máy chủ: máy chạy giờ UTC sẽ lệch một năm
+   * trong khoảng bảy tiếng quanh giao thừa.
    */
-  async findByYear(year?: number): Promise<HolidayResponseDto[]> {
-    const holidays = await this.holidaysRepository.findByYear(
-      year ?? currentYearInVietnam(),
-    );
+  async findByYear(year?: number): Promise<HolidayDateDto[]> {
+    const target = year ?? currentYearInVietnam();
+    const rules = await this.holidaysRepository.findActiveRules();
 
-    return holidays.map((holiday) => this.toResponse(holiday));
+    return resolveHolidays(rules.map((rule) => this.toRule(rule)), target).map(
+      (holiday) => ({
+        holidayDate: holiday.date,
+        code: holiday.code,
+        name: holiday.name,
+        type: holiday.type as HolidayType,
+        year: target,
+        isPaid: holiday.isPaid,
+        dayIndex: holiday.dayIndex,
+        dayCount: holiday.dayCount,
+        isCompensatory: holiday.isCompensatory,
+        note: holiday.note,
+      }),
+    );
   }
 
   async findOne(id: number): Promise<HolidayResponseDto> {
@@ -75,15 +92,22 @@ export class HolidaysService {
   }
 
   async create(dto: CreateHolidayDto): Promise<HolidayResponseDto> {
-    await this.assertDateAvailable(dto.holidayDate);
+    const year = dto.year ?? null;
+    await this.assertCodeAvailable(dto.code, year);
 
     const created = await this.holidaysRepository.create({
+      code: dto.code.trim(),
       name: dto.name.trim(),
-      holidayDate: dto.holidayDate,
-      // `year` is always derived from `holidayDate` so the two columns never drift apart.
-      year: yearOfDateString(dto.holidayDate),
       type: dto.type ?? HolidayType.NATIONAL,
+      calendar: dto.calendar ?? HolidayCalendar.SOLAR,
+      month: dto.month,
+      day: dto.day,
+      offsetDays: dto.offsetDays ?? 0,
+      durationDays: dto.durationDays ?? 1,
+      year,
       isPaid: dto.isPaid ?? true,
+      isActive: dto.isActive ?? true,
+      sortOrder: dto.sortOrder ?? 0,
       note: dto.note ?? null,
     });
 
@@ -91,26 +115,37 @@ export class HolidaysService {
   }
 
   async update(id: number, dto: UpdateHolidayDto): Promise<HolidayResponseDto> {
-    await this.getExistingOrThrow(id);
-    rejectUnexpectedNulls(dto, ['note']);
+    const existing = await this.getExistingOrThrow(id);
+    rejectUnexpectedNulls(dto, ['note', 'year']);
     const patch: Partial<Holiday> = {};
+
+    const nextCode = dto.code?.trim() ?? existing.code;
+    const nextYear = dto.year === undefined ? existing.year : dto.year;
+
+    if (nextCode !== existing.code || nextYear !== existing.year) {
+      await this.assertCodeAvailable(nextCode, nextYear, id);
+      patch.code = nextCode;
+      patch.year = nextYear;
+    }
 
     if (dto.name !== undefined) {
       patch.name = dto.name.trim();
     }
 
-    if (dto.holidayDate !== undefined) {
-      await this.assertDateAvailable(dto.holidayDate, id);
-      patch.holidayDate = dto.holidayDate;
-      patch.year = yearOfDateString(dto.holidayDate);
-    }
-
-    if (dto.type !== undefined) {
-      patch.type = dto.type;
-    }
-
-    if (dto.isPaid !== undefined) {
-      patch.isPaid = dto.isPaid;
+    for (const key of [
+      'type',
+      'calendar',
+      'month',
+      'day',
+      'offsetDays',
+      'durationDays',
+      'isPaid',
+      'isActive',
+      'sortOrder',
+    ] as const) {
+      if (dto[key] !== undefined) {
+        Object.assign(patch, { [key]: dto[key] });
+      }
     }
 
     if (dto.note !== undefined) {
@@ -134,6 +169,24 @@ export class HolidaysService {
 
   // ------------------------------------------------------------ internals ----
 
+  private toRule(holiday: Holiday): HolidayRule {
+    return {
+      code: holiday.code,
+      name: holiday.name,
+      type: holiday.type,
+      calendar: holiday.calendar,
+      month: holiday.month,
+      day: holiday.day,
+      offsetDays: holiday.offsetDays,
+      durationDays: holiday.durationDays,
+      year: holiday.year,
+      isPaid: holiday.isPaid,
+      isActive: holiday.isActive,
+      sortOrder: holiday.sortOrder,
+      note: holiday.note,
+    };
+  }
+
   private async getExistingOrThrow(id: number): Promise<Holiday> {
     const holiday = await this.holidaysRepository.findById(id);
 
@@ -147,19 +200,22 @@ export class HolidaysService {
     return holiday;
   }
 
-  private async assertDateAvailable(
-    holidayDate: string,
+  /** Một `code` chỉ được có một dòng mọi năm và tối đa một dòng cho mỗi năm. */
+  private async assertCodeAvailable(
+    code: string,
+    year: number | null,
     exceptId?: number,
   ): Promise<void> {
-    const existing = await this.holidaysRepository.findByDate(
-      holidayDate,
+    const clash = await this.holidaysRepository.findByCodeAndYear(
+      code,
+      year,
       exceptId,
     );
 
-    if (existing) {
+    if (clash) {
       throw new ConflictException({
-        code: 'DUPLICATE_HOLIDAY_DATE',
-        message: `A holiday already exists on ${holidayDate}`,
+        code: 'DUPLICATE_HOLIDAY_CODE',
+        message: `Holiday "${code}" already has a definition for ${year === null ? 'every year' : year}`,
       });
     }
   }
@@ -167,12 +223,19 @@ export class HolidaysService {
   private toResponse(holiday: Holiday): HolidayResponseDto {
     return {
       id: Number(holiday.id),
+      code: holiday.code,
       name: holiday.name,
-      holidayDate: toDateOnlyString(holiday.holidayDate),
       type: holiday.type,
-      year: Number(holiday.year),
-      isPaid: Boolean(holiday.isPaid),
-      note: holiday.note ?? null,
+      calendar: holiday.calendar,
+      month: holiday.month,
+      day: holiday.day,
+      offsetDays: holiday.offsetDays,
+      durationDays: holiday.durationDays,
+      year: holiday.year,
+      isPaid: holiday.isPaid,
+      isActive: holiday.isActive,
+      sortOrder: holiday.sortOrder,
+      note: holiday.note,
     };
   }
 }

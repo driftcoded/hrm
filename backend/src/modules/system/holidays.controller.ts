@@ -25,6 +25,10 @@ import { DeleteResponseDto } from '@/common/dto/delete-response.dto';
 import { PaginatedResponseDto } from '@/common/dto/pagination-response.dto';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { FilterHolidayDto } from './dto/filter-holiday.dto';
+import {
+  GenerateHolidaysDto,
+  GenerateHolidaysResultDto,
+} from './dto/generate-holidays.dto';
 import { HolidayResponseDto } from './dto/holiday-response.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
 import { HolidaysService } from './holidays.service';
@@ -73,6 +77,26 @@ export class HolidaysController {
   @ApiForbiddenResponse({ description: 'FORBIDDEN – role không được ghi' })
   create(@Body() dto: CreateHolidayDto): Promise<HolidayResponseDto> {
     return this.holidaysService.create(dto);
+  }
+
+  @Post('generate')
+  @Roles(...MASTER_DATA_WRITE_ROLES)
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Sinh lịch nghỉ lễ pháp định của một năm',
+    description:
+      'Tính 11 ngày nghỉ theo Điều 112 BLLĐ 2019, gồm cả Tết và Giỗ Tổ Hùng Vương ' +
+      'quy đổi từ âm lịch, cộng ngày nghỉ bù khi ngày lễ rơi vào cuối tuần. ' +
+      'Ngày đã có trong lịch được GIỮ NGUYÊN, không ghi đè. ' +
+      'Khoảng nghỉ Tết và ngày liền kề 2/9 do Chính phủ chốt từng năm nên đây là ' +
+      'bản đề xuất — dùng `preview` để xem trước khi ghi.',
+  })
+  @ApiCreatedResponse({ type: GenerateHolidaysResultDto })
+  @ApiForbiddenResponse({ description: 'FORBIDDEN – role không được ghi' })
+  generate(
+    @Body() dto: GenerateHolidaysDto,
+  ): Promise<GenerateHolidaysResultDto> {
+    return this.holidaysService.generate(dto);
   }
 
   @Patch(':id')

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Holiday, HolidayType } from './entities/holiday.entity';
 import { HolidaySortKey } from './dto/filter-holiday.dto';
 
 /** Maps `sort` (whitelisted in FilterHolidayDto) to a safe SQL column. */
 const SORT_COLUMNS: Record<HolidaySortKey, string> = {
-  holidayDate: 'holiday.holidayDate',
+  sortOrder: 'holiday.sortOrder',
   name: 'holiday.name',
   year: 'holiday.year',
 };
@@ -18,7 +18,7 @@ export interface FindHolidaysOptions {
   order: 'ASC' | 'DESC';
   year?: number;
   type?: HolidayType;
-  isPaid?: boolean;
+  isActive?: boolean;
   search?: string;
 }
 
@@ -39,19 +39,24 @@ export class HolidaysRepository {
       .take(options.take);
 
     if (options.year !== undefined) {
-      query.andWhere('holiday.year = :year', { year: options.year });
+      // Định nghĩa mọi năm cũng có hiệu lực trong năm được lọc.
+      query.andWhere('(holiday.year = :year OR holiday.year IS NULL)', {
+        year: options.year,
+      });
     }
 
     if (options.type !== undefined) {
       query.andWhere('holiday.type = :type', { type: options.type });
     }
 
-    if (options.isPaid !== undefined) {
-      query.andWhere('holiday.isPaid = :isPaid', { isPaid: options.isPaid });
+    if (options.isActive !== undefined) {
+      query.andWhere('holiday.isActive = :isActive', {
+        isActive: options.isActive,
+      });
     }
 
     if (options.search) {
-      query.andWhere('holiday.name LIKE :search', {
+      query.andWhere('(holiday.name LIKE :search OR holiday.code LIKE :search)', {
         search: `%${options.search}%`,
       });
     }
@@ -59,29 +64,40 @@ export class HolidaysRepository {
     return query.getManyAndCount();
   }
 
-  /** All holidays for a given year, unpaginated (used by `GET /system/holidays`). */
-  findByYear(year: number): Promise<Holiday[]> {
-    return this.repository
-      .createQueryBuilder('holiday')
-      .where('holiday.year = :year', { year })
-      .orderBy('holiday.holidayDate', 'ASC')
-      .getMany();
+  /** Mọi định nghĩa đang bật — đầu vào để suy ra lịch của một năm bất kỳ. */
+  findActiveRules(): Promise<Holiday[]> {
+    return this.repository.find({
+      where: { isActive: true },
+      order: { sortOrder: 'ASC', id: 'ASC' },
+    });
+  }
+
+  findAllRules(): Promise<Holiday[]> {
+    return this.repository.find({ order: { sortOrder: 'ASC', id: 'ASC' } });
   }
 
   findById(id: number): Promise<Holiday | null> {
-    return this.repository
-      .createQueryBuilder('holiday')
-      .where('holiday.id = :id', { id })
-      .getOne();
+    return this.repository.findOne({ where: { id } });
   }
 
-  /** Holiday lookup by date; `exceptId` excludes the record currently being updated (for uniqueness checks). */
-  findByDate(holidayDate: string, exceptId?: number): Promise<Holiday | null> {
+  /**
+   * Định nghĩa trùng `(code, year)`; `exceptId` bỏ qua bản ghi đang sửa.
+   *
+   * `year IS NULL` phải so bằng `IsNull()` — trong SQL `NULL = NULL` là không
+   * xác định, nên ràng buộc UNIQUE một mình không chặn được hai dòng mọi năm
+   * cùng `code`.
+   */
+  findByCodeAndYear(
+    code: string,
+    year: number | null,
+    exceptId?: number,
+  ): Promise<Holiday | null> {
     return this.repository.findOne({
-      where:
-        exceptId === undefined
-          ? { holidayDate }
-          : { holidayDate, id: Not(exceptId) },
+      where: {
+        code,
+        year: year === null ? IsNull() : year,
+        ...(exceptId === undefined ? {} : { id: Not(exceptId) }),
+      },
     });
   }
 
@@ -93,7 +109,7 @@ export class HolidaysRepository {
     await this.repository.update({ id }, data);
   }
 
-  /** Hard delete: the `holidays` table has no `deleted_at` column (schema §5.5). */
+  /** Hard delete: the `holidays` table has no `deleted_at` column. */
   async delete(id: number): Promise<void> {
     await this.repository.delete({ id });
   }

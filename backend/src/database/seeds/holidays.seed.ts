@@ -1,152 +1,60 @@
 import { DataSource } from 'typeorm';
+import { nationalHolidaysFor } from '../../common/utils/vietnam-holidays.util';
 import {
   Holiday,
   HolidayType,
 } from '../../modules/system/entities/holiday.entity';
 
-interface HolidaySeedRow {
-  name: string;
-  holidayDate: string;
-  year: number;
-  note?: string;
-}
-
 /**
- * Vietnam public holiday calendar for 2025 (Decree 18/2024/ND-CP + Ministry
- * of Labour, Invalids and Social Affairs notice) and 2026 (provisional, per
- * the Ministry of Home Affairs notice for civil servants/public officials —
- * applied here as the company's holiday calendar as well).
+ * Lịch nghỉ lễ pháp định, SINH TỪ Điều 112 BLLĐ 2019 chứ không gõ tay.
+ *
+ * Trước đây file này là 130 dòng ngày tháng chép từ thông báo của Bộ, và thêm
+ * một năm nghĩa là ngồi tra lịch âm cho Tết với Giỗ Tổ. Giờ chỉ khai hai thứ mà
+ * luật KHÔNG ấn định — Chính phủ chốt lại từng năm:
+ *
+ *   - `tetDaysBefore`: nghỉ mấy ngày trước mùng 1 (tổng vẫn 5 ngày)
+ *   - `nationalDayExtra`: nghỉ thêm 1/9 hay 3/9
+ *
+ * Hai con số dưới đây lấy từ thông báo chính thức của 2025 và 2026. Năm chưa có
+ * thông báo thì bỏ khỏi danh sách và để người dùng bấm "Sinh lịch nghỉ lễ" trên
+ * màn hình Cài đặt, rồi sửa lại khi Chính phủ công bố.
  */
-const HOLIDAYS_2025: HolidaySeedRow[] = [
-  { name: 'Tết Dương lịch', holidayDate: '2025-01-01', year: 2025 },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Ất Tỵ)',
-    holidayDate: '2025-01-27',
-    year: 2025,
-    note: '27 tháng Chạp Giáp Thìn',
-  },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Ất Tỵ)',
-    holidayDate: '2025-01-28',
-    year: 2025,
-    note: '28 tháng Chạp – Giao thừa',
-  },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Ất Tỵ)',
-    holidayDate: '2025-01-29',
-    year: 2025,
-    note: 'Mùng 1 Tết Ất Tỵ',
-  },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Ất Tỵ)',
-    holidayDate: '2025-01-30',
-    year: 2025,
-    note: 'Mùng 2 Tết Ất Tỵ',
-  },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Ất Tỵ)',
-    holidayDate: '2025-01-31',
-    year: 2025,
-    note: 'Mùng 3 Tết Ất Tỵ',
-  },
-  {
-    name: 'Giỗ Tổ Hùng Vương',
-    holidayDate: '2025-04-07',
-    year: 2025,
-    note: '10/3 âm lịch',
-  },
-  {
-    name: 'Ngày Giải phóng miền Nam',
-    holidayDate: '2025-04-30',
-    year: 2025,
-  },
-  { name: 'Ngày Quốc tế Lao động', holidayDate: '2025-05-01', year: 2025 },
-  {
-    name: 'Ngày Quốc khánh',
-    holidayDate: '2025-09-01',
-    year: 2025,
-    note: 'Nghỉ liền kề trước 2/9',
-  },
-  { name: 'Ngày Quốc khánh', holidayDate: '2025-09-02', year: 2025 },
-];
-
-const HOLIDAYS_2026: HolidaySeedRow[] = [
-  { name: 'Tết Dương lịch', holidayDate: '2026-01-01', year: 2026 },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Bính Ngọ)',
-    holidayDate: '2026-02-16',
-    year: 2026,
-    note: '29 tháng Chạp Ất Tỵ',
-  },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Bính Ngọ)',
-    holidayDate: '2026-02-17',
-    year: 2026,
-    note: 'Mùng 1 Tết Bính Ngọ',
-  },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Bính Ngọ)',
-    holidayDate: '2026-02-18',
-    year: 2026,
-    note: 'Mùng 2 Tết Bính Ngọ',
-  },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Bính Ngọ)',
-    holidayDate: '2026-02-19',
-    year: 2026,
-    note: 'Mùng 3 Tết Bính Ngọ',
-  },
-  {
-    name: 'Nghỉ Tết Nguyên Đán (Bính Ngọ)',
-    holidayDate: '2026-02-20',
-    year: 2026,
-    note: 'Mùng 4 Tết Bính Ngọ',
-  },
-  {
-    name: 'Giỗ Tổ Hùng Vương (nghỉ bù)',
-    holidayDate: '2026-04-27',
-    year: 2026,
-    note: '10/3 âm lịch nhằm Chủ Nhật 26/4/2026, nghỉ bù thứ Hai',
-  },
-  {
-    name: 'Ngày Giải phóng miền Nam',
-    holidayDate: '2026-04-30',
-    year: 2026,
-  },
-  { name: 'Ngày Quốc tế Lao động', holidayDate: '2026-05-01', year: 2026 },
-  {
-    name: 'Ngày Quốc khánh',
-    holidayDate: '2026-09-01',
-    year: 2026,
-    note: 'Nghỉ liền kề trước 2/9',
-  },
-  { name: 'Ngày Quốc khánh', holidayDate: '2026-09-02', year: 2026 },
-];
+const OFFICIAL_YEARS = [
+  { year: 2025, tetDaysBefore: 2 },
+  { year: 2026, tetDaysBefore: 1 },
+] as const;
 
 export async function seedHolidays(dataSource: DataSource): Promise<void> {
   const repo = dataSource.getRepository(Holiday);
-  const rows = [...HOLIDAYS_2025, ...HOLIDAYS_2026];
+
+  const rows = OFFICIAL_YEARS.flatMap(({ year, tetDaysBefore }) =>
+    nationalHolidaysFor(year, { tetDaysBefore }).map((holiday) => ({
+      ...holiday,
+      year,
+    })),
+  );
 
   let inserted = 0;
   for (const row of rows) {
     const existing = await repo.findOne({
-      where: { holidayDate: row.holidayDate },
+      where: { holidayDate: row.date },
     });
     if (existing) {
       continue;
     }
     await repo.insert({
       name: row.name,
-      holidayDate: row.holidayDate,
+      holidayDate: row.date,
       year: row.year,
       type: HolidayType.NATIONAL,
       isPaid: true,
-      note: row.note ?? null,
+      note: row.note,
     });
     inserted++;
   }
 
+  const years = OFFICIAL_YEARS.map(({ year }) => year).join('+');
   console.log(
-    `  - holidays: OK (${inserted} inserted / ${rows.length} total 2025+2026)`,
+    `  - holidays: OK (${inserted} inserted / ${rows.length} total ${years})`,
   );
 }
