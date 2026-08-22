@@ -550,3 +550,48 @@ export interface EmployeeSearchFilters {
  * the response small; a name that is not in it is found by typing more.
  */
 export const EMPLOYEE_SEARCH_LIMIT = 20;
+
+// ------------------------------------------------------------ gửi email ----
+
+/** Trần số người nhận mỗi lần gửi — khớp `MAX_EMAIL_RECIPIENTS` ở backend. */
+export const MAX_EMAIL_RECIPIENTS = 200;
+
+export interface SendEmployeeEmailPayload {
+  employeeIds: number[];
+  subject: string;
+  body: string;
+}
+
+/** Một người nhận trượt. */
+export interface FailedEmailRecipient {
+  employeeId: number;
+  employeeCode: string;
+  fullName: string;
+  reason: 'SEND_FAILED';
+}
+
+export interface SendEmployeeEmailResult {
+  sent: number;
+  requested: number;
+  failed: FailedEmailRecipient[];
+}
+
+// ------------------------------------------------------ đổi phòng ban ----
+
+export interface ChangeDepartmentPayload {
+  employeeIds: number[];
+  departmentId: number;
+  positionId: number;
+}
+
+/** Phòng ban vừa mất trưởng phòng vì lần chuyển này. */
+export interface OrphanedDepartment {
+  id: number;
+  name: string;
+}
+
+export interface ChangeDepartmentResult {
+  updated: number;
+  requested: number;
+  orphanedDepartments: OrphanedDepartment[];
+}

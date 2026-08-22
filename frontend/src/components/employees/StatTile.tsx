@@ -10,16 +10,13 @@ export interface StatTileProps {
   /** Already formatted for display (thousands separators, …). */
   value: string;
   /**
-   * One line of context under the value — what the number actually counts
-   * ("trong 30 ngày tới", "tuyển mới 30 ngày qua").
+   * Dòng chú thích dưới con số. Bỏ trống thì thẻ không hiện dòng nào.
    *
-   * NOT a "+12 vs last month" delta, and deliberately so: `employees` stores
-   * current state only, with no history table behind it, so a month-over-month
-   * figure for "đang thử việc" or "đang nghỉ phép" cannot be derived honestly.
-   * Rather than print a number the data cannot support, each tile says what its
-   * own figure means. See `EmployeeStats` in types/employee.types.ts.
+   * KHÔNG phải kiểu "+12 so với tháng trước": bảng `employees` chỉ lưu trạng
+   * thái hiện tại, không có bảng lịch sử, nên không suy ra được số liệu
+   * tháng-trên-tháng một cách trung thực.
    */
-  caption: string;
+  caption?: string;
 }
 
 /**
@@ -39,7 +36,7 @@ export function StatTile({ icon, tone, label, value, caption }: StatTileProps) {
       <div className={styles.body}>
         <p className={styles.label}>{label}</p>
         <p className={styles.value}>{value}</p>
-        <p className={styles.caption}>{caption}</p>
+        {caption ? <p className={styles.caption}>{caption}</p> : null}
       </div>
     </div>
   );

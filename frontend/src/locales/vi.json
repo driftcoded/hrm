@@ -1112,6 +1112,23 @@
       "success": "Đã gửi email cho {{count}} nhân viên.",
       "partialTitle": "Đã gửi {{sent}}/{{total}} email",
       "partialDetail": "Chưa gửi được cho: {{names}}. Kiểm tra lại địa chỉ email của họ hoặc cấu hình SMTP."
+    },
+    "moveDepartment": {
+      "title": "Đổi phòng ban",
+      "confirm": "Chuyển",
+      "summary": "Sẽ chuyển {{count}} nhân viên đang chọn",
+      "department": "Phòng ban mới",
+      "departmentPlaceholder": "Chọn phòng ban",
+      "departmentRequired": "Chọn phòng ban đích.",
+      "position": "Chức vụ mới",
+      "positionPlaceholder": "Chọn chức vụ",
+      "positionPickDepartment": "Chọn phòng ban trước",
+      "positionHint": "Chức vụ gắn với phòng ban, nên đổi phòng thì phải chọn lại chức vụ.",
+      "positionRequired": "Chọn chức vụ mới.",
+      "noPosition": "Phòng ban này chưa có chức vụ nào đang hoạt động.",
+      "success": "Đã chuyển {{count}} nhân viên.",
+      "orphanTitle": "Đã chuyển xong, nhưng có phòng ban mất trưởng phòng",
+      "orphanDetail": "Các phòng sau đang để trưởng phòng là người vừa chuyển đi: {{names}}. Vào Danh mục › Phòng ban để gán lại."
     }
   },
   "attendance": {

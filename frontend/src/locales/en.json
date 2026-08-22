@@ -1112,6 +1112,23 @@
       "success": "Emailed {{count}} employees.",
       "partialTitle": "Sent {{sent}} of {{total}}",
       "partialDetail": "Could not reach: {{names}}. Check their email address or the SMTP settings."
+    },
+    "moveDepartment": {
+      "title": "Change department",
+      "confirm": "Move",
+      "summary": "This will move the {{count}} selected employees",
+      "department": "New department",
+      "departmentPlaceholder": "Pick a department",
+      "departmentRequired": "Pick the target department.",
+      "position": "New position",
+      "positionPlaceholder": "Pick a position",
+      "positionPickDepartment": "Pick a department first",
+      "positionHint": "Positions belong to a department, so moving requires picking a new one.",
+      "positionRequired": "Pick the new position.",
+      "noPosition": "This department has no active position yet.",
+      "success": "Moved {{count}} employees.",
+      "orphanTitle": "Moved, but a department lost its manager",
+      "orphanDetail": "These departments still list someone you just moved away as their manager: {{names}}. Reassign them under Catalogue › Departments."
     }
   },
   "attendance": {

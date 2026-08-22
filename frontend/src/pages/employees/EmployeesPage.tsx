@@ -39,10 +39,18 @@ import { DeleteEmployeeModal } from '@/components/employees/DeleteEmployeeModal'
 import { EmployeeStatusTag } from '@/components/employees/EmployeeStatusTag';
 import { EmployeeWizard } from '@/components/employees/EmployeeWizard';
 import { OverviewRail } from '@/components/employees/OverviewRail';
+import { ChangeDepartmentModal } from '@/components/employees/ChangeDepartmentModal';
+import { SendEmailModal } from '@/components/employees/SendEmailModal';
 import { StatTile } from '@/components/employees/StatTile';
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage';
 import { useAllDepartments } from '@/hooks/useDepartments';
-import { useEmployees, useEmployeeMutations, useEmployeeStats } from '@/hooks/useEmployees';
+import {
+  useEmployees,
+  useEmployeeMutations,
+  useEmployeeStats,
+  useSendEmployeeEmail,
+  useChangeDepartment,
+} from '@/hooks/useEmployees';
 import { usePositions } from '@/hooks/usePositions';
 import { useExportEmployees } from '@/hooks/useReports';
 import {
@@ -91,13 +99,11 @@ const { Text } = Typography;
  * returns to page 1 (page 7 of the old result set may not exist), while
  * re-applying the same filter, sorting or paginating leaves the page alone.
  *
- * FEATURES THAT DO NOT EXIST YET are shown disabled with a "sắp có" tooltip
- * rather than omitted or, worse, wired to nothing: bulk email and bulk
- * department change have no endpoint in any phase yet. The same convention
- * the sidebar already uses for upcoming modules.
+ * THANH HÀNG LOẠT thao tác trên vùng tick, trừ nút xuất Excel — nó xuất theo
+ * BỘ LỌC, nên tooltip của nó nói thẳng số dòng sắp ra file. Hai nút còn lại
+ * (gửi email, đổi phòng ban) mờ đi khi chưa tick dòng nào, thay vì bật sẵn rồi
+ * báo lỗi lúc bấm.
  */
-
-/** How many rows a selection has to reach before the bulk bar means anything. */
 export function EmployeesPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -111,6 +117,13 @@ export function EmployeesPage() {
 
   const table = useTableQuery({ sort: 'employeeCode', order: 'asc' });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isEmailOpen, setEmailOpen] = useState(false);
+  const [isMoveOpen, setMoveOpen] = useState(false);
+  /* Phòng ban đích nằm ở trang chứ không ở modal: danh sách chức vụ phụ thuộc
+     nó, mà components/ không được gọi API. */
+  const [targetDepartmentId, setTargetDepartmentId] = useState<number>();
+  const { changeDepartment, isMoving } = useChangeDepartment();
+  const { sendEmail, isSending } = useSendEmployeeEmail();
   const [isWizardOpen, setWizardOpen] = useState(false);
   const [deleting, setDeleting] = useState<EmployeeListItem | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -167,6 +180,31 @@ export function EmployeesPage() {
   });
   const positions = positionsResource.data?.items ?? [];
 
+  /* Chức vụ của phòng ban ĐÍCH, khác bộ dùng cho ô lọc phía trên bảng. */
+  const movePositions = usePositions({
+    departmentId: targetDepartmentId,
+    isActive: true,
+    limit: 100,
+  });
+
+  const departmentOptions = useMemo(
+    () =>
+      departments.map(({ node, depth }) => ({
+        value: node.id,
+        label: `${'  '.repeat(depth)}${node.name}`,
+      })),
+    [departments],
+  );
+
+  const movePositionOptions = useMemo(
+    () =>
+      (movePositions.data?.items ?? []).map((position) => ({
+        value: position.id,
+        label: position.name,
+      })),
+    [movePositions.data],
+  );
+
   const rows = list.data?.items ?? [];
   const total = list.data?.meta.total ?? 0;
 
@@ -182,6 +220,91 @@ export function EmployeesPage() {
         message.success(t('employees.bulk.exportSuccess'));
       } catch (exportError) {
         message.error(resolveError(exportError));
+      }
+    })();
+  };
+
+  /**
+   * Gửi email cho vùng chọn.
+   *
+   * Người trượt được liệt kê trong `modal.warning` chứ không phải toast: đó là
+   * danh sách người CHƯA nhận được thông báo, người gửi phải đọc và xử lý tiếp
+   * chứ không để nó biến mất sau ba giây.
+   *
+   * Chỉ bỏ tick khi gửi trọn vẹn — còn ai trượt thì giữ nguyên vùng chọn để
+   * gửi lại được ngay.
+   */
+  const handleSendEmail = (values: { subject: string; body: string }) => {
+    void (async () => {
+      try {
+        const result = await sendEmail({
+          employeeIds: selectedIds,
+          subject: values.subject,
+          body: values.body,
+        });
+
+        setEmailOpen(false);
+
+        if (result.failed.length > 0) {
+          modal.warning({
+            title: t('employees.email.partialTitle', {
+              sent: result.sent,
+              total: result.requested,
+            }),
+            content: t('employees.email.partialDetail', {
+              names: result.failed
+                .map((row) => `${row.fullName} (${row.employeeCode})`)
+                .join(', '),
+            }),
+          });
+          return;
+        }
+
+        message.success(t('employees.email.success', { count: result.sent }));
+        setSelectedIds([]);
+      } catch (emailError) {
+        message.error(resolveError(emailError));
+      }
+    })();
+  };
+
+  /**
+   * Chuyển vùng chọn sang phòng ban khác.
+   *
+   * Phòng ban mất trưởng phòng hiện bằng `modal.warning` chứ không phải toast:
+   * đó là dữ liệu tổ chức vừa hở ra, người thao tác phải biết để đi gán lại.
+   */
+  const handleChangeDepartment = (values: {
+    departmentId: number;
+    positionId: number;
+  }) => {
+    void (async () => {
+      try {
+        const result = await changeDepartment({
+          employeeIds: selectedIds,
+          departmentId: values.departmentId,
+          positionId: values.positionId,
+        });
+
+        setMoveOpen(false);
+        setTargetDepartmentId(undefined);
+        setSelectedIds([]);
+
+        if (result.orphanedDepartments.length > 0) {
+          modal.warning({
+            title: t('employees.moveDepartment.orphanTitle'),
+            content: t('employees.moveDepartment.orphanDetail', {
+              names: result.orphanedDepartments.map((row) => row.name).join(', '),
+            }),
+          });
+          return;
+        }
+
+        message.success(
+          t('employees.moveDepartment.success', { count: result.updated }),
+        );
+      } catch (moveError) {
+        message.error(resolveError(moveError));
       }
     })();
   };
@@ -492,11 +615,6 @@ export function EmployeesPage() {
             icon={<TeamOutlined />}
             label={t('employees.tiles.total')}
             value={statsData ? String(statsData.total) : '—'}
-            caption={
-              statsData
-                ? t('employees.tiles.hiredRecently', { count: statsData.hiredLast30Days })
-                : ''
-            }
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -505,14 +623,6 @@ export function EmployeesPage() {
             icon={<SolutionOutlined />}
             label={t('employees.tiles.probation')}
             value={statsData ? String(statsData.byStatus.probation) : '—'}
-            caption={
-              statsData
-                ? t('employees.tiles.probationEnding', {
-                    count: statsData.probationEndingSoon,
-                    days: statsData.windowDays,
-                  })
-                : ''
-            }
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -521,7 +631,6 @@ export function EmployeesPage() {
             icon={<CalendarOutlined />}
             label={t('employees.tiles.onLeave')}
             value={statsData ? String(statsData.byStatus.on_leave) : '—'}
-            caption={t('employees.tiles.onLeaveCaption')}
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -530,11 +639,6 @@ export function EmployeesPage() {
             icon={<FileProtectOutlined />}
             label={t('employees.tiles.expiring')}
             value={statsData ? String(statsData.contractsExpiringSoon) : '—'}
-            caption={
-              statsData
-                ? t('employees.tiles.expiringCaption', { days: statsData.windowDays })
-                : ''
-            }
           />
         </Col>
       </Row>
@@ -661,12 +765,14 @@ export function EmployeesPage() {
             }
             filters={
               <Space wrap size="small">
-                {/* Disabled, never wired to nothing — see the page note. */}
-                <Tooltip title={t('common.comingSoon')}>
-                  <Button size="small" icon={<MailOutlined />} disabled>
-                    {t('employees.bulk.email')}
-                  </Button>
-                </Tooltip>
+                <Button
+                  size="small"
+                  icon={<MailOutlined />}
+                  disabled={selectedIds.length === 0}
+                  onClick={() => setEmailOpen(true)}
+                >
+                  {t('employees.bulk.email')}
+                </Button>
                 {/*
                   Nút DUY NHẤT xuất Excel, đặt ngay trên bảng mà nó xuất.
                   Nó xuất theo BỘ LỌC chứ không theo các dòng đang tick — hai
@@ -686,11 +792,14 @@ export function EmployeesPage() {
                     </Button>
                   </Tooltip>
                 )}
-                <Tooltip title={t('common.comingSoon')}>
-                  <Button size="small" icon={<SwapOutlined />} disabled>
-                    {t('employees.bulk.department')}
-                  </Button>
-                </Tooltip>
+                <Button
+                  size="small"
+                  icon={<SwapOutlined />}
+                  disabled={selectedIds.length === 0}
+                  onClick={() => setMoveOpen(true)}
+                >
+                  {t('employees.bulk.department')}
+                </Button>
               </Space>
             }
             actions={
@@ -730,6 +839,27 @@ export function EmployeesPage() {
           />
         </aside>
       </div>
+
+      <ChangeDepartmentModal
+        open={isMoveOpen}
+        employeeCount={selectedIds.length}
+        departments={departmentOptions}
+        positions={movePositionOptions}
+        isLoadingPositions={movePositions.isLoading}
+        departmentId={targetDepartmentId}
+        onDepartmentChange={setTargetDepartmentId}
+        isSaving={isMoving}
+        onCancel={() => setMoveOpen(false)}
+        onSubmit={handleChangeDepartment}
+      />
+
+      <SendEmailModal
+        open={isEmailOpen}
+        recipientCount={selectedIds.length}
+        isSending={isSending}
+        onCancel={() => setEmailOpen(false)}
+        onSubmit={handleSendEmail}
+      />
 
       <EmployeeWizard
         open={isWizardOpen}

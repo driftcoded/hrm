@@ -26,6 +26,10 @@ import type {
   UpdateContractPayload,
   UpdateDependentPayload,
   UpdateEmployeePayload,
+  ChangeDepartmentPayload,
+  ChangeDepartmentResult,
+  SendEmployeeEmailPayload,
+  SendEmployeeEmailResult,
 } from '@/types/employee.types';
 
 /**
@@ -276,4 +280,26 @@ export function listRoles(): Promise<RoleOption[]> {
  */
 export function createUser(payload: CreateUserPayload): Promise<CreatedUser> {
   return post<CreatedUser>('/users', payload);
+}
+
+/** Gửi email thông báo cho các nhân viên được chọn. */
+export async function sendEmployeeEmail(
+  payload: SendEmployeeEmailPayload,
+): Promise<SendEmployeeEmailResult> {
+  const { data } = await apiClient.post<ApiSuccessResponse<SendEmployeeEmailResult>>(
+    '/employees/email',
+    payload,
+  );
+  return data.data;
+}
+
+/** Chuyển các nhân viên được chọn sang phòng ban khác. */
+export async function changeEmployeeDepartment(
+  payload: ChangeDepartmentPayload,
+): Promise<ChangeDepartmentResult> {
+  const { data } = await apiClient.patch<ApiSuccessResponse<ChangeDepartmentResult>>(
+    '/employees/department',
+    payload,
+  );
+  return data.data;
 }

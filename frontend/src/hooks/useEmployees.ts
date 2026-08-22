@@ -15,13 +15,16 @@ import type {
   EmployeeSummary,
   FamilyMember,
   FamilyMemberPayload,
+  ChangeDepartmentPayload,
   RoleOption,
+  SendEmployeeEmailPayload,
   TerminateContractPayload,
   UpdateContractPayload,
   UpdateDependentPayload,
   UpdateEmployeePayload,
 } from '@/types/employee.types';
 import {
+  changeEmployeeDepartment,
   createContract,
   createDependent,
   createEmployee,
@@ -39,6 +42,7 @@ import {
   listFamilyMembers,
   listRoles,
   restoreEmployee,
+  sendEmployeeEmail,
   terminateContract,
   updateContract,
   updateDependent,
@@ -412,4 +416,38 @@ export function useRoles(enabled = true) {
     isLoading: query.isLoading,
     isError: query.isError,
   };
+}
+
+/**
+ * Gửi email thông báo cho các nhân viên đang chọn.
+ *
+ * Mutation chứ không phải query: đây là một hành động có tác dụng phụ ra thế
+ * giới bên ngoài, và không có gì trong cache để làm mới sau đó.
+ */
+export function useSendEmployeeEmail() {
+  const mutation = useMutation({
+    mutationFn: (payload: SendEmployeeEmailPayload) => sendEmployeeEmail(payload),
+  });
+
+  return { sendEmail: mutation.mutateAsync, isSending: mutation.isPending };
+}
+
+/**
+ * Chuyển nhiều nhân viên sang phòng ban khác.
+ *
+ * Làm mới cache nhân viên sau khi ghi: phòng ban và chức vụ đều hiện trên bảng,
+ * nên giữ số cũ là để người dùng nhìn thấy hai sự thật.
+ */
+export function useChangeDepartment() {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (payload: ChangeDepartmentPayload) =>
+      changeEmployeeDepartment(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: EMPLOYEE_KEYS.root });
+    },
+  });
+
+  return { changeDepartment: mutation.mutateAsync, isMoving: mutation.isPending };
 }
