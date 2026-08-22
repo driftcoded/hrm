@@ -94,7 +94,12 @@ describe('HolidaysService', () => {
 
     it('resolves active rules into concrete dates', async () => {
       repository.findActiveRules.mockResolvedValue([
-        makeHoliday({ code: 'NEW_YEAR', calendar: HolidayCalendar.SOLAR, month: 1, day: 1 }),
+        makeHoliday({
+          code: 'NEW_YEAR',
+          calendar: HolidayCalendar.SOLAR,
+          month: 1,
+          day: 1,
+        }),
       ]);
 
       const result = await service.findByYear(2026);
@@ -118,7 +123,11 @@ describe('HolidaysService', () => {
         day: 15,
       });
 
-      expect(repository.findByCodeAndYear).toHaveBeenCalledWith('COMPANY_ANNIV', null, undefined);
+      expect(repository.findByCodeAndYear).toHaveBeenCalledWith(
+        'COMPANY_ANNIV',
+        null,
+        undefined,
+      );
       expect(repository.create).toHaveBeenCalled();
       expect(result.code).toBe('COMPANY_ANNIV');
     });

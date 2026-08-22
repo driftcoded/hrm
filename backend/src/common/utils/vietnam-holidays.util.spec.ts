@@ -26,10 +26,26 @@ function override(code: string, year: number, patch: Partial<HolidayRule>) {
 
 describe('lịch âm', () => {
   it('đổi đúng mùng 1 Tết vài năm liên tiếp', () => {
-    expect(lunarToSolar(1, 1, 2024)).toMatchObject({ day: 10, month: 2, year: 2024 });
-    expect(lunarToSolar(1, 1, 2025)).toMatchObject({ day: 29, month: 1, year: 2025 });
-    expect(lunarToSolar(1, 1, 2026)).toMatchObject({ day: 17, month: 2, year: 2026 });
-    expect(lunarToSolar(1, 1, 2027)).toMatchObject({ day: 6, month: 2, year: 2027 });
+    expect(lunarToSolar(1, 1, 2024)).toMatchObject({
+      day: 10,
+      month: 2,
+      year: 2024,
+    });
+    expect(lunarToSolar(1, 1, 2025)).toMatchObject({
+      day: 29,
+      month: 1,
+      year: 2025,
+    });
+    expect(lunarToSolar(1, 1, 2026)).toMatchObject({
+      day: 17,
+      month: 2,
+      year: 2026,
+    });
+    expect(lunarToSolar(1, 1, 2027)).toMatchObject({
+      day: 6,
+      month: 2,
+      year: 2027,
+    });
   });
 
   it('đổi xuôi rồi ngược thì về đúng ngày cũ', () => {

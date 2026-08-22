@@ -72,7 +72,12 @@ export class Holiday {
   @Column({ name: 'offset_days', type: 'smallint', default: 0 })
   offsetDays: number;
 
-  @Column({ name: 'duration_days', type: 'smallint', unsigned: true, default: 1 })
+  @Column({
+    name: 'duration_days',
+    type: 'smallint',
+    unsigned: true,
+    default: 1,
+  })
   durationDays: number;
 
   /** NULL = áp dụng mọi năm; có giá trị = chỉ năm đó, và đè lên dòng mọi năm. */

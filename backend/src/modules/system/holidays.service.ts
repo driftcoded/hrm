@@ -17,12 +17,13 @@ import {
   GenerateHolidaysDto,
   GenerateHolidaysResultDto,
 } from './dto/generate-holidays.dto';
-import {
-  HolidayDateDto,
-  HolidayResponseDto,
-} from './dto/holiday-response.dto';
+import { HolidayDateDto, HolidayResponseDto } from './dto/holiday-response.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
-import { Holiday, HolidayCalendar, HolidayType } from './entities/holiday.entity';
+import {
+  Holiday,
+  HolidayCalendar,
+  HolidayType,
+} from './entities/holiday.entity';
 import { HolidaysRepository } from './holidays.repository';
 
 /**
@@ -75,20 +76,21 @@ export class HolidaysService {
     const target = year ?? currentYearInVietnam();
     const rules = await this.holidaysRepository.findActiveRules();
 
-    return resolveHolidays(rules.map((rule) => this.toRule(rule)), target).map(
-      (holiday) => ({
-        holidayDate: holiday.date,
-        code: holiday.code,
-        name: holiday.name,
-        type: holiday.type as HolidayType,
-        year: target,
-        isPaid: holiday.isPaid,
-        dayIndex: holiday.dayIndex,
-        dayCount: holiday.dayCount,
-        isCompensatory: holiday.isCompensatory,
-        note: holiday.note,
-      }),
-    );
+    return resolveHolidays(
+      rules.map((rule) => this.toRule(rule)),
+      target,
+    ).map((holiday) => ({
+      holidayDate: holiday.date,
+      code: holiday.code,
+      name: holiday.name,
+      type: holiday.type as HolidayType,
+      year: target,
+      isPaid: holiday.isPaid,
+      dayIndex: holiday.dayIndex,
+      dayCount: holiday.dayCount,
+      isCompensatory: holiday.isCompensatory,
+      note: holiday.note,
+    }));
   }
 
   async findOne(id: number): Promise<HolidayResponseDto> {
@@ -203,11 +205,16 @@ export class HolidaysService {
 
     if (!dto.preview) {
       if (dto.tetDaysBefore !== undefined) {
-        const clash = await this.holidaysRepository.findByCodeAndYear('TET', dto.year);
+        const clash = await this.holidaysRepository.findByCodeAndYear(
+          'TET',
+          dto.year,
+        );
         if (clash) {
           skipped++;
         } else {
-          const base = allRules.find((r) => r.code === 'TET' && r.year === null);
+          const base = allRules.find(
+            (r) => r.code === 'TET' && r.year === null,
+          );
           if (base) {
             await this.holidaysRepository.create({
               code: base.code,
@@ -230,11 +237,16 @@ export class HolidaysService {
       }
 
       if (dto.nationalDayExtra !== undefined) {
-        const clash = await this.holidaysRepository.findByCodeAndYear('NATIONAL_DAY', dto.year);
+        const clash = await this.holidaysRepository.findByCodeAndYear(
+          'NATIONAL_DAY',
+          dto.year,
+        );
         if (clash) {
           skipped++;
         } else {
-          const base = allRules.find((r) => r.code === 'NATIONAL_DAY' && r.year === null);
+          const base = allRules.find(
+            (r) => r.code === 'NATIONAL_DAY' && r.year === null,
+          );
           if (base) {
             await this.holidaysRepository.create({
               code: base.code,
@@ -257,7 +269,13 @@ export class HolidaysService {
       }
     }
 
-    return { year: dto.year, created, skipped, preview: dto.preview ?? false, holidays };
+    return {
+      year: dto.year,
+      created,
+      skipped,
+      preview: dto.preview ?? false,
+      holidays,
+    };
   }
 
   /** Hard delete (table has no `deleted_at`); no other table references holidays. */

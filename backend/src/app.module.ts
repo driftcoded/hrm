@@ -80,7 +80,6 @@ import { UsersModule } from './modules/users/users.module';
     LeaveRequestsModule,
     SalariesModule,
 
-
     ReportsModule,
   ],
   controllers: [AppController],

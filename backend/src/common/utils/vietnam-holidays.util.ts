@@ -81,8 +81,13 @@ export function isWeekend(date: string): boolean {
 }
 
 const WEEKDAY_NAMES = [
-  'Chủ nhật', 'thứ Hai', 'thứ Ba', 'thứ Tư',
-  'thứ Năm', 'thứ Sáu', 'thứ Bảy',
+  'Chủ nhật',
+  'thứ Hai',
+  'thứ Ba',
+  'thứ Tư',
+  'thứ Năm',
+  'thứ Sáu',
+  'thứ Bảy',
 ];
 
 function formatDayVi(date: string): string {
@@ -110,7 +115,10 @@ export function rulesForYear(
 
     const current = chosen.get(rule.code);
 
-    if (current === undefined || (current.year === null && rule.year !== null)) {
+    if (
+      current === undefined ||
+      (current.year === null && rule.year !== null)
+    ) {
       chosen.set(rule.code, rule);
     }
   }

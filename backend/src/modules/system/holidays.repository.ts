@@ -56,9 +56,12 @@ export class HolidaysRepository {
     }
 
     if (options.search) {
-      query.andWhere('(holiday.name LIKE :search OR holiday.code LIKE :search)', {
-        search: `%${options.search}%`,
-      });
+      query.andWhere(
+        '(holiday.name LIKE :search OR holiday.code LIKE :search)',
+        {
+          search: `%${options.search}%`,
+        },
+      );
     }
 
     return query.getManyAndCount();

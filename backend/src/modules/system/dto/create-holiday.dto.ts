@@ -30,7 +30,10 @@ export class CreateHolidayDto {
   @IsEnum(HolidayType)
   type?: HolidayType;
 
-  @ApiPropertyOptional({ enum: HolidayCalendar, default: HolidayCalendar.SOLAR })
+  @ApiPropertyOptional({
+    enum: HolidayCalendar,
+    default: HolidayCalendar.SOLAR,
+  })
   @IsOptional()
   @IsEnum(HolidayCalendar)
   calendar?: HolidayCalendar;
@@ -65,7 +68,11 @@ export class CreateHolidayDto {
   @Max(366)
   durationDays?: number;
 
-  @ApiPropertyOptional({ example: null, nullable: true, description: 'NULL = mọi năm' })
+  @ApiPropertyOptional({
+    example: null,
+    nullable: true,
+    description: 'NULL = mọi năm',
+  })
   @IsOptional()
   @ValidateIf((o: CreateHolidayDto) => o.year !== null)
   @Type(() => Number)

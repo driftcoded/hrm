@@ -1,8 +1,4 @@
-import {
-  PROVINCES,
-  WARDS,
-  WARDS_BY_PROVINCE,
-} from './administrative-units';
+import { PROVINCES, WARDS, WARDS_BY_PROVINCE } from './administrative-units';
 
 /**
  * Danh mục hành chính đọc từ CSV gốc.
@@ -32,9 +28,9 @@ describe('administrative units', () => {
     expect(cities).toHaveLength(6);
     // File gốc ghi tắt "Tp Hải Phòng"; danh sách trả ra phải thống nhất.
     expect(cities.map((city) => city.name)).toContain('Thành phố Hải Phòng');
-    expect(
-      PROVINCES.every((province) => !province.name.startsWith('Tp')),
-    ).toBe(true);
+    expect(PROVINCES.every((province) => !province.name.startsWith('Tp'))).toBe(
+      true,
+    );
   });
 
   it('mã phường/xã là duy nhất và đã sắp xếp', () => {
@@ -73,8 +69,8 @@ describe('administrative units', () => {
       legacyDistrictCode: '10105',
       legacyDistrictName: 'Quận Hoàn Kiếm',
     });
-    expect(
-      WARDS.every((ward) => ward.legacyDistrictCode.length > 0),
-    ).toBe(true);
+    expect(WARDS.every((ward) => ward.legacyDistrictCode.length > 0)).toBe(
+      true,
+    );
   });
 });
