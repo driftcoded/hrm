@@ -111,10 +111,27 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "greeting": "Welcome back!",
     "welcome": "Welcome to the HRM system",
     "subtitle": "Current headcount and the key metrics for the company.",
     "placeholderNotice": "Figures on this page are sample data. The dashboard will be wired to the real API in phase 8.",
     "viewAll": "View all",
+    "deptStats": {
+      "title": "Employee statistics",
+      "viewDetail": "View detail",
+      "totalEmployees": "Total employees"
+    },
+    "attendance": {
+      "todayLabel": "Attendance today",
+      "todayUnit": "Checked in"
+    },
+    "leaveToday": {
+      "label": "On leave today",
+      "unit": "Employees"
+    },
+    "holiday": {
+      "upcomingLabel": "Upcoming holiday"
+    },
     "kpi": {
       "unchanged": "No change",
       "deltaVsLastMonth": "{{value}} vs last month",
@@ -154,7 +171,9 @@
       "today": "Today",
       "tomorrow": "Tomorrow",
       "inDays": "in {{count}} days",
-      "empty": "No upcoming birthdays"
+      "empty": "No upcoming birthdays",
+      "monthLabel": "Birthdays this month",
+      "monthUnit": "Employees"
     },
     "activity": {
       "title": "Recent activity",

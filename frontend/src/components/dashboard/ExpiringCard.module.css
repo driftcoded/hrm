@@ -21,39 +21,80 @@
   line-height: 1;
 }
 
-.person {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--hrm-space-2);
+/* ---- list ---- */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.personName {
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-3);
+  padding: var(--hrm-space-3) 0;
+  border-bottom: 1px solid var(--hrm-color-border-secondary);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.avatar {
+  flex: 0 0 36px;
+}
+
+.meta {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.name {
+  font-size: var(--hrm-font-size-body);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.dept {
+  font-size: var(--hrm-font-size-caption);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.badge {
+  flex: 0 0 auto;
+  font-size: var(--hrm-font-size-caption);
   white-space: nowrap;
 }
 
-/* Urgency of an upcoming deadline. Paired with spelled-out wording in the cell,
-   never carrying the meaning on its own.
-   All three are TEXT, so they take the `-strong` step: the plain accents are
-   3.05 / 1.83 / 2.21:1 on the card — the warning row in particular was close to
-   unreadable (§12). */
-.critical {
+.dateWrap {
+  flex: 0 0 auto;
+  text-align: right;
+  min-width: 52px;
+}
+
+.urgent {
   color: var(--hrm-color-error-strong);
   font-weight: 600;
 }
 
-.warning {
-  color: var(--hrm-color-warning-strong);
-  font-weight: 600;
+.chevron {
+  flex: 0 0 auto;
+  color: var(--hrm-color-text-tertiary);
+  font-size: 12px;
 }
 
-.ok {
-  color: var(--hrm-color-success-strong);
-}
-
-.footer {
-  margin-top: var(--hrm-space-4);
-  text-align: center;
-}
+/* ---- count-only ---- */
 
 .countOnly {
   display: flex;
@@ -61,4 +102,11 @@
   align-items: center;
   gap: var(--hrm-space-2);
   padding: var(--hrm-space-6) 0;
+}
+
+/* ---- footer ---- */
+
+.footer {
+  margin-top: var(--hrm-space-4);
+  text-align: center;
 }

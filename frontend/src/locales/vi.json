@@ -111,10 +111,27 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "greeting": "Chào mừng trở lại!",
     "welcome": "Chào mừng đến với hệ thống HRM",
     "subtitle": "Cập nhật tình hình nhân sự và các chỉ số quan trọng của công ty.",
     "placeholderNotice": "Số liệu trên trang này là dữ liệu mẫu. Dashboard sẽ được nối với API thật ở Giai đoạn 8.",
     "viewAll": "Xem tất cả",
+    "deptStats": {
+      "title": "Thống kê nhân sự",
+      "viewDetail": "Xem chi tiết",
+      "totalEmployees": "Tổng nhân viên"
+    },
+    "attendance": {
+      "todayLabel": "Chấm công hôm nay",
+      "todayUnit": "Đã chấm công"
+    },
+    "leaveToday": {
+      "label": "Nghỉ phép hôm nay",
+      "unit": "Nhân viên"
+    },
+    "holiday": {
+      "upcomingLabel": "Ngày lễ sắp tới"
+    },
     "kpi": {
       "unchanged": "Không thay đổi",
       "deltaVsLastMonth": "{{value}} so với tháng trước",
@@ -154,7 +171,9 @@
       "today": "Hôm nay",
       "tomorrow": "Ngày mai",
       "inDays": "{{count}} ngày nữa",
-      "empty": "Không có sinh nhật trong thời gian tới"
+      "empty": "Không có sinh nhật trong thời gian tới",
+      "monthLabel": "Sinh nhật tháng này",
+      "monthUnit": "Nhân viên"
     },
     "activity": {
       "title": "Hoạt động gần đây",
