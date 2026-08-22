@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthenticatedUser } from '@/common/types/authenticated-user';
+import { MailService } from '@/shared/mail/mail.service';
 import { StorageService } from '@/shared/storage/storage.service';
 import {
   Contract,
@@ -155,6 +156,7 @@ describe('EmployeesService', () => {
   let service: EmployeesService;
   let repository: jest.Mocked<EmployeesRepository>;
   let storage: jest.Mocked<StorageService>;
+  let mailService: jest.Mocked<MailService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -191,6 +193,9 @@ describe('EmployeesService', () => {
               .fn()
               .mockResolvedValue({ id: 5, name: 'Developer', departmentId: 2 }),
             findManagedDepartmentIds: jest.fn().mockResolvedValue([]),
+            findByIds: jest.fn().mockResolvedValue([]),
+            moveToDepartment: jest.fn().mockResolvedValue(0),
+            findDepartmentsManagedBy: jest.fn().mockResolvedValue([]),
             create: jest.fn().mockResolvedValue(makeEmployee({ id: 7 })),
             update: jest.fn().mockResolvedValue(undefined),
             softDelete: jest.fn().mockResolvedValue(undefined),
@@ -210,12 +215,22 @@ describe('EmployeesService', () => {
             removeByUrl: jest.fn().mockResolvedValue(undefined),
           },
         },
+        {
+          provide: MailService,
+          useValue: {
+            transportKind: 'dev',
+            sendNotificationEmail: jest
+              .fn()
+              .mockResolvedValue({ transport: 'dev', reference: 'file.html' }),
+          },
+        },
       ],
     }).compile();
 
     service = module.get(EmployeesService);
     repository = module.get(EmployeesRepository);
     storage = module.get(StorageService);
+    mailService = module.get(MailService);
   });
 
   afterEach(() => {
@@ -770,6 +785,161 @@ describe('EmployeesService', () => {
       await expect(service.findOne(5, employeeUser)).resolves.toMatchObject({
         id: 5,
       });
+    });
+  });
+
+  describe('sendEmail', () => {
+    const dto = {
+      employeeIds: [1, 2],
+      subject: 'Thong bao lich nghi le',
+      body: 'Cong ty nghi le tu 01/09 den het 03/09.',
+    };
+
+    it('sends one email per employee that has an address', async () => {
+      repository.findByIds.mockResolvedValue([
+        makeEmployee({ id: 1, email: 'a@company.com' }),
+        makeEmployee({ id: 2, employeeCode: 'NV0002', email: 'b@company.com' }),
+      ]);
+
+      const result = await service.sendEmail(dto, adminUser);
+
+      expect(result).toEqual({ sent: 2, requested: 2, failed: [] });
+      expect(mailService.sendNotificationEmail).toHaveBeenCalledTimes(2);
+    });
+
+    /* Mot nguoi loi khong duoc keo ca lo xuong theo. */
+    it('keeps sending to the rest when one recipient fails', async () => {
+      repository.findByIds.mockResolvedValue([
+        makeEmployee({ id: 1, employeeCode: 'NV0001', email: 'a@company.com' }),
+        makeEmployee({ id: 2, employeeCode: 'NV0002', email: 'b@company.com' }),
+      ]);
+      mailService.sendNotificationEmail
+        .mockRejectedValueOnce(new Error('smtp refused'))
+        .mockResolvedValueOnce({ transport: 'dev', reference: 'file.html' });
+
+      const result = await service.sendEmail(dto, adminUser);
+
+      expect(result.sent).toBe(1);
+      expect(result.failed).toHaveLength(1);
+      expect(result.failed[0]).toMatchObject({
+        employeeCode: 'NV0001',
+        reason: 'SEND_FAILED',
+      });
+    });
+
+    /* Truong phong khong duoc dung endpoint nay de gui cho phong khac. */
+    it('limits a manager to their own departments', async () => {
+      repository.findManagedDepartmentIds.mockResolvedValue([2, 3]);
+      repository.findByIds.mockResolvedValue([makeEmployee({ id: 1 })]);
+
+      await service.sendEmail(dto, managerUser);
+
+      expect(repository.findByIds).toHaveBeenCalledWith([1, 2], [2, 3]);
+    });
+
+    it('refuses when no selected employee is within scope', async () => {
+      repository.findByIds.mockResolvedValue([]);
+
+      const error = await captureError(() => service.sendEmail(dto, adminUser));
+
+      expect(error).toEqual({ status: 404, code: 'EMPLOYEE_NOT_FOUND' });
+      expect(mailService.sendNotificationEmail).not.toHaveBeenCalled();
+    });
+
+    it('refuses a role whose scope is only itself', async () => {
+      const error = await captureError(() =>
+        service.sendEmail(dto, employeeUser),
+      );
+
+      expect(error).toEqual({ status: 403, code: 'FORBIDDEN' });
+    });
+  });
+
+  describe('changeDepartment', () => {
+    const dto = { employeeIds: [1, 2], departmentId: 3, positionId: 9 };
+
+    beforeEach(() => {
+      repository.findDepartmentById.mockResolvedValue({
+        id: 3,
+        name: 'Phong Kinh doanh',
+      } as never);
+      repository.findPositionById.mockResolvedValue({
+        id: 9,
+        name: 'Sales',
+        departmentId: 3,
+      } as never);
+    });
+
+    it('moves everyone in one update and reports the count', async () => {
+      repository.findByIds.mockResolvedValue([
+        makeEmployee({ id: 1 }),
+        makeEmployee({ id: 2 }),
+      ]);
+      repository.moveToDepartment.mockResolvedValue(2);
+
+      const result = await service.changeDepartment(dto, adminUser);
+
+      expect(repository.moveToDepartment).toHaveBeenCalledTimes(1);
+      expect(repository.moveToDepartment).toHaveBeenCalledWith([1, 2], 3, 9);
+      expect(result).toMatchObject({ updated: 2, requested: 2 });
+    });
+
+    /* Chuc vu gan cung voi phong ban — giu chuc vu cu la tao du lieu mau thuan. */
+    it('refuses a position that belongs to another department', async () => {
+      repository.findPositionById.mockResolvedValue({
+        id: 9,
+        name: 'Sales',
+        departmentId: 7,
+      } as never);
+
+      const error = await captureError(() =>
+        service.changeDepartment(dto, adminUser),
+      );
+
+      expect(error).toEqual({
+        status: 422,
+        code: 'POSITION_DEPARTMENT_MISMATCH',
+      });
+      expect(repository.moveToDepartment).not.toHaveBeenCalled();
+    });
+
+    /* Chuyen truong phong di thi phong cu con lai mot truong phong o phong khac. */
+    it('warns about a department left without its manager', async () => {
+      repository.findByIds.mockResolvedValue([makeEmployee({ id: 1 })]);
+      repository.findDepartmentsManagedBy.mockResolvedValue([
+        { id: 2, name: 'Phong Ky thuat', managerId: 1 },
+      ]);
+      repository.moveToDepartment.mockResolvedValue(1);
+
+      const result = await service.changeDepartment(dto, adminUser);
+
+      expect(result.orphanedDepartments).toEqual([
+        { id: 2, name: 'Phong Ky thuat' },
+      ]);
+    });
+
+    /* Chuyen vao dung phong minh dang quan ly thi khong mat truong phong nao. */
+    it('does not warn when the manager moves into the department they manage', async () => {
+      repository.findByIds.mockResolvedValue([makeEmployee({ id: 1 })]);
+      repository.findDepartmentsManagedBy.mockResolvedValue([
+        { id: 3, name: 'Phong Kinh doanh', managerId: 1 },
+      ]);
+      repository.moveToDepartment.mockResolvedValue(1);
+
+      const result = await service.changeDepartment(dto, adminUser);
+
+      expect(result.orphanedDepartments).toEqual([]);
+    });
+
+    it('refuses when no selected employee is within scope', async () => {
+      repository.findByIds.mockResolvedValue([]);
+
+      const error = await captureError(() =>
+        service.changeDepartment(dto, adminUser),
+      );
+
+      expect(error).toEqual({ status: 404, code: 'EMPLOYEE_NOT_FOUND' });
+      expect(repository.moveToDepartment).not.toHaveBeenCalled();
     });
   });
 });

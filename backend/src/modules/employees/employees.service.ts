@@ -22,9 +22,14 @@ import {
 } from '@/common/utils/date.util';
 import { resolvePagination } from '@/common/utils/pagination.util';
 import { normalizePhone } from '@/common/validators/vn-identity.validator';
+import { MailService } from '@/shared/mail/mail.service';
 import { StorageService } from '@/shared/storage/storage.service';
 import { UploadedFileLike } from '@/shared/storage/image-file.util';
 import { Contract } from '@/modules/contracts/entities/contract.entity';
+import {
+  ChangeDepartmentDto,
+  ChangeDepartmentResultDto,
+} from './dto/change-department.dto';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import {
   AvatarUploadResponseDto,
@@ -36,6 +41,11 @@ import {
   RestoreResponseDto,
 } from './dto/employee-response.dto';
 import { FilterEmployeeDto } from './dto/filter-employee.dto';
+import {
+  FailedEmailRecipientDto,
+  SendEmployeeEmailDto,
+  SendEmployeeEmailResultDto,
+} from './dto/send-employee-email.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import {
   EMPLOYEE_CODE_DIGITS,
@@ -63,6 +73,19 @@ export const HIRED_WINDOW_DAYS = 30;
 
 /** Số người tối đa trong danh sách sinh nhật (panel bên phải chỉ đủ chỗ vài dòng). */
 export const UPCOMING_BIRTHDAY_LIMIT = 5;
+
+/** Một người nhận trượt, rút gọn để trả về cho màn hình. */
+function toFailedRecipient(
+  employee: Employee,
+  reason: FailedEmailRecipientDto['reason'],
+): FailedEmailRecipientDto {
+  return {
+    employeeId: Number(employee.id),
+    employeeCode: employee.employeeCode,
+    fullName: employee.fullName,
+    reason,
+  };
+}
 
 /** `29.37…` → `29.4`; giữ nguyên `null` khi chưa có nhân viên nào. */
 function roundToOneDecimal(value: number | null): number | null {
@@ -94,6 +117,7 @@ export class EmployeesService {
   constructor(
     private readonly employeesRepository: EmployeesRepository,
     private readonly storageService: StorageService,
+    private readonly mailService: MailService,
   ) {}
 
   // ------------------------------------------------------------- đọc ----
@@ -143,14 +167,6 @@ export class EmployeesService {
     );
   }
 
-  /**
-   * `GET /employees/stats` – số liệu cho các thẻ tổng quan của màn hình
-   * `/employees`.
-   *
-   * Mọi con số đều được tính TRONG PHẠM VI của role gọi nó: manager chỉ thấy
-   * thống kê phòng ban mình, đúng như danh sách họ xem được. Nếu không, tổng
-   * số nhân viên toàn công ty sẽ rò rỉ qua một endpoint khác.
-   */
   /** Số nhân viên còn làm việc trong phạm vi — mẫu số cho biểu đồ chấm công. */
   countEmployed(options: {
     departmentId?: number;
@@ -159,6 +175,133 @@ export class EmployeesService {
     return this.employeesRepository.countEmployed(options);
   }
 
+  /**
+   * `PATCH /employees/department` — chuyển nhiều nhân viên sang phòng ban khác.
+   *
+   * Kiểm tra chức vụ thuộc đúng phòng ban MỘT lần cho cả lô, vì cả lô cùng đích.
+   * Ghi bằng một câu UPDATE thay vì lặp từng hồ sơ.
+   */
+  async changeDepartment(
+    dto: ChangeDepartmentDto,
+    user: AuthenticatedUser,
+  ): Promise<ChangeDepartmentResultDto> {
+    const scope = await this.resolveScope(user);
+
+    if (scope.kind === 'self') {
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: `Role "${user.role}" cannot move employees between departments`,
+      });
+    }
+
+    await this.assertPositionMatchesDepartment(
+      dto.positionId,
+      dto.departmentId,
+    );
+
+    const employees = await this.employeesRepository.findByIds(
+      dto.employeeIds,
+      scope.kind === 'department' ? scope.departmentIds : undefined,
+    );
+
+    if (employees.length === 0) {
+      throw new NotFoundException({
+        code: 'EMPLOYEE_NOT_FOUND',
+        message: 'None of the selected employees are within your scope',
+      });
+    }
+
+    const movableIds = employees.map((employee) => Number(employee.id));
+
+    /*
+     * Đọc TRƯỚC khi ghi: sau khi chuyển thì `department.managerId` vẫn trỏ vào
+     * họ, nhưng lúc đó không còn phân biệt được phòng nào vừa mất trưởng phòng
+     * vì lần chuyển này.
+     */
+    const managed =
+      await this.employeesRepository.findDepartmentsManagedBy(movableIds);
+    const orphanedDepartments = managed
+      .filter((department) => department.id !== dto.departmentId)
+      .map(({ id, name }) => ({ id, name }));
+
+    const updated = await this.employeesRepository.moveToDepartment(
+      movableIds,
+      dto.departmentId,
+      dto.positionId,
+    );
+
+    return { updated, requested: dto.employeeIds.length, orphanedDepartments };
+  }
+
+  /**
+   * `POST /employees/email` — gửi email thông báo cho các nhân viên được chọn.
+   *
+   * Gửi TUẦN TỰ chứ không `Promise.all`: 200 kết nối SMTP mở cùng lúc là cách
+   * nhanh nhất để nhà cung cấp chặn tài khoản.
+   *
+   * Một người lỗi KHÔNG dừng cả lô — người còn lại vẫn nhận, và ai trượt thì
+   * trả về trong `failed` kèm lý do.
+   */
+  async sendEmail(
+    dto: SendEmployeeEmailDto,
+    user: AuthenticatedUser,
+  ): Promise<SendEmployeeEmailResultDto> {
+    const scope = await this.resolveScope(user);
+
+    if (scope.kind === 'self') {
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: `Role "${user.role}" cannot send email to employees`,
+      });
+    }
+
+    const employees = await this.employeesRepository.findByIds(
+      dto.employeeIds,
+      scope.kind === 'department' ? scope.departmentIds : undefined,
+    );
+
+    // Id ngoài phạm vi bị loại ở truy vấn trên; báo lại thay vì im lặng bỏ qua.
+    if (employees.length === 0) {
+      throw new NotFoundException({
+        code: 'EMPLOYEE_NOT_FOUND',
+        message: 'None of the selected employees are within your scope',
+      });
+    }
+
+    const failed: FailedEmailRecipientDto[] = [];
+    let sent = 0;
+
+    for (const employee of employees) {
+      try {
+        await this.mailService.sendNotificationEmail({
+          to: employee.email,
+          recipientName: employee.fullName,
+          subject: dto.subject,
+          body: dto.body,
+        });
+        sent += 1;
+      } catch (error) {
+        // Không log địa chỉ email của nhân viên (CLAUDE.md §Bảo mật).
+        this.logger.warn(
+          `Notification email failed for employee ${employee.id}: ${
+            error instanceof Error ? error.message : 'unknown error'
+          }`,
+        );
+        failed.push(toFailedRecipient(employee, 'SEND_FAILED'));
+      }
+    }
+
+    return { sent, requested: dto.employeeIds.length, failed };
+  }
+
+  /**
+   * `GET /employees/stats` – số liệu cho các thẻ tổng quan của màn hình
+   * `/employees`.
+   *
+   * Mọi con số đều được tính TRONG PHẠM VI của role gọi nó: manager chỉ thấy
+   * thống kê phòng ban mình, đúng như danh sách họ xem được. Nếu không, tổng
+   * số nhân viên toàn công ty sẽ rò rỉ qua một endpoint khác.
+   */
   async findStats(user: AuthenticatedUser): Promise<EmployeeStatsDto> {
     const scope = await this.resolveScope(user);
 

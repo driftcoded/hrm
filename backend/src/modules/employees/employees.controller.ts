@@ -35,6 +35,10 @@ import { DeleteResponseDto } from '@/common/dto/delete-response.dto';
 import { PaginatedResponseDto } from '@/common/dto/pagination-response.dto';
 import { AuthenticatedUser } from '@/common/types/authenticated-user';
 import { UploadedFileLike } from '@/shared/storage/image-file.util';
+import {
+  ChangeDepartmentDto,
+  ChangeDepartmentResultDto,
+} from './dto/change-department.dto';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import {
   AvatarUploadResponseDto,
@@ -45,6 +49,10 @@ import {
 } from './dto/employee-response.dto';
 import { EmployeeStatsDto } from './dto/employee-stats.dto';
 import { FilterEmployeeDto } from './dto/filter-employee.dto';
+import {
+  SendEmployeeEmailDto,
+  SendEmployeeEmailResultDto,
+} from './dto/send-employee-email.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeesService } from './employees.service';
 
@@ -145,6 +153,58 @@ export class EmployeesController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<EmployeeSummaryDto> {
     return this.employeesService.findSummary(id, user);
+  }
+
+  /*
+   * Hai hành động dưới đây chạy trên NHIỀU hồ sơ nên không mang `:id`, và phải
+   * đứng TRƯỚC các route `:id` — nếu không `department` và `email` sẽ rơi vào
+   * `:id` rồi chết ở `ParseIntPipe`.
+   */
+  @Patch('department')
+  @Roles(...EMPLOYEE_WRITE_ROLES)
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Chuyển nhiều nhân viên sang phòng ban khác',
+    description:
+      '`positionId` BẮT BUỘC và phải thuộc `departmentId`: chức vụ gắn cứng với phòng ban, nên đổi phòng mà giữ chức vụ cũ sẽ để lại hồ sơ mang chức vụ của phòng khác.\n\n' +
+      '`orphanedDepartments` liệt kê phòng ban vừa mất trưởng phòng vì lần chuyển này — cảnh báo, không phải lỗi.',
+  })
+  @ApiOkResponse({ type: ChangeDepartmentResultDto })
+  @ApiNotFoundResponse({
+    description: 'EMPLOYEE_NOT_FOUND – không id nào nằm trong phạm vi của bạn',
+  })
+  @ApiUnprocessableEntityResponse({
+    description:
+      'DEPARTMENT_NOT_FOUND / POSITION_NOT_FOUND / POSITION_DEPARTMENT_MISMATCH',
+  })
+  changeDepartment(
+    @Body() dto: ChangeDepartmentDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<ChangeDepartmentResultDto> {
+    return this.employeesService.changeDepartment(dto, user);
+  }
+
+  @Post('email')
+  @Roles(...EMPLOYEE_WRITE_ROLES)
+  @ApiAuth()
+  @ApiOperation({
+    summary: 'Gửi email thông báo cho các nhân viên được chọn',
+    description:
+      'Gửi bằng transport mail của hệ thống — đặt `MAIL_TRANSPORT=smtp` thì dùng đúng cấu hình SMTP admin lưu ở `/settings/mail`.\n\n' +
+      '`body` là văn bản THUẦN và được escape trước khi dựng HTML.\n\n' +
+      'Một người lỗi không chặn cả lô: người còn lại vẫn nhận, ai trượt thì nằm trong `failed` kèm lý do (`NO_EMAIL` — hồ sơ chưa có email, `SEND_FAILED` — SMTP từ chối).\n\n' +
+      '`manager` chỉ gửi được cho nhân viên phòng ban mình quản.',
+  })
+  @ApiOkResponse({ type: SendEmployeeEmailResultDto })
+  @ApiNotFoundResponse({
+    description: 'EMPLOYEE_NOT_FOUND – không id nào nằm trong phạm vi của bạn',
+  })
+  @ApiForbiddenResponse({ description: 'FORBIDDEN – role không được gửi' })
+  sendEmail(
+    @Body() dto: SendEmployeeEmailDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<SendEmployeeEmailResultDto> {
+    return this.employeesService.sendEmail(dto, user);
   }
 
   @Post()

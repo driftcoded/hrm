@@ -339,6 +339,58 @@ export class EmployeesRepository {
     return rows.map((row) => Number(row.id));
   }
 
+  /** Chuyển phòng ban + chức vụ cho nhiều nhân viên trong MỘT câu UPDATE. */
+  async moveToDepartment(
+    ids: number[],
+    departmentId: number,
+    positionId: number,
+  ): Promise<number> {
+    if (ids.length === 0) {
+      return 0;
+    }
+
+    const result = await this.repository
+      .createQueryBuilder()
+      .update(Employee)
+      .set({ departmentId, positionId })
+      .whereInIds(ids)
+      .execute();
+
+    return result.affected ?? 0;
+  }
+
+  /**
+   * Phòng ban do một trong các nhân viên này làm trưởng phòng.
+   *
+   * Chuyển họ đi mà không nói gì thì phòng cũ còn lại một trưởng phòng đứng ở
+   * phòng khác — schema không cấm, nên chỉ có màn hình mới cảnh báo được.
+   */
+  async findDepartmentsManagedBy(
+    employeeIds: number[],
+  ): Promise<Array<{ id: number; name: string; managerId: number }>> {
+    if (employeeIds.length === 0) {
+      return [];
+    }
+
+    const rows = await this.departmentRepository
+      .createQueryBuilder('department')
+      .select('department.id', 'id')
+      .addSelect('department.name', 'name')
+      .addSelect('department.managerId', 'managerId')
+      .where('department.managerId IN (:...employeeIds)', { employeeIds })
+      .getRawMany<{
+        id: string | number;
+        name: string;
+        managerId: string | number;
+      }>();
+
+    return rows.map((row) => ({
+      id: Number(row.id),
+      name: row.name,
+      managerId: Number(row.managerId),
+    }));
+  }
+
   create(data: Partial<Employee>): Promise<Employee> {
     return this.repository.save(this.repository.create(data));
   }
@@ -388,6 +440,18 @@ export class EmployeesRepository {
       employeeId: Number(row.employeeId),
       baseSalary: Number(row.baseSalary),
     }));
+  }
+
+  /** Nhân viên theo danh sách id, đã áp phạm vi phòng ban của người gọi. */
+  findByIds(ids: number[], departmentScope?: number[]): Promise<Employee[]> {
+    if (ids.length === 0) {
+      return Promise.resolve([]);
+    }
+
+    return this.scoped(departmentScope)
+      .andWhere('employee.id IN (:...ids)', { ids })
+      .orderBy('employee.employeeCode', 'ASC')
+      .getMany();
   }
 
   countAll(departmentScope?: number[]): Promise<number> {
