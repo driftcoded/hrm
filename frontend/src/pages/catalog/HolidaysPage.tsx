@@ -372,9 +372,9 @@ export function HolidaysPage() {
         actions={headerActions}
       />
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className={styles.splitLayout}>
         {/* Left: rule definitions table */}
-        <div style={{ flex: '1 1 50%', minWidth: 0 }}>
+        <div className={styles.tablePanel}>
           <DataTableCard<Holiday>
             columns={columns}
             rows={rows}
@@ -432,7 +432,7 @@ export function HolidaysPage() {
         {/* Right: compact calendar */}
         <Card
           variant="borderless"
-          style={{ flex: '1 1 50%', minWidth: 0 }}
+          className={styles.calPanel}
           styles={{ body: { padding: '8px' } }}
         >
           {calendarQuery.isLoading ? (
@@ -460,6 +460,7 @@ export function HolidaysPage() {
                 const displayCount = calViewMode === 'month' ? monthCount : totalCount;
                 return (
                   <div className={styles.calHeader}>
+                    {/* Left: year picker */}
                     <DatePicker
                       picker="year"
                       allowClear={false}
@@ -471,32 +472,36 @@ export function HolidaysPage() {
                       }}
                       className={styles.calYearPicker}
                     />
-                    {calViewMode === 'month' && (
-                      <button
-                        type="button"
-                        className={styles.calNavBtn}
-                        onClick={() => onChange(value.subtract(1, 'month'))}
-                      >
-                        <LeftOutlined />
-                      </button>
-                    )}
-                    <span className={styles.calMonthName}>
-                      {calViewMode === 'month'
-                        ? `Tháng ${m + 1}`
-                        : `Năm ${calendarYear}`}
-                    </span>
-                    <span className={styles.calCount2}>
-                      {displayCount} {t('settings.holidays.entity')}
-                    </span>
-                    {calViewMode === 'month' && (
-                      <button
-                        type="button"
-                        className={styles.calNavBtn}
-                        onClick={() => onChange(value.add(1, 'month'))}
-                      >
-                        <RightOutlined />
-                      </button>
-                    )}
+                    {/* Center: [<] title + count [>] */}
+                    <div className={styles.calNavGroup}>
+                      {calViewMode === 'month' && (
+                        <button
+                          type="button"
+                          className={styles.calNavBtn}
+                          onClick={() => onChange(value.subtract(1, 'month'))}
+                        >
+                          <LeftOutlined />
+                        </button>
+                      )}
+                      <div className={styles.calNavCenter}>
+                        <span className={styles.calMonthName}>
+                          {calViewMode === 'month' ? `Tháng ${m + 1}` : `Năm ${calendarYear}`}
+                        </span>
+                        <span className={styles.calCount2}>
+                          {displayCount} {t('settings.holidays.entity')}
+                        </span>
+                      </div>
+                      {calViewMode === 'month' && (
+                        <button
+                          type="button"
+                          className={styles.calNavBtn}
+                          onClick={() => onChange(value.add(1, 'month'))}
+                        >
+                          <RightOutlined />
+                        </button>
+                      )}
+                    </div>
+                    {/* Right: mode toggles */}
                     <div className={styles.calHeaderRight}>
                       <Segmented
                         size="small"

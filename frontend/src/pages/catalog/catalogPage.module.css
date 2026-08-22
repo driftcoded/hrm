@@ -45,6 +45,24 @@
   margin-bottom: var(--hrm-space-4);
 }
 
+/* --- layout split table / calendar --- */
+
+.splitLayout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.tablePanel {
+  flex: 1 1 50%;
+  min-width: 0;
+}
+
+.calPanel {
+  flex: 1 1 50%;
+  min-width: 0;
+}
+
 /* --- chế độ xem lịch của màn hình Ngày lễ --- */
 
 .calHeader {
@@ -52,7 +70,22 @@
   align-items: center;
   gap: var(--hrm-space-2);
   padding: var(--hrm-space-2) var(--hrm-space-2) var(--hrm-space-3);
-  flex-wrap: wrap;
+}
+
+/* Center group: [<] [title + count] [>] */
+.calNavGroup {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--hrm-space-2);
+}
+
+.calNavCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
 }
 
 .calYearPicker {
@@ -95,7 +128,6 @@
   display: flex;
   align-items: center;
   gap: var(--hrm-space-2);
-  margin-left: auto;
 }
 
 /* legacy alias kept for any other usage */
