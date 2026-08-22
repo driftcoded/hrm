@@ -9,7 +9,6 @@ import type { ReactNode } from 'react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { BirthdayCard } from '@/components/dashboard/BirthdayCard';
 import { ExpiringCard, type ExpiringRow } from '@/components/dashboard/ExpiringCard';
 import { KpiCard, type KpiTone } from '@/components/dashboard/KpiCard';
 import { formatCurrency } from '@/utils/format';
@@ -114,7 +113,7 @@ export function DashboardPage() {
       </Row>
 
       <Row gutter={[16, 16]} className={styles.bottomRow}>
-        <Col xs={24} xl={14}>
+        <Col xs={24}>
           <ExpiringCard
             tabs={[
               {
@@ -139,12 +138,6 @@ export function DashboardPage() {
                 dueDateLabelKey: 'dashboard.expiring.startDate',
               },
             ]}
-          />
-        </Col>
-        <Col xs={24} xl={10}>
-          <BirthdayCard
-            birthdays={empStats?.upcomingBirthdays ?? []}
-            loading={empLoading}
           />
         </Col>
       </Row>
