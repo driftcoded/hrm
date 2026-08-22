@@ -21,13 +21,12 @@ import {
   Tooltip,
   type TableProps,
 } from 'antd';
-import { PlusOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { LeftOutlined, PlusOutlined, RightOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { Solar } from 'lunar-javascript';
 import { useTranslation } from 'react-i18next';
 import { GenerateHolidaysModal } from '@/components/catalog/GenerateHolidaysModal';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { BooleanTag } from '@/components/crud/BooleanTag';
 import { CrudFormModal } from '@/components/crud/CrudFormModal';
 import { DataTableCard } from '@/components/crud/DataTableCard';
 import { RowActions } from '@/components/crud/RowActions';
@@ -96,6 +95,7 @@ export function HolidaysPage() {
   const table = useTableQuery({ sort: 'sortOrder', order: 'asc' });
   const [form] = Form.useForm<HolidayFormValues>();
   const [isGenerateOpen, setGenerateOpen] = useState(false);
+  const [calViewMode, setCalViewMode] = useState<'month' | 'year'>('month');
   const [calendarMode, setCalendarMode] = useState<'solar' | 'lunar'>('solar');
 
   const search = table.filters.search;
@@ -211,17 +211,15 @@ export function HolidaysPage() {
     {
       title: t('settings.holidays.anchor'),
       key: 'anchor',
-      width: 180,
+      width: 200,
       render: (_value, row) => {
         const calLabel = t(`settings.holidays.calendars.${row.calendar}`, {
           defaultValue: row.calendar,
         });
-        const anchor = `${row.month}/${row.day} (${calLabel})`;
-        const offset = row.offsetDays !== 0
-          ? ` ${row.offsetDays > 0 ? '+' : ''}${row.offsetDays}d`
-          : '';
-        const duration = row.durationDays > 1 ? `, ${row.durationDays} ngày` : '';
-        return <span>{anchor}{offset}{duration}</span>;
+        const base = `${row.day}/${row.month} (${calLabel})`;
+        const isDefault = row.offsetDays === 0 && row.durationDays === 1;
+        const extra = isDefault ? '' : ` - ${row.offsetDays}&${row.durationDays} ngày`;
+        return <span>{base}{extra}</span>;
       },
     },
     {
@@ -236,44 +234,6 @@ export function HolidaysPage() {
           <span className={styles.muted}>{t('settings.holidays.everyYear')}</span>
         ) : (
           value
-        ),
-    },
-    {
-      title: t('settings.holidays.isPaid'),
-      dataIndex: 'isPaid',
-      key: 'isPaid',
-      width: 110,
-      render: (value: boolean) => (
-        <BooleanTag
-          value={value}
-          trueLabel={t('settings.holidays.paid')}
-          falseLabel={t('settings.holidays.unpaid')}
-        />
-      ),
-    },
-    {
-      title: t('settings.holidays.isActive'),
-      dataIndex: 'isActive',
-      key: 'isActive',
-      width: 110,
-      render: (value: boolean) => (
-        <BooleanTag
-          value={value}
-          trueLabel={t('settings.status.active')}
-          falseLabel={t('settings.status.inactive')}
-        />
-      ),
-    },
-    {
-      title: t('settings.holidays.note'),
-      dataIndex: 'note',
-      key: 'note',
-      width: 200,
-      render: (value: string | null) =>
-        value ? (
-          <span className={styles.clampedText}>{value}</span>
-        ) : (
-          <span className={styles.muted}>—</span>
         ),
     },
   ];
@@ -426,7 +386,7 @@ export function HolidaysPage() {
             total={total}
             hasFilters={hasFilters}
             emptyAction={addButton}
-            scrollX={1200}
+            scrollX={800}
             onSorterChange={table.setSorter}
             activeSort={{ key: sortKey, order: sortOrder }}
             filters={
@@ -473,33 +433,8 @@ export function HolidaysPage() {
         <Card
           variant="borderless"
           style={{ flex: '1 1 50%', minWidth: 0 }}
-          styles={{ body: { padding: '12px 8px' } }}
+          styles={{ body: { padding: '8px' } }}
         >
-          <div className={styles.calendarBar} style={{ marginBottom: 8 }}>
-            <DatePicker
-              picker="year"
-              allowClear={false}
-              size="small"
-              value={dayjs().year(calendarYear)}
-              onChange={(value) =>
-                table.setFilter('year', value ? value.year() : undefined)
-              }
-              aria-label={t('settings.holidays.year')}
-            />
-            <Segmented
-              size="small"
-              value={calendarMode}
-              onChange={(v) => setCalendarMode(v as 'solar' | 'lunar')}
-              options={[
-                { label: 'Dương', value: 'solar' },
-                { label: 'Âm', value: 'lunar' },
-              ]}
-            />
-            <span className={styles.calendarCount}>
-              {calendarQuery.data?.length ?? 0} {t('settings.holidays.entity')}
-            </span>
-          </div>
-
           {calendarQuery.isLoading ? (
             <Skeleton active paragraph={{ rows: 6 }} />
           ) : (calendarQuery.data?.length ?? 0) === 0 ? (
@@ -509,15 +444,87 @@ export function HolidaysPage() {
             />
           ) : (
             <Calendar
-              key={`${calendarYear}-${calendarMode}`}
+              key={`${calendarYear}-${calendarMode}-${calViewMode}`}
               fullscreen={false}
+              mode={calViewMode}
               validRange={[
                 dayjs().year(calendarYear).startOf('year'),
                 dayjs().year(calendarYear).endOf('year'),
               ]}
-              {...(calendarMode === 'solar'
-                ? { cellRender: renderSolarCell }
-                : { fullCellRender: renderLunarCell })}
+              headerRender={({ value, onChange }) => {
+                const m = value.month();
+                const monthCount = (calendarQuery.data ?? []).filter(
+                  (h) => dayjs(h.holidayDate).month() === m,
+                ).length;
+                const totalCount = calendarQuery.data?.length ?? 0;
+                const displayCount = calViewMode === 'month' ? monthCount : totalCount;
+                return (
+                  <div className={styles.calHeader}>
+                    <DatePicker
+                      picker="year"
+                      allowClear={false}
+                      size="small"
+                      value={dayjs().year(calendarYear)}
+                      onChange={(v) => {
+                        table.setFilter('year', v ? v.year() : undefined);
+                        if (v) onChange(value.year(v.year()));
+                      }}
+                      className={styles.calYearPicker}
+                    />
+                    {calViewMode === 'month' && (
+                      <button
+                        type="button"
+                        className={styles.calNavBtn}
+                        onClick={() => onChange(value.subtract(1, 'month'))}
+                      >
+                        <LeftOutlined />
+                      </button>
+                    )}
+                    <span className={styles.calMonthName}>
+                      {calViewMode === 'month'
+                        ? `Tháng ${m + 1}`
+                        : `Năm ${calendarYear}`}
+                    </span>
+                    <span className={styles.calCount2}>
+                      {displayCount} {t('settings.holidays.entity')}
+                    </span>
+                    {calViewMode === 'month' && (
+                      <button
+                        type="button"
+                        className={styles.calNavBtn}
+                        onClick={() => onChange(value.add(1, 'month'))}
+                      >
+                        <RightOutlined />
+                      </button>
+                    )}
+                    <div className={styles.calHeaderRight}>
+                      <Segmented
+                        size="small"
+                        value={calendarMode}
+                        onChange={(v) => setCalendarMode(v as 'solar' | 'lunar')}
+                        options={[
+                          { label: 'Dương', value: 'solar' },
+                          { label: 'Âm', value: 'lunar' },
+                        ]}
+                      />
+                      <Segmented
+                        size="small"
+                        value={calViewMode}
+                        onChange={(v) => setCalViewMode(v as 'month' | 'year')}
+                        options={[
+                          { label: 'Tháng', value: 'month' },
+                          { label: 'Năm', value: 'year' },
+                        ]}
+                      />
+                    </div>
+                  </div>
+                );
+              }}
+              {...(calViewMode === 'month'
+                ? calendarMode === 'solar'
+                  ? { cellRender: renderSolarCell }
+                  : { fullCellRender: renderLunarCell }
+                : {})}
             />
           )}
         </Card>

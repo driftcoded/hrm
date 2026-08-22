@@ -47,14 +47,58 @@
 
 /* --- chế độ xem lịch của màn hình Ngày lễ --- */
 
-.calendarBar {
+.calHeader {
   display: flex;
   align-items: center;
-  gap: var(--hrm-space-3);
-  margin-bottom: var(--hrm-space-3);
+  gap: var(--hrm-space-2);
+  padding: var(--hrm-space-2) var(--hrm-space-2) var(--hrm-space-3);
   flex-wrap: wrap;
 }
 
+.calYearPicker {
+  width: 90px;
+}
+
+.calNavBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--hrm-color-border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--hrm-color-text);
+  cursor: pointer;
+  font-size: 11px;
+  flex: 0 0 24px;
+  transition: background 0.15s;
+}
+
+.calNavBtn:hover {
+  background: var(--hrm-color-fill-secondary);
+}
+
+.calMonthName {
+  font-weight: 600;
+  font-size: var(--hrm-font-size-body);
+  color: var(--hrm-color-text);
+}
+
+.calCount2 {
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+}
+
+.calHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  margin-left: auto;
+}
+
+/* legacy alias kept for any other usage */
 .calendarCount {
   color: var(--hrm-color-text-tertiary);
   font-size: var(--hrm-font-size-caption);
