@@ -123,24 +123,38 @@
       "departments": "Phòng ban",
       "departmentsHint": "Số phòng ban đang hoạt động.",
       "activeEmployees": "Đang làm việc",
-      "activeEmployeesHint": "Nhân viên có trạng thái đang làm việc hoặc thử việc.",
-      "payrollCost": "Chi phí lương tháng này",
-      "payrollCostHint": "Tổng chi phí lương của kỳ lương gần nhất, gồm phụ cấp và các khoản công ty đóng."
+      "activeEmployeesHint": "Nhân viên đang làm việc (không tính thử việc và nghỉ).",
+      "hiredLast30Days": "Mới tuyển 30 ngày",
+      "hiredLast30DaysHint": "Số nhân viên được tuyển trong 30 ngày gần nhất.",
+      "payrollCost": "Lương ròng tháng này",
+      "payrollCostHint": "Tổng lương thực nhận (net) của kỳ lương hiện tại. Hiển thị '—' khi chưa có bảng lương."
     },
     "expiring": {
       "title": "Sắp hết hạn / Cần xử lý",
-      "hint": "Các mốc thời hạn cần xử lý trong 30 ngày tới.",
+      "hint": "Các mốc thời hạn cần xử lý trong thời gian tới.",
       "employee": "Nhân viên",
       "position": "Vị trí",
       "department": "Phòng ban",
       "dueDate": "Ngày hết hạn",
+      "startDate": "Ngày bắt đầu",
       "daysLeft": "Còn lại",
       "days": "{{count}} ngày",
+      "employees": "nhân viên",
+      "inWindow": "trong {{count}} ngày tới",
+      "viewEmployees": "Xem danh sách nhân viên",
       "tabs": {
         "probation": "Thử việc",
         "contract": "Hợp đồng",
         "leave": "Nghỉ phép chờ duyệt"
       }
+    },
+    "birthday": {
+      "title": "Sinh nhật sắp tới",
+      "hint": "Sinh nhật nhân viên trong thời gian tới.",
+      "today": "Hôm nay",
+      "tomorrow": "Ngày mai",
+      "inDays": "{{count}} ngày nữa",
+      "empty": "Không có sinh nhật trong thời gian tới"
     },
     "activity": {
       "title": "Hoạt động gần đây",
@@ -1083,6 +1097,21 @@
       "searching": "Đang tìm…",
       "empty": "Không tìm thấy nhân viên nào",
       "error": "Không tải được danh sách nhân viên"
+    },
+    "email": {
+      "title": "Gửi email cho nhân viên",
+      "send": "Gửi",
+      "recipients": "Email sẽ gửi tới {{count}} nhân viên đang chọn",
+      "subject": "Tiêu đề",
+      "subjectRequired": "Nhập tiêu đề email.",
+      "subjectLength": "Tiêu đề từ 3 đến 200 ký tự.",
+      "body": "Nội dung",
+      "bodyHint": "Văn bản thuần. Để trống một dòng để ngắt đoạn.",
+      "bodyRequired": "Nhập nội dung email.",
+      "bodyLength": "Nội dung từ 10 đến 5000 ký tự.",
+      "success": "Đã gửi email cho {{count}} nhân viên.",
+      "partialTitle": "Đã gửi {{sent}}/{{total}} email",
+      "partialDetail": "Chưa gửi được cho: {{names}}. Kiểm tra lại địa chỉ email của họ hoặc cấu hình SMTP."
     }
   },
   "attendance": {

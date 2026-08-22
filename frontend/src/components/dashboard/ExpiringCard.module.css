@@ -54,3 +54,11 @@
   margin-top: var(--hrm-space-4);
   text-align: center;
 }
+
+.countOnly {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  padding: var(--hrm-space-6) 0;
+}

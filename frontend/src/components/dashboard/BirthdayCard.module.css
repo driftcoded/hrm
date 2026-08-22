@@ -1,0 +1,42 @@
+.card {
+  border: var(--hrm-card-border);
+  border-radius: var(--hrm-card-radius);
+  height: 100%;
+}
+
+.cardTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hrm-space-1);
+}
+
+.hintButton {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--hrm-color-text-tertiary);
+  font-size: var(--hrm-font-size-caption);
+  cursor: help;
+  line-height: 1;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hrm-space-2);
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-2);
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

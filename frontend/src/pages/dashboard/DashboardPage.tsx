@@ -1,101 +1,116 @@
-import { Alert, Col, DatePicker, Row } from 'antd';
+import { Col, Row } from 'antd';
 import {
-  ApartmentOutlined,
   DollarCircleOutlined,
   TeamOutlined,
+  UserAddOutlined,
   UserSwitchOutlined,
 } from '@ant-design/icons';
 import type { ReactNode } from 'react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { ActivityCard } from '@/components/dashboard/ActivityCard';
-import { ExpiringCard } from '@/components/dashboard/ExpiringCard';
+import { BirthdayCard } from '@/components/dashboard/BirthdayCard';
+import { ExpiringCard, type ExpiringRow } from '@/components/dashboard/ExpiringCard';
 import { KpiCard, type KpiTone } from '@/components/dashboard/KpiCard';
-import { formatCurrency, formatPercent } from '@/utils/format';
-import {
-  EXPIRING_CONTRACTS,
-  EXPIRING_PROBATION,
-  KPIS,
-  PENDING_LEAVE,
-  RECENT_ACTIVITY,
-} from './mockData';
+import { formatCurrency } from '@/utils/format';
+import { useEmployeeStats } from '@/hooks/useEmployees';
+import { usePayrollSummary } from '@/hooks/usePayroll';
+import { useLeaveRequests } from '@/hooks/useLeave';
 import styles from './DashboardPage.module.css';
 
-const { RangePicker } = DatePicker;
+interface KpiDef {
+  key: string;
+  value: number | null;
+  icon: ReactNode;
+  tone: KpiTone;
+  loading: boolean;
+  currency?: boolean;
+}
 
-/** Icon + tint per KPI, keyed by the `key` in mockData. */
-const KPI_VISUALS: Record<string, { icon: ReactNode; tone: KpiTone }> = {
-  totalEmployees: { icon: <TeamOutlined />, tone: 'blue' },
-  departments: { icon: <ApartmentOutlined />, tone: 'green' },
-  activeEmployees: { icon: <UserSwitchOutlined />, tone: 'cyan' },
-  payrollCost: { icon: <DollarCircleOutlined />, tone: 'purple' },
-};
-
-/**
- * HR overview dashboard.
- *
- * NOTE: every figure on this page comes from `mockData.ts` — none of the
- * required endpoints exist yet (employees is Giai đoạn 3, attendance 4, leave 5,
- * payroll 6, and the dashboard itself is 8.2). The banner below says so on
- * screen, so nobody mistakes these for live numbers. Charts are deliberately
- * out of scope for now.
- */
 export function DashboardPage() {
   const { t } = useTranslation();
+  const now = dayjs();
+  const currentYear = now.year();
+  const currentMonth = now.month() + 1;
 
-  const currency = (value: number) => formatCurrency(value);
+  const { data: empStats, isLoading: empLoading } = useEmployeeStats();
+  const { data: payrollSummary, isLoading: payrollLoading } = usePayrollSummary(
+    currentYear,
+    currentMonth,
+  );
+  const { data: pendingLeave, isLoading: leaveLoading } = useLeaveRequests({
+    status: 'pending',
+    limit: 5,
+    sort: 'startDate',
+    order: 'asc',
+  });
+
+  const kpis: KpiDef[] = [
+    {
+      key: 'totalEmployees',
+      value: empStats?.total ?? null,
+      icon: <TeamOutlined />,
+      tone: 'blue',
+      loading: empLoading,
+    },
+    {
+      key: 'activeEmployees',
+      value: empStats?.byStatus.active ?? null,
+      icon: <UserSwitchOutlined />,
+      tone: 'green',
+      loading: empLoading,
+    },
+    {
+      key: 'hiredLast30Days',
+      value: empStats?.hiredLast30Days ?? null,
+      icon: <UserAddOutlined />,
+      tone: 'cyan',
+      loading: empLoading,
+    },
+    {
+      key: 'payrollCost',
+      value: payrollSummary?.totalNet ?? null,
+      icon: <DollarCircleOutlined />,
+      tone: 'purple',
+      loading: payrollLoading,
+      currency: true,
+    },
+  ];
+
+  const pendingLeaveRows: ExpiringRow[] = (pendingLeave?.items ?? []).map((req) => ({
+    id: req.id,
+    fullName: req.employee?.fullName ?? '',
+    position: req.leaveType?.name ?? null,
+    department: null,
+    dueDate: req.startDate,
+    daysLeft: Math.max(0, dayjs(req.startDate).diff(now, 'day')),
+  }));
 
   return (
     <>
-      <PageHeader
-        title={t('dashboard.title')}
-        subtitle={t('dashboard.subtitle')}
-        actions={
-          <RangePicker
-            format="DD/MM/YYYY"
-            // Placeholder range: this filter has nothing to filter until the
-            // dashboard is wired to real endpoints.
-            defaultValue={[dayjs().startOf('month'), dayjs()]}
-            allowClear={false}
-          />
-        }
-      />
-
-      <Alert
-        className={styles.notice}
-        type="info"
-        showIcon
-        title={t('dashboard.placeholderNotice')}
-      />
+      <PageHeader title={t('dashboard.title')} subtitle={t('dashboard.subtitle')} />
 
       <Row gutter={[16, 16]}>
-        {KPIS.map(({ key, value, delta, deltaKind }) => {
-          const visual = KPI_VISUALS[key];
-          const formattedValue = key === 'payrollCost' ? currency(value) : value.toLocaleString('vi-VN');
-          const formattedDelta =
-            delta === null
-              ? null
-              : t('dashboard.kpi.deltaVsLastMonth', {
-                  value:
-                    deltaKind === 'percent'
-                      ? formatPercent(delta)
-                      : delta.toLocaleString('vi-VN'),
-                });
-
-          return (
-            <Col key={key} xs={24} sm={12} xl={6}>
-              <KpiCard
-                icon={visual?.icon}
-                tone={visual?.tone ?? 'blue'}
-                label={t(`dashboard.kpi.${key}`)}
-                value={formattedValue}
-                delta={formattedDelta}
-                hint={t(`dashboard.kpi.${key}Hint`)}
-              />
-            </Col>
-          );
-        })}
+        {kpis.map(({ key, value, icon, tone, loading, currency }) => (
+          <Col key={key} xs={24} sm={12} xl={6}>
+            <KpiCard
+              icon={icon}
+              tone={tone}
+              label={t(`dashboard.kpi.${key}`)}
+              value={
+                loading
+                  ? '…'
+                  : value === null
+                    ? '—'
+                    : currency
+                      ? formatCurrency(value)
+                      : value.toLocaleString('vi-VN')
+              }
+              delta={null}
+              hint={t(`dashboard.kpi.${key}Hint`)}
+            />
+          </Col>
+        ))}
       </Row>
 
       <Row gutter={[16, 16]} className={styles.bottomRow}>
@@ -105,25 +120,35 @@ export function DashboardPage() {
               {
                 key: 'probation',
                 labelKey: 'dashboard.expiring.tabs.probation',
-                rows: EXPIRING_PROBATION,
+                countOnly: empStats?.probationEndingSoon,
+                windowDays: empStats?.windowDays,
+                loading: empLoading,
               },
               {
                 key: 'contract',
                 labelKey: 'dashboard.expiring.tabs.contract',
-                rows: EXPIRING_CONTRACTS,
+                countOnly: empStats?.contractsExpiringSoon,
+                windowDays: empStats?.windowDays,
+                loading: empLoading,
               },
               {
                 key: 'leave',
                 labelKey: 'dashboard.expiring.tabs.leave',
-                rows: PENDING_LEAVE,
+                rows: pendingLeaveRows,
+                loading: leaveLoading,
+                dueDateLabelKey: 'dashboard.expiring.startDate',
               },
             ]}
           />
         </Col>
         <Col xs={24} xl={10}>
-          <ActivityCard items={RECENT_ACTIVITY} />
+          <BirthdayCard
+            birthdays={empStats?.upcomingBirthdays ?? []}
+            loading={empLoading}
+          />
         </Col>
       </Row>
+
     </>
   );
 }

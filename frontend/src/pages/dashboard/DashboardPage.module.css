@@ -1,7 +1,11 @@
-.notice {
-  margin-bottom: var(--hrm-grid-gap);
-}
-
 .bottomRow {
   margin-top: var(--hrm-grid-gap);
+}
+
+.attendanceHint {
+  display: flex;
+  align-items: center;
+  gap: var(--hrm-space-1);
+  font-size: var(--hrm-font-size-caption);
+  color: var(--hrm-color-text-tertiary);
 }

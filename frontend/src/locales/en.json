@@ -123,24 +123,38 @@
       "departments": "Departments",
       "departmentsHint": "Number of active departments.",
       "activeEmployees": "Currently working",
-      "activeEmployeesHint": "Employees whose status is working or on probation.",
-      "payrollCost": "This month's payroll cost",
-      "payrollCostHint": "Total payroll cost for the latest period, including allowances and employer contributions."
+      "activeEmployeesHint": "Employees with an active (working) status, excluding probation and leave.",
+      "hiredLast30Days": "Hired last 30 days",
+      "hiredLast30DaysHint": "Number of employees hired in the past 30 days.",
+      "payrollCost": "Net payroll this month",
+      "payrollCostHint": "Total net salary for the current payroll period. Shows '—' when no payroll has been run."
     },
     "expiring": {
       "title": "Expiring / needs action",
-      "hint": "Deadlines that need attention in the next 30 days.",
+      "hint": "Deadlines that need attention in the coming period.",
       "employee": "Employee",
       "position": "Position",
       "department": "Department",
       "dueDate": "Due date",
+      "startDate": "Start date",
       "daysLeft": "Remaining",
       "days": "{{count}} days",
+      "employees": "employees",
+      "inWindow": "within {{count}} days",
+      "viewEmployees": "View employee list",
       "tabs": {
         "probation": "Probation",
         "contract": "Contracts",
         "leave": "Leave awaiting approval"
       }
+    },
+    "birthday": {
+      "title": "Upcoming birthdays",
+      "hint": "Employee birthdays in the coming period.",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "inDays": "in {{count}} days",
+      "empty": "No upcoming birthdays"
     },
     "activity": {
       "title": "Recent activity",
@@ -1083,6 +1097,21 @@
       "searching": "Searching…",
       "empty": "No employee found",
       "error": "Could not load the employee list"
+    },
+    "email": {
+      "title": "Email employees",
+      "send": "Send",
+      "recipients": "This will go to the {{count}} selected employees",
+      "subject": "Subject",
+      "subjectRequired": "Enter a subject.",
+      "subjectLength": "The subject must be 3 to 200 characters.",
+      "body": "Message",
+      "bodyHint": "Plain text. Leave a blank line to start a paragraph.",
+      "bodyRequired": "Enter a message.",
+      "bodyLength": "The message must be 10 to 5000 characters.",
+      "success": "Emailed {{count}} employees.",
+      "partialTitle": "Sent {{sent}} of {{total}}",
+      "partialDetail": "Could not reach: {{names}}. Check their email address or the SMTP settings."
     }
   },
   "attendance": {
