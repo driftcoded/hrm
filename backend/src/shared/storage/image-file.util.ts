@@ -6,8 +6,8 @@ export interface ImageKind {
 }
 
 /**
- * Ảnh avatar được chấp nhận (api-spec.md §3 POST /employees/:id/avatar:
- * JPEG/PNG/WEBP, tối đa 2MB).
+ * Accepted avatar image types (api-spec.md §3 POST /employees/:id/avatar:
+ * JPEG/PNG/WEBP, max 2MB).
  */
 export const ALLOWED_AVATAR_MIMES: readonly string[] = [
   'image/jpeg',
@@ -20,26 +20,25 @@ const PNG_SIGNATURE = Buffer.from([
 ]);
 
 /**
- * Nhận dạng ảnh bằng MAGIC BYTES chứ không tin `originalname` hay `mimetype`
- * do client gửi lên (PLAN §8.1 – "validate magic bytes server-side, không chỉ
- * extension"): đổi tên `shell.php` thành `avatar.jpg` vẫn bị chặn.
+ * Detects image type from MAGIC BYTES rather than trusting the
+ * client-supplied `originalname` or `mimetype` (PLAN §8.1 – "validate magic
+ * bytes server-side, not just the extension"): renaming `shell.php` to
+ * `avatar.jpg` is still rejected.
  */
 export function detectImageKind(buffer: Buffer): ImageKind | null {
   if (buffer.length < 12) {
     return null;
   }
 
-  // JPEG: FF D8 FF
   if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
     return { mime: 'image/jpeg', extension: 'jpg' };
   }
 
-  // PNG: 89 50 4E 47 0D 0A 1A 0A
   if (buffer.subarray(0, 8).equals(PNG_SIGNATURE)) {
     return { mime: 'image/png', extension: 'png' };
   }
 
-  // WEBP: "RIFF" + 4 byte kích thước + "WEBP"
+  // WEBP container: "RIFF" tag + 4-byte chunk size (skipped) + "WEBP" tag
   if (
     buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
     buffer.subarray(8, 12).toString('ascii') === 'WEBP'
@@ -63,11 +62,12 @@ export interface ValidatedAvatar {
 }
 
 /**
- * Kiểm tra file upload là ảnh hợp lệ và không vượt quá dung lượng cho phép.
+ * Validates that an uploaded file is a valid image within the allowed size.
  *
- * Ném 400 với `error.code` riêng (api-spec.md §21 chưa đặt tên nhóm này) thay
- * vì VALIDATION_ERROR: lỗi nằm ở phần multipart chứ không ở field JSON nào nên
- * không dựng được `details[].field` cho đúng format.
+ * Throws 400 with a dedicated `error.code` (api-spec.md §21 does not name
+ * this group yet) instead of VALIDATION_ERROR: the failure is in the
+ * multipart part, not in a JSON field, so there's no `details[].field` to
+ * build in the standard format.
  */
 export function assertValidAvatar(
   file: UploadedFileLike | undefined,
@@ -80,8 +80,9 @@ export function assertValidAvatar(
     });
   }
 
-  // `file.size` do multer đếm, `buffer.length` là sự thật – lấy giá trị lớn hơn
-  // để client không lách bằng cách khai báo size nhỏ.
+  // `file.size` is what multer reports, `buffer.length` is the ground truth –
+  // use whichever is larger so a client can't bypass the limit by declaring
+  // a smaller size.
   const size = Math.max(file.size ?? 0, file.buffer.length);
 
   if (size > maxBytes) {
@@ -105,9 +106,10 @@ export function assertValidAvatar(
 }
 
 /**
- * Bản tổng quát của `assertValidAvatar` cho các ảnh hệ thống khác (logo,
- * favicon): cùng luật (magic bytes, JPEG/PNG/WEBP, giới hạn dung lượng) nhưng
- * mã lỗi/tên field khác `AVATAR_*` cho đúng ngữ cảnh gọi.
+ * Generalized version of `assertValidAvatar` for other system images (logo,
+ * favicon): same rules (magic bytes, JPEG/PNG/WEBP, size limit) but with
+ * caller-specific error codes/field names instead of the hardcoded
+ * `AVATAR_*` prefix.
  */
 export function assertValidImage(
   file: UploadedFileLike | undefined,

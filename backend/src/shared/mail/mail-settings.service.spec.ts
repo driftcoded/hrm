@@ -69,7 +69,7 @@ describe('MailSettingsService', () => {
   });
 
   describe('getForAdmin', () => {
-    it('KHÔNG BAO GIỜ trả smtpPasswordEncrypted, chỉ hasPassword', async () => {
+    it('never returns smtpPasswordEncrypted, only hasPassword', async () => {
       repository.get.mockResolvedValueOnce(
         makeRow({ smtpPasswordEncrypted: 'ciphertext-xyz' }),
       );
@@ -81,7 +81,7 @@ describe('MailSettingsService', () => {
       expect(JSON.stringify(result)).not.toContain('ciphertext-xyz');
     });
 
-    it('hasPassword = false khi chưa cấu hình', async () => {
+    it('hasPassword is false when not yet configured', async () => {
       const result = await service.getForAdmin();
 
       expect(result.hasPassword).toBe(false);
@@ -89,7 +89,7 @@ describe('MailSettingsService', () => {
   });
 
   describe('update', () => {
-    it('có smtpPassword mới → mã hoá rồi ghi smtpPasswordEncrypted', async () => {
+    it('encrypts and writes smtpPasswordEncrypted when a new smtpPassword is given', async () => {
       await service.update(
         {
           smtpHost: 'smtp.example.com',
@@ -107,7 +107,7 @@ describe('MailSettingsService', () => {
       expect(patch.updatedBy).toBe(9);
     });
 
-    it('bỏ trống smtpPassword → KHÔNG đụng tới smtpPasswordEncrypted đã lưu', async () => {
+    it('leaves the stored smtpPasswordEncrypted untouched when smtpPassword is blank', async () => {
       await service.update(
         {
           smtpHost: 'smtp.example.com',
@@ -122,7 +122,7 @@ describe('MailSettingsService', () => {
       expect(patch).not.toHaveProperty('smtpPasswordEncrypted');
     });
 
-    it('smtpUsername/smtpFromName rỗng → lưu null, không lưu chuỗi rỗng', async () => {
+    it('saves null instead of an empty string when smtpUsername/smtpFromName is blank', async () => {
       await service.update(
         {
           smtpHost: 'smtp.example.com',
@@ -142,14 +142,14 @@ describe('MailSettingsService', () => {
   });
 
   describe('sendTest', () => {
-    it('chưa cấu hình đủ (thiếu host) → 422 MAIL_SETTINGS_INCOMPLETE, không gọi SMTP', async () => {
+    it('returns 422 MAIL_SETTINGS_INCOMPLETE and does not call SMTP when configuration is incomplete (missing host)', async () => {
       await expect(service.sendTest('a@b.com')).rejects.toMatchObject({
         response: { code: 'MAIL_SETTINGS_INCOMPLETE' },
       });
       expect(mockedSendSmtpMessage).not.toHaveBeenCalled();
     });
 
-    it('đã cấu hình → gửi bằng cấu hình ĐÃ LƯU, giải mã đúng mật khẩu', async () => {
+    it('sends using the STORED configuration and decrypts the password correctly once configured', async () => {
       const encrypted = encryptSecret('real-password', ENCRYPTION_KEY);
       repository.get.mockResolvedValueOnce(
         makeRow({
@@ -171,7 +171,7 @@ describe('MailSettingsService', () => {
       );
     });
 
-    it('SMTP server từ chối (vd sai mật khẩu) → 422 MAIL_TEST_FAILED với message thật, KHÔNG rơi vào 500', async () => {
+    it('returns 422 MAIL_TEST_FAILED with the real message (not a 500) when the SMTP server rejects (e.g. wrong password)', async () => {
       repository.get.mockResolvedValueOnce(
         makeRow({
           smtpHost: 'smtp.example.com',

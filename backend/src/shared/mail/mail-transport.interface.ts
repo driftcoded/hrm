@@ -7,15 +7,15 @@ export interface MailMessage {
 
 export interface MailSendResult {
   transport: 'dev' | 'smtp';
-  /** Đường dẫn file HTML (transport dev) hoặc messageId trả về từ SMTP server. */
+  /** HTML file path (dev transport) or the messageId returned by the SMTP server. */
   reference: string;
 }
 
 /**
- * Transport gửi mail. Có 2 driver:
- *  - `DevFileMailTransport`: ghi ra file HTML trong logs/mail (dev/test)
- *  - `SmtpMailTransport`: gửi thật qua SMTP, cấu hình đọc từ
- *    `system_mail_settings` (DB, admin cấu hình qua `/settings/mail`)
+ * Mail-sending transport. There are 2 drivers:
+ *  - `DevFileMailTransport`: writes an HTML file under logs/mail (dev/test)
+ *  - `SmtpMailTransport`: sends for real via SMTP, config read from
+ *    `system_mail_settings` (DB, configured by an admin via `/settings/mail`)
  */
 export interface MailTransport {
   readonly kind: 'dev' | 'smtp';

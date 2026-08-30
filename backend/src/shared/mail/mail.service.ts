@@ -15,14 +15,14 @@ export class MailService {
     private readonly configService: ConfigService,
   ) {}
 
-  /** Transport đang dùng – hữu ích cho health check / test. */
+  /** The transport currently in use – useful for health checks / tests. */
   get transportKind(): 'dev' | 'smtp' {
     return this.transport.kind;
   }
 
   /**
-   * Gửi email chứa link đặt lại mật khẩu.
-   * KHÔNG log rawToken / resetUrl (CLAUDE.md §Bảo mật) – chỉ log recipient + reference.
+   * Sends the password reset email.
+   * Do NOT log rawToken / resetUrl (CLAUDE.md §Security) – only log recipient + reference.
    */
   async sendResetPasswordEmail(params: {
     to: string;
@@ -54,11 +54,12 @@ export class MailService {
   }
 
   /**
-   * Gửi email thông báo do người dùng soạn.
+   * Sends a user-composed notification email.
    *
-   * Đi qua `MAIL_TRANSPORT` như mọi email khác: đặt `smtp` thì gửi thật bằng
-   * cấu hình admin lưu ở `/settings/mail`, để `dev` thì ghi ra file. Không gọi
-   * thẳng SMTP để một môi trường dev không bất ngờ bắn mail thật cho nhân viên.
+   * Goes through `MAIL_TRANSPORT` like every other email: `smtp` sends for
+   * real using the config an admin saved at `/settings/mail`, `dev` writes
+   * to a file. Never calls SMTP directly, so a dev environment can't
+   * accidentally fire real emails at employees.
    */
   async sendNotificationEmail(params: {
     to: string;

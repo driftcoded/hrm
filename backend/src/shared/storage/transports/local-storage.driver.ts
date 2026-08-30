@@ -7,11 +7,12 @@ import {
 } from '../storage-driver.interface';
 
 /**
- * Driver dev: ghi file xuống đĩa thay vì S3 (giống cách MailModule dùng
- * DevFileMailTransport khi chưa có AWS credentials).
+ * Dev-mode driver: writes files to local disk instead of S3 (mirrors how
+ * MailModule falls back to DevFileMailTransport when no AWS credentials are
+ * configured).
  *
- * URL trả về là đường dẫn tương đối (`/uploads/avatars/…`) để frontend gọi
- * được qua Vite proxy / Nginx mà không cần biết host của backend.
+ * Returns a relative URL (`/uploads/avatars/…`) so the frontend can reach it
+ * through the Vite proxy / Nginx without needing to know the backend's host.
  */
 export class LocalStorageDriver implements StorageDriver {
   readonly kind = 'local' as const;
@@ -43,8 +44,9 @@ export class LocalStorageDriver implements StorageDriver {
   }
 
   /**
-   * Chặn path traversal: key do service dựng nên nhưng vẫn kiểm tra lại —
-   * `../../.env` không bao giờ được thoát khỏi thư mục gốc.
+   * Blocks path traversal: the key is built by the service layer, but is
+   * still re-validated here — `../../.env` must never be able to escape the
+   * storage root.
    */
   private resolveKey(key: string): string {
     const filePath = resolve(join(this.rootDir, key));

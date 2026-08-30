@@ -18,9 +18,10 @@ import { UpdateMailSettingsDto } from './dto/update-mail-settings.dto';
 import { MailSettingsService } from './mail-settings.service';
 
 /**
- * CHỈ `admin` được xem/sửa (chứa mật khẩu SMTP, dù đã mã hoá trong DB) —
- * nhạy cảm hơn hẳn master data thường nên không dùng `MASTER_DATA_WRITE_ROLES`.
- * Không có `@Public()` ở đâu trong controller này.
+ * ONLY `admin` may view/edit this (it holds the SMTP password, even though
+ * it's encrypted in the DB) — far more sensitive than regular master data,
+ * so `MASTER_DATA_WRITE_ROLES` is not used here.
+ * No `@Public()` anywhere in this controller.
  */
 @ApiTags('Settings')
 @Controller('settings/mail')

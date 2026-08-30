@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
- * Shape trả về của `GET /settings/mail` — KHÔNG BAO GIỜ chứa mật khẩu thật
- * hay ciphertext, chỉ `hasPassword` để frontend biết đã cấu hình hay chưa.
+ * Response shape for `GET /settings/mail` — NEVER contains the real password
+ * or its ciphertext, only `hasPassword` so the frontend knows whether it's configured.
  */
 export class MailSettingsResponseDto {
   @ApiProperty({ example: 'smtp.gmail.com', nullable: true, type: String })

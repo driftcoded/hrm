@@ -1,5 +1,5 @@
 export interface ResetPasswordTemplateData {
-  /** Tên hiển thị người nhận (fullName của nhân viên hoặc username). */
+  /** Recipient's display name (employee's fullName, or their username). */
   recipientName: string;
   resetUrl: string;
   expiresInMinutes: number;
@@ -12,11 +12,12 @@ export interface RenderedMailTemplate {
 }
 
 /**
- * Template email "Đặt lại mật khẩu" (docs/architecture.md §11.1).
+ * "Reset password" email template (docs/architecture.md §11.1).
  *
- * Kiến trúc gốc đề xuất Handlebars (.hbs); ở đây dùng hàm TypeScript trả về
- * HTML + text để không thêm dependency và để template được type-check.
- * Khi số lượng email nhiều lên có thể chuyển sang .hbs mà không đổi MailService.
+ * The original architecture doc proposes Handlebars (.hbs); this uses a
+ * plain TypeScript function returning HTML + text instead, to avoid adding a
+ * dependency and to get the template type-checked. Can move to .hbs later,
+ * once email volume justifies it, without changing MailService.
  */
 export function renderResetPasswordEmail(
   data: ResetPasswordTemplateData,

@@ -3,8 +3,8 @@ import { CacheService } from './cache.service';
 import { InMemoryCacheService } from './in-memory-cache.service';
 
 /**
- * Global để mọi module inject `CacheService` mà không phải import lại.
- * Đổi driver (ví dụ sang Redis) chỉ cần sửa `useClass` ở đây.
+ * Global so every module can inject `CacheService` without re-importing it.
+ * Swapping the driver (e.g. to Redis) only requires changing `useClass` here.
  */
 @Global()
 @Module({

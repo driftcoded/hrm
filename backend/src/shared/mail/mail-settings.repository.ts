@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SystemMailSettings } from './entities/system-mail-settings.entity';
 
-/** Bảng chỉ có 1 dòng — id luôn = 1 (ràng buộc CHECK ở migration). */
+/** The table only ever has 1 row — id is always = 1 (enforced by a CHECK constraint in the migration). */
 const SETTINGS_ROW_ID = 1;
 
-/** Chỉ TypeORM query (CLAUDE.md §Kiến trúc module). */
+/** TypeORM queries only (CLAUDE.md §Module architecture). */
 @Injectable()
 export class MailSettingsRepository {
   constructor(

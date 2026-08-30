@@ -1,7 +1,7 @@
 export interface StoredFile {
-  /** Đường dẫn tương đối bên trong kho (key S3 / path đĩa). */
+  /** Relative path within the store (S3 key / disk path). */
   key: string;
-  /** URL dùng được ngay ở frontend (`employees.avatar_url`). */
+  /** URL usable directly by the frontend (`employees.avatar_url`). */
   url: string;
   driver: 'local' | 's3';
 }
@@ -13,12 +13,13 @@ export interface PutObjectParams {
 }
 
 /**
- * Hợp đồng chung của mọi driver lưu trữ. Service nghiệp vụ chỉ biết interface
- * này nên đổi local ↔ S3 không phải sửa code module nào.
+ * Common contract for all storage drivers. Business services only depend on
+ * this interface, so switching between local and S3 doesn't require
+ * changing any module's code.
  */
 export interface StorageDriver {
   readonly kind: 'local' | 's3';
   put(params: PutObjectParams): Promise<StoredFile>;
-  /** Xoá file cũ – không được ném lỗi khi file không tồn tại. */
+  /** Removes an old file — must not throw when the file doesn't exist. */
   remove(key: string): Promise<void>;
 }

@@ -17,11 +17,12 @@ const WEBP = Buffer.concat([
 ]);
 
 /**
- * Payload "không phải ảnh" đại diện cho một file thực thi được đổi tên thành
- * .jpg. Cố ý dựng bằng mã byte thay vì viết thẳng chuỗi script vào source:
- * antivirus của Windows quét cả file .ts trong repo và sẽ CÁCH LY file test
- * nếu nó chứa nguyên văn một web shell — mất file, không phải mất test.
- * Ở đây là `<?php ` (0x3c 0x3f 0x70 0x68 0x70 0x20) + phần đệm.
+ * A "non-image" payload representing an executable file renamed to .jpg.
+ * Deliberately built from raw byte codes instead of embedding the literal
+ * script string in source: Windows antivirus scans .ts files in the repo
+ * and will QUARANTINE the test file if it contains a literal web shell
+ * signature — losing the file, not just failing the test.
+ * This is `<?php ` (0x3c 0x3f 0x70 0x68 0x70 0x20) plus padding.
  */
 const NON_IMAGE = Buffer.concat([
   Buffer.from([0x3c, 0x3f, 0x70, 0x68, 0x70, 0x20]),
@@ -42,23 +43,23 @@ function errorCode(run: () => unknown): string {
 }
 
 describe('detectImageKind', () => {
-  it('nhận diện JPEG / PNG / WEBP theo magic bytes', () => {
+  it('detects JPEG / PNG / WEBP by magic bytes', () => {
     expect(detectImageKind(JPEG)?.mime).toBe('image/jpeg');
     expect(detectImageKind(PNG)?.mime).toBe('image/png');
     expect(detectImageKind(WEBP)?.mime).toBe('image/webp');
   });
 
-  it('trả null cho nội dung không phải ảnh', () => {
+  it('returns null for non-image content', () => {
     expect(detectImageKind(NON_IMAGE)).toBeNull();
   });
 
-  it('trả null cho buffer quá ngắn để đọc chữ ký', () => {
+  it('returns null when the buffer is too short to read a signature', () => {
     expect(detectImageKind(Buffer.from([0xff, 0xd8]))).toBeNull();
   });
 });
 
 describe('assertValidAvatar', () => {
-  it('lấy đuôi file từ NỘI DUNG, không lấy từ tên file client gửi', () => {
+  it('derives the file extension from CONTENT, not the client-supplied filename', () => {
     const result = assertValidAvatar(
       { buffer: PNG, size: PNG.length, originalname: 'anh.jpg' },
       MAX_BYTES,
@@ -67,13 +68,13 @@ describe('assertValidAvatar', () => {
     expect(result.kind.extension).toBe('png');
   });
 
-  it('thiếu file → 400 AVATAR_REQUIRED', () => {
+  it('missing file → 400 AVATAR_REQUIRED', () => {
     expect(errorCode(() => assertValidAvatar(undefined, MAX_BYTES))).toBe(
       'AVATAR_REQUIRED',
     );
   });
 
-  it('file rỗng → 400 AVATAR_REQUIRED', () => {
+  it('empty file → 400 AVATAR_REQUIRED', () => {
     expect(
       errorCode(() =>
         assertValidAvatar({ buffer: Buffer.alloc(0), size: 0 }, MAX_BYTES),
@@ -81,7 +82,7 @@ describe('assertValidAvatar', () => {
     ).toBe('AVATAR_REQUIRED');
   });
 
-  it('vượt 2MB → 400 AVATAR_TOO_LARGE', () => {
+  it('exceeds 2MB → 400 AVATAR_TOO_LARGE', () => {
     const big = Buffer.concat([JPEG, Buffer.alloc(MAX_BYTES)]);
 
     expect(
@@ -91,7 +92,7 @@ describe('assertValidAvatar', () => {
     ).toBe('AVATAR_TOO_LARGE');
   });
 
-  it('client khai size nhỏ hơn thực tế vẫn bị chặn (lấy max của 2 giá trị)', () => {
+  it('client declaring a smaller size than actual is still blocked (uses the max of the two)', () => {
     const big = Buffer.concat([JPEG, Buffer.alloc(MAX_BYTES)]);
 
     expect(
@@ -99,7 +100,7 @@ describe('assertValidAvatar', () => {
     ).toBe('AVATAR_TOO_LARGE');
   });
 
-  it('file thực thi đổi tên thành .jpg → 400 AVATAR_INVALID_TYPE', () => {
+  it('executable file renamed to .jpg → 400 AVATAR_INVALID_TYPE', () => {
     expect(
       errorCode(() =>
         assertValidAvatar(
@@ -115,7 +116,7 @@ describe('assertValidAvatar', () => {
     ).toBe('AVATAR_INVALID_TYPE');
   });
 
-  it('đúng ngưỡng 2MB vẫn được chấp nhận', () => {
+  it('accepted exactly at the 2MB threshold', () => {
     const exact = Buffer.concat([JPEG, Buffer.alloc(MAX_BYTES - JPEG.length)]);
 
     expect(

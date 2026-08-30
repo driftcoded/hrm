@@ -8,13 +8,16 @@ import { LocalStorageDriver } from './transports/local-storage.driver';
 import { S3StorageDriver } from './transports/s3-storage.driver';
 
 /**
- * Chọn driver lưu trữ theo `STORAGE_DRIVER` (cùng khuôn với MailModule):
- *  - `local` (mặc định): ghi file xuống `uploads/` → upload avatar chạy được
- *    ở local mà không cần AWS credentials.
- *  - `s3`: upload thật lên S3 (chỉ khi đã có credentials + đã cài SDK).
+ * Selects the storage driver via `STORAGE_DRIVER` (same pattern as
+ * MailModule):
+ *  - `local` (default): writes files to `uploads/` so avatar upload works
+ *    locally without AWS credentials.
+ *  - `s3`: uploads to a real S3 bucket (requires credentials + the SDK
+ *    installed).
  *
- * Ở production mà vẫn để `local` thì log cảnh báo rõ ràng: file nằm trên đĩa
- * của MỘT instance nên PM2 cluster nhiều máy sẽ đọc không thấy ảnh.
+ * Logs a clear warning if `local` is still set in production: files would
+ * live on a single instance's disk, so other machines in a PM2 cluster
+ * wouldn't be able to read them.
  */
 @Global()
 @Module({

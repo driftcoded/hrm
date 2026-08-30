@@ -1,35 +1,37 @@
 /**
- * Abstraction cache dùng chung cho toàn app (lockout counter, reset-password
- * token, cache master data ở phase sau...).
+ * Shared cache abstraction for the whole app (lockout counters, password-reset
+ * tokens, master-data caching in a later phase...).
  *
- * Lý do có abstraction này: kiến trúc gốc (docs/architecture.md §7.2, §8) dùng
- * Redis, nhưng dự án hiện KHÔNG chạy Redis (quyết định của chủ dự án: không
- * Redis, không Docker ở giai đoạn này). Toàn bộ business logic chỉ phụ thuộc
- * vào interface này, nên khi cần chỉ việc thêm `RedisCacheService` và đổi
- * provider trong `CacheModule` — không phải sửa AuthService.
+ * Why this abstraction exists: the original architecture (docs/architecture.md
+ * §7.2, §8) calls for Redis, but the project currently does NOT run Redis (the
+ * project owner's decision: no Redis, no Docker at this stage). All business
+ * logic depends only on this interface, so adding Redis later just means
+ * implementing `RedisCacheService` and swapping the provider in `CacheModule`
+ * — no changes needed in AuthService.
  */
 export abstract class CacheService {
   abstract get<T>(key: string): Promise<T | undefined>;
 
-  /** @param ttlSeconds thời gian sống; bỏ trống = không hết hạn. */
+  /** @param ttlSeconds Time to live; omit for no expiry. */
   abstract set<T>(key: string, value: T, ttlSeconds?: number): Promise<void>;
 
   abstract del(key: string): Promise<void>;
 
   /**
-   * Tăng counter lên 1 và trả về giá trị mới. Nếu key chưa tồn tại thì tạo mới
-   * với giá trị 1 và áp dụng `ttlSeconds` (giống `INCR` + `EXPIRE NX` của Redis:
-   * TTL chỉ set ở lần đầu, các lần incr sau KHÔNG gia hạn).
+   * Increments the counter by 1 and returns the new value. If the key doesn't
+   * exist yet, it is created with value 1 and `ttlSeconds` applied (mirrors
+   * Redis `INCR` + `EXPIRE NX`: the TTL is only set on the first call, later
+   * increments do NOT extend it).
    */
   abstract incr(key: string, ttlSeconds?: number): Promise<number>;
 
   /**
-   * Số giây còn lại trước khi key hết hạn.
-   * `-2` = key không tồn tại, `-1` = key tồn tại nhưng không có TTL
-   * (giữ đúng quy ước của Redis `TTL`).
+   * Seconds remaining before the key expires.
+   * `-2` = key does not exist, `-1` = key exists but has no TTL
+   * (matches Redis `TTL` conventions).
    */
   abstract ttl(key: string): Promise<number>;
 
-  /** Xoá toàn bộ key. Dùng cho test / maintenance, KHÔNG dùng trong business logic. */
+  /** Clears all keys. For tests / maintenance only, NOT for use in business logic. */
   abstract reset(): Promise<void>;
 }

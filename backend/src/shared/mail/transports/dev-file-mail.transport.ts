@@ -8,13 +8,15 @@ import {
 } from '../mail-transport.interface';
 
 /**
- * Transport DEV: không gửi email thật, render ra file HTML để đọc/kiểm tra bằng
- * mắt hoặc bằng test tự động: `logs/mail/<timestamp>-<to>.html`.
+ * Dev transport: does not send real email, instead renders it as an HTML
+ * file for manual inspection or automated tests: `logs/mail/<timestamp>-<to>.html`.
  *
- * ⚠️ CHỈ dùng cho dev/test. File này chứa nội dung email đầy đủ (bao gồm link
- * reset password), nên `logs/` phải luôn nằm trong .gitignore và transport này
- * KHÔNG được bật ở production (xem MailModule: production yêu cầu MAIL_TRANSPORT=ses).
- * Log line chỉ ghi đường dẫn file + người nhận, KHÔNG ghi token (CLAUDE.md §Bảo mật).
+ * Dev/test only. The file contains the full email body (including password
+ * reset links), so `logs/` must always stay in .gitignore, and this
+ * transport must never be enabled in production (see MailModule, which
+ * warns when MAIL_TRANSPORT=dev is left set in production).
+ * The log line only records the file path and recipient, never the token
+ * (see CLAUDE.md security rules).
  */
 export class DevFileMailTransport implements MailTransport {
   readonly kind = 'dev' as const;

@@ -1,19 +1,20 @@
 import { RenderedMailTemplate } from './reset-password.template';
 
 export interface NotificationTemplateData {
-  /** Tên hiển thị người nhận. */
+  /** Recipient's display name. */
   recipientName: string;
   subject: string;
-  /** Nội dung người gửi gõ vào, dạng văn bản thuần. */
+  /** Sender-authored content, as plain text. */
   body: string;
 }
 
 /**
- * Template email thông báo do nhân sự tự soạn (`POST /employees/email`).
+ * Template for HR-authored announcement emails (`POST /employees/email`).
  *
- * Nội dung là văn bản THUẦN, không phải HTML: người gửi gõ trong một ô textarea,
- * và nhận HTML từ trình duyệt rồi phát thẳng vào hộp thư người khác là mở đường
- * cho việc chèn thẻ tuỳ ý. Hàm này escape toàn bộ rồi mới dựng đoạn văn.
+ * `body` is treated as PLAIN TEXT, never HTML: it comes straight from a
+ * textarea, and trusting it as HTML would let the sender inject arbitrary
+ * markup into another person's inbox. Everything is escaped before the
+ * paragraphs are assembled.
  */
 export function renderNotificationEmail(
   data: NotificationTemplateData,
@@ -34,7 +35,7 @@ ${paragraphs.map((line) => `  <p>${escapeHtml(line).replace(/\n/g, '<br />')}</p
   return { subject: data.subject, html, text };
 }
 
-/** Tách theo dòng trống — mỗi khối thành một đoạn, xuống dòng đơn giữ nguyên. */
+/** Splits on blank lines — each block becomes a paragraph; single line breaks within a block are preserved. */
 function toParagraphs(body: string): string[] {
   return body
     .split(/\r?\n\s*\r?\n/)

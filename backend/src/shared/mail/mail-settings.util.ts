@@ -13,9 +13,10 @@ export interface ResolvedSmtpConfig {
 }
 
 /**
- * Đọc + giải mã cấu hình SMTP hiện tại từ DB. Trả `null` khi admin CHƯA cấu
- * hình đủ (thiếu host/port/fromEmail) — caller (transport thật vs. nút "gửi
- * thử") tự quyết định thông báo lỗi phù hợp ngữ cảnh.
+ * Reads + decrypts the current SMTP configuration from the DB. Returns
+ * `null` when the admin has NOT configured it completely (missing
+ * host/port/fromEmail) — the caller (real transport vs. the "send test"
+ * button) decides which error message fits its context.
  */
 export function toResolvedSmtpConfig(
   row: SystemMailSettings,

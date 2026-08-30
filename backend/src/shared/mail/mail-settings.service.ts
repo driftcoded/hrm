@@ -12,9 +12,10 @@ import { resolveSmtpConfig } from './mail-settings.util';
 import { sendSmtpMessage } from './transports/smtp-mail.transport';
 
 /**
- * Toàn bộ business logic của cấu hình SMTP (CLAUDE.md §Kiến trúc module).
- * CHỈ admin gọi được (chặn ở controller) — service này giữ nguyên tắc "không
- * bao giờ trả mật khẩu thật ra khỏi tầng này", kể cả cho chính admin.
+ * All business logic for SMTP configuration lives here (CLAUDE.md §Module
+ * architecture). Only an admin can call this (enforced at the controller) —
+ * this service upholds the rule "never let the real password leave this
+ * layer", even back to the admin themselves.
  */
 @Injectable()
 export class MailSettingsService {
@@ -41,7 +42,7 @@ export class MailSettingsService {
       updatedBy: userId,
     };
 
-    // Bỏ trống smtpPassword = giữ nguyên; chỉ ghi đè khi client gửi giá trị mới.
+    // Blank smtpPassword = keep the existing one; only overwrite when the client sends a new value.
     if (dto.smtpPassword) {
       patch.smtpPasswordEncrypted = encryptSecret(
         dto.smtpPassword,
@@ -55,9 +56,10 @@ export class MailSettingsService {
   }
 
   /**
-   * Gửi thử bằng cấu hình ĐANG LƯU trong DB — KHÔNG đi qua `MAIL_TRANSPORT`
-   * env, vì mục đích của nút này là kiểm chứng SMTP thật hoạt động dù app
-   * đang chạy `MAIL_TRANSPORT=dev` ở môi trường local.
+   * Sends a test email using the configuration CURRENTLY STORED in the DB —
+   * does NOT go through the `MAIL_TRANSPORT` env var, because the whole
+   * point of this button is to verify real SMTP works even while the app is
+   * running with `MAIL_TRANSPORT=dev` locally.
    */
   async sendTest(to: string): Promise<TestMailResponseDto> {
     const config = await resolveSmtpConfig(this.repository, this.encryptionKey);
@@ -80,12 +82,13 @@ export class MailSettingsService {
 
       return { sent: true, reference: info.messageId ?? 'unknown' };
     } catch (error) {
-      // KHÔNG để lỗi SMTP thật (sai mật khẩu, sai port, bị chặn...) rơi vào
-      // catch-all của HttpExceptionFilter: ở production message sẽ bị thay
-      // bằng "Internal server error" chung chung, làm mất hết tác dụng của
-      // nút "gửi thử" (admin cần biết CHÍNH XÁC vì sao SMTP không kết nối
-      // được). Nội dung lỗi ở đây an toàn để lộ: đây là hành động chủ động
-      // của chính admin, không phải request thường của user khác.
+      // Do NOT let the real SMTP error (wrong password, wrong port, blocked...)
+      // fall through to HttpExceptionFilter's catch-all: in production the
+      // message would be replaced with a generic "Internal server error",
+      // defeating the whole purpose of the "send test" button (the admin
+      // needs to know EXACTLY why SMTP failed to connect). Exposing the raw
+      // error here is safe: this is the admin's own deliberate action, not
+      // an ordinary request from another user.
       throw new UnprocessableEntityException({
         code: 'MAIL_TEST_FAILED',
         message:

@@ -13,13 +13,13 @@ import { DevFileMailTransport } from './transports/dev-file-mail.transport';
 import { SmtpMailTransport } from './transports/smtp-mail.transport';
 
 /**
- * Chọn driver mail theo `MAIL_TRANSPORT`:
- *  - `dev` (mặc định): ghi email ra file HTML trong logs/mail → test được
- *    forgot-password ở local mà không cần cấu hình SMTP.
- *  - `smtp`: gửi thật qua SMTP; host/port/user/password đọc từ
- *    `system_mail_settings` (DB, admin cấu hình qua `/settings/mail`).
+ * Selects the mail driver based on `MAIL_TRANSPORT`:
+ *  - `dev` (default): writes emails to an HTML file under logs/mail, so
+ *    forgot-password can be tested locally without configuring SMTP.
+ *  - `smtp`: sends for real via SMTP; host/port/user/password are read from
+ *    `system_mail_settings` (DB, configured by an admin via `/settings/mail`).
  *
- * Ở production mà vẫn để `dev` thì log cảnh báo rõ ràng (email sẽ KHÔNG được gửi).
+ * Logs a clear warning if still set to `dev` in production (emails will NOT be sent).
  */
 @Global()
 @Module({

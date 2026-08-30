@@ -15,10 +15,11 @@ import { MailSettingsRepository } from '../mail-settings.repository';
 import { resolveSmtpConfig, ResolvedSmtpConfig } from '../mail-settings.util';
 
 /**
- * Gửi mail thật qua SMTP. Cấu hình đọc TỪ DB ở MỖI lần gửi (không cache
- * trong bộ nhớ): số lượng email của một hệ thống HR nội bộ rất thấp, không
- * đáng đánh đổi lấy nguy cơ gửi bằng cấu hình cũ sau khi admin vừa đổi mật
- * khẩu SMTP mà app chưa kịp restart.
+ * Sends real email via SMTP. Configuration is read FROM the database on
+ * EVERY send (never cached in memory): an internal HR system's email volume
+ * is low enough that the performance cost isn't worth risking a send with
+ * stale credentials right after an admin changes the SMTP password but
+ * before the app restarts.
  */
 @Injectable()
 export class SmtpMailTransport implements MailTransport {
@@ -62,11 +63,11 @@ export class SmtpMailTransport implements MailTransport {
 }
 
 /**
- * Dựng transporter + gửi 1 email qua nodemailer. Tách khỏi class trên để
- * `MailSettingsService.sendTest()` (nút "gửi thử" trong /settings/mail) dùng
- * lại được CÙNG một logic gửi, thay vì đi qua `MAIL_TRANSPORT` env (có thể
- * đang là `dev` trong lúc admin muốn kiểm tra SMTP thật ngay trên môi trường
- * dev).
+ * Builds a transporter and sends one email via nodemailer. Kept outside the
+ * class above so `MailSettingsService.sendTest()` (the "send test" button on
+ * /settings/mail) can reuse the exact same send logic without going through
+ * the `MAIL_TRANSPORT` env var, which may be set to `dev` while an admin
+ * wants to verify real SMTP delivery in the dev environment.
  */
 export async function sendSmtpMessage(
   config: ResolvedSmtpConfig,

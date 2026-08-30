@@ -8,25 +8,26 @@ import { CacheService } from './cache.service';
 
 interface CacheEntry {
   value: unknown;
-  /** epoch ms; `undefined` = không hết hạn. */
+  /** Epoch ms; `undefined` = no expiry. */
   expiresAt?: number;
 }
 
 const SWEEP_INTERVAL_MS = 60_000;
 
 /**
- * Driver cache in-memory (Map + TTL cho từng key + sweep định kỳ).
+ * In-memory cache driver (Map + per-key TTL + periodic sweep).
  *
- * ⚠️ GIỚI HẠN – PHẢI xem lại trước khi lên production:
- *  1. State nằm trong RAM của process → restart app là MẤT toàn bộ counter
- *     lockout và token reset password đang chờ.
- *  2. KHÔNG chia sẻ giữa nhiều process → chạy PM2 cluster (nhiều worker) thì
- *     mỗi worker có counter riêng, đếm login sai sẽ không chính xác và token
- *     reset password tạo ở worker A không đọc được ở worker B.
- *  3. Không có eviction theo dung lượng → chỉ dùng cho dữ liệu nhỏ, có TTL.
+ * WARNING – LIMITATIONS to revisit before going to production:
+ *  1. State lives in the process's RAM → restarting the app LOSES all lockout
+ *     counters and pending password-reset tokens.
+ *  2. NOT shared across processes → running a PM2 cluster (multiple workers)
+ *     means each worker has its own counters, so failed-login counts become
+ *     inaccurate and a password-reset token created on worker A can't be read
+ *     on worker B.
+ *  3. No size-based eviction → only suitable for small, TTL-bound data.
  *
- * Khi cần khắc phục: thêm `RedisCacheService implements CacheService` và đổi
- * provider trong `CacheModule`. Business logic không phải sửa dòng nào.
+ * To address these: add a `RedisCacheService implements CacheService` and
+ * swap the provider in `CacheModule`. No business logic needs to change.
  */
 @Injectable()
 export class InMemoryCacheService
@@ -39,7 +40,7 @@ export class InMemoryCacheService
 
   onModuleInit(): void {
     this.sweepTimer = setInterval(() => this.sweep(), SWEEP_INTERVAL_MS);
-    // Không giữ event loop sống chỉ vì timer này.
+    // Don't keep the event loop alive just for this timer.
     this.sweepTimer.unref();
     this.logger.log(
       'Cache driver: in-memory (state mất khi restart, không dùng được với PM2 cluster)',
@@ -87,7 +88,7 @@ export class InMemoryCacheService
 
     const current = typeof entry.value === 'number' ? entry.value : 0;
     const next = current + 1;
-    // Giữ nguyên expiresAt: TTL chỉ tính từ lần incr đầu tiên.
+    // Leave expiresAt unchanged: the TTL is only counted from the first incr.
     entry.value = next;
     return Promise.resolve(next);
   }

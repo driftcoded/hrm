@@ -14,17 +14,19 @@ import {
 } from 'class-validator';
 
 /**
- * `PATCH /settings/mail`. Các field lõi (host/port/secure/fromEmail) là BẮT
- * BUỘC trên mỗi lần gửi — cấu hình SMTP không có ý nghĩa nếu thiếu, và không
- * dùng `PartialType` ở đây để tránh lỗi `class-validator` đã gặp ở Giai đoạn
- * 2.1 (`@IsOptional()` coi `null` là "bỏ qua validate" luôn cho cả field
- * không nullable — xem common/utils/reject-null.util.ts).
+ * `PATCH /settings/mail`. The core fields (host/port/secure/fromEmail) are
+ * REQUIRED on every request — an SMTP config is meaningless without them —
+ * and `PartialType` is deliberately not used here to avoid the
+ * `class-validator` bug hit in Phase 2.1 (`@IsOptional()` treats `null` as
+ * "skip validation" even for non-nullable fields — see
+ * common/utils/reject-null.util.ts).
  *
- * `smtpUsername`/`smtpFromName` là `string | null` hợp lệ (SMTP relay ẩn danh
- * không cần username; from-name rỗng thì service tự dùng lại from-email).
- * `smtpPassword` bỏ trống (undefined HOẶC '') = GIỮ NGUYÊN mật khẩu đã lưu —
- * endpoint này không có cách nào đọc lại mật khẩu cũ để hiện trên form, nên
- * "để trống" phải có nghĩa là "không đổi", không phải "xoá".
+ * `smtpUsername`/`smtpFromName` legitimately accept `string | null` (an
+ * anonymous SMTP relay needs no username; an empty from-name falls back to
+ * from-email in the service). Leaving `smtpPassword` empty (undefined OR '')
+ * means KEEP the currently saved password — this endpoint has no way to read
+ * back the old password to show on the form, so "left blank" must mean
+ * "unchanged", not "cleared".
  */
 export class UpdateMailSettingsDto {
   @ApiProperty({ example: 'smtp.gmail.com', maxLength: 255 })

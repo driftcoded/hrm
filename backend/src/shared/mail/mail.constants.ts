@@ -1,2 +1,2 @@
-/** DI token cho MailTransport (driver được chọn theo config trong MailModule). */
+/** DI token for MailTransport (the driver is selected based on config in MailModule). */
 export const MAIL_TRANSPORT = 'MAIL_TRANSPORT';

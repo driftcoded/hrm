@@ -9,12 +9,12 @@ import {
 import { User } from '../../../modules/users/entities/user.entity';
 
 /**
- * Cấu hình SMTP dùng để gửi email thật (thay AWS SES). CHỈ 1 DÒNG (id luôn = 1,
- * ràng buộc CHECK ở migration).
+ * SMTP configuration used to send real emails (replaces AWS SES). SINGLE ROW
+ * ONLY (id is always 1, enforced by a CHECK constraint in the migration).
  *
- * `smtpPasswordEncrypted` là ciphertext AES-256-GCM (xem
- * common/utils/encryption.util.ts + settings.config.ts) — KHÔNG BAO GIỜ giải
- * mã ở đây; entity chỉ mang dữ liệu thô, giải mã là việc của service.
+ * `smtpPasswordEncrypted` is AES-256-GCM ciphertext (see
+ * common/utils/encryption.util.ts + settings.config.ts) — NEVER decrypt it
+ * here; the entity only carries raw data, decryption is the service's job.
  */
 @Entity('system_mail_settings')
 export class SystemMailSettings {

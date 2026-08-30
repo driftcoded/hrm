@@ -6,20 +6,22 @@ import {
 } from '../storage-driver.interface';
 
 /**
- * Driver AWS S3 – code path cho production.
+ * AWS S3 driver – the production code path.
  *
- * ⚠️ TRẠNG THÁI: CHƯA ĐƯỢC KÍCH HOẠT / CHƯA TỪNG CHẠY THẬT — giống hệt
- * `SesMailTransport`. Dự án chưa có AWS credentials nên `@aws-sdk/client-s3`
- * CHƯA được cài vào package.json; SDK được nạp bằng dynamic import với
- * specifier không phải literal để TypeScript không đòi package lúc build.
- * Mặc định `STORAGE_DRIVER=local` → toàn bộ upload ở dev/test ghi xuống đĩa.
+ * ⚠️ STATUS: NOT ACTIVATED / NEVER RUN AGAINST REAL AWS — same situation as
+ * `SesMailTransport`. The project has no AWS credentials yet, so
+ * `@aws-sdk/client-s3` is NOT installed in package.json; the SDK is loaded
+ * via a dynamic import with a non-literal specifier so TypeScript doesn't
+ * require the package at build time. `STORAGE_DRIVER=local` is the default,
+ * so all dev/test uploads are written to disk.
  *
- * Khi lên production:
+ * To go to production:
  *  1. `npm install @aws-sdk/client-s3`
- *  2. Cấp credentials (IAM role của EC2/ECS là tốt nhất)
- *  3. Đặt `STORAGE_DRIVER=s3`, `S3_BUCKET`, `AWS_REGION`
- *  4. PLAN §8.1: bucket phải private + truy cập qua presigned URL TTL 15 phút
- *     (hiện `url` đang dựng dạng public object URL — sẽ đổi ở Giai đoạn 8).
+ *  2. Provision credentials (an EC2/ECS IAM role is preferred)
+ *  3. Set `STORAGE_DRIVER=s3`, `S3_BUCKET`, `AWS_REGION`
+ *  4. PLAN §8.1: the bucket must be private, accessed via a presigned URL
+ *     with a 15-minute TTL (currently `url` is built as a public object URL
+ *     — to be changed in Phase 8).
  */
 export class S3StorageDriver implements StorageDriver {
   readonly kind = 's3' as const;
@@ -65,8 +67,8 @@ export class S3StorageDriver implements StorageDriver {
         new sdk.DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
       );
     } catch (error) {
-      // Xoá ảnh cũ chỉ là dọn rác: hỏng ở bước này KHÔNG được làm hỏng
-      // request đang cập nhật avatar mới.
+      // Deleting the old image is just cleanup: a failure here must NOT fail
+      // the request that is updating the new avatar.
       this.logger.warn(
         `Không xoá được object S3 ${key}: ${error instanceof Error ? error.message : 'lỗi không xác định'}`,
       );
@@ -100,7 +102,7 @@ export class S3StorageDriver implements StorageDriver {
   }
 }
 
-/** Chữ ký tối thiểu của @aws-sdk/client-s3 mà driver này dùng. */
+/** Minimal type signature of @aws-sdk/client-s3 that this driver relies on. */
 interface S3SdkLike {
   S3Client: new (config: { region: string }) => {
     send(command: unknown): Promise<unknown>;
