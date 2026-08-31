@@ -54,10 +54,6 @@ export const envValidationSchema = Joi.object({
     otherwise: Joi.optional().allow(''),
   }),
   S3_PUBLIC_BASE_URL: Joi.string().uri().optional().allow(''),
-  AVATAR_MAX_BYTES: Joi.number()
-    .integer()
-    .min(1)
-    .default(2 * 1024 * 1024),
 
   /*
    * `SEED_DEFAULT_PASSWORD` CỐ TÌNH KHÔNG NẰM Ở ĐÂY.

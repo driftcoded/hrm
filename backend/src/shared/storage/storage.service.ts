@@ -5,6 +5,7 @@ import { StorageConfig } from '@/config/storage.config';
 import {
   assertValidAvatar,
   assertValidImage,
+  AVATAR_MAX_BYTES,
   UploadedFileLike,
 } from './image-file.util';
 import { StorageDriver, StoredFile } from './storage-driver.interface';
@@ -27,7 +28,7 @@ export class StorageService {
   }
 
   get avatarMaxBytes(): number {
-    return this.storage.avatarMaxBytes;
+    return AVATAR_MAX_BYTES;
   }
 
   /**

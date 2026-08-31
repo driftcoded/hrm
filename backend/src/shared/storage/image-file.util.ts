@@ -15,6 +15,14 @@ export const ALLOWED_AVATAR_MIMES: readonly string[] = [
   'image/webp',
 ];
 
+/**
+ * Max avatar/logo/favicon size in bytes (api-spec.md §3) — a fixed business
+ * rule, not environment-specific, so it's a constant rather than an env var:
+ * every environment must enforce the same limit, and letting `.env` override
+ * it would let a deployment silently drift from the documented spec.
+ */
+export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+
 const PNG_SIGNATURE = Buffer.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
 ]);

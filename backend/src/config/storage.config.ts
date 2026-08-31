@@ -26,8 +26,6 @@ export interface StorageConfig {
    * mặc định `https://<bucket>.s3.<region>.amazonaws.com`.
    */
   s3PublicBaseUrl: string;
-  /** Giới hạn dung lượng avatar (byte) – api-spec.md §3 POST /employees/:id/avatar. */
-  avatarMaxBytes: number;
 }
 
 export const storageConfig = registerAs('storage', (): StorageConfig => {
@@ -45,6 +43,5 @@ export const storageConfig = registerAs('storage', (): StorageConfig => {
     s3Bucket: process.env.S3_BUCKET ?? '',
     awsRegion: process.env.AWS_REGION ?? 'ap-southeast-1',
     s3PublicBaseUrl: process.env.S3_PUBLIC_BASE_URL ?? '',
-    avatarMaxBytes: Number(process.env.AVATAR_MAX_BYTES ?? 2 * 1024 * 1024),
   };
 });
